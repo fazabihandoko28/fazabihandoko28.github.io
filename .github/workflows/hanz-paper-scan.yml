@@ -1,0 +1,68 @@
+name: HANZ Paper Scan
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "30 13 * * 1-5"
+
+permissions:
+  contents: write
+
+jobs:
+  scan-and-report:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install HANZ Intelligence
+        run: python -m pip install -e .
+
+      - name: Run BEI paper scan
+        run: >-
+          python -m hanz_app.paper_scan
+          --universe config/universe/pilot_universe.csv
+          --markets BEI
+          --period 1y
+          --interval 1d
+          --candidate-limit 5
+          --output artifacts/paper_scans/latest.json
+
+      - name: Update paper journal
+        run: >-
+          python -m hanz_app.update_journal
+          --scan artifacts/paper_scans/latest.json
+          --journal artifacts/paper_trading/journal.json
+
+      - name: Render Alpha report
+        run: >-
+          python -m hanz_app.render_report
+          --input artifacts/paper_scans/latest.json
+          --output dashboard/index.html
+
+      - name: Commit generated paper results
+        run: |
+          git config user.name "HANZ Intelligence Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add artifacts/paper_scans/latest.json artifacts/paper_trading/journal.json dashboard/index.html
+          if git diff --cached --quiet; then
+            echo "No paper result changes to commit."
+          else
+            git commit -m "Update HANZ paper scan report"
+            git push
+          fi
+
+      - name: Upload Alpha report artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: hanz-alpha-report
+          path: |
+            dashboard/index.html
+            artifacts/paper_scans/latest.json
+            artifacts/paper_trading/journal.json
