@@ -1,0 +1,5 @@
+{
+  "data_root": "./market_data",
+  "markets": ["BEI", "ADX"],
+  "output": "./scan_result.json"
+}
