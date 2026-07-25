@@ -1,1 +1,66 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>HANZ Alpha Report</title></head><body><h1>HANZ Intelligence</h1><p>No paper scan has been generated yet. Run the “HANZ Paper Scan” workflow.</p></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HANZ Intelligence Alpha Report</title>
+<style>
+:root { color-scheme: dark; --bg:#08101d; --panel:#101b2d; --line:#263650; --text:#f3f6fb; --muted:#9eacc2; }
+* { box-sizing:border-box; }
+body { margin:0; font-family:Inter,Segoe UI,Arial,sans-serif; background:var(--bg); color:var(--text); }
+main { max-width:1100px; margin:auto; padding:28px 18px 48px; }
+.hero { padding:24px; border:1px solid var(--line); border-radius:22px; background:var(--panel); }
+h1 { margin:0 0 8px; font-size:clamp(28px,5vw,46px); }
+.motto { margin:0 0 18px; font-size:18px; }
+.notice { padding:12px 14px; border-radius:12px; background:#2c2430; color:#ffd7e2; }
+.meta-row { display:flex; gap:10px; flex-wrap:wrap; margin-top:16px; color:var(--muted); }
+.meta-row span,.counts span,.metrics span { border:1px solid var(--line); border-radius:999px; padding:7px 10px; }
+.market-section { margin-top:28px; }
+.section-head { display:flex; align-items:end; justify-content:space-between; gap:16px; margin-bottom:14px; }
+h2 { margin:0; font-size:28px; }
+.section-head p { margin:5px 0 0; color:var(--muted); }
+.counts { display:flex; gap:8px; flex-wrap:wrap; color:var(--muted); font-size:14px; }
+.candidate-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:14px; }
+.candidate-card,.empty { background:var(--panel); border:1px solid var(--line); border-radius:18px; padding:18px; }
+.candidate-head { display:flex; justify-content:space-between; gap:12px; align-items:start; }
+.symbol { font-size:25px; font-weight:750; }
+.market,.meta { color:var(--muted); font-size:13px; }
+.status { border-radius:999px; padding:8px 12px; font-weight:800; font-size:13px; }
+.status.ready { background:#123d2c; color:#7df1b7; } .status.wait { background:#3c3417; color:#ffe477; }
+.status.risk { background:#452918; color:#ffb877; } .status.reject { background:#431e27; color:#ff9bae; }
+.metrics { display:flex; flex-wrap:wrap; gap:7px; margin:15px 0; font-size:12px; color:var(--muted); }
+ul { margin:0 0 15px; padding-left:18px; line-height:1.55; }
+footer { margin-top:30px; color:var(--muted); font-size:13px; }
+@media(max-width:600px) { .section-head { align-items:start; flex-direction:column; } }
+</style>
+</head>
+<body><main>
+<section class="hero">
+  <h1>HANZ Intelligence</h1>
+  <p class="motto">HANZ isn't loyal to stocks. HANZ is loyal to profits.</p>
+  <div class="notice">PAPER-TRADE RESEARCH ONLY — not approved for live-money execution.</div>
+  <div class="meta-row">
+    <span>Generated: 2026-07-25T19:02:42.792730+00:00</span>
+    <span>Source: YAHOO_FINANCE_RESEARCH_ONLY</span>
+    <span>Grade: RESEARCH</span>
+    <span>Delayed: True</span>
+  </div>
+</section>
+
+    <section class="market-section">
+      <div class="section-head">
+        <div>
+          <h2>BEI</h2>
+          <p>10 symbols scanned</p>
+        </div>
+        <div class="counts">
+          <span>0 candidates</span>
+          <span>0 rejected</span>
+          <span>10 errors</span>
+        </div>
+      </div>
+      <div class="candidate-grid"><div class="empty">No candidate met the current evidence standard.</div></div>
+    </section>
+    
+<footer>Evidence-first output. A candidate is not a guaranteed profitable trade.</footer>
+</main></body></html>

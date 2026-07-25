@@ -1,0 +1,267 @@
+{
+  "generated_at": "2026-07-25T19:02:42.792730+00:00",
+  "mode": "PAPER_TRADE_RESEARCH",
+  "source": {
+    "name": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "grade": "RESEARCH",
+    "delayed": true,
+    "allowed_for_live_trade": false,
+    "notes": "Public research source. Coverage and timeliness must be independently checked."
+  },
+  "instruction": "Do not use this research feed for live-money execution.",
+  "markets": [
+    {
+      "market": "BEI",
+      "universe_size": 10,
+      "candidate_count": 0,
+      "reviewed_count": 0,
+      "rejected_count": 0,
+      "error_count": 10,
+      "candidates": [],
+      "reviewed": [],
+      "rejected": [],
+      "errors": [
+        {
+          "market": "BEI",
+          "symbol": "ADRO",
+          "tier": "DATA_ERROR",
+          "entry_status": "WAIT",
+          "selection_reasons": [],
+          "rejection_reasons": [
+            "Data processing failed"
+          ],
+          "vetoes": [],
+          "signal_timestamp": null,
+          "signal_close": null,
+          "evidence": {
+            "positive": [],
+            "neutral": [],
+            "warning": [],
+            "negative": [],
+            "unknown": []
+          },
+          "audit": {
+            "error": "No data returned for ADRO.JK"
+          },
+          "error": "No data returned for ADRO.JK"
+        },
+        {
+          "market": "BEI",
+          "symbol": "ANTM",
+          "tier": "DATA_ERROR",
+          "entry_status": "WAIT",
+          "selection_reasons": [],
+          "rejection_reasons": [
+            "Data processing failed"
+          ],
+          "vetoes": [],
+          "signal_timestamp": null,
+          "signal_close": null,
+          "evidence": {
+            "positive": [],
+            "neutral": [],
+            "warning": [],
+            "negative": [],
+            "unknown": []
+          },
+          "audit": {
+            "error": "No data returned for ANTM.JK"
+          },
+          "error": "No data returned for ANTM.JK"
+        },
+        {
+          "market": "BEI",
+          "symbol": "ASII",
+          "tier": "DATA_ERROR",
+          "entry_status": "WAIT",
+          "selection_reasons": [],
+          "rejection_reasons": [
+            "Data processing failed"
+          ],
+          "vetoes": [],
+          "signal_timestamp": null,
+          "signal_close": null,
+          "evidence": {
+            "positive": [],
+            "neutral": [],
+            "warning": [],
+            "negative": [],
+            "unknown": []
+          },
+          "audit": {
+            "error": "No data returned for ASII.JK"
+          },
+          "error": "No data returned for ASII.JK"
+        },
+        {
+          "market": "BEI",
+          "symbol": "BBCA",
+          "tier": "DATA_ERROR",
+          "entry_status": "WAIT",
+          "selection_reasons": [],
+          "rejection_reasons": [
+            "Data processing failed"
+          ],
+          "vetoes": [],
+          "signal_timestamp": null,
+          "signal_close": null,
+          "evidence": {
+            "positive": [],
+            "neutral": [],
+            "warning": [],
+            "negative": [],
+            "unknown": []
+          },
+          "audit": {
+            "error": "No data returned for BBCA.JK"
+          },
+          "error": "No data returned for BBCA.JK"
+        },
+        {
+          "market": "BEI",
+          "symbol": "BBRI",
+          "tier": "DATA_ERROR",
+          "entry_status": "WAIT",
+          "selection_reasons": [],
+          "rejection_reasons": [
+            "Data processing failed"
+          ],
+          "vetoes": [],
+          "signal_timestamp": null,
+          "signal_close": null,
+          "evidence": {
+            "positive": [],
+            "neutral": [],
+            "warning": [],
+            "negative": [],
+            "unknown": []
+          },
+          "audit": {
+            "error": "No data returned for BBRI.JK"
+          },
+          "error": "No data returned for BBRI.JK"
+        },
+        {
+          "market": "BEI",
+          "symbol": "BMRI",
+          "tier": "DATA_ERROR",
+          "entry_status": "WAIT",
+          "selection_reasons": [],
+          "rejection_reasons": [
+            "Data processing failed"
+          ],
+          "vetoes": [],
+          "signal_timestamp": null,
+          "signal_close": null,
+          "evidence": {
+            "positive": [],
+            "neutral": [],
+            "warning": [],
+            "negative": [],
+            "unknown": []
+          },
+          "audit": {
+            "error": "No data returned for BMRI.JK"
+          },
+          "error": "No data returned for BMRI.JK"
+        },
+        {
+          "market": "BEI",
+          "symbol": "ICBP",
+          "tier": "DATA_ERROR",
+          "entry_status": "WAIT",
+          "selection_reasons": [],
+          "rejection_reasons": [
+            "Data processing failed"
+          ],
+          "vetoes": [],
+          "signal_timestamp": null,
+          "signal_close": null,
+          "evidence": {
+            "positive": [],
+            "neutral": [],
+            "warning": [],
+            "negative": [],
+            "unknown": []
+          },
+          "audit": {
+            "error": "No data returned for ICBP.JK"
+          },
+          "error": "No data returned for ICBP.JK"
+        },
+        {
+          "market": "BEI",
+          "symbol": "INDF",
+          "tier": "DATA_ERROR",
+          "entry_status": "WAIT",
+          "selection_reasons": [],
+          "rejection_reasons": [
+            "Data processing failed"
+          ],
+          "vetoes": [],
+          "signal_timestamp": null,
+          "signal_close": null,
+          "evidence": {
+            "positive": [],
+            "neutral": [],
+            "warning": [],
+            "negative": [],
+            "unknown": []
+          },
+          "audit": {
+            "error": "No data returned for INDF.JK"
+          },
+          "error": "No data returned for INDF.JK"
+        },
+        {
+          "market": "BEI",
+          "symbol": "PTBA",
+          "tier": "DATA_ERROR",
+          "entry_status": "WAIT",
+          "selection_reasons": [],
+          "rejection_reasons": [
+            "Data processing failed"
+          ],
+          "vetoes": [],
+          "signal_timestamp": null,
+          "signal_close": null,
+          "evidence": {
+            "positive": [],
+            "neutral": [],
+            "warning": [],
+            "negative": [],
+            "unknown": []
+          },
+          "audit": {
+            "error": "No data returned for PTBA.JK"
+          },
+          "error": "No data returned for PTBA.JK"
+        },
+        {
+          "market": "BEI",
+          "symbol": "TLKM",
+          "tier": "DATA_ERROR",
+          "entry_status": "WAIT",
+          "selection_reasons": [],
+          "rejection_reasons": [
+            "Data processing failed"
+          ],
+          "vetoes": [],
+          "signal_timestamp": null,
+          "signal_close": null,
+          "evidence": {
+            "positive": [],
+            "neutral": [],
+            "warning": [],
+            "negative": [],
+            "unknown": []
+          },
+          "audit": {
+            "error": "No data returned for TLKM.JK"
+          },
+          "error": "No data returned for TLKM.JK"
+        }
+      ]
+    }
+  ]
+}
