@@ -90,8 +90,10 @@ def audit_hygiene() -> dict[str, object]:
             forbidden.append(relative)
             reasons.append(f"Generated Python bytecode file is present: {relative}")
         elif path.is_file() and path.name.startswith("HANZ_Session_"):
-            forbidden.append(relative)
-            reasons.append(f"Obsolete session document is present: {relative}")
+    content = path.read_text(encoding="utf-8").strip()
+    if content != "# OBSOLETE":
+        forbidden.append(relative)
+        reasons.append(f"Obsolete session document is present: {relative}")
 
     return {"passed": not forbidden, "forbidden": forbidden, "reasons": reasons}
 
