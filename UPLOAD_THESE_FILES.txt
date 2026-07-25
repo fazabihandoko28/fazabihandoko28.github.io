@@ -1,0 +1,11 @@
+Add/replace these files in the HANZ-Intelligence repository:
+
+.github/workflows/hanz-paper-scan.yml
+src/hanz_app/render_report.py
+tests/test_render_report.py
+dashboard/index.html
+pyproject.toml
+CHANGELOG.md
+
+Recommended commit message:
+Add HANZ Alpha paper scan report v0.7

@@ -60,3 +60,9 @@ All notable changes to HANZ Intelligence are recorded here.
 ### Validation scope
 - This release validates software structure and deterministic unit behavior.
 - It does **not** validate market profitability or live-data accuracy.
+
+## v0.7.0 — Alpha Report
+- Added scheduled/manual BEI paper-scan workflow.
+- Added static HTML Commander report generated from audited scan JSON.
+- Added automatic paper-journal update and workflow artifact upload.
+- Added report-rendering unit tests.
