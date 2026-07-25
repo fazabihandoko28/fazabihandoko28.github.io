@@ -1,71 +1,38 @@
-# HANZ Intelligence v0.2
+# HANZ Intelligence v0.3
 
-Evidence-first market intelligence foundation for BEI and ADX.
+Evidence-first autonomous market data acquisition and decision foundation for BEI and ADX.
 
-> **HANZ isn't loyal to stocks. HANZ is loyal to profits.**
+> HANZ isn't loyal to stocks. HANZ is loyal to profits.
 
-## What v0.2 actually delivers
+## What v0.3 delivers
 
-- vendor-independent market-data interface
-- automatic symbol discovery from the connected provider
-- OHLCV validation and quality gate
-- deterministic technical evidence engine
-- EMA20, EMA50, RSI14, ATR14, relative volume, support and resistance
-- liquidity, extension-risk, and risk/reward proxy evidence
-- integration with the v0.1 Disqualifier and Trade Permit Engine
-- autonomous multi-symbol scanner
-- JSON audit output
-- unit tests
+- automatic market symbol discovery through provider adapters
+- provider registry for separate BEI and ADX data sources
+- vendor-neutral REST/JSON market-data adapter
+- bounded retries and request rate limiting
+- market-symbol normalization
+- validated file cache
+- complete acquisition audit trail
+- invalid-data rejection before analysis
+- full-universe acquisition orchestration
+- existing technical evidence, scanner, disqualifier, and trade-permit engines
 
-## What it does **not** claim yet
+## Important status
 
-- no live licensed BEI feed
-- no live licensed ADX feed
-- no news, broker-flow, order-book, or whale identity feed
-- no automated order execution
-- no claim of profitability or predictive accuracy
+v0.3 is a production-quality acquisition framework, not yet a licensed live-feed connection. No credentials or paid-provider assumptions are committed. Live BEI/ADX operation begins only after a lawful provider is selected and its credentials are stored as cloud secrets.
 
-## Repository layout
+## Tests
 
-```text
-src/hanz_core/       decision and disqualifier logic
-src/hanz_data/       market-data contracts, CSV reference provider, validation
-src/hanz_technical/  deterministic indicators and evidence generation
-src/hanz_scanner/    autonomous universe scanning
-src/hanz_app/        command-line entry point
-tests/               repeatable tests
-docs/                specifications and architecture
-```
-
-## Run all tests
+Run:
 
 ```bash
 python -m unittest discover -s tests -v
 ```
 
-## Run a scan
+## One-click repository update
 
-Prepare folders such as:
+Windows users can run `UPDATE_GITHUB_ONE_CLICK.bat`. The script clones or updates the private repository, copies this release, runs all tests, and pushes only when every test passes.
 
-```text
-market_data/
-  BEI/
-    BBCA.csv
-    BBRI.csv
-  ADX/
-    FAB.csv
-```
+## v0.4 — Session #001 Market Scanner
 
-Each CSV uses:
-
-```text
-datetime,open,high,low,close,volume
-```
-
-Then run:
-
-```bash
-PYTHONPATH=src python -m hanz_app.scan --data-root market_data --markets BEI ADX --output scan_result.json
-```
-
-The scanner discovers all symbols automatically. No ticker search is required.
+This release adds a bounded, autonomous Market Scanner and free GitHub Actions workflow. It discovers symbols automatically, ranks by evidence dominance, returns no more than the configured candidate limit, and creates an auditable JSON paper-scan artifact. It does not fabricate candidates when verified data is unavailable.

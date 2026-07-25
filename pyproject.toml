@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "hanz-intelligence"
-version = "0.2.0"
-description = "Evidence-first market intelligence core for BEI and ADX"
+version = "0.4.0"
+description = "Evidence-first autonomous market scanner, acquisition, and intelligence core for BEI and ADX"
 requires-python = ">=3.10"
 
 [tool.setuptools.packages.find]

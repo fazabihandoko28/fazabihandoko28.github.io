@@ -1,0 +1,26 @@
+{
+  "markets": {
+    "BEI": {
+      "provider": "http_json",
+      "base_url": "https://provider.example",
+      "series_path": "/v1/markets/{market}/symbols/{symbol}/bars",
+      "symbols_path": "/v1/markets/{market}/symbols",
+      "bars_key": "data",
+      "symbols_key": "data",
+      "symbol_suffix": ".JK",
+      "calls_per_second": 2,
+      "api_key_env": "HANZ_BEI_API_KEY"
+    },
+    "ADX": {
+      "provider": "http_json",
+      "base_url": "https://provider.example",
+      "series_path": "/v1/markets/{market}/symbols/{symbol}/bars",
+      "symbols_path": "/v1/markets/{market}/symbols",
+      "bars_key": "data",
+      "symbols_key": "data",
+      "symbol_suffix": ".AD",
+      "calls_per_second": 2,
+      "api_key_env": "HANZ_ADX_API_KEY"
+    }
+  }
+}
