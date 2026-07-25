@@ -61,8 +61,10 @@ All notable changes to HANZ Intelligence are recorded here.
 - This release validates software structure and deterministic unit behavior.
 - It does **not** validate market profitability or live-data accuracy.
 
-## v0.7.0 — Alpha Report
-- Added scheduled/manual BEI paper-scan workflow.
-- Added static HTML Commander report generated from audited scan JSON.
-- Added automatic paper-journal update and workflow artifact upload.
-- Added report-rendering unit tests.
+## v0.8.0 — Pilot Data Recovery
+
+- Added automatic Yahoo Chart fallback when yfinance fails or returns malformed/empty rows.
+- Added compatibility for recent yfinance MultiIndex/Series-shaped OHLCV output.
+- Disabled yfinance repair mode by default for more stable Jakarta ticker downloads.
+- Added detailed per-symbol acquisition errors to the Alpha dashboard.
+- Added test coverage for the fallback acquisition path.

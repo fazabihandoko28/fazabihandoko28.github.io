@@ -59,8 +59,19 @@ def _candidate_card(item: dict[str, Any]) -> str:
 def _market_section(market: dict[str, Any]) -> str:
     candidates = market.get("candidates") or []
     cards = "".join(_candidate_card(item) for item in candidates)
+    errors = market.get("errors") or []
+    error_details = ""
+    if errors:
+        items = "".join(
+            f"<li><strong>{_esc(item.get('symbol'))}</strong>: {_esc(item.get('error'))}</li>"
+            for item in errors[:20]
+        )
+        error_details = f'<details class="errors"><summary>Show data errors ({len(errors)})</summary><ul>{items}</ul></details>'
     if not cards:
-        cards = '<div class="empty">No candidate met the current evidence standard.</div>'
+        message = "No candidate met the current evidence standard."
+        if errors and len(errors) == int(market.get("universe_size") or 0):
+            message = "No stock was analyzed because market data acquisition failed for the full pilot universe."
+        cards = f'<div class="empty">{_esc(message)}{error_details}</div>'
     return f"""
     <section class="market-section">
       <div class="section-head">

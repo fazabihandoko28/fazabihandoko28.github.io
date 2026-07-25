@@ -1,11 +1,9 @@
-Add/replace these files in the HANZ-Intelligence repository:
+Replace these repository files with the matching patch files:
+1. src/hanz_data/providers/yahoo_provider.py
+2. src/hanz_app/render_report.py
+3. tests/test_yahoo_provider.py
+4. pyproject.toml
+5. CHANGELOG.md
 
-.github/workflows/hanz-paper-scan.yml
-src/hanz_app/render_report.py
-tests/test_render_report.py
-dashboard/index.html
-pyproject.toml
-CHANGELOG.md
-
-Recommended commit message:
-Add HANZ Alpha paper scan report v0.7
+Then commit: Fix BEI pilot data acquisition and error diagnostics v0.8
+Run HANZ CI first. If green, manually run HANZ Paper Scan again.
