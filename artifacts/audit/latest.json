@@ -1,0 +1,23 @@
+{
+  "generated_at_utc": "2026-07-25T17:13:25.914985+00:00",
+  "version": "0.6.1",
+  "checks": {
+    "source_compilation": {
+      "passed": true
+    },
+    "unit_tests": {
+      "passed": true,
+      "return_code": 0,
+      "output": "test_cache_avoids_second_provider_call (test_acquisition.AcquisitionTests.test_cache_avoids_second_provider_call) ... ok\ntest_invalid_data_is_rejected (test_acquisition.AcquisitionTests.test_invalid_data_is_rejected) ... ok\ntest_market_suffix_normalization (test_acquisition.AcquisitionTests.test_market_suffix_normalization) ... ok\ntest_retry_then_accept (test_acquisition.AcquisitionTests.test_retry_then_accept) ... ok\ntest_invalid_ohlc (test_data_validation.TestDataValidation.test_invalid_ohlc) ... ok\ntest_valid_series (test_data_validation.TestDataValidation.test_valid_series) ... ok\ntest_contradiction_waits (test_engine.TestHanzCore.test_contradiction_waits) ... ok\ntest_hard_veto_rejects (test_engine.TestHanzCore.test_hard_veto_rejects) ... ok\ntest_missing_required_waits (test_engine.TestHanzCore.test_missing_required_waits) ... ok\ntest_ready (test_engine.TestHanzCore.test_ready) ... ok\ntest_repeatability (test_engine.TestHanzCore.test_repeatability) ... ok\ntest_extract_and_deduplicate (test_paper_journal.PaperJournalTests.test_extract_and_deduplicate) ... ok\ntest_missing_market_is_explicit (test_provider_registry.ProviderRegistryTests.test_missing_market_is_explicit) ... ok\ntest_register_and_resolve (test_provider_registry.ProviderRegistryTests.test_register_and_resolve) ... ok\ntest_bad_symbol_is_isolated (test_scanner.TestScanner.test_bad_symbol_is_isolated) ... ok\ntest_candidate_limit_is_enforced (test_scanner.TestScanner.test_candidate_limit_is_enforced) ... ok\ntest_discovers_symbols_without_manual_ticker_input (test_scanner.TestScanner.test_discovers_symbols_without_manual_ticker_input) ... ok\ntest_low_liquidity_is_disqualified (test_scanner.TestScanner.test_low_liquidity_is_disqualified) ... ok\ntest_ranking_is_deterministic (test_scanner.TestScanner.test_ranking_is_deterministic) ... ok\ntest_yahoo_allowed_for_paper_only (test_source_policy.SourcePolicyTests.test_yahoo_allowed_for_paper_only) ... ok\ntest_indicators_compute (test_technical_engine.TestTechnicalEngine.test_indicators_compute) ... ok\ntest_snapshot_builds_auditable_evidence (test_technical_engine.TestTechnicalEngine.test_snapshot_builds_auditable_evidence) ... ok\ntest_disabled_rows_are_ignored (test_universe_config.UniverseConfigTests.test_disabled_rows_are_ignored) ... ok\ntest_future_path_is_evaluated_after_signal (test_walk_forward_validation.WalkForwardValidatorTests.test_future_path_is_evaluated_after_signal) ... ok\ntest_insufficient_history_is_rejected (test_walk_forward_validation.WalkForwardValidatorTests.test_insufficient_history_is_rejected) ... ok\ntest_no_lookahead_event_count (test_walk_forward_validation.WalkForwardValidatorTests.test_no_lookahead_event_count) ... ok\ntest_report_serialization (test_walk_forward_validation.WalkForwardValidatorTests.test_report_serialization) ... ok\ntest_download_is_normalized_to_market_series (test_yahoo_provider.YahooProviderTests.test_download_is_normalized_to_market_series) ... ok\ntest_unknown_mapping_is_rejected (test_yahoo_provider.YahooProviderTests.test_unknown_mapping_is_rejected) ... ok\n\n----------------------------------------------------------------------\nRan 29 tests in 0.278s\n\nOK"
+    },
+    "github_workflow": {
+      "passed": true,
+      "missing": []
+    },
+    "repository_hygiene": {
+      "passed": true,
+      "forbidden": []
+    }
+  },
+  "passed": true
+}

@@ -1,8 +1,7 @@
-import os
-import sys
+from bootstrap import PROJECT_ROOT  # noqa: F401
+
 import unittest
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 from hanz_core import EntryStatus, Evidence, Signal, decide_entry
 

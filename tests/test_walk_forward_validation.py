@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from bootstrap import PROJECT_ROOT  # noqa: F401
+
 import unittest
 from datetime import datetime, timedelta, timezone
 

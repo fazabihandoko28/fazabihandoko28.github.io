@@ -1,3 +1,5 @@
+from bootstrap import PROJECT_ROOT  # noqa: F401
+
 import json
 import tempfile
 import unittest

@@ -43,3 +43,20 @@ All notable changes to HANZ Intelligence are recorded here.
 
 ### Added
 - Core decision and disqualifier engine.
+
+## 0.6.1 - Audit Fix
+
+### Fixed
+- Standardized test imports through `tests/bootstrap.py` so the suite runs
+  directly from a fresh checkout without requiring `PYTHONPATH=src`.
+- Removed generated Python cache files from the release package.
+
+### Added
+- `tools/audit_repository.py` for source compilation, unit-test, CI workflow,
+  and repository-hygiene checks.
+- CI repository-audit step.
+- `.gitignore` rules for generated and secret files.
+
+### Validation scope
+- This release validates software structure and deterministic unit behavior.
+- It does **not** validate market profitability or live-data accuracy.

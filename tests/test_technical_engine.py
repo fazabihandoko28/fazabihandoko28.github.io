@@ -1,9 +1,8 @@
-import os
-import sys
+from bootstrap import PROJECT_ROOT  # noqa: F401
+
 import unittest
 from datetime import datetime, timedelta, timezone
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 from hanz_core import Signal
 from hanz_data import Bar, MarketSeries, validate_series

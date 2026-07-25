@@ -45,3 +45,21 @@ python -m hanz_app.validate_history \
 ```
 
 The validation engine records the decision first using only visible historical bars, then reveals the next bars to measure the observed outcome.
+
+## Local audit (v0.6.1)
+
+From the repository root, run:
+
+```bash
+python tools/audit_repository.py
+```
+
+This checks Python source compilation, the full unit-test suite, required
+GitHub Actions commands, and repository hygiene. The generated report is saved
+at `artifacts/audit/latest.json` and is intentionally ignored by Git.
+
+You may also run the tests directly without installing the package:
+
+```bash
+python -m unittest discover -s tests -v
+```

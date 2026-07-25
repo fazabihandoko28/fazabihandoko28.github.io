@@ -1,11 +1,10 @@
-import os
-import sys
+from bootstrap import PROJECT_ROOT  # noqa: F401
+
 import tempfile
 import unittest
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 from hanz_core import EntryStatus
 from hanz_data import DirectoryCsvProvider

@@ -1,3 +1,5 @@
+from bootstrap import PROJECT_ROOT  # noqa: F401
+
 import unittest
 
 from hanz_data.providers.source_policy import require_live_trade_source, require_paper_trade_source
