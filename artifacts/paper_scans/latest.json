@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-25T19:02:42.792730+00:00",
+  "generated_at": "2026-07-25T23:56:42.519878+00:00",
   "mode": "PAPER_TRADE_RESEARCH",
   "source": {
     "name": "YAHOO_FINANCE_RESEARCH_ONLY",
@@ -14,254 +14,524 @@
       "market": "BEI",
       "universe_size": 10,
       "candidate_count": 0,
-      "reviewed_count": 0,
-      "rejected_count": 0,
-      "error_count": 10,
+      "reviewed_count": 1,
+      "rejected_count": 9,
+      "error_count": 0,
       "candidates": [],
-      "reviewed": [],
-      "rejected": [],
-      "errors": [
+      "reviewed": [
         {
           "market": "BEI",
-          "symbol": "ADRO",
-          "tier": "DATA_ERROR",
+          "symbol": "BMRI",
+          "tier": "OBSERVE",
           "entry_status": "WAIT",
-          "selection_reasons": [],
+          "selection_reasons": [
+            "Evidence retained for confirmation",
+            "Positive: data_freshness",
+            "Positive: liquidity",
+            "Positive: volume_confirmation"
+          ],
           "rejection_reasons": [
-            "Data processing failed"
+            "Negative: price_structure",
+            "Warning: risk_reward"
           ],
           "vetoes": [],
-          "signal_timestamp": null,
-          "signal_close": null,
+          "signal_timestamp": "2026-07-24T00:00:00+00:00",
+          "signal_close": 4130.0,
           "evidence": {
-            "positive": [],
-            "neutral": [],
-            "warning": [],
-            "negative": [],
+            "positive": [
+              "data_freshness",
+              "liquidity",
+              "volume_confirmation"
+            ],
+            "neutral": [
+              "extension_risk",
+              "market_regime",
+              "resistance"
+            ],
+            "warning": [
+              "risk_reward"
+            ],
+            "negative": [
+              "price_structure"
+            ],
             "unknown": []
           },
           "audit": {
-            "error": "No data returned for ADRO.JK"
+            "data_freshness": "positive|technical_engine|2026-07-24T00:00:00+00:00|valid",
+            "liquidity": "positive|technical_engine|2026-07-24T00:00:00+00:00|avg_value20=661358895800.00",
+            "price_structure": "negative|technical_engine|2026-07-24T00:00:00+00:00|close<4230.3356<4238.4668",
+            "volume_confirmation": "positive|technical_engine|2026-07-24T00:00:00+00:00|rvol20=2.66",
+            "resistance": "neutral|technical_engine|2026-07-24T00:00:00+00:00|room_to_resistance20=4520.0000",
+            "risk_reward": "warning|technical_engine|2026-07-24T00:00:00+00:00|proxy_rr=1.18;support20=3800.0000;atr14=130.0000",
+            "extension_risk": "neutral|technical_engine|2026-07-24T00:00:00+00:00|rsi14=54.03",
+            "market_regime": "neutral|technical_engine|2026-07-24T00:00:00+00:00|index_adapter_not_connected"
           },
-          "error": "No data returned for ADRO.JK"
-        },
+          "error": null
+        }
+      ],
+      "rejected": [
         {
           "market": "BEI",
-          "symbol": "ANTM",
-          "tier": "DATA_ERROR",
-          "entry_status": "WAIT",
-          "selection_reasons": [],
-          "rejection_reasons": [
-            "Data processing failed"
+          "symbol": "ICBP",
+          "tier": "DISQUALIFIED",
+          "entry_status": "REJECT",
+          "selection_reasons": [
+            "Positive: data_freshness",
+            "Positive: liquidity",
+            "Positive: price_structure"
           ],
-          "vetoes": [],
-          "signal_timestamp": null,
-          "signal_close": null,
+          "rejection_reasons": [
+            "Hard disqualifier active",
+            "Negative: risk_reward",
+            "Veto: risk_reward"
+          ],
+          "vetoes": [
+            "risk_reward"
+          ],
+          "signal_timestamp": "2026-07-24T00:00:00+00:00",
+          "signal_close": 6975.0,
           "evidence": {
-            "positive": [],
-            "neutral": [],
+            "positive": [
+              "data_freshness",
+              "liquidity",
+              "price_structure"
+            ],
+            "neutral": [
+              "extension_risk",
+              "market_regime",
+              "resistance",
+              "volume_confirmation"
+            ],
             "warning": [],
-            "negative": [],
+            "negative": [
+              "risk_reward"
+            ],
             "unknown": []
           },
           "audit": {
-            "error": "No data returned for ANTM.JK"
+            "data_freshness": "positive|technical_engine|2026-07-24T00:00:00+00:00|valid",
+            "liquidity": "positive|technical_engine|2026-07-24T00:00:00+00:00|avg_value20=21495610875.00",
+            "price_structure": "positive|technical_engine|2026-07-24T00:00:00+00:00|close>6822.0920>6815.7581",
+            "volume_confirmation": "neutral|technical_engine|2026-07-24T00:00:00+00:00|rvol20=1.31",
+            "resistance": "neutral|technical_engine|2026-07-24T00:00:00+00:00|room_to_resistance20=7125.0000",
+            "risk_reward": "negative|technical_engine|2026-07-24T00:00:00+00:00|proxy_rr=0.35;support20=6550.0000;atr14=132.1429",
+            "extension_risk": "neutral|technical_engine|2026-07-24T00:00:00+00:00|rsi14=52.17",
+            "market_regime": "neutral|technical_engine|2026-07-24T00:00:00+00:00|index_adapter_not_connected"
           },
-          "error": "No data returned for ANTM.JK"
-        },
-        {
-          "market": "BEI",
-          "symbol": "ASII",
-          "tier": "DATA_ERROR",
-          "entry_status": "WAIT",
-          "selection_reasons": [],
-          "rejection_reasons": [
-            "Data processing failed"
-          ],
-          "vetoes": [],
-          "signal_timestamp": null,
-          "signal_close": null,
-          "evidence": {
-            "positive": [],
-            "neutral": [],
-            "warning": [],
-            "negative": [],
-            "unknown": []
-          },
-          "audit": {
-            "error": "No data returned for ASII.JK"
-          },
-          "error": "No data returned for ASII.JK"
+          "error": null
         },
         {
           "market": "BEI",
           "symbol": "BBCA",
-          "tier": "DATA_ERROR",
-          "entry_status": "WAIT",
-          "selection_reasons": [],
-          "rejection_reasons": [
-            "Data processing failed"
+          "tier": "DISQUALIFIED",
+          "entry_status": "REJECT",
+          "selection_reasons": [
+            "Positive: data_freshness",
+            "Positive: liquidity",
+            "Positive: price_structure"
           ],
-          "vetoes": [],
-          "signal_timestamp": null,
-          "signal_close": null,
+          "rejection_reasons": [
+            "Hard disqualifier active",
+            "Negative: risk_reward",
+            "Veto: risk_reward"
+          ],
+          "vetoes": [
+            "risk_reward"
+          ],
+          "signal_timestamp": "2026-07-24T00:00:00+00:00",
+          "signal_close": 6275.0,
           "evidence": {
-            "positive": [],
-            "neutral": [],
+            "positive": [
+              "data_freshness",
+              "liquidity",
+              "price_structure"
+            ],
+            "neutral": [
+              "extension_risk",
+              "market_regime",
+              "resistance",
+              "volume_confirmation"
+            ],
             "warning": [],
-            "negative": [],
+            "negative": [
+              "risk_reward"
+            ],
             "unknown": []
           },
           "audit": {
-            "error": "No data returned for BBCA.JK"
+            "data_freshness": "positive|technical_engine|2026-07-24T00:00:00+00:00|valid",
+            "liquidity": "positive|technical_engine|2026-07-24T00:00:00+00:00|avg_value20=1159040504250.00",
+            "price_structure": "positive|technical_engine|2026-07-24T00:00:00+00:00|close>6221.2474>6156.2012",
+            "volume_confirmation": "neutral|technical_engine|2026-07-24T00:00:00+00:00|rvol20=1.02",
+            "resistance": "neutral|technical_engine|2026-07-24T00:00:00+00:00|room_to_resistance20=6625.0000",
+            "risk_reward": "negative|technical_engine|2026-07-24T00:00:00+00:00|proxy_rr=0.48;support20=5550.0000;atr14=171.4286",
+            "extension_risk": "neutral|technical_engine|2026-07-24T00:00:00+00:00|rsi14=56.52",
+            "market_regime": "neutral|technical_engine|2026-07-24T00:00:00+00:00|index_adapter_not_connected"
           },
-          "error": "No data returned for BBCA.JK"
+          "error": null
         },
         {
           "market": "BEI",
-          "symbol": "BBRI",
-          "tier": "DATA_ERROR",
-          "entry_status": "WAIT",
-          "selection_reasons": [],
-          "rejection_reasons": [
-            "Data processing failed"
+          "symbol": "ADRO",
+          "tier": "DISQUALIFIED",
+          "entry_status": "REJECT",
+          "selection_reasons": [
+            "Positive: data_freshness",
+            "Positive: liquidity",
+            "Positive: price_structure"
           ],
-          "vetoes": [],
-          "signal_timestamp": null,
-          "signal_close": null,
+          "rejection_reasons": [
+            "Hard disqualifier active",
+            "Negative: risk_reward",
+            "Warning: extension_risk",
+            "Veto: risk_reward"
+          ],
+          "vetoes": [
+            "risk_reward"
+          ],
+          "signal_timestamp": "2026-07-24T00:00:00+00:00",
+          "signal_close": 2540.0,
           "evidence": {
-            "positive": [],
-            "neutral": [],
-            "warning": [],
-            "negative": [],
+            "positive": [
+              "data_freshness",
+              "liquidity",
+              "price_structure"
+            ],
+            "neutral": [
+              "market_regime",
+              "resistance",
+              "volume_confirmation"
+            ],
+            "warning": [
+              "extension_risk"
+            ],
+            "negative": [
+              "risk_reward"
+            ],
             "unknown": []
           },
           "audit": {
-            "error": "No data returned for BBRI.JK"
+            "data_freshness": "positive|technical_engine|2026-07-24T00:00:00+00:00|valid",
+            "liquidity": "positive|technical_engine|2026-07-24T00:00:00+00:00|avg_value20=67370348800.00",
+            "price_structure": "positive|technical_engine|2026-07-24T00:00:00+00:00|close>2443.6512>2387.5640",
+            "volume_confirmation": "neutral|technical_engine|2026-07-24T00:00:00+00:00|rvol20=1.13",
+            "resistance": "neutral|technical_engine|2026-07-24T00:00:00+00:00|room_to_resistance20=2590.0000",
+            "risk_reward": "negative|technical_engine|2026-07-24T00:00:00+00:00|proxy_rr=0.17;support20=2240.0000;atr14=66.4286",
+            "extension_risk": "warning|technical_engine|2026-07-24T00:00:00+00:00|rsi14=72.22",
+            "market_regime": "neutral|technical_engine|2026-07-24T00:00:00+00:00|index_adapter_not_connected"
           },
-          "error": "No data returned for BBRI.JK"
-        },
-        {
-          "market": "BEI",
-          "symbol": "BMRI",
-          "tier": "DATA_ERROR",
-          "entry_status": "WAIT",
-          "selection_reasons": [],
-          "rejection_reasons": [
-            "Data processing failed"
-          ],
-          "vetoes": [],
-          "signal_timestamp": null,
-          "signal_close": null,
-          "evidence": {
-            "positive": [],
-            "neutral": [],
-            "warning": [],
-            "negative": [],
-            "unknown": []
-          },
-          "audit": {
-            "error": "No data returned for BMRI.JK"
-          },
-          "error": "No data returned for BMRI.JK"
-        },
-        {
-          "market": "BEI",
-          "symbol": "ICBP",
-          "tier": "DATA_ERROR",
-          "entry_status": "WAIT",
-          "selection_reasons": [],
-          "rejection_reasons": [
-            "Data processing failed"
-          ],
-          "vetoes": [],
-          "signal_timestamp": null,
-          "signal_close": null,
-          "evidence": {
-            "positive": [],
-            "neutral": [],
-            "warning": [],
-            "negative": [],
-            "unknown": []
-          },
-          "audit": {
-            "error": "No data returned for ICBP.JK"
-          },
-          "error": "No data returned for ICBP.JK"
+          "error": null
         },
         {
           "market": "BEI",
           "symbol": "INDF",
-          "tier": "DATA_ERROR",
-          "entry_status": "WAIT",
-          "selection_reasons": [],
-          "rejection_reasons": [
-            "Data processing failed"
+          "tier": "DISQUALIFIED",
+          "entry_status": "REJECT",
+          "selection_reasons": [
+            "Positive: data_freshness",
+            "Positive: liquidity",
+            "Positive: price_structure"
           ],
-          "vetoes": [],
-          "signal_timestamp": null,
-          "signal_close": null,
+          "rejection_reasons": [
+            "Hard disqualifier active",
+            "Negative: risk_reward",
+            "Warning: volume_confirmation",
+            "Veto: risk_reward"
+          ],
+          "vetoes": [
+            "risk_reward"
+          ],
+          "signal_timestamp": "2026-07-24T00:00:00+00:00",
+          "signal_close": 6850.0,
           "evidence": {
-            "positive": [],
-            "neutral": [],
-            "warning": [],
-            "negative": [],
+            "positive": [
+              "data_freshness",
+              "liquidity",
+              "price_structure"
+            ],
+            "neutral": [
+              "extension_risk",
+              "market_regime",
+              "resistance"
+            ],
+            "warning": [
+              "volume_confirmation"
+            ],
+            "negative": [
+              "risk_reward"
+            ],
             "unknown": []
           },
           "audit": {
-            "error": "No data returned for INDF.JK"
+            "data_freshness": "positive|technical_engine|2026-07-24T00:00:00+00:00|valid",
+            "liquidity": "positive|technical_engine|2026-07-24T00:00:00+00:00|avg_value20=37221212500.00",
+            "price_structure": "positive|technical_engine|2026-07-24T00:00:00+00:00|close>6770.2205>6715.0503",
+            "volume_confirmation": "warning|technical_engine|2026-07-24T00:00:00+00:00|rvol20=0.67",
+            "resistance": "neutral|technical_engine|2026-07-24T00:00:00+00:00|room_to_resistance20=7000.0000",
+            "risk_reward": "negative|technical_engine|2026-07-24T00:00:00+00:00|proxy_rr=0.55;support20=6575.0000;atr14=133.9286",
+            "extension_risk": "neutral|technical_engine|2026-07-24T00:00:00+00:00|rsi14=47.37",
+            "market_regime": "neutral|technical_engine|2026-07-24T00:00:00+00:00|index_adapter_not_connected"
           },
-          "error": "No data returned for INDF.JK"
+          "error": null
         },
         {
           "market": "BEI",
-          "symbol": "PTBA",
-          "tier": "DATA_ERROR",
-          "entry_status": "WAIT",
-          "selection_reasons": [],
-          "rejection_reasons": [
-            "Data processing failed"
+          "symbol": "ASII",
+          "tier": "DISQUALIFIED",
+          "entry_status": "REJECT",
+          "selection_reasons": [
+            "Positive: data_freshness",
+            "Positive: liquidity"
           ],
-          "vetoes": [],
-          "signal_timestamp": null,
-          "signal_close": null,
+          "rejection_reasons": [
+            "Hard disqualifier active",
+            "Negative: risk_reward",
+            "Warning: price_structure",
+            "Veto: risk_reward"
+          ],
+          "vetoes": [
+            "risk_reward"
+          ],
+          "signal_timestamp": "2026-07-24T00:00:00+00:00",
+          "signal_close": 4980.0,
           "evidence": {
-            "positive": [],
-            "neutral": [],
-            "warning": [],
-            "negative": [],
+            "positive": [
+              "data_freshness",
+              "liquidity"
+            ],
+            "neutral": [
+              "extension_risk",
+              "market_regime",
+              "resistance",
+              "volume_confirmation"
+            ],
+            "warning": [
+              "price_structure"
+            ],
+            "negative": [
+              "risk_reward"
+            ],
             "unknown": []
           },
           "audit": {
-            "error": "No data returned for PTBA.JK"
+            "data_freshness": "positive|technical_engine|2026-07-24T00:00:00+00:00|valid",
+            "liquidity": "positive|technical_engine|2026-07-24T00:00:00+00:00|avg_value20=249252287900.00",
+            "price_structure": "warning|technical_engine|2026-07-24T00:00:00+00:00|mixed close=4980.0000,ema20=4946.3119,ema50=5089.8759",
+            "volume_confirmation": "neutral|technical_engine|2026-07-24T00:00:00+00:00|rvol20=1.46",
+            "resistance": "neutral|technical_engine|2026-07-24T00:00:00+00:00|room_to_resistance20=5300.0000",
+            "risk_reward": "negative|technical_engine|2026-07-24T00:00:00+00:00|proxy_rr=0.63;support20=4470.0000;atr14=152.1429",
+            "extension_risk": "neutral|technical_engine|2026-07-24T00:00:00+00:00|rsi14=60.64",
+            "market_regime": "neutral|technical_engine|2026-07-24T00:00:00+00:00|index_adapter_not_connected"
           },
-          "error": "No data returned for PTBA.JK"
+          "error": null
+        },
+        {
+          "market": "BEI",
+          "symbol": "BBRI",
+          "tier": "DISQUALIFIED",
+          "entry_status": "REJECT",
+          "selection_reasons": [
+            "Positive: data_freshness",
+            "Positive: liquidity"
+          ],
+          "rejection_reasons": [
+            "Hard disqualifier active",
+            "Negative: risk_reward",
+            "Warning: price_structure",
+            "Veto: risk_reward"
+          ],
+          "vetoes": [
+            "risk_reward"
+          ],
+          "signal_timestamp": "2026-07-24T00:00:00+00:00",
+          "signal_close": 2960.0,
+          "evidence": {
+            "positive": [
+              "data_freshness",
+              "liquidity"
+            ],
+            "neutral": [
+              "extension_risk",
+              "market_regime",
+              "resistance",
+              "volume_confirmation"
+            ],
+            "warning": [
+              "price_structure"
+            ],
+            "negative": [
+              "risk_reward"
+            ],
+            "unknown": []
+          },
+          "audit": {
+            "data_freshness": "positive|technical_engine|2026-07-24T00:00:00+00:00|valid",
+            "liquidity": "positive|technical_engine|2026-07-24T00:00:00+00:00|avg_value20=757149336350.00",
+            "price_structure": "warning|technical_engine|2026-07-24T00:00:00+00:00|mixed close=2960.0000,ema20=2907.9548,ema50=2956.7460",
+            "volume_confirmation": "neutral|technical_engine|2026-07-24T00:00:00+00:00|rvol20=1.12",
+            "resistance": "neutral|technical_engine|2026-07-24T00:00:00+00:00|room_to_resistance20=3080.0000",
+            "risk_reward": "negative|technical_engine|2026-07-24T00:00:00+00:00|proxy_rr=0.36;support20=2630.0000;atr14=82.8571",
+            "extension_risk": "neutral|technical_engine|2026-07-24T00:00:00+00:00|rsi14=62.32",
+            "market_regime": "neutral|technical_engine|2026-07-24T00:00:00+00:00|index_adapter_not_connected"
+          },
+          "error": null
+        },
+        {
+          "market": "BEI",
+          "symbol": "ANTM",
+          "tier": "DISQUALIFIED",
+          "entry_status": "REJECT",
+          "selection_reasons": [
+            "Positive: data_freshness",
+            "Positive: liquidity"
+          ],
+          "rejection_reasons": [
+            "Hard disqualifier active",
+            "Negative: risk_reward",
+            "Warning: price_structure",
+            "Warning: volume_confirmation",
+            "Veto: risk_reward"
+          ],
+          "vetoes": [
+            "risk_reward"
+          ],
+          "signal_timestamp": "2026-07-24T00:00:00+00:00",
+          "signal_close": 2990.0,
+          "evidence": {
+            "positive": [
+              "data_freshness",
+              "liquidity"
+            ],
+            "neutral": [
+              "extension_risk",
+              "market_regime",
+              "resistance"
+            ],
+            "warning": [
+              "price_structure",
+              "volume_confirmation"
+            ],
+            "negative": [
+              "risk_reward"
+            ],
+            "unknown": []
+          },
+          "audit": {
+            "data_freshness": "positive|technical_engine|2026-07-24T00:00:00+00:00|valid",
+            "liquidity": "positive|technical_engine|2026-07-24T00:00:00+00:00|avg_value20=273566302200.00",
+            "price_structure": "warning|technical_engine|2026-07-24T00:00:00+00:00|mixed close=2990.0000,ema20=2973.1436,ema50=3055.4677",
+            "volume_confirmation": "warning|technical_engine|2026-07-24T00:00:00+00:00|rvol20=0.80",
+            "resistance": "neutral|technical_engine|2026-07-24T00:00:00+00:00|room_to_resistance20=3190.0000",
+            "risk_reward": "negative|technical_engine|2026-07-24T00:00:00+00:00|proxy_rr=0.45;support20=2550.0000;atr14=102.8571",
+            "extension_risk": "neutral|technical_engine|2026-07-24T00:00:00+00:00|rsi14=53.25",
+            "market_regime": "neutral|technical_engine|2026-07-24T00:00:00+00:00|index_adapter_not_connected"
+          },
+          "error": null
         },
         {
           "market": "BEI",
           "symbol": "TLKM",
-          "tier": "DATA_ERROR",
-          "entry_status": "WAIT",
-          "selection_reasons": [],
-          "rejection_reasons": [
-            "Data processing failed"
+          "tier": "DISQUALIFIED",
+          "entry_status": "REJECT",
+          "selection_reasons": [
+            "Positive: data_freshness",
+            "Positive: liquidity"
           ],
-          "vetoes": [],
-          "signal_timestamp": null,
-          "signal_close": null,
+          "rejection_reasons": [
+            "Hard disqualifier active",
+            "Negative: risk_reward",
+            "Warning: price_structure",
+            "Warning: volume_confirmation",
+            "Veto: risk_reward"
+          ],
+          "vetoes": [
+            "risk_reward"
+          ],
+          "signal_timestamp": "2026-07-24T00:00:00+00:00",
+          "signal_close": 2630.0,
           "evidence": {
-            "positive": [],
-            "neutral": [],
-            "warning": [],
-            "negative": [],
+            "positive": [
+              "data_freshness",
+              "liquidity"
+            ],
+            "neutral": [
+              "extension_risk",
+              "market_regime",
+              "resistance"
+            ],
+            "warning": [
+              "price_structure",
+              "volume_confirmation"
+            ],
+            "negative": [
+              "risk_reward"
+            ],
             "unknown": []
           },
           "audit": {
-            "error": "No data returned for TLKM.JK"
+            "data_freshness": "positive|technical_engine|2026-07-24T00:00:00+00:00|valid",
+            "liquidity": "positive|technical_engine|2026-07-24T00:00:00+00:00|avg_value20=297713734700.00",
+            "price_structure": "warning|technical_engine|2026-07-24T00:00:00+00:00|mixed close=2630.0000,ema20=2608.8113,ema50=2701.4148",
+            "volume_confirmation": "warning|technical_engine|2026-07-24T00:00:00+00:00|rvol20=0.75",
+            "resistance": "neutral|technical_engine|2026-07-24T00:00:00+00:00|room_to_resistance20=2770.0000",
+            "risk_reward": "negative|technical_engine|2026-07-24T00:00:00+00:00|proxy_rr=0.50;support20=2350.0000;atr14=76.4286",
+            "extension_risk": "neutral|technical_engine|2026-07-24T00:00:00+00:00|rsi14=64.15",
+            "market_regime": "neutral|technical_engine|2026-07-24T00:00:00+00:00|index_adapter_not_connected"
           },
-          "error": "No data returned for TLKM.JK"
+          "error": null
+        },
+        {
+          "market": "BEI",
+          "symbol": "PTBA",
+          "tier": "DISQUALIFIED",
+          "entry_status": "REJECT",
+          "selection_reasons": [
+            "Positive: data_freshness",
+            "Positive: liquidity"
+          ],
+          "rejection_reasons": [
+            "Hard disqualifier active",
+            "Negative: price_structure",
+            "Negative: risk_reward",
+            "Veto: risk_reward"
+          ],
+          "vetoes": [
+            "risk_reward"
+          ],
+          "signal_timestamp": "2026-07-24T00:00:00+00:00",
+          "signal_close": 2390.0,
+          "evidence": {
+            "positive": [
+              "data_freshness",
+              "liquidity"
+            ],
+            "neutral": [
+              "extension_risk",
+              "market_regime",
+              "resistance",
+              "volume_confirmation"
+            ],
+            "warning": [],
+            "negative": [
+              "price_structure",
+              "risk_reward"
+            ],
+            "unknown": []
+          },
+          "audit": {
+            "data_freshness": "positive|technical_engine|2026-07-24T00:00:00+00:00|valid",
+            "liquidity": "positive|technical_engine|2026-07-24T00:00:00+00:00|avg_value20=24523763300.00",
+            "price_structure": "negative|technical_engine|2026-07-24T00:00:00+00:00|close<2421.1706<2520.3718",
+            "volume_confirmation": "neutral|technical_engine|2026-07-24T00:00:00+00:00|rvol20=1.18",
+            "resistance": "neutral|technical_engine|2026-07-24T00:00:00+00:00|room_to_resistance20=2460.0000",
+            "risk_reward": "negative|technical_engine|2026-07-24T00:00:00+00:00|proxy_rr=0.50;support20=2250.0000;atr14=46.4286",
+            "extension_risk": "neutral|technical_engine|2026-07-24T00:00:00+00:00|rsi14=61.54",
+            "market_regime": "neutral|technical_engine|2026-07-24T00:00:00+00:00|index_adapter_not_connected"
+          },
+          "error": null
         }
-      ]
+      ],
+      "errors": []
     }
   ]
 }
