@@ -1,0 +1,16 @@
+market,symbol,yahoo_ticker,enabled,notes
+BEI,BBCA,BBCA.JK,true,Jakarta delayed research mapping
+BEI,BBRI,BBRI.JK,true,Jakarta delayed research mapping
+BEI,BMRI,BMRI.JK,true,Jakarta delayed research mapping
+BEI,TLKM,TLKM.JK,true,Jakarta delayed research mapping
+BEI,PTBA,PTBA.JK,true,Jakarta delayed research mapping
+BEI,ANTM,ANTM.JK,true,Jakarta delayed research mapping
+BEI,ADRO,ADRO.JK,true,Jakarta delayed research mapping
+BEI,ICBP,ICBP.JK,true,Jakarta delayed research mapping
+BEI,INDF,INDF.JK,true,Jakarta delayed research mapping
+BEI,ASII,ASII.JK,true,Jakarta delayed research mapping
+ADX,ALDAR,ALDAR.AD,false,Enable only after ticker is verified
+ADX,FAB,FAB.AD,false,Enable only after ticker is verified
+ADX,ADNOCGAS,ADNOCGAS.AD,false,Enable only after ticker is verified
+ADX,ADNOCDRILL,ADNOCDRILL.AD,false,Enable only after ticker is verified
+ADX,EAND,EAND.AD,false,Enable only after ticker is verified
