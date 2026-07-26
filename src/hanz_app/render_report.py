@@ -118,6 +118,30 @@ def _candidate_card(item: dict[str, Any], *, watchlist: bool = False) -> str:
     </article>"""
 
 
+def _mobile_decision(market: dict[str, Any]) -> str:
+    candidates = market.get("candidates") or []
+    health = market_health(market)
+    if candidates:
+        top = candidates[0]
+        status = str(top.get("entry_status", "WAIT"))
+        symbol = _esc(top.get("symbol"))
+        if status == "READY":
+            action, css = "READY", "ready"
+            instruction = f"Review {symbol} entry plan and keep total paper exposure within {health['paper_exposure_percent']}%."
+        else:
+            action, css = "WAIT", "wait"
+            instruction = f"Watch {symbol}; do not enter until its evidence changes to READY."
+    else:
+        action, css = "STAY CASH", "risk"
+        instruction = "No READY setup passed. Preserving capital is the action."
+    return f'''<div class="mobile-decision">
+      <div><small>TODAY'S ACTION</small><strong class="{css}">{action}</strong></div>
+      <div><small>MARKET</small><strong>{_esc(health['label'])}</strong></div>
+      <div><small>MAX EXPOSURE</small><strong>{_esc(health['paper_exposure_percent'])}%</strong></div>
+      <p>{instruction}</p>
+    </div>'''
+
+
 def _market_section(market: dict[str, Any]) -> str:
     candidates = market.get("candidates") or []
     reviewed = market.get("reviewed") or []
@@ -142,6 +166,7 @@ def _market_section(market: dict[str, Any]) -> str:
     <section class="market-section">
       <div class="section-head"><div><h2>{_esc(market.get('market'))}</h2><p>{_esc(market.get('universe_size'))} symbols · {_esc(coverage)}% analyzed</p></div>
       <div class="counts"><span>{_esc(market.get('candidate_count'))} candidates</span><span>{_esc(market.get('reviewed_count'))} reviewed</span><span>{_esc(market.get('rejected_count'))} rejected</span><span>{_esc(market.get('error_count'))} errors</span></div></div>
+      {_mobile_decision(market)}
       <div class="health"><div><small>MARKET POSTURE</small><strong>{_esc(health['label'])}</strong></div><div><small>HEALTH INDEX</small><strong>{_esc(health['score'])}/100</strong></div><div><small>MAX PAPER EXPOSURE</small><strong>{_esc(health['paper_exposure_percent'])}%</strong></div><p>{_esc(health['explanation'])}</p></div>
       {no_candidate}
       <h3>Actionable candidates</h3><div class="candidate-grid">{cards}</div>
@@ -166,7 +191,31 @@ h2{{margin:0;font-size:30px}} h3{{margin:24px 0 12px;color:#dbe8ff}} .section-he
 .status.ready,.strength.strong{{background:#123d2c;color:#7df1b7}} .status.wait,.strength.developing{{background:#3c3417;color:#ffe477}} .status.risk,.status.reject,.strength.weak{{background:#431e27;color:#ff9bae}} .quality{{background:#17314e;color:#b8dcff}} .grade{{background:#30264b;color:#d8c7ff}}
 .signal-grid{{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:16px 0}} .signal{{padding:10px;border:1px solid var(--line);border-radius:12px;display:flex;flex-direction:column;gap:5px}} .signal small{{color:var(--muted)}}
 .good{{color:#7df1b7}} .neutral{{color:#c8d4e6}} .caution{{color:#ffe477}} .bad{{color:#ff9bae}} .unknown{{color:#9eacc2}} details{{margin:12px 0}} summary{{cursor:pointer;color:#bcd5ff}} ul{{line-height:1.55}}
-.technical-values{{font-size:12px}} .plan{{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:14px 0}} .plan>div{{border:1px solid var(--line);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:4px}} .plan small,.plan span,.plan-note{{color:var(--muted);font-size:12px}} .plan strong{{font-size:16px}} .health{{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;background:#0c1728;border:1px solid var(--line);border-radius:16px;padding:16px;margin:16px 0}} .health>div{{display:flex;flex-direction:column;gap:4px}} .health small{{color:var(--muted)}} .health strong{{font-size:20px}} .health p{{grid-column:1/-1;margin:0;color:var(--muted)}} .market-explanation{{background:#181728;border:1px solid #3b355d;border-radius:16px;padding:16px;margin:16px 0}} footer{{margin-top:30px;color:var(--muted);font-size:13px}} @media(max-width:650px){{.section-head{{align-items:start;flex-direction:column}}.signal-grid{{grid-template-columns:repeat(2,1fr)}}.plan{{grid-template-columns:repeat(2,1fr)}}.health{{grid-template-columns:1fr}}.health p{{grid-column:auto}}}}
+.technical-values{{font-size:12px}} .plan{{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:14px 0}} .plan>div{{border:1px solid var(--line);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:4px}} .plan small,.plan span,.plan-note{{color:var(--muted);font-size:12px}} .plan strong{{font-size:16px}} .health{{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;background:#0c1728;border:1px solid var(--line);border-radius:16px;padding:16px;margin:16px 0}} .health>div{{display:flex;flex-direction:column;gap:4px}} .health small{{color:var(--muted)}} .health strong{{font-size:20px}} .health p{{grid-column:1/-1;margin:0;color:var(--muted)}} .market-explanation{{background:#181728;border:1px solid #3b355d;border-radius:16px;padding:16px;margin:16px 0}}
+.mobile-decision{{display:none}} footer{{margin-top:30px;color:var(--muted);font-size:13px}}
+@media(max-width:720px){{
+  body{{padding-bottom:24px}} main{{padding:12px 10px 32px;max-width:none}}
+  .hero{{padding:18px 16px;border-radius:18px}} h1{{font-size:34px;line-height:1.05}} .motto{{font-size:15px;line-height:1.4}}
+  .notice{{font-size:13px;line-height:1.35}} .meta-row{{display:grid;grid-template-columns:1fr;gap:6px}} .meta-row span{{font-size:11px;overflow-wrap:anywhere}}
+  .market-section{{margin-top:20px}} .section-head{{align-items:start;flex-direction:column;gap:10px}} h2{{font-size:26px}}
+  .counts{{display:grid;grid-template-columns:repeat(2,1fr);width:100%;margin-top:0}} .counts span{{text-align:center;font-size:12px}}
+  .mobile-decision{{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:8px;background:linear-gradient(135deg,#142846,#0d192b);border:1px solid #35527a;border-radius:18px;padding:14px;margin:14px 0;position:sticky;top:8px;z-index:5;box-shadow:0 12px 28px rgba(0,0,0,.28)}}
+  .mobile-decision>div{{display:flex;flex-direction:column;gap:4px;min-width:0}} .mobile-decision small{{color:var(--muted);font-size:9px;letter-spacing:.08em}} .mobile-decision strong{{font-size:15px;overflow-wrap:anywhere}}
+  .mobile-decision strong.ready{{color:#7df1b7}} .mobile-decision strong.wait{{color:#ffe477}} .mobile-decision strong.risk{{color:#ff9bae}} .mobile-decision p{{grid-column:1/-1;margin:2px 0 0;font-size:12px;line-height:1.4;color:#dce8fa}}
+  .health{{grid-template-columns:repeat(3,1fr);padding:12px;gap:8px}} .health small{{font-size:9px}} .health strong{{font-size:15px}} .health p{{grid-column:1/-1;font-size:12px;line-height:1.4}}
+  .candidate-grid{{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:12px;padding:2px 2px 12px;margin:0 -2px}} .candidate-grid::-webkit-scrollbar{{height:4px}}
+  .candidate-card{{min-width:calc(100vw - 34px);scroll-snap-align:center;padding:16px;border-radius:17px}} .watch-card{{min-width:86vw}}
+  .candidate-head{{flex-direction:column;gap:10px}} .badges{{justify-content:flex-start}} .symbol{{font-size:31px}}
+  .status,.strength,.quality,.grade{{padding:6px 9px;font-size:11px}}
+  .signal-grid{{grid-template-columns:repeat(2,1fr);gap:7px}} .signal{{padding:10px 9px;min-height:68px}} .signal strong{{font-size:13px}}
+  .plan{{grid-template-columns:repeat(2,1fr);gap:7px}} .plan>div{{padding:10px 9px;min-height:92px}} .plan strong{{font-size:15px}}
+  details summary{{font-size:15px;padding:4px 0}} details ul{{padding-left:20px;font-size:13px}} .technical-values{{gap:6px}} .technical-values span{{font-size:10px;padding:6px 8px}}
+  .market-explanation,.empty,.errors{{padding:14px;font-size:13px}} footer{{font-size:11px;line-height:1.45}}
+}}
+@media(max-width:390px){{
+  .mobile-decision{{grid-template-columns:1fr 1fr}} .mobile-decision>div:first-child{{grid-column:1/-1}} .health{{grid-template-columns:1fr 1fr}} .health>div:first-child{{grid-column:1/-1}}
+  .candidate-card{{min-width:calc(100vw - 24px)}} .watch-card{{min-width:92vw}}
+}}
 </style></head><body><main><section class="hero"><h1>HANZ Intelligence</h1><p class="motto">HANZ isn't loyal to stocks. HANZ is loyal to profits.</p>
 <div class="notice">PAPER-TRADE RESEARCH ONLY — not approved for live-money execution.</div><div class="meta-row"><span>Generated: {_esc(payload.get('generated_at'))}</span><span>Source: {_esc(source.get('name'))}</span><span>Grade: {_esc(source.get('grade'))}</span><span>Delayed: {_esc(source.get('delayed'))}</span></div></section>{sections}
 <footer>Evidence-first output. Quality scores summarize evidence completeness and alignment; they are not win probabilities or guarantees.</footer></main></body></html>"""

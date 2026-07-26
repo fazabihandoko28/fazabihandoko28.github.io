@@ -1,6 +1,3 @@
-src/hanz_app/decision_intelligence.py
 src/hanz_app/render_report.py
-tests/test_decision_intelligence.py
-tests/test_render_report_v11.py
-pyproject.toml
+tests/test_render_report_mobile_v12.py
 CHANGELOG.md

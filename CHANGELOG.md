@@ -1,10 +1,8 @@
 # Changelog
 
-## 1.1.0 — Decision Intelligence
+## v1.2 — Mobile Experience
 
-- Adds a bounded evidence-quality index (0–100) that is explicitly not a win probability.
-- Adds setup grades from AAA through WATCH/REJECTED.
-- Adds ATR/support-based research entry zones, invalidation stops, and two research targets.
-- Adds market posture, health index, and conservative maximum paper exposure guidance.
-- Adds explanations when no READY candidate passes.
-- Keeps all outputs paper-trade research only and avoids guaranteed-profit language.
+- Added a sticky mobile decision card with today's action, market posture, and maximum exposure.
+- Converted candidate and watchlist grids into touch-friendly horizontal swipe cards on phones.
+- Improved mobile typography, badge sizing, spacing, plan cards, metadata wrapping, and small-screen behavior.
+- Preserved the desktop institutional layout and static HTML architecture.
