@@ -66,3 +66,4 @@ jobs:
             dashboard/index.html
             artifacts/paper_scans/latest.json
             artifacts/paper_trading/journal.json
+          if-no-files-found: error
