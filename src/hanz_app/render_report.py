@@ -6,6 +6,10 @@ import json
 from pathlib import Path
 from typing import Any
 
+from hanz_app.decision_intelligence import (
+    evidence_quality, explain_no_candidate, market_health, quality_grade, trade_plan,
+)
+
 STATUS_CLASS = {"READY": "ready", "WAIT": "wait", "HIGH_RISK": "risk", "REJECT": "reject"}
 SIGNAL_LABEL = {
     "POSITIVE": "SUPPORTIVE",
@@ -76,23 +80,39 @@ def _technical_row(item: dict[str, Any]) -> str:
     return "".join(cells)
 
 
+def _plan_html(item: dict[str, Any]) -> str:
+    plan = trade_plan(item)
+    if plan.entry_low is None:
+        return f'<div class="plan-note">{_esc(plan.note)}</div>'
+    validity = "READY PLAN" if plan.valid else "WATCH PLAN"
+    return f"""<div class="plan">
+      <div><small>{validity}</small><strong>{_fmt(plan.entry_low)} – {_fmt(plan.entry_high)}</strong><span>Entry zone</span></div>
+      <div><small>STOP</small><strong>{_fmt(plan.stop)}</strong><span>Research invalidation</span></div>
+      <div><small>TARGET 1</small><strong>{_fmt(plan.target_1)}</strong><span>R/R {_fmt(plan.reward_risk_1, 1)}</span></div>
+      <div><small>TARGET 2</small><strong>{_fmt(plan.target_2)}</strong><span>R/R {_fmt(plan.reward_risk_2, 1)}</span></div>
+    </div><div class="plan-note">{_esc(plan.note)}</div>"""
+
+
 def _candidate_card(item: dict[str, Any], *, watchlist: bool = False) -> str:
     status = str(item.get("entry_status", "WAIT"))
     css_class = STATUS_CLASS.get(status, "wait")
     strength, strength_css = _strength(item)
     technical = item.get("technical") or {}
     label = "WATCHLIST" if watchlist else status
+    quality = evidence_quality(item)
+    grade = quality_grade(quality, status)
     return f"""
     <article class="candidate-card {'watch-card' if watchlist else ''}">
       <div class="candidate-head">
         <div><div class="symbol">{_esc(item.get('symbol'))}</div><div class="market">{_esc(item.get('market'))} · {_esc(item.get('tier'))}</div></div>
-        <div class="badges"><span class="strength {strength_css}">{strength}</span><span class="status {css_class}">{_esc(label)}</span></div>
+        <div class="badges"><span class="quality">QUALITY {quality}/100</span><span class="grade">{grade}</span><span class="strength {strength_css}">{strength}</span><span class="status {css_class}">{_esc(label)}</span></div>
       </div>
       <div class="signal-grid">{_technical_row(item)}</div>
+      {_plan_html(item)}
       <details><summary>Why HANZ classified it this way</summary><ul>{_reason_list(item)}</ul></details>
       <div class="technical-values">
         <span>Close {_fmt(item.get('signal_close'))}</span><span>RSI {_fmt(technical.get('rsi14'))}</span>
-        <span>RVOL {_fmt(technical.get('relative_volume20'))}</span><span>Resistance {_fmt(technical.get('resistance20'))}</span>
+        <span>RVOL {_fmt(technical.get('relative_volume20'))}</span><span>Resistance {_fmt(technical.get('resistance20'))}</span><span>ATR {_fmt(technical.get('atr14'))}</span>
       </div>
       <div class="meta">{_esc(item.get('signal_timestamp'))}</div>
     </article>"""
@@ -113,10 +133,17 @@ def _market_section(market: dict[str, Any]) -> str:
         items = "".join(f"<li><strong>{_esc(item.get('symbol'))}</strong>: {_esc(item.get('error'))}</li>" for item in errors[:30])
         error_details = f'<details class="errors"><summary>Data errors ({len(errors)})</summary><ul>{items}</ul></details>'
     coverage = market.get("coverage_percent", 0)
+    health = market_health(market)
+    no_candidate = ""
+    reasons = explain_no_candidate(market)
+    if reasons:
+        no_candidate = '<div class="market-explanation"><strong>Why no READY setup passed</strong><ul>' + "".join(f"<li>{_esc(reason)}</li>" for reason in reasons) + "</ul></div>"
     return f"""
     <section class="market-section">
       <div class="section-head"><div><h2>{_esc(market.get('market'))}</h2><p>{_esc(market.get('universe_size'))} symbols · {_esc(coverage)}% analyzed</p></div>
       <div class="counts"><span>{_esc(market.get('candidate_count'))} candidates</span><span>{_esc(market.get('reviewed_count'))} reviewed</span><span>{_esc(market.get('rejected_count'))} rejected</span><span>{_esc(market.get('error_count'))} errors</span></div></div>
+      <div class="health"><div><small>MARKET POSTURE</small><strong>{_esc(health['label'])}</strong></div><div><small>HEALTH INDEX</small><strong>{_esc(health['score'])}/100</strong></div><div><small>MAX PAPER EXPOSURE</small><strong>{_esc(health['paper_exposure_percent'])}%</strong></div><p>{_esc(health['explanation'])}</p></div>
+      {no_candidate}
       <h3>Actionable candidates</h3><div class="candidate-grid">{cards}</div>
       <h3>Top developing watchlist</h3><div class="candidate-grid">{watch_cards}</div>
       {error_details}
@@ -135,14 +162,14 @@ def render_report(payload: dict[str, Any]) -> str:
 .meta-row span,.counts span,.technical-values span{{border:1px solid var(--line);border-radius:999px;padding:7px 10px}} .market-section{{margin-top:30px}} .section-head{{display:flex;align-items:end;justify-content:space-between;gap:16px;margin-bottom:14px}}
 h2{{margin:0;font-size:30px}} h3{{margin:24px 0 12px;color:#dbe8ff}} .section-head p{{margin:5px 0 0;color:var(--muted)}} .candidate-grid{{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px}}
 .candidate-card,.empty,.errors{{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px}} .watch-card{{border-style:dashed}} .candidate-head{{display:flex;justify-content:space-between;gap:12px;align-items:start}}
-.symbol{{font-size:27px;font-weight:800}} .market,.meta{{color:var(--muted);font-size:13px}} .badges{{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}} .status,.strength{{border-radius:999px;padding:7px 10px;font-weight:800;font-size:12px}}
-.status.ready,.strength.strong{{background:#123d2c;color:#7df1b7}} .status.wait,.strength.developing{{background:#3c3417;color:#ffe477}} .status.risk,.status.reject,.strength.weak{{background:#431e27;color:#ff9bae}}
+.symbol{{font-size:27px;font-weight:800}} .market,.meta{{color:var(--muted);font-size:13px}} .badges{{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}} .status,.strength,.quality,.grade{{border-radius:999px;padding:7px 10px;font-weight:800;font-size:12px}}
+.status.ready,.strength.strong{{background:#123d2c;color:#7df1b7}} .status.wait,.strength.developing{{background:#3c3417;color:#ffe477}} .status.risk,.status.reject,.strength.weak{{background:#431e27;color:#ff9bae}} .quality{{background:#17314e;color:#b8dcff}} .grade{{background:#30264b;color:#d8c7ff}}
 .signal-grid{{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:16px 0}} .signal{{padding:10px;border:1px solid var(--line);border-radius:12px;display:flex;flex-direction:column;gap:5px}} .signal small{{color:var(--muted)}}
 .good{{color:#7df1b7}} .neutral{{color:#c8d4e6}} .caution{{color:#ffe477}} .bad{{color:#ff9bae}} .unknown{{color:#9eacc2}} details{{margin:12px 0}} summary{{cursor:pointer;color:#bcd5ff}} ul{{line-height:1.55}}
-.technical-values{{font-size:12px}} footer{{margin-top:30px;color:var(--muted);font-size:13px}} @media(max-width:650px){{.section-head{{align-items:start;flex-direction:column}}.signal-grid{{grid-template-columns:repeat(2,1fr)}}}}
+.technical-values{{font-size:12px}} .plan{{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:14px 0}} .plan>div{{border:1px solid var(--line);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:4px}} .plan small,.plan span,.plan-note{{color:var(--muted);font-size:12px}} .plan strong{{font-size:16px}} .health{{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;background:#0c1728;border:1px solid var(--line);border-radius:16px;padding:16px;margin:16px 0}} .health>div{{display:flex;flex-direction:column;gap:4px}} .health small{{color:var(--muted)}} .health strong{{font-size:20px}} .health p{{grid-column:1/-1;margin:0;color:var(--muted)}} .market-explanation{{background:#181728;border:1px solid #3b355d;border-radius:16px;padding:16px;margin:16px 0}} footer{{margin-top:30px;color:var(--muted);font-size:13px}} @media(max-width:650px){{.section-head{{align-items:start;flex-direction:column}}.signal-grid{{grid-template-columns:repeat(2,1fr)}}.plan{{grid-template-columns:repeat(2,1fr)}}.health{{grid-template-columns:1fr}}.health p{{grid-column:auto}}}}
 </style></head><body><main><section class="hero"><h1>HANZ Intelligence</h1><p class="motto">HANZ isn't loyal to stocks. HANZ is loyal to profits.</p>
 <div class="notice">PAPER-TRADE RESEARCH ONLY — not approved for live-money execution.</div><div class="meta-row"><span>Generated: {_esc(payload.get('generated_at'))}</span><span>Source: {_esc(source.get('name'))}</span><span>Grade: {_esc(source.get('grade'))}</span><span>Delayed: {_esc(source.get('delayed'))}</span></div></section>{sections}
-<footer>Evidence-first output. Colors describe evidence quality, not a guarantee of profit.</footer></main></body></html>"""
+<footer>Evidence-first output. Quality scores summarize evidence completeness and alignment; they are not win probabilities or guarantees.</footer></main></body></html>"""
 
 
 def main() -> int:

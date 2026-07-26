@@ -1,19 +1,18 @@
-# HANZ v1.0 Lean Storage Patch
+# HANZ v1.1 Decision Intelligence Patch
 
-This replaces timestamped repository history with bounded latest-only storage.
+Upload/replace these files in the same repository paths:
 
-Repository keeps only:
+- `src/hanz_app/decision_intelligence.py`
+- `src/hanz_app/render_report.py`
+- `tests/test_decision_intelligence.py`
+- `tests/test_render_report_v11.py`
+- `pyproject.toml`
+- `CHANGELOG.md`
 
-- `dashboard/index.html`
-- `dashboard/data/latest.json`
-- `dashboard/last_update.txt`
-- `artifacts/paper_scans/latest.json`
-- `artifacts/paper_trading/journal.json`
+Commit message:
 
-Legacy `dashboard/history/` is removed automatically. GitHub Artifact remains a temporary 30-day backup only.
+`Add evidence quality, market posture, and research trade plans v1.1`
 
-Upload/replace:
+Then confirm HANZ CI is green and run `HANZ Paper Scan` once.
 
-1. `.github/workflows/hanz-paper-scan.yml`
-2. `tools/publish_scan_results.py`
-3. `tests/test_publish_scan_results.py`
+The dashboard will add quality scores, grades, market posture, entry zones, research stops, targets, and no-candidate explanations. Quality is evidence alignment—not a claimed probability of profit.

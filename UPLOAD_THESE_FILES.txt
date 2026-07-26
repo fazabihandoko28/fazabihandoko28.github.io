@@ -1,11 +1,6 @@
-HANZ v0.9 patch files to replace in GitHub:
-
-config/universe/pilot_universe.csv
-src/hanz_app/paper_scan.py
+src/hanz_app/decision_intelligence.py
 src/hanz_app/render_report.py
-tests/test_render_report.py
+tests/test_decision_intelligence.py
+tests/test_render_report_v11.py
 pyproject.toml
 CHANGELOG.md
-
-Commit message:
-Expand BEI pilot and add evidence-first watchlist v0.9
