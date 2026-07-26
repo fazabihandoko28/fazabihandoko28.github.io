@@ -52,6 +52,14 @@ jobs:
           --scan artifacts/paper_scans/latest.json
           --report dashboard/index.html
 
+      - name: Prepare GitHub Pages site
+        run: |
+          mkdir -p docs/data
+          cp dashboard/index.html docs/index.html
+          cp dashboard/data/latest.json docs/data/latest.json
+          cp dashboard/last_update.txt docs/last_update.txt
+          touch docs/.nojekyll
+          
       - name: Commit generated paper results
         run: |
           git config user.name "HANZ Intelligence Bot"
@@ -61,6 +69,10 @@ jobs:
                   dashboard/last_update.txt \
                   artifacts/paper_scans/latest.json \
                   artifacts/paper_trading/journal.json
+                  docs/index.html \
+                  docs/data/latest.json \
+                  docs/last_update.txt \
+                  docs/.nojekyll
           if git diff --cached --quiet; then
             echo "No paper result changes to commit."
           else
