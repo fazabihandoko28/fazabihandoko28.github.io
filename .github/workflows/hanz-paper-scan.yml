@@ -68,7 +68,7 @@ jobs:
                   dashboard/data/latest.json \
                   dashboard/last_update.txt \
                   artifacts/paper_scans/latest.json \
-                  artifacts/paper_trading/journal.json
+                  artifacts/paper_trading/journal.json \
                   docs/index.html \
                   docs/data/latest.json \
                   docs/last_update.txt \
