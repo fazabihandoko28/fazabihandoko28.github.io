@@ -1,1 +1,12 @@
-[]
+[
+  {
+    "market": "BEI",
+    "symbol": "TINS",
+    "status": "WAIT",
+    "signal_timestamp": "2026-07-24T00:00:00+00:00",
+    "signal_close": 3430.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-07-26T00:10:03.312964+00:00",
+    "outcome": "PENDING"
+  }
+]
