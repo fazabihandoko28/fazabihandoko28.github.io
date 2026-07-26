@@ -1,9 +1,11 @@
-Replace these repository files with the matching patch files:
-1. src/hanz_data/providers/yahoo_provider.py
-2. src/hanz_app/render_report.py
-3. tests/test_yahoo_provider.py
-4. pyproject.toml
-5. CHANGELOG.md
+HANZ v0.9 patch files to replace in GitHub:
 
-Then commit: Fix BEI pilot data acquisition and error diagnostics v0.8
-Run HANZ CI first. If green, manually run HANZ Paper Scan again.
+config/universe/pilot_universe.csv
+src/hanz_app/paper_scan.py
+src/hanz_app/render_report.py
+tests/test_render_report.py
+pyproject.toml
+CHANGELOG.md
+
+Commit message:
+Expand BEI pilot and add evidence-first watchlist v0.9

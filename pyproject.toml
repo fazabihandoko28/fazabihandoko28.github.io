@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "hanz-intelligence"
-version = "0.8.0"
+version = "0.9.0"
 description = "Evidence-first market scanner, paper trading, and no-lookahead validation for BEI and ADX"
 requires-python = ">=3.10"
 dependencies = ["yfinance>=0.2.65,<1", "pandas>=2.0,<3"]

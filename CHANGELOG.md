@@ -68,3 +68,12 @@ All notable changes to HANZ Intelligence are recorded here.
 - Disabled yfinance repair mode by default for more stable Jakarta ticker downloads.
 - Added detailed per-symbol acquisition errors to the Alpha dashboard.
 - Added test coverage for the fallback acquisition path.
+
+## v0.9.0 — Expanded BEI Pilot & Evidence Ranking
+
+- Expanded the BEI research pilot from 10 to 30 liquid, multi-sector symbols.
+- Added analyzed-data coverage and technical snapshot fields to paper-scan JSON.
+- Added a color-first evidence matrix for trend, volume, resistance, risk/reward, liquidity, and extension.
+- Added an evidence-strength label (STRONG / DEVELOPING / WEAK), not a probability claim.
+- Added a top developing watchlist so a valid no-READY day does not produce an empty report.
+- Preserved explicit paper-trade/research-only safeguards.
