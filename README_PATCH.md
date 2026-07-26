@@ -1,18 +1,19 @@
-# HANZ v0.9 — Expanded BEI Pilot & Evidence Ranking
+# HANZ v1.0 Lean Storage Patch
 
-This patch expands the BEI paper-research universe from 10 to 30 symbols and improves the report without presenting a fake probability score.
+This replaces timestamped repository history with bounded latest-only storage.
 
-## Visible changes
+Repository keeps only:
 
-- Coverage percentage: how many symbols were actually analyzed.
-- Color-first evidence matrix: Trend, Volume, Resistance, Risk/Reward, Liquidity, Extension.
-- Evidence strength: STRONG, DEVELOPING, or WEAK.
-- Actionable candidates remain limited and evidence-gated.
-- A Top Developing Watchlist is shown when no READY candidate exists.
-- Technical values are available for audit, while the main decision remains color/status based.
+- `dashboard/index.html`
+- `dashboard/data/latest.json`
+- `dashboard/last_update.txt`
+- `artifacts/paper_scans/latest.json`
+- `artifacts/paper_trading/journal.json`
 
-## Validation
+Legacy `dashboard/history/` is removed automatically. GitHub Artifact remains a temporary 30-day backup only.
 
-- 32 unit tests passed.
-- Repository audit passed.
-- The feed remains delayed, research-only, and unsuitable for live-money execution.
+Upload/replace:
+
+1. `.github/workflows/hanz-paper-scan.yml`
+2. `tools/publish_scan_results.py`
+3. `tests/test_publish_scan_results.py`
