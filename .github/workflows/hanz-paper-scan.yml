@@ -51,7 +51,6 @@ jobs:
           python tools/publish_scan_results.py
           --scan artifacts/paper_scans/latest.json
           --report dashboard/index.html
-          --journal artifacts/paper_trading/journal.json
 
       - name: Commit generated paper results
         run: |
