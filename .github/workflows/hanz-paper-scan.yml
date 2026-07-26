@@ -46,11 +46,22 @@ jobs:
           --input artifacts/paper_scans/latest.json
           --output dashboard/index.html
 
+      - name: Publish lean scan results
+        run: >-
+          python tools/publish_scan_results.py
+          --scan artifacts/paper_scans/latest.json
+          --report dashboard/index.html
+          --journal artifacts/paper_trading/journal.json
+
       - name: Commit generated paper results
         run: |
           git config user.name "HANZ Intelligence Bot"
           git config user.email "actions@users.noreply.github.com"
-          git add artifacts/paper_scans/latest.json artifacts/paper_trading/journal.json dashboard/index.html
+          git add dashboard/index.html \
+                  dashboard/data/latest.json \
+                  dashboard/last_update.txt \
+                  artifacts/paper_scans/latest.json \
+                  artifacts/paper_trading/journal.json
           if git diff --cached --quiet; then
             echo "No paper result changes to commit."
           else
@@ -64,6 +75,9 @@ jobs:
           name: hanz-alpha-report
           path: |
             dashboard/index.html
+            dashboard/data/latest.json
+            dashboard/last_update.txt
             artifacts/paper_scans/latest.json
             artifacts/paper_trading/journal.json
           if-no-files-found: error
+          retention-days: 30
