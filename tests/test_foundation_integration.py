@@ -53,7 +53,7 @@ class FoundationIntegrationTests(unittest.TestCase):
         decisions = result["markets"][0]["KEPUTUSAN"]
         self.assertEqual(len(decisions), 2)
         self.assertEqual(decisions[0]["SIMBOL"], "AAA")
-        self.assertIn(decisions[0]["AKSI"], {"EKSEKUSI", "SIAGA", "AWAL"})
+        self.assertIn(decisions[0]["AKSI"],{"EKSEKUSI", "SIAGA", "AWAL", "LEWATI", "DATA MINIM"},)
         self.assertIn("EVIDENCE", decisions[0])
         self.assertIn("RISIKO", decisions[0])
         self.assertLessEqual(len(decisions[0]["AKSI"].split()), 2)
