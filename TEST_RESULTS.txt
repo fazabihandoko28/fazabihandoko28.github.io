@@ -1,3 +1,12 @@
-Syntax validation: PASS
-src/hanz_app/foundation_integration.py
-tests/test_foundation_integration_adapter_v2.py
+test_duplicate (test_hanz_server_core.T.test_duplicate) ... ok
+test_low (test_hanz_server_core.T.test_low) ... ok
+test_new (test_hanz_server_core.T.test_new) ... ok
+test_payload (test_hanz_server_core.T.test_payload) ... ok
+test_service (test_hanz_server_core.T.test_service) ... ok
+test_store (test_hanz_server_core.T.test_store) ... ok
+test_upgrade (test_hanz_server_core.T.test_upgrade) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.033s
+
+OK
