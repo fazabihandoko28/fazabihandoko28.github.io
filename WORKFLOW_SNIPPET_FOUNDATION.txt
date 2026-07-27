@@ -1,0 +1,15 @@
+Add this step AFTER "Publish lean scan results" and BEFORE the git commit step:
+
+      - name: Integrate HANZ Foundation
+        run: >-
+          python tools/integrate_foundation.py
+          --input artifacts/paper_scans/latest.json
+          --output dashboard/data/decisions.json
+
+Add this file to the existing git add command:
+
+                  dashboard/data/decisions.json \
+
+Add this file to the upload-artifact path:
+
+            dashboard/data/decisions.json
