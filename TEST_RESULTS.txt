@@ -8,15 +8,12 @@ Traceback (most recent call last):
   File "/tmp/tmp.yTcnQsZYiA/artifact_tool_v2-2.8.4/artifact_tool/rpc/remote.py", line 749, in __call__
   File "/tmp/tmp.yTcnQsZYiA/artifact_tool_v2-2.8.4/artifact_tool/rpc/client.py", line 150, in call
 artifact_tool.rpc.client.RemoteError: hydrateCrdtFromProto requires an empty collaborative document.
-test_anomaly_enters_queue (test_hanz_realtime_gateway.RealtimeGatewayTests.test_anomaly_enters_queue) ... ok
-test_guardian_trailing_stop_moves_up (test_hanz_realtime_gateway.RealtimeGatewayTests.test_guardian_trailing_stop_moves_up) ... ok
-test_guardian_triggers_sell_at_stop (test_hanz_realtime_gateway.RealtimeGatewayTests.test_guardian_triggers_sell_at_stop) ... ok
-test_incremental_state_updates (test_hanz_realtime_gateway.RealtimeGatewayTests.test_incremental_state_updates) ... ok
-test_queue_keeps_highest_scores (test_hanz_realtime_gateway.RealtimeGatewayTests.test_queue_keeps_highest_scores) ... ok
-test_scheduler_intervals (test_hanz_realtime_gateway.RealtimeGatewayTests.test_scheduler_intervals) ... ok
-test_tick_validation (test_hanz_realtime_gateway.RealtimeGatewayTests.test_tick_validation) ... ok
+test_bearer_token (test_ntfy_notifier.NtfyNotifierTests.test_bearer_token) ... ok
+test_critical_priority (test_ntfy_notifier.NtfyNotifierTests.test_critical_priority) ... ok
+test_network_failure (test_ntfy_notifier.NtfyNotifierTests.test_network_failure) ... ok
+test_payload (test_ntfy_notifier.NtfyNotifierTests.test_payload) ... ok
 
 ----------------------------------------------------------------------
-Ran 7 tests in 0.001s
+Ran 4 tests in 0.001s
 
 OK
