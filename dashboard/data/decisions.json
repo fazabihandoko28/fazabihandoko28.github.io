@@ -1,0 +1,120 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-07-27T13:42:43.103588+00:00",
+  "mode": "PAPER_TRADE_RESEARCH",
+  "source": {
+    "name": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "grade": "RESEARCH",
+    "delayed": true,
+    "allowed_for_live_trade": false,
+    "notes": "Public research source. Coverage and timeliness must be independently checked."
+  },
+  "markets": [
+    {
+      "PASAR": "BEI",
+      "REGIME": "DATA_LIMITED",
+      "JUMLAH": 8,
+      "RINGKAS": {
+        "DATA MINIM": 8
+      },
+      "KEPUTUSAN": [
+        {
+          "SIMBOL": "BMRI",
+          "AKSI": "DATA MINIM",
+          "EVIDENCE": 0,
+          "RISIKO": "BELUM ADA",
+          "LOLOS": [],
+          "WASPADA": [],
+          "VETO": [],
+          "PEMICU": null,
+          "CAKUPAN": 0,
+          "REGIME": "DATA_LIMITED"
+        },
+        {
+          "SIMBOL": "CPIN",
+          "AKSI": "DATA MINIM",
+          "EVIDENCE": 0,
+          "RISIKO": "BELUM ADA",
+          "LOLOS": [],
+          "WASPADA": [],
+          "VETO": [],
+          "PEMICU": null,
+          "CAKUPAN": 0,
+          "REGIME": "DATA_LIMITED"
+        },
+        {
+          "SIMBOL": "EXCL",
+          "AKSI": "DATA MINIM",
+          "EVIDENCE": 0,
+          "RISIKO": "BELUM ADA",
+          "LOLOS": [],
+          "WASPADA": [],
+          "VETO": [],
+          "PEMICU": null,
+          "CAKUPAN": 0,
+          "REGIME": "DATA_LIMITED"
+        },
+        {
+          "SIMBOL": "JSMR",
+          "AKSI": "DATA MINIM",
+          "EVIDENCE": 0,
+          "RISIKO": "BELUM ADA",
+          "LOLOS": [],
+          "WASPADA": [],
+          "VETO": [],
+          "PEMICU": null,
+          "CAKUPAN": 0,
+          "REGIME": "DATA_LIMITED"
+        },
+        {
+          "SIMBOL": "KLBF",
+          "AKSI": "DATA MINIM",
+          "EVIDENCE": 0,
+          "RISIKO": "BELUM ADA",
+          "LOLOS": [],
+          "WASPADA": [],
+          "VETO": [],
+          "PEMICU": null,
+          "CAKUPAN": 0,
+          "REGIME": "DATA_LIMITED"
+        },
+        {
+          "SIMBOL": "MYOR",
+          "AKSI": "DATA MINIM",
+          "EVIDENCE": 0,
+          "RISIKO": "BELUM ADA",
+          "LOLOS": [],
+          "WASPADA": [],
+          "VETO": [],
+          "PEMICU": null,
+          "CAKUPAN": 0,
+          "REGIME": "DATA_LIMITED"
+        },
+        {
+          "SIMBOL": "SMGR",
+          "AKSI": "DATA MINIM",
+          "EVIDENCE": 0,
+          "RISIKO": "BELUM ADA",
+          "LOLOS": [],
+          "WASPADA": [],
+          "VETO": [],
+          "PEMICU": null,
+          "CAKUPAN": 0,
+          "REGIME": "DATA_LIMITED"
+        },
+        {
+          "SIMBOL": "TINS",
+          "AKSI": "DATA MINIM",
+          "EVIDENCE": 0,
+          "RISIKO": "BELUM ADA",
+          "LOLOS": [],
+          "WASPADA": [],
+          "VETO": [],
+          "PEMICU": null,
+          "CAKUPAN": 0,
+          "REGIME": "DATA_LIMITED"
+        }
+      ]
+    }
+  ]
+}
