@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-from dataclasses import asdict
 from pathlib import Path
 from typing import Any, Iterable, Mapping
 
@@ -35,63 +34,12 @@ def _float(value: Any) -> float | None:
         return None
 
 
-def _evidence_level(value: Any, *, risk_group: bool = False) -> EvidenceLevel:
-    """Map legacy labels and numeric scores to a foundation EvidenceLevel."""
-    if isinstance(value, (int, float)):
-        score = float(value)
-        if score >= 85:
-            return EvidenceLevel.STRONG
-        if score >= 68:
-            return EvidenceLevel.SUPPORTIVE
-        if score >= 48:
-            return EvidenceLevel.NEUTRAL
-        if score >= 25:
-            return EvidenceLevel.CAUTION
-        return EvidenceLevel.REJECT
-
-    label = _norm(value)
-    if not label:
-        return EvidenceLevel.MISSING
-
-    strong = {
-        "STRONG", "VERY_STRONG", "BULLISH", "READY", "GOOD",
-        "SEHAT", "KUAT", "RENDAH" if risk_group else "__NONE__",
-    }
-    supportive = {
-        "SUPPORTIVE", "POSITIVE", "FAVORABLE", "DEVELOPING",
-        "MENDUKUNG", "NAIK", "MEDIUM_LOW" if risk_group else "__NONE__",
-    }
-    neutral = {"NEUTRAL", "MIXED", "SIDEWAYS", "DATAR", "WAIT", "WATCH"}
-    caution = {
-        "CAUTION", "WEAK", "UNFAVORABLE", "DETERIORATING",
-        "WASPADA", "LEMAH", "TINGGI" if risk_group else "__NONE__",
-    }
-    reject = {
-        "REJECT", "AVOID", "BAD", "EXTREME", "SUSPENDED",
-        "HINDARI", "EKSTREM",
-    }
-
-    if label in strong:
-        return EvidenceLevel.STRONG
-    if label in supportive:
-        return EvidenceLevel.SUPPORTIVE
-    if label in neutral:
-        return EvidenceLevel.NEUTRAL
-    if label in caution:
-        return EvidenceLevel.CAUTION
-    if label in reject:
-        return EvidenceLevel.REJECT
-    return EvidenceLevel.MISSING
-
-
 def _market_regime(market: Mapping[str, Any], root: Mapping[str, Any]) -> MarketRegime:
-    value = _first(
+    label = _norm(_first(
         market,
         "regime", "market_regime", "posture", "market_posture",
         default=_first(root, "market_regime", "market_posture"),
-    )
-    label = _norm(value)
-
+    ))
     mapping = {
         "BULL_EXPANSION": MarketRegime.BULL_EXPANSION,
         "EXPANSION": MarketRegime.BULL_EXPANSION,
@@ -120,41 +68,111 @@ def _candidate_rows(market: Mapping[str, Any]) -> Iterable[Mapping[str, Any]]:
                     yield row
 
 
-def _signal_value(row: Mapping[str, Any], group: str) -> Any:
-    direct_keys = {
-        "trend": ("trend", "trend_signal", "trend_score"),
-        "momentum": ("momentum", "momentum_signal", "momentum_score", "rsi_state"),
-        "volume": ("volume", "volume_signal", "volume_score", "rvol_state"),
-        "liquidity": ("liquidity", "liquidity_signal", "liquidity_score"),
-        "risk": ("risk", "risk_signal", "risk_score", "risk_reward"),
-        "breakout": ("breakout", "resistance", "breakout_signal", "resistance_signal"),
-        "relative_strength": (
-            "relative_strength", "relative_strength_signal", "rs_signal", "rs_score",
-        ),
-        "market": ("market", "market_signal", "market_score"),
-    }
-    for key in direct_keys[group]:
-        if key in row:
-            value = row[key]
-            if isinstance(value, Mapping):
-                return _first(value, "status", "signal", "label", "score", "value")
-            return value
-
-    signals = row.get("signals")
-    if isinstance(signals, Mapping):
-        value = signals.get(group)
-        if isinstance(value, Mapping):
-            return _first(value, "status", "signal", "label", "score", "value")
-        return value
-
+def _bucket_level(row: Mapping[str, Any], evidence_name: str) -> EvidenceLevel:
     evidence = row.get("evidence")
-    if isinstance(evidence, Mapping):
-        value = evidence.get(group)
-        if isinstance(value, Mapping):
-            return _first(value, "status", "signal", "label", "score", "value")
-        return value
+    if not isinstance(evidence, Mapping):
+        return EvidenceLevel.MISSING
 
-    return None
+    if evidence_name in set(evidence.get("positive") or []):
+        return EvidenceLevel.STRONG
+    if evidence_name in set(evidence.get("neutral") or []):
+        return EvidenceLevel.NEUTRAL
+    if evidence_name in set(evidence.get("warning") or []):
+        return EvidenceLevel.CAUTION
+    if evidence_name in set(evidence.get("negative") or []):
+        return EvidenceLevel.REJECT
+    return EvidenceLevel.MISSING
+
+
+def _merge_levels(levels: Iterable[EvidenceLevel]) -> EvidenceLevel:
+    values = [level for level in levels if level != EvidenceLevel.MISSING]
+    if not values:
+        return EvidenceLevel.MISSING
+    for level in (
+        EvidenceLevel.REJECT,
+        EvidenceLevel.CAUTION,
+        EvidenceLevel.NEUTRAL,
+        EvidenceLevel.SUPPORTIVE,
+        EvidenceLevel.STRONG,
+    ):
+        if level in values:
+            return level
+    return EvidenceLevel.MISSING
+
+
+def _technical(row: Mapping[str, Any]) -> Mapping[str, Any]:
+    value = row.get("technical")
+    return value if isinstance(value, Mapping) else {}
+
+
+def _trend_level(row: Mapping[str, Any]) -> EvidenceLevel:
+    bucket = _bucket_level(row, "price_structure")
+    if bucket != EvidenceLevel.MISSING:
+        return bucket
+
+    tech = _technical(row)
+    close = _float(_first(row, "signal_close", "close", "price"))
+    ema20 = _float(tech.get("ema20"))
+    ema50 = _float(tech.get("ema50"))
+    if close is None or ema20 is None or ema50 is None:
+        return EvidenceLevel.MISSING
+    if close > ema20 > ema50:
+        return EvidenceLevel.STRONG
+    if close > ema50:
+        return EvidenceLevel.SUPPORTIVE
+    if close < ema20 < ema50:
+        return EvidenceLevel.REJECT
+    return EvidenceLevel.CAUTION
+
+
+def _momentum_level(row: Mapping[str, Any]) -> EvidenceLevel:
+    rsi = _float(_technical(row).get("rsi14"))
+    if rsi is None:
+        return EvidenceLevel.MISSING
+    if 55 <= rsi <= 70:
+        return EvidenceLevel.STRONG
+    if 48 <= rsi < 55:
+        return EvidenceLevel.SUPPORTIVE
+    if 42 <= rsi < 48 or 70 < rsi <= 78:
+        return EvidenceLevel.NEUTRAL
+    if 30 <= rsi < 42 or 78 < rsi <= 85:
+        return EvidenceLevel.CAUTION
+    return EvidenceLevel.REJECT
+
+
+def _volume_level(row: Mapping[str, Any]) -> EvidenceLevel:
+    bucket = _bucket_level(row, "volume_confirmation")
+    if bucket != EvidenceLevel.MISSING:
+        return bucket
+
+    rvol = _float(_technical(row).get("relative_volume20"))
+    if rvol is None:
+        return EvidenceLevel.MISSING
+    if rvol >= 1.8:
+        return EvidenceLevel.STRONG
+    if rvol >= 1.2:
+        return EvidenceLevel.SUPPORTIVE
+    if rvol >= 0.8:
+        return EvidenceLevel.NEUTRAL
+    if rvol >= 0.5:
+        return EvidenceLevel.CAUTION
+    return EvidenceLevel.REJECT
+
+
+def _risk_level(row: Mapping[str, Any]) -> EvidenceLevel:
+    entry_status = _norm(row.get("entry_status"))
+    if entry_status in {"LOW_RISK", "READY"}:
+        base = EvidenceLevel.STRONG
+    elif entry_status in {"MODERATE_RISK", "MEDIUM_RISK", "OBSERVE"}:
+        base = EvidenceLevel.SUPPORTIVE
+    elif entry_status in {"HIGH_RISK", "CAUTION"}:
+        base = EvidenceLevel.CAUTION
+    elif entry_status in {"REJECT", "AVOID"}:
+        base = EvidenceLevel.REJECT
+    else:
+        base = EvidenceLevel.MISSING
+
+    return _merge_levels([base, _bucket_level(row, "risk_reward")])
 
 
 def candidate_to_snapshot(
@@ -163,21 +181,29 @@ def candidate_to_snapshot(
     market_name: str,
     regime: MarketRegime,
 ) -> StockSnapshot:
+    tech = _technical(row)
     symbol = str(_first(row, "symbol", "ticker", "code", default="UNKNOWN")).strip()
+
     evidence = EvidenceVector(
-        trend=_evidence_level(_signal_value(row, "trend")),
-        momentum=_evidence_level(_signal_value(row, "momentum")),
-        volume=_evidence_level(_signal_value(row, "volume")),
-        liquidity=_evidence_level(_signal_value(row, "liquidity")),
-        risk=_evidence_level(_signal_value(row, "risk"), risk_group=True),
-        breakout=_evidence_level(_signal_value(row, "breakout")),
-        relative_strength=_evidence_level(_signal_value(row, "relative_strength")),
-        market=_evidence_level(_signal_value(row, "market")),
+        trend=_trend_level(row),
+        momentum=_momentum_level(row),
+        volume=_volume_level(row),
+        liquidity=_bucket_level(row, "liquidity"),
+        risk=_risk_level(row),
+        breakout=_bucket_level(row, "resistance"),
+        relative_strength=EvidenceLevel.MISSING,
+        market=_bucket_level(row, "market_regime"),
         raw_metrics={
-            "quality": _first(row, "quality", "quality_score", "score"),
-            "close": _first(row, "close", "price", "last"),
-            "rsi": _first(row, "rsi", "RSI"),
-            "rvol": _first(row, "rvol", "RVOL", "relative_volume"),
+            "tier": row.get("tier"),
+            "entry_status": row.get("entry_status"),
+            "close": _first(row, "signal_close", "close", "price"),
+            "ema20": tech.get("ema20"),
+            "ema50": tech.get("ema50"),
+            "rsi14": tech.get("rsi14"),
+            "atr14": tech.get("atr14"),
+            "relative_volume20": tech.get("relative_volume20"),
+            "resistance20": tech.get("resistance20"),
+            "support20": tech.get("support20"),
         },
     )
 
@@ -186,9 +212,9 @@ def candidate_to_snapshot(
         market=market_name,
         regime=regime,
         evidence=evidence,
-        price=_float(_first(row, "close", "price", "last")),
-        resistance=_float(_first(row, "resistance", "watch_high", "entry_high")),
-        support=_float(_first(row, "support", "stop", "invalidation")),
+        price=_float(_first(row, "signal_close", "close", "price")),
+        resistance=_float(tech.get("resistance20")),
+        support=_float(tech.get("support20")),
         is_held=bool(_first(row, "is_held", "held", default=False)),
     )
 
@@ -196,8 +222,8 @@ def candidate_to_snapshot(
 def integrate_payload(payload: Mapping[str, Any]) -> dict[str, Any]:
     decision_engine = DecisionEngine()
     explain_engine = ExplainEngine()
-
     output_markets: list[dict[str, Any]] = []
+
     markets = payload.get("markets")
     if not isinstance(markets, list):
         markets = []
@@ -223,7 +249,6 @@ def integrate_payload(payload: Mapping[str, Any]) -> dict[str, Any]:
             compact = explain_engine.compact_id(decision)
             compact["CAKUPAN"] = round(decision.coverage)
             compact["REGIME"] = regime.value
-            compact["PEMICU"] = compact.get("PEMICU")
             decisions.append(compact)
 
         order = {
@@ -249,18 +274,16 @@ def integrate_payload(payload: Mapping[str, Any]) -> dict[str, Any]:
             action = str(item["AKSI"])
             counts[action] = counts.get(action, 0) + 1
 
-        output_markets.append(
-            {
-                "PASAR": market_name,
-                "REGIME": regime.value,
-                "JUMLAH": len(decisions),
-                "RINGKAS": counts,
-                "KEPUTUSAN": decisions,
-            }
-        )
+        output_markets.append({
+            "PASAR": market_name,
+            "REGIME": regime.value,
+            "JUMLAH": len(decisions),
+            "RINGKAS": counts,
+            "KEPUTUSAN": decisions,
+        })
 
     return {
-        "schema_version": 1,
+        "schema_version": 2,
         "generated_at": payload.get("generated_at"),
         "mode": payload.get("mode"),
         "source": payload.get("source"),
