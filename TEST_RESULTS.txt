@@ -8,15 +8,15 @@ Traceback (most recent call last):
   File "/tmp/tmp.yTcnQsZYiA/artifact_tool_v2-2.8.4/artifact_tool/rpc/remote.py", line 749, in __call__
   File "/tmp/tmp.yTcnQsZYiA/artifact_tool_v2-2.8.4/artifact_tool/rpc/client.py", line 150, in call
 artifact_tool.rpc.client.RemoteError: hydrateCrdtFromProto requires an empty collaborative document.
-test_history_only_records_changes (test_opportunity_radar.OpportunityRadarTests.test_history_only_records_changes) ... ok
-test_interesting_state_is_detected (test_opportunity_radar.OpportunityRadarTests.test_interesting_state_is_detected) ... ok
-test_medium_state_becomes_prepare_or_early (test_opportunity_radar.OpportunityRadarTests.test_medium_state_becomes_prepare_or_early) ... ok
-test_ranking_prefers_stronger_signal (test_opportunity_radar.OpportunityRadarTests.test_ranking_prefers_stronger_signal) ... ok
-test_snapshot_is_compact (test_opportunity_radar.OpportunityRadarTests.test_snapshot_is_compact) ... ok
-test_stale_state_is_ignored (test_opportunity_radar.OpportunityRadarTests.test_stale_state_is_ignored) ... ok
-test_strong_state_becomes_ready (test_opportunity_radar.OpportunityRadarTests.test_strong_state_becomes_ready) ... ok
+test_backoff_is_bounded (test_twelvedata_provider.TwelveDataProviderTests.test_backoff_is_bounded) ... ok
+test_config_endpoint (test_twelvedata_provider.TwelveDataProviderTests.test_config_endpoint) ... ok
+test_heartbeat_payload (test_twelvedata_provider.TwelveDataProviderTests.test_heartbeat_payload) ... ok
+test_invalid_price_is_ignored (test_twelvedata_provider.TwelveDataProviderTests.test_invalid_price_is_ignored) ... ok
+test_price_message_maps_to_tick (test_twelvedata_provider.TwelveDataProviderTests.test_price_message_maps_to_tick) ... ok
+test_status_message_passes_through (test_twelvedata_provider.TwelveDataProviderTests.test_status_message_passes_through) ... ok
+test_subscribe_payload (test_twelvedata_provider.TwelveDataProviderTests.test_subscribe_payload) ... ok
 
 ----------------------------------------------------------------------
-Ran 7 tests in 0.001s
+Ran 7 tests in 0.000s
 
 OK
