@@ -52,11 +52,18 @@ jobs:
           --scan artifacts/paper_scans/latest.json
           --report dashboard/index.html
 
+      - name: Integrate HANZ Foundation
+        run: >-
+          python tools/integrate_foundation.py
+          --input artifacts/paper_scans/latest.json
+          --output dashboard/data/decisions.json
+          
       - name: Prepare GitHub Pages site
         run: |
           mkdir -p docs/data
           cp dashboard/index.html docs/index.html
           cp dashboard/data/latest.json docs/data/latest.json
+          cp dashboard/data/decisions.json docs/data/decisions.json
           cp dashboard/last_update.txt docs/last_update.txt
           touch docs/.nojekyll
           
@@ -66,11 +73,13 @@ jobs:
           git config user.email "actions@users.noreply.github.com"
           git add dashboard/index.html \
                   dashboard/data/latest.json \
+                  dashboard/data/decisions.json \
                   dashboard/last_update.txt \
                   artifacts/paper_scans/latest.json \
                   artifacts/paper_trading/journal.json \
                   docs/index.html \
                   docs/data/latest.json \
+                  docs/data/decisions.json \
                   docs/last_update.txt \
                   docs/.nojekyll
           if git diff --cached --quiet; then
