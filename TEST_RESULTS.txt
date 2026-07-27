@@ -8,12 +8,15 @@ Traceback (most recent call last):
   File "/tmp/tmp.yTcnQsZYiA/artifact_tool_v2-2.8.4/artifact_tool/rpc/remote.py", line 749, in __call__
   File "/tmp/tmp.yTcnQsZYiA/artifact_tool_v2-2.8.4/artifact_tool/rpc/client.py", line 150, in call
 artifact_tool.rpc.client.RemoteError: hydrateCrdtFromProto requires an empty collaborative document.
-test_bearer_token (test_ntfy_notifier.NtfyNotifierTests.test_bearer_token) ... ok
-test_critical_priority (test_ntfy_notifier.NtfyNotifierTests.test_critical_priority) ... ok
-test_network_failure (test_ntfy_notifier.NtfyNotifierTests.test_network_failure) ... ok
-test_payload (test_ntfy_notifier.NtfyNotifierTests.test_payload) ... ok
+test_history_only_records_changes (test_opportunity_radar.OpportunityRadarTests.test_history_only_records_changes) ... ok
+test_interesting_state_is_detected (test_opportunity_radar.OpportunityRadarTests.test_interesting_state_is_detected) ... ok
+test_medium_state_becomes_prepare_or_early (test_opportunity_radar.OpportunityRadarTests.test_medium_state_becomes_prepare_or_early) ... ok
+test_ranking_prefers_stronger_signal (test_opportunity_radar.OpportunityRadarTests.test_ranking_prefers_stronger_signal) ... ok
+test_snapshot_is_compact (test_opportunity_radar.OpportunityRadarTests.test_snapshot_is_compact) ... ok
+test_stale_state_is_ignored (test_opportunity_radar.OpportunityRadarTests.test_stale_state_is_ignored) ... ok
+test_strong_state_becomes_ready (test_opportunity_radar.OpportunityRadarTests.test_strong_state_becomes_ready) ... ok
 
 ----------------------------------------------------------------------
-Ran 4 tests in 0.001s
+Ran 7 tests in 0.001s
 
 OK
