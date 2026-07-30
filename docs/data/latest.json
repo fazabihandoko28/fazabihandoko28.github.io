@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-29T17:55:33.664841+00:00",
+  "generated_at": "2026-07-30T18:05:47.597441+00:00",
   "mode": "PAPER_TRADE_RESEARCH",
   "source": {
     "name": "YAHOO_FINANCE_RESEARCH_ONLY",
@@ -13,9 +13,9 @@
     {
       "market": "BEI",
       "universe_size": 30,
-      "candidate_count": 1,
-      "reviewed_count": 10,
-      "rejected_count": 19,
+      "candidate_count": 3,
+      "reviewed_count": 14,
+      "rejected_count": 13,
       "error_count": 0,
       "analysis_count": 30,
       "coverage_percent": 100.0,
@@ -28,6 +28,119 @@
           "selection_reasons": [
             "Evidence retained for confirmation",
             "Positive: data_freshness",
+            "Positive: liquidity",
+            "Positive: risk_reward"
+          ],
+          "rejection_reasons": [
+            "Warning: price_structure"
+          ],
+          "vetoes": [],
+          "signal_timestamp": "2026-07-29T00:00:00+00:00",
+          "signal_close": 3420.0,
+          "technical": {
+            "ema20": 3483.3979664579833,
+            "ema50": 3470.47461695193,
+            "rsi14": 53.94736842105264,
+            "atr14": 142.14285714285714,
+            "relative_volume20": 1.401574593032018,
+            "resistance20": 3780.0,
+            "support20": 3220.0
+          },
+          "evidence": {
+            "positive": [
+              "data_freshness",
+              "liquidity",
+              "risk_reward"
+            ],
+            "neutral": [
+              "extension_risk",
+              "market_regime",
+              "resistance",
+              "volume_confirmation"
+            ],
+            "warning": [
+              "price_structure"
+            ],
+            "negative": [],
+            "unknown": []
+          },
+          "audit": {
+            "data_freshness": "positive|technical_engine|2026-07-29T00:00:00+00:00|valid",
+            "liquidity": "positive|technical_engine|2026-07-29T00:00:00+00:00|avg_value20=120229678150.00",
+            "price_structure": "warning|technical_engine|2026-07-29T00:00:00+00:00|mixed close=3420.0000,ema20=3483.3980,ema50=3470.4746",
+            "volume_confirmation": "neutral|technical_engine|2026-07-29T00:00:00+00:00|rvol20=1.40",
+            "resistance": "neutral|technical_engine|2026-07-29T00:00:00+00:00|room_to_resistance20=3780.0000",
+            "risk_reward": "positive|technical_engine|2026-07-29T00:00:00+00:00|proxy_rr=1.80;support20=3220.0000;atr14=142.1429",
+            "extension_risk": "neutral|technical_engine|2026-07-29T00:00:00+00:00|rsi14=53.95",
+            "market_regime": "neutral|technical_engine|2026-07-29T00:00:00+00:00|index_adapter_not_connected"
+          },
+          "error": null
+        },
+        {
+          "market": "BEI",
+          "symbol": "ISAT",
+          "tier": "SECONDARY",
+          "entry_status": "WAIT",
+          "selection_reasons": [
+            "Evidence retained for confirmation",
+            "Positive: data_freshness",
+            "Positive: liquidity",
+            "Positive: volume_confirmation"
+          ],
+          "rejection_reasons": [
+            "Warning: price_structure",
+            "Warning: risk_reward"
+          ],
+          "vetoes": [],
+          "signal_timestamp": "2026-07-29T00:00:00+00:00",
+          "signal_close": 1900.0,
+          "technical": {
+            "ema20": 1899.2179438030219,
+            "ema50": 1927.2758351264574,
+            "rsi14": 52.7027027027027,
+            "atr14": 62.857142857142854,
+            "relative_volume20": 1.5514313476254356,
+            "resistance20": 2050.0,
+            "support20": 1750.0
+          },
+          "evidence": {
+            "positive": [
+              "data_freshness",
+              "liquidity",
+              "volume_confirmation"
+            ],
+            "neutral": [
+              "extension_risk",
+              "market_regime",
+              "resistance"
+            ],
+            "warning": [
+              "price_structure",
+              "risk_reward"
+            ],
+            "negative": [],
+            "unknown": []
+          },
+          "audit": {
+            "data_freshness": "positive|technical_engine|2026-07-29T00:00:00+00:00|valid",
+            "liquidity": "positive|technical_engine|2026-07-29T00:00:00+00:00|avg_value20=33804783400.00",
+            "price_structure": "warning|technical_engine|2026-07-29T00:00:00+00:00|mixed close=1900.0000,ema20=1899.2179,ema50=1927.2758",
+            "volume_confirmation": "positive|technical_engine|2026-07-29T00:00:00+00:00|rvol20=1.55",
+            "resistance": "neutral|technical_engine|2026-07-29T00:00:00+00:00|room_to_resistance20=2050.0000",
+            "risk_reward": "warning|technical_engine|2026-07-29T00:00:00+00:00|proxy_rr=1.00;support20=1750.0000;atr14=62.8571",
+            "extension_risk": "neutral|technical_engine|2026-07-29T00:00:00+00:00|rsi14=52.70",
+            "market_regime": "neutral|technical_engine|2026-07-29T00:00:00+00:00|index_adapter_not_connected"
+          },
+          "error": null
+        },
+        {
+          "market": "BEI",
+          "symbol": "UNTR",
+          "tier": "SECONDARY",
+          "entry_status": "WAIT",
+          "selection_reasons": [
+            "Evidence retained for confirmation",
+            "Positive: data_freshness",
             "Positive: liquidity"
           ],
           "rejection_reasons": [
@@ -35,16 +148,16 @@
             "Warning: risk_reward"
           ],
           "vetoes": [],
-          "signal_timestamp": "2026-07-28T00:00:00+00:00",
-          "signal_close": 3460.0,
+          "signal_timestamp": "2026-07-29T00:00:00+00:00",
+          "signal_close": 24500.0,
           "technical": {
-            "ema20": 3490.0714366117336,
-            "ema50": 3472.547507561859,
-            "rsi14": 60.256410256410255,
-            "atr14": 142.85714285714286,
-            "relative_volume20": 0.8611826413159636,
-            "resistance20": 3780.0,
-            "support20": 3220.0
+            "ema20": 25094.52936364656,
+            "ema50": 25064.82894331921,
+            "rsi14": 53.48837209302325,
+            "atr14": 778.5714285714286,
+            "relative_volume20": 1.2513754100155923,
+            "resistance20": 27650.0,
+            "support20": 22000.0
           },
           "evidence": {
             "positive": [
@@ -65,14 +178,14 @@
             "unknown": []
           },
           "audit": {
-            "data_freshness": "positive|technical_engine|2026-07-28T00:00:00+00:00|valid",
-            "liquidity": "positive|technical_engine|2026-07-28T00:00:00+00:00|avg_value20=115428895450.00",
-            "price_structure": "warning|technical_engine|2026-07-28T00:00:00+00:00|mixed close=3460.0000,ema20=3490.0714,ema50=3472.5475",
-            "volume_confirmation": "neutral|technical_engine|2026-07-28T00:00:00+00:00|rvol20=0.86",
-            "resistance": "neutral|technical_engine|2026-07-28T00:00:00+00:00|room_to_resistance20=3780.0000",
-            "risk_reward": "warning|technical_engine|2026-07-28T00:00:00+00:00|proxy_rr=1.33;support20=3220.0000;atr14=142.8571",
-            "extension_risk": "neutral|technical_engine|2026-07-28T00:00:00+00:00|rsi14=60.26",
-            "market_regime": "neutral|technical_engine|2026-07-28T00:00:00+00:00|index_adapter_not_connected"
+            "data_freshness": "positive|technical_engine|2026-07-29T00:00:00+00:00|valid",
+            "liquidity": "positive|technical_engine|2026-07-29T00:00:00+00:00|avg_value20=99486939250.00",
+            "price_structure": "warning|technical_engine|2026-07-29T00:00:00+00:00|mixed close=24500.0000,ema20=25094.5294,ema50=25064.8289",
+            "volume_confirmation": "neutral|technical_engine|2026-07-29T00:00:00+00:00|rvol20=1.25",
+            "resistance": "neutral|technical_engine|2026-07-29T00:00:00+00:00|room_to_resistance20=27650.0000",
+            "risk_reward": "warning|technical_engine|2026-07-29T00:00:00+00:00|proxy_rr=1.26;support20=22000.0000;atr14=778.5714",
+            "extension_risk": "neutral|technical_engine|2026-07-29T00:00:00+00:00|rsi14=53.49",
+            "market_regime": "neutral|technical_engine|2026-07-29T00:00:00+00:00|index_adapter_not_connected"
           },
           "error": null
         }
@@ -80,181 +193,123 @@
       "reviewed": [
         {
           "market": "BEI",
+          "symbol": "CTRA",
+          "tier": "OBSERVE",
+          "entry_status": "WAIT",
+          "selection_reasons": [
+            "Evidence retained for confirmation",
+            "Positive: data_freshness",
+            "Positive: liquidity",
+            "Positive: risk_reward"
+          ],
+          "rejection_reasons": [
+            "Negative: price_structure",
+            "Warning: volume_confirmation"
+          ],
+          "vetoes": [],
+          "signal_timestamp": "2026-07-29T00:00:00+00:00",
+          "signal_close": 555.0,
+          "technical": {
+            "ema20": 567.1128483893515,
+            "ema50": 591.6628344493554,
+            "rsi14": 61.904761904761905,
+            "atr14": 17.142857142857142,
+            "relative_volume20": 0.5448990890039912,
+            "resistance20": 605.0,
+            "support20": 530.0
+          },
+          "evidence": {
+            "positive": [
+              "data_freshness",
+              "liquidity",
+              "risk_reward"
+            ],
+            "neutral": [
+              "extension_risk",
+              "market_regime",
+              "resistance"
+            ],
+            "warning": [
+              "volume_confirmation"
+            ],
+            "negative": [
+              "price_structure"
+            ],
+            "unknown": []
+          },
+          "audit": {
+            "data_freshness": "positive|technical_engine|2026-07-29T00:00:00+00:00|valid",
+            "liquidity": "positive|technical_engine|2026-07-29T00:00:00+00:00|avg_value20=9730942975.00",
+            "price_structure": "negative|technical_engine|2026-07-29T00:00:00+00:00|close<567.1128<591.6628",
+            "volume_confirmation": "warning|technical_engine|2026-07-29T00:00:00+00:00|rvol20=0.54",
+            "resistance": "neutral|technical_engine|2026-07-29T00:00:00+00:00|room_to_resistance20=605.0000",
+            "risk_reward": "positive|technical_engine|2026-07-29T00:00:00+00:00|proxy_rr=2.00;support20=530.0000;atr14=17.1429",
+            "extension_risk": "neutral|technical_engine|2026-07-29T00:00:00+00:00|rsi14=61.90",
+            "market_regime": "neutral|technical_engine|2026-07-29T00:00:00+00:00|index_adapter_not_connected"
+          },
+          "error": null
+        },
+        {
+          "market": "BEI",
+          "symbol": "EXCL",
+          "tier": "OBSERVE",
+          "entry_status": "WAIT",
+          "selection_reasons": [
+            "Evidence retained for confirmation",
+            "Positive: data_freshness",
+            "Positive: liquidity",
+            "Positive: risk_reward"
+          ],
+          "rejection_reasons": [
+            "Negative: price_structure",
+            "Warning: volume_confirmation"
+          ],
+          "vetoes": [],
+          "signal_timestamp": "2026-07-29T00:00:00+00:00",
+          "signal_close": 2420.0,
+          "technical": {
+            "ema20": 2499.2569409809093,
+            "ema50": 2603.850220550218,
+            "rsi14": 47.05882352941176,
+            "atr14": 83.57142857142857,
+            "relative_volume20": 0.5122608914696617,
+            "resistance20": 2660.0,
+            "support20": 2310.0
+          },
+          "evidence": {
+            "positive": [
+              "data_freshness",
+              "liquidity",
+              "risk_reward"
+            ],
+            "neutral": [
+              "extension_risk",
+              "market_regime",
+              "resistance"
+            ],
+            "warning": [
+              "volume_confirmation"
+            ],
+            "negative": [
+              "price_structure"
+            ],
+            "unknown": []
+          },
+          "audit": {
+            "data_freshness": "positive|technical_engine|2026-07-29T00:00:00+00:00|valid",
+            "liquidity": "positive|technical_engine|2026-07-29T00:00:00+00:00|avg_value20=13469760350.00",
+            "price_structure": "negative|technical_engine|2026-07-29T00:00:00+00:00|close<2499.2569<2603.8502",
+            "volume_confirmation": "warning|technical_engine|2026-07-29T00:00:00+00:00|rvol20=0.51",
+            "resistance": "neutral|technical_engine|2026-07-29T00:00:00+00:00|room_to_resistance20=2660.0000",
+            "risk_reward": "positive|technical_engine|2026-07-29T00:00:00+00:00|proxy_rr=2.18;support20=2310.0000;atr14=83.5714",
+            "extension_risk": "neutral|technical_engine|2026-07-29T00:00:00+00:00|rsi14=47.06",
+            "market_regime": "neutral|technical_engine|2026-07-29T00:00:00+00:00|index_adapter_not_connected"
+          },
+          "error": null
+        },
+        {
+          "market": "BEI",
           "symbol": "MYOR",
-          "tier": "OBSERVE",
-          "entry_status": "WAIT",
-          "selection_reasons": [
-            "Evidence retained for confirmation",
-            "Positive: data_freshness",
-            "Positive: liquidity",
-            "Positive: risk_reward"
-          ],
-          "rejection_reasons": [
-            "Negative: price_structure",
-            "Warning: volume_confirmation"
-          ],
-          "vetoes": [],
-          "signal_timestamp": "2026-07-28T00:00:00+00:00",
-          "signal_close": 1710.0,
-          "technical": {
-            "ema20": 1753.620435124479,
-            "ema50": 1781.9439216436547,
-            "rsi14": 47.945205479452056,
-            "atr14": 43.57142857142857,
-            "relative_volume20": 0.4272201102292027,
-            "resistance20": 1870.0,
-            "support20": 1700.0
-          },
-          "evidence": {
-            "positive": [
-              "data_freshness",
-              "liquidity",
-              "risk_reward"
-            ],
-            "neutral": [
-              "extension_risk",
-              "market_regime",
-              "resistance"
-            ],
-            "warning": [
-              "volume_confirmation"
-            ],
-            "negative": [
-              "price_structure"
-            ],
-            "unknown": []
-          },
-          "audit": {
-            "data_freshness": "positive|technical_engine|2026-07-28T00:00:00+00:00|valid",
-            "liquidity": "positive|technical_engine|2026-07-28T00:00:00+00:00|avg_value20=9228413100.00",
-            "price_structure": "negative|technical_engine|2026-07-28T00:00:00+00:00|close<1753.6204<1781.9439",
-            "volume_confirmation": "warning|technical_engine|2026-07-28T00:00:00+00:00|rvol20=0.43",
-            "resistance": "neutral|technical_engine|2026-07-28T00:00:00+00:00|room_to_resistance20=1870.0000",
-            "risk_reward": "positive|technical_engine|2026-07-28T00:00:00+00:00|proxy_rr=3.67;support20=1700.0000;atr14=43.5714",
-            "extension_risk": "neutral|technical_engine|2026-07-28T00:00:00+00:00|rsi14=47.95",
-            "market_regime": "neutral|technical_engine|2026-07-28T00:00:00+00:00|index_adapter_not_connected"
-          },
-          "error": null
-        },
-        {
-          "market": "BEI",
-          "symbol": "CPIN",
-          "tier": "OBSERVE",
-          "entry_status": "WAIT",
-          "selection_reasons": [
-            "Evidence retained for confirmation",
-            "Positive: data_freshness",
-            "Positive: liquidity",
-            "Positive: risk_reward"
-          ],
-          "rejection_reasons": [
-            "Negative: price_structure",
-            "Warning: volume_confirmation"
-          ],
-          "vetoes": [],
-          "signal_timestamp": "2026-07-28T00:00:00+00:00",
-          "signal_close": 3130.0,
-          "technical": {
-            "ema20": 3183.3556755742916,
-            "ema50": 3400.7236269233704,
-            "rsi14": 56.36363636363637,
-            "atr14": 69.28571428571429,
-            "relative_volume20": 0.3612473330573512,
-            "resistance20": 3400.0,
-            "support20": 3010.0
-          },
-          "evidence": {
-            "positive": [
-              "data_freshness",
-              "liquidity",
-              "risk_reward"
-            ],
-            "neutral": [
-              "extension_risk",
-              "market_regime",
-              "resistance"
-            ],
-            "warning": [
-              "volume_confirmation"
-            ],
-            "negative": [
-              "price_structure"
-            ],
-            "unknown": []
-          },
-          "audit": {
-            "data_freshness": "positive|technical_engine|2026-07-28T00:00:00+00:00|valid",
-            "liquidity": "positive|technical_engine|2026-07-28T00:00:00+00:00|avg_value20=36754111650.00",
-            "price_structure": "negative|technical_engine|2026-07-28T00:00:00+00:00|close<3183.3557<3400.7236",
-            "volume_confirmation": "warning|technical_engine|2026-07-28T00:00:00+00:00|rvol20=0.36",
-            "resistance": "neutral|technical_engine|2026-07-28T00:00:00+00:00|room_to_resistance20=3400.0000",
-            "risk_reward": "positive|technical_engine|2026-07-28T00:00:00+00:00|proxy_rr=2.25;support20=3010.0000;atr14=69.2857",
-            "extension_risk": "neutral|technical_engine|2026-07-28T00:00:00+00:00|rsi14=56.36",
-            "market_regime": "neutral|technical_engine|2026-07-28T00:00:00+00:00|index_adapter_not_connected"
-          },
-          "error": null
-        },
-        {
-          "market": "BEI",
-          "symbol": "JSMR",
-          "tier": "OBSERVE",
-          "entry_status": "WAIT",
-          "selection_reasons": [
-            "Evidence retained for confirmation",
-            "Positive: data_freshness",
-            "Positive: liquidity",
-            "Positive: risk_reward"
-          ],
-          "rejection_reasons": [
-            "Negative: price_structure",
-            "Warning: volume_confirmation"
-          ],
-          "vetoes": [],
-          "signal_timestamp": "2026-07-28T00:00:00+00:00",
-          "signal_close": 2680.0,
-          "technical": {
-            "ema20": 2732.216573009327,
-            "ema50": 2817.1382206388225,
-            "rsi14": 46.875,
-            "atr14": 57.142857142857146,
-            "relative_volume20": 0.2838177104845087,
-            "resistance20": 2840.0,
-            "support20": 2600.0
-          },
-          "evidence": {
-            "positive": [
-              "data_freshness",
-              "liquidity",
-              "risk_reward"
-            ],
-            "neutral": [
-              "extension_risk",
-              "market_regime",
-              "resistance"
-            ],
-            "warning": [
-              "volume_confirmation"
-            ],
-            "negative": [
-              "price_structure"
-            ],
-            "unknown": []
-          },
-          "audit": {
-            "data_freshness": "positive|technical_engine|2026-07-28T00:00:00+00:00|valid",
-            "liquidity": "positive|technical_engine|2026-07-28T00:00:00+00:00|avg_value20=8053352650.00",
-            "price_structure": "negative|technical_engine|2026-07-28T00:00:00+00:00|close<2732.2166<2817.1382",
-            "volume_confirmation": "warning|technical_engine|2026-07-28T00:00:00+00:00|rvol20=0.28",
-            "resistance": "neutral|technical_engine|2026-07-28T00:00:00+00:00|room_to_resistance20=2840.0000",
-            "risk_reward": "positive|technical_engine|2026-07-28T00:00:00+00:00|proxy_rr=2.00;support20=2600.0000;atr14=57.1429",
-            "extension_risk": "neutral|technical_engine|2026-07-28T00:00:00+00:00|rsi14=46.88",
-            "market_regime": "neutral|technical_engine|2026-07-28T00:00:00+00:00|index_adapter_not_connected"
-          },
-          "error": null
-        },
-        {
-          "market": "BEI",
-          "symbol": "KLBF",
           "tier": "OBSERVE",
           "entry_status": "HIGH_RISK",
           "selection_reasons": [
@@ -267,16 +322,16 @@
             "Negative: price_structure"
           ],
           "vetoes": [],
-          "signal_timestamp": "2026-07-28T00:00:00+00:00",
-          "signal_close": 700.0,
+          "signal_timestamp": "2026-07-29T00:00:00+00:00",
+          "signal_close": 1725.0,
           "technical": {
-            "ema20": 732.800653704337,
-            "ema50": 767.7975666901477,
-            "rsi14": 38.888888888888886,
-            "atr14": 23.571428571428573,
-            "relative_volume20": 1.2796726823138134,
-            "resistance20": 790.0,
-            "support20": 700.0
+            "ema20": 1750.89467939914,
+            "ema50": 1779.7098564052853,
+            "rsi14": 49.33333333333333,
+            "atr14": 43.92857142857143,
+            "relative_volume20": 0.954377637883019,
+            "resistance20": 1865.0,
+            "support20": 1700.0
           },
           "evidence": {
             "positive": [
@@ -297,47 +352,48 @@
             "unknown": []
           },
           "audit": {
-            "data_freshness": "positive|technical_engine|2026-07-28T00:00:00+00:00|valid",
-            "liquidity": "positive|technical_engine|2026-07-28T00:00:00+00:00|avg_value20=49912786725.00",
-            "price_structure": "negative|technical_engine|2026-07-28T00:00:00+00:00|close<732.8007<767.7976",
-            "volume_confirmation": "neutral|technical_engine|2026-07-28T00:00:00+00:00|rvol20=1.28",
-            "resistance": "neutral|technical_engine|2026-07-28T00:00:00+00:00|room_to_resistance20=790.0000",
-            "risk_reward": "positive|technical_engine|2026-07-28T00:00:00+00:00|proxy_rr=3.82;support20=700.0000;atr14=23.5714",
-            "extension_risk": "neutral|technical_engine|2026-07-28T00:00:00+00:00|rsi14=38.89",
-            "market_regime": "neutral|technical_engine|2026-07-28T00:00:00+00:00|index_adapter_not_connected"
+            "data_freshness": "positive|technical_engine|2026-07-29T00:00:00+00:00|valid",
+            "liquidity": "positive|technical_engine|2026-07-29T00:00:00+00:00|avg_value20=9230531750.00",
+            "price_structure": "negative|technical_engine|2026-07-29T00:00:00+00:00|close<1750.8947<1779.7099",
+            "volume_confirmation": "neutral|technical_engine|2026-07-29T00:00:00+00:00|rvol20=0.95",
+            "resistance": "neutral|technical_engine|2026-07-29T00:00:00+00:00|room_to_resistance20=1865.0000",
+            "risk_reward": "positive|technical_engine|2026-07-29T00:00:00+00:00|proxy_rr=3.19;support20=1700.0000;atr14=43.9286",
+            "extension_risk": "neutral|technical_engine|2026-07-29T00:00:00+00:00|rsi14=49.33",
+            "market_regime": "neutral|technical_engine|2026-07-29T00:00:00+00:00|index_adapter_not_connected"
           },
           "error": null
         },
         {
           "market": "BEI",
-          "symbol": "EXCL",
+          "symbol": "KLBF",
           "tier": "OBSERVE",
           "entry_status": "HIGH_RISK",
           "selection_reasons": [
             "Positive: data_freshness",
-            "Positive: liquidity"
+            "Positive: liquidity",
+            "Positive: risk_reward"
           ],
           "rejection_reasons": [
             "Risk evidence is elevated",
-            "Negative: price_structure",
-            "Warning: risk_reward"
+            "Negative: price_structure"
           ],
           "vetoes": [],
-          "signal_timestamp": "2026-07-28T00:00:00+00:00",
-          "signal_close": 2440.0,
+          "signal_timestamp": "2026-07-29T00:00:00+00:00",
+          "signal_close": 700.0,
           "technical": {
-            "ema20": 2507.599776871389,
-            "ema50": 2611.351638093147,
-            "rsi14": 43.63636363636363,
-            "atr14": 85.0,
-            "relative_volume20": 1.4224626080635627,
-            "resistance20": 2660.0,
-            "support20": 2310.0
+            "ema20": 729.6767819229765,
+            "ema50": 765.1381734788783,
+            "rsi14": 42.42424242424243,
+            "atr14": 23.214285714285715,
+            "relative_volume20": 0.9157437284013353,
+            "resistance20": 780.0,
+            "support20": 695.0
           },
           "evidence": {
             "positive": [
               "data_freshness",
-              "liquidity"
+              "liquidity",
+              "risk_reward"
             ],
             "neutral": [
               "extension_risk",
@@ -345,23 +401,21 @@
               "resistance",
               "volume_confirmation"
             ],
-            "warning": [
-              "risk_reward"
-            ],
+            "warning": [],
             "negative": [
               "price_structure"
             ],
             "unknown": []
           },
           "audit": {
-            "data_freshness": "positive|technical_engine|2026-07-28T00:00:00+00:00|valid",
-            "liquidity": "positive|technical_engine|2026-07-28T00:00:00+00:00|avg_value20=13488597950.00",
-            "price_structure": "negative|technical_engine|2026-07-28T00:00:00+00:00|close<2507.5998<2611.3516",
-            "volume_confirmation": "neutral|technical_engine|2026-07-28T00:00:00+00:00|rvol20=1.42",
-            "resistance": "neutral|technical_engine|2026-07-28T00:00:00+00:00|room_to_resistance20=2660.0000",
-            "risk_reward": "warning|technical_engine|2026-07-28T00:00:00+00:00|proxy_rr=1.69;support20=2310.0000;atr14=85.0000",
-            "extension_risk": "neutral|technical_engine|2026-07-28T00:00:00+00:00|rsi14=43.64",
-            "market_regime": "neutral|technical_engine|2026-07-28T00:00:00+00:00|index_adapter_not_connected"
+            "data_freshness": "positive|technical_engine|2026-07-29T00:00:00+00:00|valid",
+            "liquidity": "positive|technical_engine|2026-07-29T00:00:00+00:00|avg_value20=50944440275.00",
+            "price_structure": "negative|technical_engine|2026-07-29T00:00:00+00:00|close<729.6768<765.1382",
+            "volume_confirmation": "neutral|technical_engine|2026-07-29T00:00:00+00:00|rvol20=0.92",
+            "resistance": "neutral|technical_engine|2026-07-29T00:00:00+00:00|room_to_resistance20=780.0000",
+            "risk_reward": "positive|technical_engine|2026-07-29T00:00:00+00:00|proxy_rr=3.45;support20=695.0000;atr14=23.2143",
+            "extension_risk": "neutral|technical_engine|2026-07-29T00:00:00+00:00|rsi14=42.42",
+            "market_regime": "neutral|technical_engine|2026-07-29T00:00:00+00:00|index_adapter_not_connected"
           },
           "error": null
         },
@@ -372,29 +426,30 @@
           "entry_status": "HIGH_RISK",
           "selection_reasons": [
             "Positive: data_freshness",
-            "Positive: liquidity"
+            "Positive: liquidity",
+            "Positive: risk_reward"
           ],
           "rejection_reasons": [
             "Risk evidence is elevated",
-            "Negative: price_structure",
-            "Warning: risk_reward"
+            "Negative: price_structure"
           ],
           "vetoes": [],
-          "signal_timestamp": "2026-07-28T00:00:00+00:00",
-          "signal_close": 1790.0,
+          "signal_timestamp": "2026-07-29T00:00:00+00:00",
+          "signal_close": 1760.0,
           "technical": {
-            "ema20": 1814.6563557783365,
-            "ema50": 1832.9966408875525,
-            "rsi14": 55.95238095238095,
-            "atr14": 52.5,
-            "relative_volume20": 0.9933396062803269,
+            "ema20": 1809.450988560869,
+            "ema50": 1830.1326520980629,
+            "rsi14": 52.80898876404495,
+            "atr14": 54.285714285714285,
+            "relative_volume20": 0.866446786858748,
             "resistance20": 1945.0,
-            "support20": 1660.0
+            "support20": 1665.0
           },
           "evidence": {
             "positive": [
               "data_freshness",
-              "liquidity"
+              "liquidity",
+              "risk_reward"
             ],
             "neutral": [
               "extension_risk",
@@ -402,80 +457,21 @@
               "resistance",
               "volume_confirmation"
             ],
-            "warning": [
-              "risk_reward"
-            ],
+            "warning": [],
             "negative": [
               "price_structure"
             ],
             "unknown": []
           },
           "audit": {
-            "data_freshness": "positive|technical_engine|2026-07-28T00:00:00+00:00|valid",
-            "liquidity": "positive|technical_engine|2026-07-28T00:00:00+00:00|avg_value20=26501303375.00",
-            "price_structure": "negative|technical_engine|2026-07-28T00:00:00+00:00|close<1814.6564<1832.9966",
-            "volume_confirmation": "neutral|technical_engine|2026-07-28T00:00:00+00:00|rvol20=0.99",
-            "resistance": "neutral|technical_engine|2026-07-28T00:00:00+00:00|room_to_resistance20=1945.0000",
-            "risk_reward": "warning|technical_engine|2026-07-28T00:00:00+00:00|proxy_rr=1.19;support20=1660.0000;atr14=52.5000",
-            "extension_risk": "neutral|technical_engine|2026-07-28T00:00:00+00:00|rsi14=55.95",
-            "market_regime": "neutral|technical_engine|2026-07-28T00:00:00+00:00|index_adapter_not_connected"
-          },
-          "error": null
-        },
-        {
-          "market": "BEI",
-          "symbol": "BMRI",
-          "tier": "OBSERVE",
-          "entry_status": "HIGH_RISK",
-          "selection_reasons": [
-            "Positive: data_freshness",
-            "Positive: liquidity"
-          ],
-          "rejection_reasons": [
-            "Risk evidence is elevated",
-            "Negative: price_structure",
-            "Warning: risk_reward"
-          ],
-          "vetoes": [],
-          "signal_timestamp": "2026-07-28T00:00:00+00:00",
-          "signal_close": 4100.0,
-          "technical": {
-            "ema20": 4211.862050507212,
-            "ema50": 4230.0854225362145,
-            "rsi14": 55.46218487394958,
-            "atr14": 128.57142857142858,
-            "relative_volume20": 0.9884586886769292,
-            "resistance20": 4520.0,
-            "support20": 3800.0
-          },
-          "evidence": {
-            "positive": [
-              "data_freshness",
-              "liquidity"
-            ],
-            "neutral": [
-              "extension_risk",
-              "market_regime",
-              "resistance",
-              "volume_confirmation"
-            ],
-            "warning": [
-              "risk_reward"
-            ],
-            "negative": [
-              "price_structure"
-            ],
-            "unknown": []
-          },
-          "audit": {
-            "data_freshness": "positive|technical_engine|2026-07-28T00:00:00+00:00|valid",
-            "liquidity": "positive|technical_engine|2026-07-28T00:00:00+00:00|avg_value20=680921619750.00",
-            "price_structure": "negative|technical_engine|2026-07-28T00:00:00+00:00|close<4211.8621<4230.0854",
-            "volume_confirmation": "neutral|technical_engine|2026-07-28T00:00:00+00:00|rvol20=0.99",
-            "resistance": "neutral|technical_engine|2026-07-28T00:00:00+00:00|room_to_resistance20=4520.0000",
-            "risk_reward": "warning|technical_engine|2026-07-28T00:00:00+00:00|proxy_rr=1.40;support20=3800.0000;atr14=128.5714",
-            "extension_risk": "neutral|technical_engine|2026-07-28T00:00:00+00:00|rsi14=55.46",
-            "market_regime": "neutral|technical_engine|2026-07-28T00:00:00+00:00|index_adapter_not_connected"
+            "data_freshness": "positive|technical_engine|2026-07-29T00:00:00+00:00|valid",
+            "liquidity": "positive|technical_engine|2026-07-29T00:00:00+00:00|avg_value20=26902678825.00",
+            "price_structure": "negative|technical_engine|2026-07-29T00:00:00+00:00|close<1809.4510<1830.1327",
+            "volume_confirmation": "neutral|technical_engine|2026-07-29T00:00:00+00:00|rvol20=0.87",
+            "resistance": "neutral|technical_engine|2026-07-29T00:00:00+00:00|room_to_resistance20=1945.0000",
+            "risk_reward": "positive|technical_engine|2026-07-29T00:00:00+00:00|proxy_rr=1.95;support20=1665.0000;atr14=54.2857",
+            "extension_risk": "neutral|technical_engine|2026-07-29T00:00:00+00:00|rsi14=52.81",
+            "market_regime": "neutral|technical_engine|2026-07-29T00:00:00+00:00|index_adapter_not_connected"
           },
           "error": null
         },
@@ -494,14 +490,14 @@
             "Warning: risk_reward"
           ],
           "vetoes": [],
-          "signal_timestamp": "2026-07-28T00:00:00+00:00",
+          "signal_timestamp": "2026-07-29T00:00:00+00:00",
           "signal_close": 2330.0,
           "technical": {
-            "ema20": 2407.216765413411,
-            "ema50": 2506.8651174758525,
-            "rsi14": 46.15384615384615,
-            "atr14": 45.714285714285715,
-            "relative_volume20": 0.9455508696786908,
+            "ema20": 2399.862787754416,
+            "ema50": 2499.9290670651853,
+            "rsi14": 43.99999999999999,
+            "atr14": 45.0,
+            "relative_volume20": 1.015665529666009,
             "resistance20": 2460.0,
             "support20": 2250.0
           },
@@ -525,14 +521,186 @@
             "unknown": []
           },
           "audit": {
-            "data_freshness": "positive|technical_engine|2026-07-28T00:00:00+00:00|valid",
-            "liquidity": "positive|technical_engine|2026-07-28T00:00:00+00:00|avg_value20=23559703050.00",
-            "price_structure": "negative|technical_engine|2026-07-28T00:00:00+00:00|close<2407.2168<2506.8651",
-            "volume_confirmation": "neutral|technical_engine|2026-07-28T00:00:00+00:00|rvol20=0.95",
-            "resistance": "neutral|technical_engine|2026-07-28T00:00:00+00:00|room_to_resistance20=2460.0000",
-            "risk_reward": "warning|technical_engine|2026-07-28T00:00:00+00:00|proxy_rr=1.62;support20=2250.0000;atr14=45.7143",
-            "extension_risk": "neutral|technical_engine|2026-07-28T00:00:00+00:00|rsi14=46.15",
-            "market_regime": "neutral|technical_engine|2026-07-28T00:00:00+00:00|index_adapter_not_connected"
+            "data_freshness": "positive|technical_engine|2026-07-29T00:00:00+00:00|valid",
+            "liquidity": "positive|technical_engine|2026-07-29T00:00:00+00:00|avg_value20=23571248350.00",
+            "price_structure": "negative|technical_engine|2026-07-29T00:00:00+00:00|close<2399.8628<2499.9291",
+            "volume_confirmation": "neutral|technical_engine|2026-07-29T00:00:00+00:00|rvol20=1.02",
+            "resistance": "neutral|technical_engine|2026-07-29T00:00:00+00:00|room_to_resistance20=2460.0000",
+            "risk_reward": "warning|technical_engine|2026-07-29T00:00:00+00:00|proxy_rr=1.62;support20=2250.0000;atr14=45.0000",
+            "extension_risk": "neutral|technical_engine|2026-07-29T00:00:00+00:00|rsi14=44.00",
+            "market_regime": "neutral|technical_engine|2026-07-29T00:00:00+00:00|index_adapter_not_connected"
+          },
+          "error": null
+        },
+        {
+          "market": "BEI",
+          "symbol": "INCO",
+          "tier": "OBSERVE",
+          "entry_status": "HIGH_RISK",
+          "selection_reasons": [
+            "Positive: data_freshness",
+            "Positive: liquidity"
+          ],
+          "rejection_reasons": [
+            "Risk evidence is elevated",
+            "Negative: price_structure",
+            "Warning: risk_reward"
+          ],
+          "vetoes": [],
+          "signal_timestamp": "2026-07-29T00:00:00+00:00",
+          "signal_close": 4640.0,
+          "technical": {
+            "ema20": 4798.810821637979,
+            "ema50": 4949.622051725827,
+            "rsi14": 51.980198019801975,
+            "atr14": 178.57142857142858,
+            "relative_volume20": 0.9940325680186103,
+            "resistance20": 5275.0,
+            "support20": 4170.0
+          },
+          "evidence": {
+            "positive": [
+              "data_freshness",
+              "liquidity"
+            ],
+            "neutral": [
+              "extension_risk",
+              "market_regime",
+              "resistance",
+              "volume_confirmation"
+            ],
+            "warning": [
+              "risk_reward"
+            ],
+            "negative": [
+              "price_structure"
+            ],
+            "unknown": []
+          },
+          "audit": {
+            "data_freshness": "positive|technical_engine|2026-07-29T00:00:00+00:00|valid",
+            "liquidity": "positive|technical_engine|2026-07-29T00:00:00+00:00|avg_value20=54574873650.00",
+            "price_structure": "negative|technical_engine|2026-07-29T00:00:00+00:00|close<4798.8108<4949.6221",
+            "volume_confirmation": "neutral|technical_engine|2026-07-29T00:00:00+00:00|rvol20=0.99",
+            "resistance": "neutral|technical_engine|2026-07-29T00:00:00+00:00|room_to_resistance20=5275.0000",
+            "risk_reward": "warning|technical_engine|2026-07-29T00:00:00+00:00|proxy_rr=1.35;support20=4170.0000;atr14=178.5714",
+            "extension_risk": "neutral|technical_engine|2026-07-29T00:00:00+00:00|rsi14=51.98",
+            "market_regime": "neutral|technical_engine|2026-07-29T00:00:00+00:00|index_adapter_not_connected"
+          },
+          "error": null
+        },
+        {
+          "market": "BEI",
+          "symbol": "MIKA",
+          "tier": "OBSERVE",
+          "entry_status": "HIGH_RISK",
+          "selection_reasons": [
+            "Positive: data_freshness",
+            "Positive: liquidity"
+          ],
+          "rejection_reasons": [
+            "Risk evidence is elevated",
+            "Negative: price_structure",
+            "Warning: risk_reward"
+          ],
+          "vetoes": [],
+          "signal_timestamp": "2026-07-29T00:00:00+00:00",
+          "signal_close": 1700.0,
+          "technical": {
+            "ema20": 1722.1612568814967,
+            "ema50": 1738.2638154195124,
+            "rsi14": 50.0,
+            "atr14": 58.92857142857143,
+            "relative_volume20": 0.8463756235999259,
+            "resistance20": 1805.0,
+            "support20": 1655.0
+          },
+          "evidence": {
+            "positive": [
+              "data_freshness",
+              "liquidity"
+            ],
+            "neutral": [
+              "extension_risk",
+              "market_regime",
+              "resistance",
+              "volume_confirmation"
+            ],
+            "warning": [
+              "risk_reward"
+            ],
+            "negative": [
+              "price_structure"
+            ],
+            "unknown": []
+          },
+          "audit": {
+            "data_freshness": "positive|technical_engine|2026-07-29T00:00:00+00:00|valid",
+            "liquidity": "positive|technical_engine|2026-07-29T00:00:00+00:00|avg_value20=8881385700.00",
+            "price_structure": "negative|technical_engine|2026-07-29T00:00:00+00:00|close<1722.1613<1738.2638",
+            "volume_confirmation": "neutral|technical_engine|2026-07-29T00:00:00+00:00|rvol20=0.85",
+            "resistance": "neutral|technical_engine|2026-07-29T00:00:00+00:00|room_to_resistance20=1805.0000",
+            "risk_reward": "warning|technical_engine|2026-07-29T00:00:00+00:00|proxy_rr=1.78;support20=1655.0000;atr14=58.9286",
+            "extension_risk": "neutral|technical_engine|2026-07-29T00:00:00+00:00|rsi14=50.00",
+            "market_regime": "neutral|technical_engine|2026-07-29T00:00:00+00:00|index_adapter_not_connected"
+          },
+          "error": null
+        },
+        {
+          "market": "BEI",
+          "symbol": "BMRI",
+          "tier": "OBSERVE",
+          "entry_status": "HIGH_RISK",
+          "selection_reasons": [
+            "Positive: data_freshness",
+            "Positive: liquidity"
+          ],
+          "rejection_reasons": [
+            "Risk evidence is elevated",
+            "Negative: price_structure",
+            "Warning: risk_reward",
+            "Warning: volume_confirmation"
+          ],
+          "vetoes": [],
+          "signal_timestamp": "2026-07-29T00:00:00+00:00",
+          "signal_close": 4090.0,
+          "technical": {
+            "ema20": 4200.25614093541,
+            "ema50": 4224.592453848826,
+            "rsi14": 52.21238938053097,
+            "atr14": 127.85714285714286,
+            "relative_volume20": 0.7715224925924254,
+            "resistance20": 4520.0,
+            "support20": 3800.0
+          },
+          "evidence": {
+            "positive": [
+              "data_freshness",
+              "liquidity"
+            ],
+            "neutral": [
+              "extension_risk",
+              "market_regime",
+              "resistance"
+            ],
+            "warning": [
+              "risk_reward",
+              "volume_confirmation"
+            ],
+            "negative": [
+              "price_structure"
+            ],
+            "unknown": []
+          },
+          "audit": {
+            "data_freshness": "positive|technical_engine|2026-07-29T00:00:00+00:00|valid",
+            "liquidity": "positive|technical_engine|2026-07-29T00:00:00+00:00|avg_value20=679559232150.00",
+            "price_structure": "negative|technical_engine|2026-07-29T00:00:00+00:00|close<4200.2561<4224.5925",
+            "volume_confirmation": "warning|technical_engine|2026-07-29T00:00:00+00:00|rvol20=0.77",
+            "resistance": "neutral|technical_engine|2026-07-29T00:00:00+00:00|room_to_resistance20=4520.0000",
+            "risk_reward": "warning|technical_engine|2026-07-29T00:00:00+00:00|proxy_rr=1.48;support20=3800.0000;atr14=127.8571",
+            "extension_risk": "neutral|technical_engine|2026-07-29T00:00:00+00:00|rsi14=52.21",
+            "market_regime": "neutral|technical_engine|2026-07-29T00:00:00+00:00|index_adapter_not_connected"
           },
           "error": null
         },
@@ -552,14 +720,14 @@
             "Warning: volume_confirmation"
           ],
           "vetoes": [],
-          "signal_timestamp": "2026-07-28T00:00:00+00:00",
+          "signal_timestamp": "2026-07-29T00:00:00+00:00",
           "signal_close": 2560.0,
           "technical": {
-            "ema20": 2602.5416505068715,
-            "ema50": 2691.6813464346365,
+            "ema20": 2598.4900647462396,
+            "ema50": 2686.5205524004923,
             "rsi14": 54.385964912280706,
-            "atr14": 79.28571428571429,
-            "relative_volume20": 0.609679777888545,
+            "atr14": 80.0,
+            "relative_volume20": 0.7501562602617122,
             "resistance20": 2770.0,
             "support20": 2350.0
           },
@@ -583,20 +751,20 @@
             "unknown": []
           },
           "audit": {
-            "data_freshness": "positive|technical_engine|2026-07-28T00:00:00+00:00|valid",
-            "liquidity": "positive|technical_engine|2026-07-28T00:00:00+00:00|avg_value20=261976701050.00",
-            "price_structure": "negative|technical_engine|2026-07-28T00:00:00+00:00|close<2602.5417<2691.6813",
-            "volume_confirmation": "warning|technical_engine|2026-07-28T00:00:00+00:00|rvol20=0.61",
-            "resistance": "neutral|technical_engine|2026-07-28T00:00:00+00:00|room_to_resistance20=2770.0000",
-            "risk_reward": "warning|technical_engine|2026-07-28T00:00:00+00:00|proxy_rr=1.00;support20=2350.0000;atr14=79.2857",
-            "extension_risk": "neutral|technical_engine|2026-07-28T00:00:00+00:00|rsi14=54.39",
-            "market_regime": "neutral|technical_engine|2026-07-28T00:00:00+00:00|index_adapter_not_connected"
+            "data_freshness": "positive|technical_engine|2026-07-29T00:00:00+00:00|valid",
+            "liquidity": "positive|technical_engine|2026-07-29T00:00:00+00:00|avg_value20=258094162050.00",
+            "price_structure": "negative|technical_engine|2026-07-29T00:00:00+00:00|close<2598.4901<2686.5206",
+            "volume_confirmation": "warning|technical_engine|2026-07-29T00:00:00+00:00|rvol20=0.75",
+            "resistance": "neutral|technical_engine|2026-07-29T00:00:00+00:00|room_to_resistance20=2770.0000",
+            "risk_reward": "warning|technical_engine|2026-07-29T00:00:00+00:00|proxy_rr=1.00;support20=2350.0000;atr14=80.0000",
+            "extension_risk": "neutral|technical_engine|2026-07-29T00:00:00+00:00|rsi14=54.39",
+            "market_regime": "neutral|technical_engine|2026-07-29T00:00:00+00:00|index_adapter_not_connected"
           },
           "error": null
         },
         {
           "market": "BEI",
-          "symbol": "CTRA",
+          "symbol": "ANTM",
           "tier": "OBSERVE",
           "entry_status": "HIGH_RISK",
           "selection_reasons": [
@@ -610,16 +778,16 @@
             "Warning: volume_confirmation"
           ],
           "vetoes": [],
-          "signal_timestamp": "2026-07-28T00:00:00+00:00",
-          "signal_close": 560.0,
+          "signal_timestamp": "2026-07-29T00:00:00+00:00",
+          "signal_close": 2840.0,
           "technical": {
-            "ema20": 568.3878850623928,
-            "ema50": 593.1586866731873,
-            "rsi14": 56.52173913043478,
-            "atr14": 18.214285714285715,
-            "relative_volume20": 0.346419492575572,
-            "resistance20": 605.0,
-            "support20": 530.0
+            "ema20": 2953.0538762201118,
+            "ema50": 3037.6938153713572,
+            "rsi14": 49.29577464788733,
+            "atr14": 101.42857142857143,
+            "relative_volume20": 0.7116239281129105,
+            "resistance20": 3190.0,
+            "support20": 2550.0
           },
           "evidence": {
             "positive": [
@@ -641,14 +809,188 @@
             "unknown": []
           },
           "audit": {
-            "data_freshness": "positive|technical_engine|2026-07-28T00:00:00+00:00|valid",
-            "liquidity": "positive|technical_engine|2026-07-28T00:00:00+00:00|avg_value20=9723550375.00",
-            "price_structure": "negative|technical_engine|2026-07-28T00:00:00+00:00|close<568.3879<593.1587",
-            "volume_confirmation": "warning|technical_engine|2026-07-28T00:00:00+00:00|rvol20=0.35",
-            "resistance": "neutral|technical_engine|2026-07-28T00:00:00+00:00|room_to_resistance20=605.0000",
-            "risk_reward": "warning|technical_engine|2026-07-28T00:00:00+00:00|proxy_rr=1.50;support20=530.0000;atr14=18.2143",
-            "extension_risk": "neutral|technical_engine|2026-07-28T00:00:00+00:00|rsi14=56.52",
-            "market_regime": "neutral|technical_engine|2026-07-28T00:00:00+00:00|index_adapter_not_connected"
+            "data_freshness": "positive|technical_engine|2026-07-29T00:00:00+00:00|valid",
+            "liquidity": "positive|technical_engine|2026-07-29T00:00:00+00:00|avg_value20=278139535850.00",
+            "price_structure": "negative|technical_engine|2026-07-29T00:00:00+00:00|close<2953.0539<3037.6938",
+            "volume_confirmation": "warning|technical_engine|2026-07-29T00:00:00+00:00|rvol20=0.71",
+            "resistance": "neutral|technical_engine|2026-07-29T00:00:00+00:00|room_to_resistance20=3190.0000",
+            "risk_reward": "warning|technical_engine|2026-07-29T00:00:00+00:00|proxy_rr=1.21;support20=2550.0000;atr14=101.4286",
+            "extension_risk": "neutral|technical_engine|2026-07-29T00:00:00+00:00|rsi14=49.30",
+            "market_regime": "neutral|technical_engine|2026-07-29T00:00:00+00:00|index_adapter_not_connected"
+          },
+          "error": null
+        },
+        {
+          "market": "BEI",
+          "symbol": "SMGR",
+          "tier": "OBSERVE",
+          "entry_status": "HIGH_RISK",
+          "selection_reasons": [
+            "Positive: data_freshness",
+            "Positive: liquidity"
+          ],
+          "rejection_reasons": [
+            "Risk evidence is elevated",
+            "Negative: price_structure",
+            "Warning: risk_reward",
+            "Warning: volume_confirmation"
+          ],
+          "vetoes": [],
+          "signal_timestamp": "2026-07-29T00:00:00+00:00",
+          "signal_close": 1460.0,
+          "technical": {
+            "ema20": 1481.3279939652987,
+            "ema50": 1612.3563001738682,
+            "rsi14": 60.869565217391305,
+            "atr14": 43.92857142857143,
+            "relative_volume20": 0.701649255271691,
+            "resistance20": 1550.0,
+            "support20": 1380.0
+          },
+          "evidence": {
+            "positive": [
+              "data_freshness",
+              "liquidity"
+            ],
+            "neutral": [
+              "extension_risk",
+              "market_regime",
+              "resistance"
+            ],
+            "warning": [
+              "risk_reward",
+              "volume_confirmation"
+            ],
+            "negative": [
+              "price_structure"
+            ],
+            "unknown": []
+          },
+          "audit": {
+            "data_freshness": "positive|technical_engine|2026-07-29T00:00:00+00:00|valid",
+            "liquidity": "positive|technical_engine|2026-07-29T00:00:00+00:00|avg_value20=23224357150.00",
+            "price_structure": "negative|technical_engine|2026-07-29T00:00:00+00:00|close<1481.3280<1612.3563",
+            "volume_confirmation": "warning|technical_engine|2026-07-29T00:00:00+00:00|rvol20=0.70",
+            "resistance": "neutral|technical_engine|2026-07-29T00:00:00+00:00|room_to_resistance20=1550.0000",
+            "risk_reward": "warning|technical_engine|2026-07-29T00:00:00+00:00|proxy_rr=1.12;support20=1380.0000;atr14=43.9286",
+            "extension_risk": "neutral|technical_engine|2026-07-29T00:00:00+00:00|rsi14=60.87",
+            "market_regime": "neutral|technical_engine|2026-07-29T00:00:00+00:00|index_adapter_not_connected"
+          },
+          "error": null
+        },
+        {
+          "market": "BEI",
+          "symbol": "CPIN",
+          "tier": "OBSERVE",
+          "entry_status": "HIGH_RISK",
+          "selection_reasons": [
+            "Positive: data_freshness",
+            "Positive: liquidity"
+          ],
+          "rejection_reasons": [
+            "Risk evidence is elevated",
+            "Negative: price_structure",
+            "Warning: risk_reward",
+            "Warning: volume_confirmation"
+          ],
+          "vetoes": [],
+          "signal_timestamp": "2026-07-29T00:00:00+00:00",
+          "signal_close": 3160.0,
+          "technical": {
+            "ema20": 3181.131325518405,
+            "ema50": 3391.279088907041,
+            "rsi14": 57.89473684210526,
+            "atr14": 72.14285714285714,
+            "relative_volume20": 0.6261370657328822,
+            "resistance20": 3310.0,
+            "support20": 3030.0
+          },
+          "evidence": {
+            "positive": [
+              "data_freshness",
+              "liquidity"
+            ],
+            "neutral": [
+              "extension_risk",
+              "market_regime",
+              "resistance"
+            ],
+            "warning": [
+              "risk_reward",
+              "volume_confirmation"
+            ],
+            "negative": [
+              "price_structure"
+            ],
+            "unknown": []
+          },
+          "audit": {
+            "data_freshness": "positive|technical_engine|2026-07-29T00:00:00+00:00|valid",
+            "liquidity": "positive|technical_engine|2026-07-29T00:00:00+00:00|avg_value20=36428793300.00",
+            "price_structure": "negative|technical_engine|2026-07-29T00:00:00+00:00|close<3181.1313<3391.2791",
+            "volume_confirmation": "warning|technical_engine|2026-07-29T00:00:00+00:00|rvol20=0.63",
+            "resistance": "neutral|technical_engine|2026-07-29T00:00:00+00:00|room_to_resistance20=3310.0000",
+            "risk_reward": "warning|technical_engine|2026-07-29T00:00:00+00:00|proxy_rr=1.15;support20=3030.0000;atr14=72.1429",
+            "extension_risk": "neutral|technical_engine|2026-07-29T00:00:00+00:00|rsi14=57.89",
+            "market_regime": "neutral|technical_engine|2026-07-29T00:00:00+00:00|index_adapter_not_connected"
+          },
+          "error": null
+        },
+        {
+          "market": "BEI",
+          "symbol": "JSMR",
+          "tier": "OBSERVE",
+          "entry_status": "HIGH_RISK",
+          "selection_reasons": [
+            "Positive: data_freshness",
+            "Positive: liquidity"
+          ],
+          "rejection_reasons": [
+            "Risk evidence is elevated",
+            "Negative: price_structure",
+            "Warning: risk_reward",
+            "Warning: volume_confirmation"
+          ],
+          "vetoes": [],
+          "signal_timestamp": "2026-07-29T00:00:00+00:00",
+          "signal_close": 2690.0,
+          "technical": {
+            "ema20": 2728.1959470083857,
+            "ema50": 2812.1487495482884,
+            "rsi14": 50.0,
+            "atr14": 57.142857142857146,
+            "relative_volume20": 0.2869495726336882,
+            "resistance20": 2800.0,
+            "support20": 2600.0
+          },
+          "evidence": {
+            "positive": [
+              "data_freshness",
+              "liquidity"
+            ],
+            "neutral": [
+              "extension_risk",
+              "market_regime",
+              "resistance"
+            ],
+            "warning": [
+              "risk_reward",
+              "volume_confirmation"
+            ],
+            "negative": [
+              "price_structure"
+            ],
+            "unknown": []
+          },
+          "audit": {
+            "data_freshness": "positive|technical_engine|2026-07-29T00:00:00+00:00|valid",
+            "liquidity": "positive|technical_engine|2026-07-29T00:00:00+00:00|avg_value20=7639226850.00",
+            "price_structure": "negative|technical_engine|2026-07-29T00:00:00+00:00|close<2728.1959<2812.1487",
+            "volume_confirmation": "warning|technical_engine|2026-07-29T00:00:00+00:00|rvol20=0.29",
+            "resistance": "neutral|technical_engine|2026-07-29T00:00:00+00:00|room_to_resistance20=2800.0000",
+            "risk_reward": "warning|technical_engine|2026-07-29T00:00:00+00:00|proxy_rr=1.22;support20=2600.0000;atr14=57.1429",
+            "extension_risk": "neutral|technical_engine|2026-07-29T00:00:00+00:00|rsi14=50.00",
+            "market_regime": "neutral|technical_engine|2026-07-29T00:00:00+00:00|index_adapter_not_connected"
           },
           "error": null
         }
@@ -656,184 +998,67 @@
       "rejected": [
         {
           "market": "BEI",
-          "symbol": "AKRA",
-          "tier": "DISQUALIFIED",
-          "entry_status": "REJECT",
-          "selection_reasons": [
-            "Positive: data_freshness",
-            "Positive: liquidity",
-            "Positive: price_structure"
-          ],
-          "rejection_reasons": [
-            "Hard disqualifier active",
-            "Negative: risk_reward",
-            "Veto: risk_reward"
-          ],
-          "vetoes": [
-            "risk_reward"
-          ],
-          "signal_timestamp": "2026-07-28T00:00:00+00:00",
-          "signal_close": 1445.0,
-          "technical": {
-            "ema20": 1375.4873168309377,
-            "ema50": 1343.8034897083237,
-            "rsi14": 67.12328767123287,
-            "atr14": 52.857142857142854,
-            "relative_volume20": 0.9879466956274501,
-            "resistance20": 1520.0,
-            "support20": 1195.0
-          },
-          "evidence": {
-            "positive": [
-              "data_freshness",
-              "liquidity",
-              "price_structure"
-            ],
-            "neutral": [
-              "extension_risk",
-              "market_regime",
-              "resistance",
-              "volume_confirmation"
-            ],
-            "warning": [],
-            "negative": [
-              "risk_reward"
-            ],
-            "unknown": []
-          },
-          "audit": {
-            "data_freshness": "positive|technical_engine|2026-07-28T00:00:00+00:00|valid",
-            "liquidity": "positive|technical_engine|2026-07-28T00:00:00+00:00|avg_value20=26739260200.00",
-            "price_structure": "positive|technical_engine|2026-07-28T00:00:00+00:00|close>1375.4873>1343.8035",
-            "volume_confirmation": "neutral|technical_engine|2026-07-28T00:00:00+00:00|rvol20=0.99",
-            "resistance": "neutral|technical_engine|2026-07-28T00:00:00+00:00|room_to_resistance20=1520.0000",
-            "risk_reward": "negative|technical_engine|2026-07-28T00:00:00+00:00|proxy_rr=0.30;support20=1195.0000;atr14=52.8571",
-            "extension_risk": "neutral|technical_engine|2026-07-28T00:00:00+00:00|rsi14=67.12",
-            "market_regime": "neutral|technical_engine|2026-07-28T00:00:00+00:00|index_adapter_not_connected"
-          },
-          "error": null
-        },
-        {
-          "market": "BEI",
-          "symbol": "ICBP",
-          "tier": "DISQUALIFIED",
-          "entry_status": "REJECT",
-          "selection_reasons": [
-            "Positive: data_freshness",
-            "Positive: liquidity",
-            "Positive: price_structure"
-          ],
-          "rejection_reasons": [
-            "Hard disqualifier active",
-            "Negative: risk_reward",
-            "Veto: risk_reward"
-          ],
-          "vetoes": [
-            "risk_reward"
-          ],
-          "signal_timestamp": "2026-07-28T00:00:00+00:00",
-          "signal_close": 6950.0,
-          "technical": {
-            "ema20": 6845.295230064855,
-            "ema50": 6826.065223425043,
-            "rsi14": 68.57142857142857,
-            "atr14": 126.78571428571429,
-            "relative_volume20": 0.9862411687616395,
-            "resistance20": 7125.0,
-            "support20": 6550.0
-          },
-          "evidence": {
-            "positive": [
-              "data_freshness",
-              "liquidity",
-              "price_structure"
-            ],
-            "neutral": [
-              "extension_risk",
-              "market_regime",
-              "resistance",
-              "volume_confirmation"
-            ],
-            "warning": [],
-            "negative": [
-              "risk_reward"
-            ],
-            "unknown": []
-          },
-          "audit": {
-            "data_freshness": "positive|technical_engine|2026-07-28T00:00:00+00:00|valid",
-            "liquidity": "positive|technical_engine|2026-07-28T00:00:00+00:00|avg_value20=19108420875.00",
-            "price_structure": "positive|technical_engine|2026-07-28T00:00:00+00:00|close>6845.2952>6826.0652",
-            "volume_confirmation": "neutral|technical_engine|2026-07-28T00:00:00+00:00|rvol20=0.99",
-            "resistance": "neutral|technical_engine|2026-07-28T00:00:00+00:00|room_to_resistance20=7125.0000",
-            "risk_reward": "negative|technical_engine|2026-07-28T00:00:00+00:00|proxy_rr=0.44;support20=6550.0000;atr14=126.7857",
-            "extension_risk": "neutral|technical_engine|2026-07-28T00:00:00+00:00|rsi14=68.57",
-            "market_regime": "neutral|technical_engine|2026-07-28T00:00:00+00:00|index_adapter_not_connected"
-          },
-          "error": null
-        },
-        {
-          "market": "BEI",
-          "symbol": "ADRO",
-          "tier": "DISQUALIFIED",
-          "entry_status": "REJECT",
-          "selection_reasons": [
-            "Positive: data_freshness",
-            "Positive: liquidity",
-            "Positive: price_structure"
-          ],
-          "rejection_reasons": [
-            "Hard disqualifier active",
-            "Negative: risk_reward",
-            "Veto: risk_reward"
-          ],
-          "vetoes": [
-            "risk_reward"
-          ],
-          "signal_timestamp": "2026-07-28T00:00:00+00:00",
-          "signal_close": 2460.0,
-          "technical": {
-            "ema20": 2451.78706278049,
-            "ema50": 2395.3910672883185,
-            "rsi14": 65.38461538461539,
-            "atr14": 65.0,
-            "relative_volume20": 0.8235657991001608,
-            "resistance20": 2590.0,
-            "support20": 2240.0
-          },
-          "evidence": {
-            "positive": [
-              "data_freshness",
-              "liquidity",
-              "price_structure"
-            ],
-            "neutral": [
-              "extension_risk",
-              "market_regime",
-              "resistance",
-              "volume_confirmation"
-            ],
-            "warning": [],
-            "negative": [
-              "risk_reward"
-            ],
-            "unknown": []
-          },
-          "audit": {
-            "data_freshness": "positive|technical_engine|2026-07-28T00:00:00+00:00|valid",
-            "liquidity": "positive|technical_engine|2026-07-28T00:00:00+00:00|avg_value20=69045188000.00",
-            "price_structure": "positive|technical_engine|2026-07-28T00:00:00+00:00|close>2451.7871>2395.3911",
-            "volume_confirmation": "neutral|technical_engine|2026-07-28T00:00:00+00:00|rvol20=0.82",
-            "resistance": "neutral|technical_engine|2026-07-28T00:00:00+00:00|room_to_resistance20=2590.0000",
-            "risk_reward": "negative|technical_engine|2026-07-28T00:00:00+00:00|proxy_rr=0.59;support20=2240.0000;atr14=65.0000",
-            "extension_risk": "neutral|technical_engine|2026-07-28T00:00:00+00:00|rsi14=65.38",
-            "market_regime": "neutral|technical_engine|2026-07-28T00:00:00+00:00|index_adapter_not_connected"
-          },
-          "error": null
-        },
-        {
-          "market": "BEI",
           "symbol": "INDF",
+          "tier": "DISQUALIFIED",
+          "entry_status": "REJECT",
+          "selection_reasons": [
+            "Positive: data_freshness",
+            "Positive: liquidity",
+            "Positive: price_structure",
+            "Positive: volume_confirmation"
+          ],
+          "rejection_reasons": [
+            "Hard disqualifier active",
+            "Negative: risk_reward",
+            "Veto: risk_reward"
+          ],
+          "vetoes": [
+            "risk_reward"
+          ],
+          "signal_timestamp": "2026-07-29T00:00:00+00:00",
+          "signal_close": 6875.0,
+          "technical": {
+            "ema20": 6795.242648077827,
+            "ema50": 6732.197956509744,
+            "rsi14": 69.23076923076923,
+            "atr14": 121.42857142857143,
+            "relative_volume20": 1.7057522492977941,
+            "resistance20": 7000.0,
+            "support20": 6575.0
+          },
+          "evidence": {
+            "positive": [
+              "data_freshness",
+              "liquidity",
+              "price_structure",
+              "volume_confirmation"
+            ],
+            "neutral": [
+              "extension_risk",
+              "market_regime",
+              "resistance"
+            ],
+            "warning": [],
+            "negative": [
+              "risk_reward"
+            ],
+            "unknown": []
+          },
+          "audit": {
+            "data_freshness": "positive|technical_engine|2026-07-29T00:00:00+00:00|valid",
+            "liquidity": "positive|technical_engine|2026-07-29T00:00:00+00:00|avg_value20=40425214750.00",
+            "price_structure": "positive|technical_engine|2026-07-29T00:00:00+00:00|close>6795.2426>6732.1980",
+            "volume_confirmation": "positive|technical_engine|2026-07-29T00:00:00+00:00|rvol20=1.71",
+            "resistance": "neutral|technical_engine|2026-07-29T00:00:00+00:00|room_to_resistance20=7000.0000",
+            "risk_reward": "negative|technical_engine|2026-07-29T00:00:00+00:00|proxy_rr=0.42;support20=6575.0000;atr14=121.4286",
+            "extension_risk": "neutral|technical_engine|2026-07-29T00:00:00+00:00|rsi14=69.23",
+            "market_regime": "neutral|technical_engine|2026-07-29T00:00:00+00:00|index_adapter_not_connected"
+          },
+          "error": null
+        },
+        {
+          "market": "BEI",
+          "symbol": "AKRA",
           "tier": "DISQUALIFIED",
           "entry_status": "REJECT",
           "selection_reasons": [
@@ -850,16 +1075,16 @@
           "vetoes": [
             "risk_reward"
           ],
-          "signal_timestamp": "2026-07-28T00:00:00+00:00",
-          "signal_close": 6850.0,
+          "signal_timestamp": "2026-07-29T00:00:00+00:00",
+          "signal_close": 1465.0,
           "technical": {
-            "ema20": 6786.847137345868,
-            "ema50": 6726.36903925072,
-            "rsi14": 70.37037037037037,
-            "atr14": 119.64285714285714,
-            "relative_volume20": 1.0436743425907977,
-            "resistance20": 7000.0,
-            "support20": 6575.0
+            "ema20": 1384.0123342754946,
+            "ema50": 1348.5561384074301,
+            "rsi14": 72.6027397260274,
+            "atr14": 52.857142857142854,
+            "relative_volume20": 1.0909700337724249,
+            "resistance20": 1520.0,
+            "support20": 1200.0
           },
           "evidence": {
             "positive": [
@@ -881,14 +1106,196 @@
             "unknown": []
           },
           "audit": {
-            "data_freshness": "positive|technical_engine|2026-07-28T00:00:00+00:00|valid",
-            "liquidity": "positive|technical_engine|2026-07-28T00:00:00+00:00|avg_value20=38666536125.00",
-            "price_structure": "positive|technical_engine|2026-07-28T00:00:00+00:00|close>6786.8471>6726.3690",
-            "volume_confirmation": "neutral|technical_engine|2026-07-28T00:00:00+00:00|rvol20=1.04",
-            "resistance": "neutral|technical_engine|2026-07-28T00:00:00+00:00|room_to_resistance20=7000.0000",
-            "risk_reward": "negative|technical_engine|2026-07-28T00:00:00+00:00|proxy_rr=0.55;support20=6575.0000;atr14=119.6429",
-            "extension_risk": "warning|technical_engine|2026-07-28T00:00:00+00:00|rsi14=70.37",
-            "market_regime": "neutral|technical_engine|2026-07-28T00:00:00+00:00|index_adapter_not_connected"
+            "data_freshness": "positive|technical_engine|2026-07-29T00:00:00+00:00|valid",
+            "liquidity": "positive|technical_engine|2026-07-29T00:00:00+00:00|avg_value20=27872182225.00",
+            "price_structure": "positive|technical_engine|2026-07-29T00:00:00+00:00|close>1384.0123>1348.5561",
+            "volume_confirmation": "neutral|technical_engine|2026-07-29T00:00:00+00:00|rvol20=1.09",
+            "resistance": "neutral|technical_engine|2026-07-29T00:00:00+00:00|room_to_resistance20=1520.0000",
+            "risk_reward": "negative|technical_engine|2026-07-29T00:00:00+00:00|proxy_rr=0.21;support20=1200.0000;atr14=52.8571",
+            "extension_risk": "warning|technical_engine|2026-07-29T00:00:00+00:00|rsi14=72.60",
+            "market_regime": "neutral|technical_engine|2026-07-29T00:00:00+00:00|index_adapter_not_connected"
+          },
+          "error": null
+        },
+        {
+          "market": "BEI",
+          "symbol": "BBCA",
+          "tier": "DISQUALIFIED",
+          "entry_status": "REJECT",
+          "selection_reasons": [
+            "Positive: data_freshness",
+            "Positive: liquidity",
+            "Positive: price_structure"
+          ],
+          "rejection_reasons": [
+            "Hard disqualifier active",
+            "Negative: risk_reward",
+            "Warning: volume_confirmation",
+            "Veto: risk_reward"
+          ],
+          "vetoes": [
+            "risk_reward"
+          ],
+          "signal_timestamp": "2026-07-29T00:00:00+00:00",
+          "signal_close": 6275.0,
+          "technical": {
+            "ema20": 6232.829732221965,
+            "ema50": 6168.664697865848,
+            "rsi14": 53.84615384615384,
+            "atr14": 167.85714285714286,
+            "relative_volume20": 0.7210026010498346,
+            "resistance20": 6625.0,
+            "support20": 5550.0
+          },
+          "evidence": {
+            "positive": [
+              "data_freshness",
+              "liquidity",
+              "price_structure"
+            ],
+            "neutral": [
+              "extension_risk",
+              "market_regime",
+              "resistance"
+            ],
+            "warning": [
+              "volume_confirmation"
+            ],
+            "negative": [
+              "risk_reward"
+            ],
+            "unknown": []
+          },
+          "audit": {
+            "data_freshness": "positive|technical_engine|2026-07-29T00:00:00+00:00|valid",
+            "liquidity": "positive|technical_engine|2026-07-29T00:00:00+00:00|avg_value20=1061802487125.00",
+            "price_structure": "positive|technical_engine|2026-07-29T00:00:00+00:00|close>6232.8297>6168.6647",
+            "volume_confirmation": "warning|technical_engine|2026-07-29T00:00:00+00:00|rvol20=0.72",
+            "resistance": "neutral|technical_engine|2026-07-29T00:00:00+00:00|room_to_resistance20=6625.0000",
+            "risk_reward": "negative|technical_engine|2026-07-29T00:00:00+00:00|proxy_rr=0.48;support20=5550.0000;atr14=167.8571",
+            "extension_risk": "neutral|technical_engine|2026-07-29T00:00:00+00:00|rsi14=53.85",
+            "market_regime": "neutral|technical_engine|2026-07-29T00:00:00+00:00|index_adapter_not_connected"
+          },
+          "error": null
+        },
+        {
+          "market": "BEI",
+          "symbol": "ICBP",
+          "tier": "DISQUALIFIED",
+          "entry_status": "REJECT",
+          "selection_reasons": [
+            "Positive: data_freshness",
+            "Positive: liquidity",
+            "Positive: price_structure"
+          ],
+          "rejection_reasons": [
+            "Hard disqualifier active",
+            "Negative: risk_reward",
+            "Warning: volume_confirmation",
+            "Veto: risk_reward"
+          ],
+          "vetoes": [
+            "risk_reward"
+          ],
+          "signal_timestamp": "2026-07-29T00:00:00+00:00",
+          "signal_close": 6950.0,
+          "technical": {
+            "ema20": 6855.267112915036,
+            "ema50": 6830.924358744339,
+            "rsi14": 66.66666666666666,
+            "atr14": 126.78571428571429,
+            "relative_volume20": 0.5601167735889858,
+            "resistance20": 7125.0,
+            "support20": 6575.0
+          },
+          "evidence": {
+            "positive": [
+              "data_freshness",
+              "liquidity",
+              "price_structure"
+            ],
+            "neutral": [
+              "extension_risk",
+              "market_regime",
+              "resistance"
+            ],
+            "warning": [
+              "volume_confirmation"
+            ],
+            "negative": [
+              "risk_reward"
+            ],
+            "unknown": []
+          },
+          "audit": {
+            "data_freshness": "positive|technical_engine|2026-07-29T00:00:00+00:00|valid",
+            "liquidity": "positive|technical_engine|2026-07-29T00:00:00+00:00|avg_value20=18216730625.00",
+            "price_structure": "positive|technical_engine|2026-07-29T00:00:00+00:00|close>6855.2671>6830.9244",
+            "volume_confirmation": "warning|technical_engine|2026-07-29T00:00:00+00:00|rvol20=0.56",
+            "resistance": "neutral|technical_engine|2026-07-29T00:00:00+00:00|room_to_resistance20=7125.0000",
+            "risk_reward": "negative|technical_engine|2026-07-29T00:00:00+00:00|proxy_rr=0.47;support20=6575.0000;atr14=126.7857",
+            "extension_risk": "neutral|technical_engine|2026-07-29T00:00:00+00:00|rsi14=66.67",
+            "market_regime": "neutral|technical_engine|2026-07-29T00:00:00+00:00|index_adapter_not_connected"
+          },
+          "error": null
+        },
+        {
+          "market": "BEI",
+          "symbol": "ADRO",
+          "tier": "DISQUALIFIED",
+          "entry_status": "REJECT",
+          "selection_reasons": [
+            "Positive: data_freshness",
+            "Positive: liquidity"
+          ],
+          "rejection_reasons": [
+            "Hard disqualifier active",
+            "Negative: risk_reward",
+            "Warning: price_structure",
+            "Veto: risk_reward"
+          ],
+          "vetoes": [
+            "risk_reward"
+          ],
+          "signal_timestamp": "2026-07-29T00:00:00+00:00",
+          "signal_close": 2450.0,
+          "technical": {
+            "ema20": 2451.616866324531,
+            "ema50": 2397.5313490528715,
+            "rsi14": 65.38461538461539,
+            "atr14": 69.28571428571429,
+            "relative_volume20": 1.1888818521264364,
+            "resistance20": 2590.0,
+            "support20": 2240.0
+          },
+          "evidence": {
+            "positive": [
+              "data_freshness",
+              "liquidity"
+            ],
+            "neutral": [
+              "extension_risk",
+              "market_regime",
+              "resistance",
+              "volume_confirmation"
+            ],
+            "warning": [
+              "price_structure"
+            ],
+            "negative": [
+              "risk_reward"
+            ],
+            "unknown": []
+          },
+          "audit": {
+            "data_freshness": "positive|technical_engine|2026-07-29T00:00:00+00:00|valid",
+            "liquidity": "positive|technical_engine|2026-07-29T00:00:00+00:00|avg_value20=71595519450.00",
+            "price_structure": "warning|technical_engine|2026-07-29T00:00:00+00:00|mixed close=2450.0000,ema20=2451.6169,ema50=2397.5313",
+            "volume_confirmation": "neutral|technical_engine|2026-07-29T00:00:00+00:00|rvol20=1.19",
+            "resistance": "neutral|technical_engine|2026-07-29T00:00:00+00:00|room_to_resistance20=2590.0000",
+            "risk_reward": "negative|technical_engine|2026-07-29T00:00:00+00:00|proxy_rr=0.67;support20=2240.0000;atr14=69.2857",
+            "extension_risk": "neutral|technical_engine|2026-07-29T00:00:00+00:00|rsi14=65.38",
+            "market_regime": "neutral|technical_engine|2026-07-29T00:00:00+00:00|index_adapter_not_connected"
           },
           "error": null
         },
@@ -906,21 +1313,22 @@
             "Hard disqualifier active",
             "Negative: risk_reward",
             "Warning: extension_risk",
+            "Warning: resistance",
             "Veto: risk_reward"
           ],
           "vetoes": [
             "risk_reward"
           ],
-          "signal_timestamp": "2026-07-28T00:00:00+00:00",
-          "signal_close": 24225.0,
+          "signal_timestamp": "2026-07-29T00:00:00+00:00",
+          "signal_close": 24450.0,
           "technical": {
-            "ema20": 23737.68152720348,
-            "ema50": 23563.66735506885,
-            "rsi14": 75.96153846153847,
-            "atr14": 441.07142857142856,
-            "relative_volume20": 0.8953899103342089,
+            "ema20": 23805.521381754235,
+            "ema50": 23598.421546496553,
+            "rsi14": 76.85185185185185,
+            "atr14": 450.0,
+            "relative_volume20": 0.8594874616054646,
             "resistance20": 24775.0,
-            "support20": 21825.0
+            "support20": 21950.0
           },
           "evidence": {
             "positive": [
@@ -930,71 +1338,11 @@
             ],
             "neutral": [
               "market_regime",
-              "resistance",
               "volume_confirmation"
             ],
             "warning": [
-              "extension_risk"
-            ],
-            "negative": [
-              "risk_reward"
-            ],
-            "unknown": []
-          },
-          "audit": {
-            "data_freshness": "positive|technical_engine|2026-07-28T00:00:00+00:00|valid",
-            "liquidity": "positive|technical_engine|2026-07-28T00:00:00+00:00|avg_value20=25831501875.00",
-            "price_structure": "positive|technical_engine|2026-07-28T00:00:00+00:00|close>23737.6815>23563.6674",
-            "volume_confirmation": "neutral|technical_engine|2026-07-28T00:00:00+00:00|rvol20=0.90",
-            "resistance": "neutral|technical_engine|2026-07-28T00:00:00+00:00|room_to_resistance20=24775.0000",
-            "risk_reward": "negative|technical_engine|2026-07-28T00:00:00+00:00|proxy_rr=0.23;support20=21825.0000;atr14=441.0714",
-            "extension_risk": "warning|technical_engine|2026-07-28T00:00:00+00:00|rsi14=75.96",
-            "market_regime": "neutral|technical_engine|2026-07-28T00:00:00+00:00|index_adapter_not_connected"
-          },
-          "error": null
-        },
-        {
-          "market": "BEI",
-          "symbol": "ISAT",
-          "tier": "DISQUALIFIED",
-          "entry_status": "REJECT",
-          "selection_reasons": [
-            "Positive: data_freshness",
-            "Positive: liquidity"
-          ],
-          "rejection_reasons": [
-            "Hard disqualifier active",
-            "Negative: risk_reward",
-            "Warning: price_structure",
-            "Veto: risk_reward"
-          ],
-          "vetoes": [
-            "risk_reward"
-          ],
-          "signal_timestamp": "2026-07-28T00:00:00+00:00",
-          "signal_close": 1950.0,
-          "technical": {
-            "ema20": 1899.135622097388,
-            "ema50": 1928.3906846230338,
-            "rsi14": 64.28571428571428,
-            "atr14": 59.642857142857146,
-            "relative_volume20": 1.2186292079960563,
-            "resistance20": 2050.0,
-            "support20": 1695.0
-          },
-          "evidence": {
-            "positive": [
-              "data_freshness",
-              "liquidity"
-            ],
-            "neutral": [
               "extension_risk",
-              "market_regime",
-              "resistance",
-              "volume_confirmation"
-            ],
-            "warning": [
-              "price_structure"
+              "resistance"
             ],
             "negative": [
               "risk_reward"
@@ -1002,74 +1350,14 @@
             "unknown": []
           },
           "audit": {
-            "data_freshness": "positive|technical_engine|2026-07-28T00:00:00+00:00|valid",
-            "liquidity": "positive|technical_engine|2026-07-28T00:00:00+00:00|avg_value20=32092491725.00",
-            "price_structure": "warning|technical_engine|2026-07-28T00:00:00+00:00|mixed close=1950.0000,ema20=1899.1356,ema50=1928.3907",
-            "volume_confirmation": "neutral|technical_engine|2026-07-28T00:00:00+00:00|rvol20=1.22",
-            "resistance": "neutral|technical_engine|2026-07-28T00:00:00+00:00|room_to_resistance20=2050.0000",
-            "risk_reward": "negative|technical_engine|2026-07-28T00:00:00+00:00|proxy_rr=0.39;support20=1695.0000;atr14=59.6429",
-            "extension_risk": "neutral|technical_engine|2026-07-28T00:00:00+00:00|rsi14=64.29",
-            "market_regime": "neutral|technical_engine|2026-07-28T00:00:00+00:00|index_adapter_not_connected"
-          },
-          "error": null
-        },
-        {
-          "market": "BEI",
-          "symbol": "UNTR",
-          "tier": "DISQUALIFIED",
-          "entry_status": "REJECT",
-          "selection_reasons": [
-            "Positive: data_freshness",
-            "Positive: liquidity"
-          ],
-          "rejection_reasons": [
-            "Hard disqualifier active",
-            "Negative: risk_reward",
-            "Warning: price_structure",
-            "Veto: risk_reward"
-          ],
-          "vetoes": [
-            "risk_reward"
-          ],
-          "signal_timestamp": "2026-07-28T00:00:00+00:00",
-          "signal_close": 25000.0,
-          "technical": {
-            "ema20": 25157.11140192843,
-            "ema50": 25087.87464359279,
-            "rsi14": 55.645161290322584,
-            "atr14": 775.0,
-            "relative_volume20": 0.8311694869254025,
-            "resistance20": 27650.0,
-            "support20": 21975.0
-          },
-          "evidence": {
-            "positive": [
-              "data_freshness",
-              "liquidity"
-            ],
-            "neutral": [
-              "extension_risk",
-              "market_regime",
-              "resistance",
-              "volume_confirmation"
-            ],
-            "warning": [
-              "price_structure"
-            ],
-            "negative": [
-              "risk_reward"
-            ],
-            "unknown": []
-          },
-          "audit": {
-            "data_freshness": "positive|technical_engine|2026-07-28T00:00:00+00:00|valid",
-            "liquidity": "positive|technical_engine|2026-07-28T00:00:00+00:00|avg_value20=97198752750.00",
-            "price_structure": "warning|technical_engine|2026-07-28T00:00:00+00:00|mixed close=25000.0000,ema20=25157.1114,ema50=25087.8746",
-            "volume_confirmation": "neutral|technical_engine|2026-07-28T00:00:00+00:00|rvol20=0.83",
-            "resistance": "neutral|technical_engine|2026-07-28T00:00:00+00:00|room_to_resistance20=27650.0000",
-            "risk_reward": "negative|technical_engine|2026-07-28T00:00:00+00:00|proxy_rr=0.88;support20=21975.0000;atr14=775.0000",
-            "extension_risk": "neutral|technical_engine|2026-07-28T00:00:00+00:00|rsi14=55.65",
-            "market_regime": "neutral|technical_engine|2026-07-28T00:00:00+00:00|index_adapter_not_connected"
+            "data_freshness": "positive|technical_engine|2026-07-29T00:00:00+00:00|valid",
+            "liquidity": "positive|technical_engine|2026-07-29T00:00:00+00:00|avg_value20=25556572125.00",
+            "price_structure": "positive|technical_engine|2026-07-29T00:00:00+00:00|close>23805.5214>23598.4215",
+            "volume_confirmation": "neutral|technical_engine|2026-07-29T00:00:00+00:00|rvol20=0.86",
+            "resistance": "warning|technical_engine|2026-07-29T00:00:00+00:00|near resistance20=24775.0000",
+            "risk_reward": "negative|technical_engine|2026-07-29T00:00:00+00:00|proxy_rr=0.13;support20=21950.0000;atr14=450.0000",
+            "extension_risk": "warning|technical_engine|2026-07-29T00:00:00+00:00|rsi14=76.85",
+            "market_regime": "neutral|technical_engine|2026-07-29T00:00:00+00:00|index_adapter_not_connected"
           },
           "error": null
         },
@@ -1086,82 +1374,22 @@
             "Hard disqualifier active",
             "Negative: risk_reward",
             "Warning: price_structure",
-            "Veto: risk_reward"
-          ],
-          "vetoes": [
-            "risk_reward"
-          ],
-          "signal_timestamp": "2026-07-28T00:00:00+00:00",
-          "signal_close": 2930.0,
-          "technical": {
-            "ema20": 2913.677283512722,
-            "ema50": 2955.4513092415946,
-            "rsi14": 62.06896551724138,
-            "atr14": 76.42857142857143,
-            "relative_volume20": 0.8284922052504335,
-            "resistance20": 3080.0,
-            "support20": 2630.0
-          },
-          "evidence": {
-            "positive": [
-              "data_freshness",
-              "liquidity"
-            ],
-            "neutral": [
-              "extension_risk",
-              "market_regime",
-              "resistance",
-              "volume_confirmation"
-            ],
-            "warning": [
-              "price_structure"
-            ],
-            "negative": [
-              "risk_reward"
-            ],
-            "unknown": []
-          },
-          "audit": {
-            "data_freshness": "positive|technical_engine|2026-07-28T00:00:00+00:00|valid",
-            "liquidity": "positive|technical_engine|2026-07-28T00:00:00+00:00|avg_value20=747358443900.00",
-            "price_structure": "warning|technical_engine|2026-07-28T00:00:00+00:00|mixed close=2930.0000,ema20=2913.6773,ema50=2955.4513",
-            "volume_confirmation": "neutral|technical_engine|2026-07-28T00:00:00+00:00|rvol20=0.83",
-            "resistance": "neutral|technical_engine|2026-07-28T00:00:00+00:00|room_to_resistance20=3080.0000",
-            "risk_reward": "negative|technical_engine|2026-07-28T00:00:00+00:00|proxy_rr=0.50;support20=2630.0000;atr14=76.4286",
-            "extension_risk": "neutral|technical_engine|2026-07-28T00:00:00+00:00|rsi14=62.07",
-            "market_regime": "neutral|technical_engine|2026-07-28T00:00:00+00:00|index_adapter_not_connected"
-          },
-          "error": null
-        },
-        {
-          "market": "BEI",
-          "symbol": "MEDC",
-          "tier": "DISQUALIFIED",
-          "entry_status": "REJECT",
-          "selection_reasons": [
-            "Positive: data_freshness",
-            "Positive: liquidity"
-          ],
-          "rejection_reasons": [
-            "Hard disqualifier active",
-            "Negative: risk_reward",
-            "Warning: price_structure",
             "Warning: volume_confirmation",
             "Veto: risk_reward"
           ],
           "vetoes": [
             "risk_reward"
           ],
-          "signal_timestamp": "2026-07-28T00:00:00+00:00",
-          "signal_close": 1265.0,
+          "signal_timestamp": "2026-07-29T00:00:00+00:00",
+          "signal_close": 2920.0,
           "technical": {
-            "ema20": 1244.4248765227283,
-            "ema50": 1275.8841758629426,
-            "rsi14": 60.91954022988505,
-            "atr14": 57.5,
-            "relative_volume20": 0.7056110501866844,
-            "resistance20": 1425.0,
-            "support20": 1005.0
+            "ema20": 2914.279446986025,
+            "ema50": 2954.062452891255,
+            "rsi14": 62.06896551724138,
+            "atr14": 75.0,
+            "relative_volume20": 0.5076873148577673,
+            "resistance20": 3080.0,
+            "support20": 2630.0
           },
           "evidence": {
             "positive": [
@@ -1183,14 +1411,14 @@
             "unknown": []
           },
           "audit": {
-            "data_freshness": "positive|technical_engine|2026-07-28T00:00:00+00:00|valid",
-            "liquidity": "positive|technical_engine|2026-07-28T00:00:00+00:00|avg_value20=66801511225.00",
-            "price_structure": "warning|technical_engine|2026-07-28T00:00:00+00:00|mixed close=1265.0000,ema20=1244.4249,ema50=1275.8842",
-            "volume_confirmation": "warning|technical_engine|2026-07-28T00:00:00+00:00|rvol20=0.71",
-            "resistance": "neutral|technical_engine|2026-07-28T00:00:00+00:00|room_to_resistance20=1425.0000",
-            "risk_reward": "negative|technical_engine|2026-07-28T00:00:00+00:00|proxy_rr=0.62;support20=1005.0000;atr14=57.5000",
-            "extension_risk": "neutral|technical_engine|2026-07-28T00:00:00+00:00|rsi14=60.92",
-            "market_regime": "neutral|technical_engine|2026-07-28T00:00:00+00:00|index_adapter_not_connected"
+            "data_freshness": "positive|technical_engine|2026-07-29T00:00:00+00:00|valid",
+            "liquidity": "positive|technical_engine|2026-07-29T00:00:00+00:00|avg_value20=726250640150.00",
+            "price_structure": "warning|technical_engine|2026-07-29T00:00:00+00:00|mixed close=2920.0000,ema20=2914.2794,ema50=2954.0625",
+            "volume_confirmation": "warning|technical_engine|2026-07-29T00:00:00+00:00|rvol20=0.51",
+            "resistance": "neutral|technical_engine|2026-07-29T00:00:00+00:00|room_to_resistance20=3080.0000",
+            "risk_reward": "negative|technical_engine|2026-07-29T00:00:00+00:00|proxy_rr=0.55;support20=2630.0000;atr14=75.0000",
+            "extension_risk": "neutral|technical_engine|2026-07-29T00:00:00+00:00|rsi14=62.07",
+            "market_regime": "neutral|technical_engine|2026-07-29T00:00:00+00:00|index_adapter_not_connected"
           },
           "error": null
         },
@@ -1213,16 +1441,16 @@
           "vetoes": [
             "risk_reward"
           ],
-          "signal_timestamp": "2026-07-28T00:00:00+00:00",
-          "signal_close": 4970.0,
+          "signal_timestamp": "2026-07-29T00:00:00+00:00",
+          "signal_close": 4960.0,
           "technical": {
-            "ema20": 4945.438986797261,
-            "ema50": 5078.3998700813745,
+            "ema20": 4946.825749957804,
+            "ema50": 5073.756227572184,
             "rsi14": 54.54545454545455,
-            "atr14": 143.92857142857142,
-            "relative_volume20": 0.6797590113523455,
+            "atr14": 139.28571428571428,
+            "relative_volume20": 0.49370609286293066,
             "resistance20": 5300.0,
-            "support20": 4470.0
+            "support20": 4500.0
           },
           "evidence": {
             "positive": [
@@ -1244,75 +1472,14 @@
             "unknown": []
           },
           "audit": {
-            "data_freshness": "positive|technical_engine|2026-07-28T00:00:00+00:00|valid",
-            "liquidity": "positive|technical_engine|2026-07-28T00:00:00+00:00|avg_value20=238556468300.00",
-            "price_structure": "warning|technical_engine|2026-07-28T00:00:00+00:00|mixed close=4970.0000,ema20=4945.4390,ema50=5078.3999",
-            "volume_confirmation": "warning|technical_engine|2026-07-28T00:00:00+00:00|rvol20=0.68",
-            "resistance": "neutral|technical_engine|2026-07-28T00:00:00+00:00|room_to_resistance20=5300.0000",
-            "risk_reward": "negative|technical_engine|2026-07-28T00:00:00+00:00|proxy_rr=0.66;support20=4470.0000;atr14=143.9286",
-            "extension_risk": "neutral|technical_engine|2026-07-28T00:00:00+00:00|rsi14=54.55",
-            "market_regime": "neutral|technical_engine|2026-07-28T00:00:00+00:00|index_adapter_not_connected"
-          },
-          "error": null
-        },
-        {
-          "market": "BEI",
-          "symbol": "BBCA",
-          "tier": "DISQUALIFIED",
-          "entry_status": "REJECT",
-          "selection_reasons": [
-            "Positive: data_freshness",
-            "Positive: liquidity"
-          ],
-          "rejection_reasons": [
-            "Hard disqualifier active",
-            "Negative: risk_reward",
-            "Warning: price_structure",
-            "Warning: volume_confirmation",
-            "Veto: risk_reward"
-          ],
-          "vetoes": [
-            "risk_reward"
-          ],
-          "signal_timestamp": "2026-07-28T00:00:00+00:00",
-          "signal_close": 6225.0,
-          "technical": {
-            "ema20": 6228.390756663767,
-            "ema50": 6164.3229702595,
-            "rsi14": 52.63157894736841,
-            "atr14": 169.64285714285714,
-            "relative_volume20": 0.6621925858422687,
-            "resistance20": 6625.0,
-            "support20": 5550.0
-          },
-          "evidence": {
-            "positive": [
-              "data_freshness",
-              "liquidity"
-            ],
-            "neutral": [
-              "extension_risk",
-              "market_regime",
-              "resistance"
-            ],
-            "warning": [
-              "price_structure",
-              "volume_confirmation"
-            ],
-            "negative": [
-              "risk_reward"
-            ],
-            "unknown": []
-          },
-          "audit": {
-            "data_freshness": "positive|technical_engine|2026-07-28T00:00:00+00:00|valid",
-            "liquidity": "positive|technical_engine|2026-07-28T00:00:00+00:00|avg_value20=1058160551625.00",
-            "price_structure": "warning|technical_engine|2026-07-28T00:00:00+00:00|mixed close=6225.0000,ema20=6228.3908,ema50=6164.3230",
-            "volume_confirmation": "warning|technical_engine|2026-07-28T00:00:00+00:00|rvol20=0.66",
-            "resistance": "neutral|technical_engine|2026-07-28T00:00:00+00:00|room_to_resistance20=6625.0000",
-            "risk_reward": "negative|technical_engine|2026-07-28T00:00:00+00:00|proxy_rr=0.59;support20=5550.0000;atr14=169.6429",
-            "extension_risk": "neutral|technical_engine|2026-07-28T00:00:00+00:00|rsi14=52.63",
-            "market_regime": "neutral|technical_engine|2026-07-28T00:00:00+00:00|index_adapter_not_connected"
+            "data_freshness": "positive|technical_engine|2026-07-29T00:00:00+00:00|valid",
+            "liquidity": "positive|technical_engine|2026-07-29T00:00:00+00:00|avg_value20=237354038100.00",
+            "price_structure": "warning|technical_engine|2026-07-29T00:00:00+00:00|mixed close=4960.0000,ema20=4946.8257,ema50=5073.7562",
+            "volume_confirmation": "warning|technical_engine|2026-07-29T00:00:00+00:00|rvol20=0.49",
+            "resistance": "neutral|technical_engine|2026-07-29T00:00:00+00:00|room_to_resistance20=5300.0000",
+            "risk_reward": "negative|technical_engine|2026-07-29T00:00:00+00:00|proxy_rr=0.74;support20=4500.0000;atr14=139.2857",
+            "extension_risk": "neutral|technical_engine|2026-07-29T00:00:00+00:00|rsi14=54.55",
+            "market_regime": "neutral|technical_engine|2026-07-29T00:00:00+00:00|index_adapter_not_connected"
           },
           "error": null
         },
@@ -1335,16 +1502,16 @@
           "vetoes": [
             "risk_reward"
           ],
-          "signal_timestamp": "2026-07-28T00:00:00+00:00",
-          "signal_close": 4580.0,
+          "signal_timestamp": "2026-07-29T00:00:00+00:00",
+          "signal_close": 4550.0,
           "technical": {
-            "ema20": 4524.609253574578,
-            "ema50": 4594.866131688649,
-            "rsi14": 68.75,
-            "atr14": 71.42857142857143,
-            "relative_volume20": 0.16370980148040026,
+            "ema20": 4527.027419903019,
+            "ema50": 4593.120920979414,
+            "rsi14": 64.70588235294119,
+            "atr14": 77.14285714285714,
+            "relative_volume20": 0.4285494328776966,
             "resistance20": 4750.0,
-            "support20": 4060.0
+            "support20": 4150.0
           },
           "evidence": {
             "positive": [
@@ -1366,82 +1533,20 @@
             "unknown": []
           },
           "audit": {
-            "data_freshness": "positive|technical_engine|2026-07-28T00:00:00+00:00|valid",
-            "liquidity": "positive|technical_engine|2026-07-28T00:00:00+00:00|avg_value20=5265241700.00",
-            "price_structure": "warning|technical_engine|2026-07-28T00:00:00+00:00|mixed close=4580.0000,ema20=4524.6093,ema50=4594.8661",
-            "volume_confirmation": "warning|technical_engine|2026-07-28T00:00:00+00:00|rvol20=0.16",
-            "resistance": "neutral|technical_engine|2026-07-28T00:00:00+00:00|room_to_resistance20=4750.0000",
-            "risk_reward": "negative|technical_engine|2026-07-28T00:00:00+00:00|proxy_rr=0.33;support20=4060.0000;atr14=71.4286",
-            "extension_risk": "neutral|technical_engine|2026-07-28T00:00:00+00:00|rsi14=68.75",
-            "market_regime": "neutral|technical_engine|2026-07-28T00:00:00+00:00|index_adapter_not_connected"
+            "data_freshness": "positive|technical_engine|2026-07-29T00:00:00+00:00|valid",
+            "liquidity": "positive|technical_engine|2026-07-29T00:00:00+00:00|avg_value20=5215606400.00",
+            "price_structure": "warning|technical_engine|2026-07-29T00:00:00+00:00|mixed close=4550.0000,ema20=4527.0274,ema50=4593.1209",
+            "volume_confirmation": "warning|technical_engine|2026-07-29T00:00:00+00:00|rvol20=0.43",
+            "resistance": "neutral|technical_engine|2026-07-29T00:00:00+00:00|room_to_resistance20=4750.0000",
+            "risk_reward": "negative|technical_engine|2026-07-29T00:00:00+00:00|proxy_rr=0.50;support20=4150.0000;atr14=77.1429",
+            "extension_risk": "neutral|technical_engine|2026-07-29T00:00:00+00:00|rsi14=64.71",
+            "market_regime": "neutral|technical_engine|2026-07-29T00:00:00+00:00|index_adapter_not_connected"
           },
           "error": null
         },
         {
           "market": "BEI",
-          "symbol": "MIKA",
-          "tier": "DISQUALIFIED",
-          "entry_status": "REJECT",
-          "selection_reasons": [
-            "Positive: data_freshness",
-            "Positive: liquidity"
-          ],
-          "rejection_reasons": [
-            "Hard disqualifier active",
-            "Negative: risk_reward",
-            "Warning: price_structure",
-            "Warning: resistance",
-            "Warning: volume_confirmation",
-            "Veto: risk_reward"
-          ],
-          "vetoes": [
-            "risk_reward"
-          ],
-          "signal_timestamp": "2026-07-28T00:00:00+00:00",
-          "signal_close": 1770.0,
-          "technical": {
-            "ema20": 1724.4940207636098,
-            "ema50": 1739.8268308562665,
-            "rsi14": 67.5,
-            "atr14": 52.857142857142854,
-            "relative_volume20": 0.4592767129182203,
-            "resistance20": 1790.0,
-            "support20": 1655.0
-          },
-          "evidence": {
-            "positive": [
-              "data_freshness",
-              "liquidity"
-            ],
-            "neutral": [
-              "extension_risk",
-              "market_regime"
-            ],
-            "warning": [
-              "price_structure",
-              "resistance",
-              "volume_confirmation"
-            ],
-            "negative": [
-              "risk_reward"
-            ],
-            "unknown": []
-          },
-          "audit": {
-            "data_freshness": "positive|technical_engine|2026-07-28T00:00:00+00:00|valid",
-            "liquidity": "positive|technical_engine|2026-07-28T00:00:00+00:00|avg_value20=9165379200.00",
-            "price_structure": "warning|technical_engine|2026-07-28T00:00:00+00:00|mixed close=1770.0000,ema20=1724.4940,ema50=1739.8268",
-            "volume_confirmation": "warning|technical_engine|2026-07-28T00:00:00+00:00|rvol20=0.46",
-            "resistance": "warning|technical_engine|2026-07-28T00:00:00+00:00|near resistance20=1790.0000",
-            "risk_reward": "negative|technical_engine|2026-07-28T00:00:00+00:00|proxy_rr=0.17;support20=1655.0000;atr14=52.8571",
-            "extension_risk": "neutral|technical_engine|2026-07-28T00:00:00+00:00|rsi14=67.50",
-            "market_regime": "neutral|technical_engine|2026-07-28T00:00:00+00:00|index_adapter_not_connected"
-          },
-          "error": null
-        },
-        {
-          "market": "BEI",
-          "symbol": "PGAS",
+          "symbol": "MEDC",
           "tier": "DISQUALIFIED",
           "entry_status": "REJECT",
           "selection_reasons": [
@@ -1457,16 +1562,16 @@
           "vetoes": [
             "risk_reward"
           ],
-          "signal_timestamp": "2026-07-28T00:00:00+00:00",
-          "signal_close": 1495.0,
+          "signal_timestamp": "2026-07-29T00:00:00+00:00",
+          "signal_close": 1235.0,
           "technical": {
-            "ema20": 1504.1810490382122,
-            "ema50": 1579.5183304942855,
-            "rsi14": 60.0,
-            "atr14": 41.785714285714285,
-            "relative_volume20": 1.1601789966443852,
-            "resistance20": 1580.0,
-            "support20": 1350.0
+            "ema20": 1243.527269234159,
+            "ema50": 1274.2784482994114,
+            "rsi14": 57.60869565217391,
+            "atr14": 58.57142857142857,
+            "relative_volume20": 0.8716156548160657,
+            "resistance20": 1425.0,
+            "support20": 1025.0
           },
           "evidence": {
             "positive": [
@@ -1487,193 +1592,14 @@
             "unknown": []
           },
           "audit": {
-            "data_freshness": "positive|technical_engine|2026-07-28T00:00:00+00:00|valid",
-            "liquidity": "positive|technical_engine|2026-07-28T00:00:00+00:00|avg_value20=52307995150.00",
-            "price_structure": "negative|technical_engine|2026-07-28T00:00:00+00:00|close<1504.1810<1579.5183",
-            "volume_confirmation": "neutral|technical_engine|2026-07-28T00:00:00+00:00|rvol20=1.16",
-            "resistance": "neutral|technical_engine|2026-07-28T00:00:00+00:00|room_to_resistance20=1580.0000",
-            "risk_reward": "negative|technical_engine|2026-07-28T00:00:00+00:00|proxy_rr=0.59;support20=1350.0000;atr14=41.7857",
-            "extension_risk": "neutral|technical_engine|2026-07-28T00:00:00+00:00|rsi14=60.00",
-            "market_regime": "neutral|technical_engine|2026-07-28T00:00:00+00:00|index_adapter_not_connected"
-          },
-          "error": null
-        },
-        {
-          "market": "BEI",
-          "symbol": "ANTM",
-          "tier": "DISQUALIFIED",
-          "entry_status": "REJECT",
-          "selection_reasons": [
-            "Positive: data_freshness",
-            "Positive: liquidity"
-          ],
-          "rejection_reasons": [
-            "Hard disqualifier active",
-            "Negative: price_structure",
-            "Negative: risk_reward",
-            "Veto: risk_reward"
-          ],
-          "vetoes": [
-            "risk_reward"
-          ],
-          "signal_timestamp": "2026-07-28T00:00:00+00:00",
-          "signal_close": 2890.0,
-          "technical": {
-            "ema20": 2964.9542842444985,
-            "ema50": 3045.76170916186,
-            "rsi14": 56.944444444444436,
-            "atr14": 102.85714285714286,
-            "relative_volume20": 0.9313754665895115,
-            "resistance20": 3190.0,
-            "support20": 2550.0
-          },
-          "evidence": {
-            "positive": [
-              "data_freshness",
-              "liquidity"
-            ],
-            "neutral": [
-              "extension_risk",
-              "market_regime",
-              "resistance",
-              "volume_confirmation"
-            ],
-            "warning": [],
-            "negative": [
-              "price_structure",
-              "risk_reward"
-            ],
-            "unknown": []
-          },
-          "audit": {
-            "data_freshness": "positive|technical_engine|2026-07-28T00:00:00+00:00|valid",
-            "liquidity": "positive|technical_engine|2026-07-28T00:00:00+00:00|avg_value20=277830404900.00",
-            "price_structure": "negative|technical_engine|2026-07-28T00:00:00+00:00|close<2964.9543<3045.7617",
-            "volume_confirmation": "neutral|technical_engine|2026-07-28T00:00:00+00:00|rvol20=0.93",
-            "resistance": "neutral|technical_engine|2026-07-28T00:00:00+00:00|room_to_resistance20=3190.0000",
-            "risk_reward": "negative|technical_engine|2026-07-28T00:00:00+00:00|proxy_rr=0.88;support20=2550.0000;atr14=102.8571",
-            "extension_risk": "neutral|technical_engine|2026-07-28T00:00:00+00:00|rsi14=56.94",
-            "market_regime": "neutral|technical_engine|2026-07-28T00:00:00+00:00|index_adapter_not_connected"
-          },
-          "error": null
-        },
-        {
-          "market": "BEI",
-          "symbol": "SMGR",
-          "tier": "DISQUALIFIED",
-          "entry_status": "REJECT",
-          "selection_reasons": [
-            "Positive: data_freshness",
-            "Positive: liquidity"
-          ],
-          "rejection_reasons": [
-            "Hard disqualifier active",
-            "Negative: price_structure",
-            "Negative: risk_reward",
-            "Veto: risk_reward"
-          ],
-          "vetoes": [
-            "risk_reward"
-          ],
-          "signal_timestamp": "2026-07-28T00:00:00+00:00",
-          "signal_close": 1480.0,
-          "technical": {
-            "ema20": 1483.5730459621952,
-            "ema50": 1618.5721701374625,
-            "rsi14": 63.63636363636363,
-            "atr14": 42.5,
-            "relative_volume20": 0.9155697689779851,
-            "resistance20": 1550.0,
-            "support20": 1380.0
-          },
-          "evidence": {
-            "positive": [
-              "data_freshness",
-              "liquidity"
-            ],
-            "neutral": [
-              "extension_risk",
-              "market_regime",
-              "resistance",
-              "volume_confirmation"
-            ],
-            "warning": [],
-            "negative": [
-              "price_structure",
-              "risk_reward"
-            ],
-            "unknown": []
-          },
-          "audit": {
-            "data_freshness": "positive|technical_engine|2026-07-28T00:00:00+00:00|valid",
-            "liquidity": "positive|technical_engine|2026-07-28T00:00:00+00:00|avg_value20=23112741450.00",
-            "price_structure": "negative|technical_engine|2026-07-28T00:00:00+00:00|close<1483.5730<1618.5722",
-            "volume_confirmation": "neutral|technical_engine|2026-07-28T00:00:00+00:00|rvol20=0.92",
-            "resistance": "neutral|technical_engine|2026-07-28T00:00:00+00:00|room_to_resistance20=1550.0000",
-            "risk_reward": "negative|technical_engine|2026-07-28T00:00:00+00:00|proxy_rr=0.70;support20=1380.0000;atr14=42.5000",
-            "extension_risk": "neutral|technical_engine|2026-07-28T00:00:00+00:00|rsi14=63.64",
-            "market_regime": "neutral|technical_engine|2026-07-28T00:00:00+00:00|index_adapter_not_connected"
-          },
-          "error": null
-        },
-        {
-          "market": "BEI",
-          "symbol": "PWON",
-          "tier": "DISQUALIFIED",
-          "entry_status": "REJECT",
-          "selection_reasons": [
-            "Positive: data_freshness",
-            "Positive: liquidity"
-          ],
-          "rejection_reasons": [
-            "Hard disqualifier active",
-            "Negative: price_structure",
-            "Negative: risk_reward",
-            "Warning: volume_confirmation",
-            "Veto: risk_reward"
-          ],
-          "vetoes": [
-            "risk_reward"
-          ],
-          "signal_timestamp": "2026-07-28T00:00:00+00:00",
-          "signal_close": 262.0,
-          "technical": {
-            "ema20": 262.9802799218662,
-            "ema50": 271.92959203278104,
-            "rsi14": 58.33333333333333,
-            "atr14": 8.142857142857142,
-            "relative_volume20": 0.6282205770259726,
-            "resistance20": 280.0,
-            "support20": 236.0
-          },
-          "evidence": {
-            "positive": [
-              "data_freshness",
-              "liquidity"
-            ],
-            "neutral": [
-              "extension_risk",
-              "market_regime",
-              "resistance"
-            ],
-            "warning": [
-              "volume_confirmation"
-            ],
-            "negative": [
-              "price_structure",
-              "risk_reward"
-            ],
-            "unknown": []
-          },
-          "audit": {
-            "data_freshness": "positive|technical_engine|2026-07-28T00:00:00+00:00|valid",
-            "liquidity": "positive|technical_engine|2026-07-28T00:00:00+00:00|avg_value20=10976783690.00",
-            "price_structure": "negative|technical_engine|2026-07-28T00:00:00+00:00|close<262.9803<271.9296",
-            "volume_confirmation": "warning|technical_engine|2026-07-28T00:00:00+00:00|rvol20=0.63",
-            "resistance": "neutral|technical_engine|2026-07-28T00:00:00+00:00|room_to_resistance20=280.0000",
-            "risk_reward": "negative|technical_engine|2026-07-28T00:00:00+00:00|proxy_rr=0.69;support20=236.0000;atr14=8.1429",
-            "extension_risk": "neutral|technical_engine|2026-07-28T00:00:00+00:00|rsi14=58.33",
-            "market_regime": "neutral|technical_engine|2026-07-28T00:00:00+00:00|index_adapter_not_connected"
+            "data_freshness": "positive|technical_engine|2026-07-29T00:00:00+00:00|valid",
+            "liquidity": "positive|technical_engine|2026-07-29T00:00:00+00:00|avg_value20=68304367325.00",
+            "price_structure": "negative|technical_engine|2026-07-29T00:00:00+00:00|close<1243.5273<1274.2784",
+            "volume_confirmation": "neutral|technical_engine|2026-07-29T00:00:00+00:00|rvol20=0.87",
+            "resistance": "neutral|technical_engine|2026-07-29T00:00:00+00:00|room_to_resistance20=1425.0000",
+            "risk_reward": "negative|technical_engine|2026-07-29T00:00:00+00:00|proxy_rr=0.90;support20=1025.0000;atr14=58.5714",
+            "extension_risk": "neutral|technical_engine|2026-07-29T00:00:00+00:00|rsi14=57.61",
+            "market_regime": "neutral|technical_engine|2026-07-29T00:00:00+00:00|index_adapter_not_connected"
           },
           "error": null
         },
@@ -1696,14 +1622,14 @@
           "vetoes": [
             "risk_reward"
           ],
-          "signal_timestamp": "2026-07-28T00:00:00+00:00",
-          "signal_close": 3480.0,
+          "signal_timestamp": "2026-07-29T00:00:00+00:00",
+          "signal_close": 3460.0,
           "technical": {
-            "ema20": 3498.2259213851326,
-            "ema50": 3551.556334383922,
-            "rsi14": 59.61538461538462,
-            "atr14": 97.14285714285714,
-            "relative_volume20": 0.4090265088157632,
+            "ema20": 3494.585357442996,
+            "ema50": 3547.967974765786,
+            "rsi14": 54.0,
+            "atr14": 95.0,
+            "relative_volume20": 0.7034015533240299,
             "resistance20": 3650.0,
             "support20": 3090.0
           },
@@ -1727,20 +1653,20 @@
             "unknown": []
           },
           "audit": {
-            "data_freshness": "positive|technical_engine|2026-07-28T00:00:00+00:00|valid",
-            "liquidity": "positive|technical_engine|2026-07-28T00:00:00+00:00|avg_value20=169630538700.00",
-            "price_structure": "negative|technical_engine|2026-07-28T00:00:00+00:00|close<3498.2259<3551.5563",
-            "volume_confirmation": "warning|technical_engine|2026-07-28T00:00:00+00:00|rvol20=0.41",
-            "resistance": "neutral|technical_engine|2026-07-28T00:00:00+00:00|room_to_resistance20=3650.0000",
-            "risk_reward": "negative|technical_engine|2026-07-28T00:00:00+00:00|proxy_rr=0.44;support20=3090.0000;atr14=97.1429",
-            "extension_risk": "neutral|technical_engine|2026-07-28T00:00:00+00:00|rsi14=59.62",
-            "market_regime": "neutral|technical_engine|2026-07-28T00:00:00+00:00|index_adapter_not_connected"
+            "data_freshness": "positive|technical_engine|2026-07-29T00:00:00+00:00|valid",
+            "liquidity": "positive|technical_engine|2026-07-29T00:00:00+00:00|avg_value20=165004042500.00",
+            "price_structure": "negative|technical_engine|2026-07-29T00:00:00+00:00|close<3494.5854<3547.9680",
+            "volume_confirmation": "warning|technical_engine|2026-07-29T00:00:00+00:00|rvol20=0.70",
+            "resistance": "neutral|technical_engine|2026-07-29T00:00:00+00:00|room_to_resistance20=3650.0000",
+            "risk_reward": "negative|technical_engine|2026-07-29T00:00:00+00:00|proxy_rr=0.51;support20=3090.0000;atr14=95.0000",
+            "extension_risk": "neutral|technical_engine|2026-07-29T00:00:00+00:00|rsi14=54.00",
+            "market_regime": "neutral|technical_engine|2026-07-29T00:00:00+00:00|index_adapter_not_connected"
           },
           "error": null
         },
         {
           "market": "BEI",
-          "symbol": "INCO",
+          "symbol": "PWON",
           "tier": "DISQUALIFIED",
           "entry_status": "REJECT",
           "selection_reasons": [
@@ -1757,16 +1683,16 @@
           "vetoes": [
             "risk_reward"
           ],
-          "signal_timestamp": "2026-07-28T00:00:00+00:00",
-          "signal_close": 4750.0,
+          "signal_timestamp": "2026-07-29T00:00:00+00:00",
+          "signal_close": 260.0,
           "technical": {
-            "ema20": 4815.527750231995,
-            "ema50": 4962.262042864884,
-            "rsi14": 62.121212121212125,
-            "atr14": 175.71428571428572,
-            "relative_volume20": 0.3868017195718115,
-            "resistance20": 5275.0,
-            "support20": 4120.0
+            "ema20": 262.6964437389221,
+            "ema50": 271.46193877810293,
+            "rsi14": 60.869565217391305,
+            "atr14": 7.714285714285714,
+            "relative_volume20": 0.7001506407917077,
+            "resistance20": 280.0,
+            "support20": 236.0
           },
           "evidence": {
             "positive": [
@@ -1788,14 +1714,75 @@
             "unknown": []
           },
           "audit": {
-            "data_freshness": "positive|technical_engine|2026-07-28T00:00:00+00:00|valid",
-            "liquidity": "positive|technical_engine|2026-07-28T00:00:00+00:00|avg_value20=55473401700.00",
-            "price_structure": "negative|technical_engine|2026-07-28T00:00:00+00:00|close<4815.5278<4962.2620",
-            "volume_confirmation": "warning|technical_engine|2026-07-28T00:00:00+00:00|rvol20=0.39",
-            "resistance": "neutral|technical_engine|2026-07-28T00:00:00+00:00|room_to_resistance20=5275.0000",
-            "risk_reward": "negative|technical_engine|2026-07-28T00:00:00+00:00|proxy_rr=0.83;support20=4120.0000;atr14=175.7143",
-            "extension_risk": "neutral|technical_engine|2026-07-28T00:00:00+00:00|rsi14=62.12",
-            "market_regime": "neutral|technical_engine|2026-07-28T00:00:00+00:00|index_adapter_not_connected"
+            "data_freshness": "positive|technical_engine|2026-07-29T00:00:00+00:00|valid",
+            "liquidity": "positive|technical_engine|2026-07-29T00:00:00+00:00|avg_value20=11037071290.00",
+            "price_structure": "negative|technical_engine|2026-07-29T00:00:00+00:00|close<262.6964<271.4619",
+            "volume_confirmation": "warning|technical_engine|2026-07-29T00:00:00+00:00|rvol20=0.70",
+            "resistance": "neutral|technical_engine|2026-07-29T00:00:00+00:00|room_to_resistance20=280.0000",
+            "risk_reward": "negative|technical_engine|2026-07-29T00:00:00+00:00|proxy_rr=0.83;support20=236.0000;atr14=7.7143",
+            "extension_risk": "neutral|technical_engine|2026-07-29T00:00:00+00:00|rsi14=60.87",
+            "market_regime": "neutral|technical_engine|2026-07-29T00:00:00+00:00|index_adapter_not_connected"
+          },
+          "error": null
+        },
+        {
+          "market": "BEI",
+          "symbol": "PGAS",
+          "tier": "DISQUALIFIED",
+          "entry_status": "REJECT",
+          "selection_reasons": [
+            "Positive: data_freshness",
+            "Positive: liquidity"
+          ],
+          "rejection_reasons": [
+            "Hard disqualifier active",
+            "Negative: price_structure",
+            "Negative: risk_reward",
+            "Warning: volume_confirmation",
+            "Veto: risk_reward"
+          ],
+          "vetoes": [
+            "risk_reward"
+          ],
+          "signal_timestamp": "2026-07-29T00:00:00+00:00",
+          "signal_close": 1490.0,
+          "technical": {
+            "ema20": 1502.8304729397814,
+            "ema50": 1576.0082798244898,
+            "rsi14": 63.63636363636363,
+            "atr14": 41.785714285714285,
+            "relative_volume20": 0.45893115028971604,
+            "resistance20": 1580.0,
+            "support20": 1350.0
+          },
+          "evidence": {
+            "positive": [
+              "data_freshness",
+              "liquidity"
+            ],
+            "neutral": [
+              "extension_risk",
+              "market_regime",
+              "resistance"
+            ],
+            "warning": [
+              "volume_confirmation"
+            ],
+            "negative": [
+              "price_structure",
+              "risk_reward"
+            ],
+            "unknown": []
+          },
+          "audit": {
+            "data_freshness": "positive|technical_engine|2026-07-29T00:00:00+00:00|valid",
+            "liquidity": "positive|technical_engine|2026-07-29T00:00:00+00:00|avg_value20=51726807975.00",
+            "price_structure": "negative|technical_engine|2026-07-29T00:00:00+00:00|close<1502.8305<1576.0083",
+            "volume_confirmation": "warning|technical_engine|2026-07-29T00:00:00+00:00|rvol20=0.46",
+            "resistance": "neutral|technical_engine|2026-07-29T00:00:00+00:00|room_to_resistance20=1580.0000",
+            "risk_reward": "negative|technical_engine|2026-07-29T00:00:00+00:00|proxy_rr=0.64;support20=1350.0000;atr14=41.7857",
+            "extension_risk": "neutral|technical_engine|2026-07-29T00:00:00+00:00|rsi14=63.64",
+            "market_regime": "neutral|technical_engine|2026-07-29T00:00:00+00:00|index_adapter_not_connected"
           },
           "error": null
         }

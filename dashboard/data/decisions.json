@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "generated_at": "2026-07-29T17:55:33.664841+00:00",
+  "generated_at": "2026-07-30T18:05:47.597441+00:00",
   "mode": "PAPER_TRADE_RESEARCH",
   "source": {
     "name": "YAHOO_FINANCE_RESEARCH_ONLY",
@@ -13,13 +13,55 @@
     {
       "PASAR": "BEI",
       "REGIME": "DATA_LIMITED",
-      "JUMLAH": 11,
+      "JUMLAH": 17,
       "RINGKAS": {
-        "LEWATI": 11
+        "LEWATI": 17
       },
       "KEPUTUSAN": [
         {
-          "SIMBOL": "CPIN",
+          "SIMBOL": "TINS",
+          "AKSI": "LEWATI",
+          "EVIDENCE": 67,
+          "RISIKO": "RENDAH",
+          "LOLOS": [
+            "MOMEN",
+            "LIKUID",
+            "RISIKO"
+          ],
+          "WASPADA": [
+            "TREN",
+            "VOLUME",
+            "TEMBUS",
+            "PASAR"
+          ],
+          "VETO": [],
+          "PEMICU": null,
+          "CAKUPAN": 90,
+          "REGIME": "DATA_LIMITED"
+        },
+        {
+          "SIMBOL": "ISAT",
+          "AKSI": "LEWATI",
+          "EVIDENCE": 63,
+          "RISIKO": "TINGGI",
+          "LOLOS": [
+            "MOMEN",
+            "VOLUME",
+            "LIKUID"
+          ],
+          "WASPADA": [
+            "TREN",
+            "RISIKO",
+            "TEMBUS",
+            "PASAR"
+          ],
+          "VETO": [],
+          "PEMICU": null,
+          "CAKUPAN": 90,
+          "REGIME": "DATA_LIMITED"
+        },
+        {
+          "SIMBOL": "CTRA",
           "AKSI": "LEWATI",
           "EVIDENCE": 60,
           "RISIKO": "RENDAH",
@@ -39,9 +81,9 @@
           "REGIME": "DATA_LIMITED"
         },
         {
-          "SIMBOL": "TINS",
+          "SIMBOL": "UNTR",
           "AKSI": "LEWATI",
-          "EVIDENCE": 59,
+          "EVIDENCE": 56,
           "RISIKO": "TINGGI",
           "LOLOS": [
             "MOMEN",
@@ -60,7 +102,7 @@
           "REGIME": "DATA_LIMITED"
         },
         {
-          "SIMBOL": "JSMR",
+          "SIMBOL": "EXCL",
           "AKSI": "LEWATI",
           "EVIDENCE": 54,
           "RISIKO": "RENDAH",
@@ -71,46 +113,6 @@
           "WASPADA": [
             "MOMEN",
             "VOLUME",
-            "TEMBUS",
-            "PASAR"
-          ],
-          "VETO": [],
-          "PEMICU": null,
-          "CAKUPAN": 90,
-          "REGIME": "DATA_LIMITED"
-        },
-        {
-          "SIMBOL": "MYOR",
-          "AKSI": "LEWATI",
-          "EVIDENCE": 54,
-          "RISIKO": "RENDAH",
-          "LOLOS": [
-            "LIKUID",
-            "RISIKO"
-          ],
-          "WASPADA": [
-            "MOMEN",
-            "VOLUME",
-            "TEMBUS",
-            "PASAR"
-          ],
-          "VETO": [],
-          "PEMICU": null,
-          "CAKUPAN": 90,
-          "REGIME": "DATA_LIMITED"
-        },
-        {
-          "SIMBOL": "BMRI",
-          "AKSI": "LEWATI",
-          "EVIDENCE": 53,
-          "RISIKO": "TINGGI",
-          "LOLOS": [
-            "MOMEN",
-            "LIKUID"
-          ],
-          "WASPADA": [
-            "VOLUME",
-            "RISIKO",
             "TEMBUS",
             "PASAR"
           ],
@@ -122,7 +124,7 @@
         {
           "SIMBOL": "BRIS",
           "AKSI": "LEWATI",
-          "EVIDENCE": 53,
+          "EVIDENCE": 50,
           "RISIKO": "TINGGI",
           "LOLOS": [
             "MOMEN",
@@ -140,7 +142,67 @@
           "REGIME": "DATA_LIMITED"
         },
         {
-          "SIMBOL": "CTRA",
+          "SIMBOL": "INCO",
+          "AKSI": "LEWATI",
+          "EVIDENCE": 50,
+          "RISIKO": "TINGGI",
+          "LOLOS": [
+            "MOMEN",
+            "LIKUID"
+          ],
+          "WASPADA": [
+            "VOLUME",
+            "RISIKO",
+            "TEMBUS",
+            "PASAR"
+          ],
+          "VETO": [],
+          "PEMICU": null,
+          "CAKUPAN": 90,
+          "REGIME": "DATA_LIMITED"
+        },
+        {
+          "SIMBOL": "MIKA",
+          "AKSI": "LEWATI",
+          "EVIDENCE": 50,
+          "RISIKO": "TINGGI",
+          "LOLOS": [
+            "MOMEN",
+            "LIKUID"
+          ],
+          "WASPADA": [
+            "VOLUME",
+            "RISIKO",
+            "TEMBUS",
+            "PASAR"
+          ],
+          "VETO": [],
+          "PEMICU": null,
+          "CAKUPAN": 90,
+          "REGIME": "DATA_LIMITED"
+        },
+        {
+          "SIMBOL": "MYOR",
+          "AKSI": "LEWATI",
+          "EVIDENCE": 50,
+          "RISIKO": "TINGGI",
+          "LOLOS": [
+            "MOMEN",
+            "LIKUID"
+          ],
+          "WASPADA": [
+            "VOLUME",
+            "RISIKO",
+            "TEMBUS",
+            "PASAR"
+          ],
+          "VETO": [],
+          "PEMICU": null,
+          "CAKUPAN": 90,
+          "REGIME": "DATA_LIMITED"
+        },
+        {
+          "SIMBOL": "CPIN",
           "AKSI": "LEWATI",
           "EVIDENCE": 49,
           "RISIKO": "TINGGI",
@@ -160,7 +222,27 @@
           "REGIME": "DATA_LIMITED"
         },
         {
-          "SIMBOL": "EXCL",
+          "SIMBOL": "SMGR",
+          "AKSI": "LEWATI",
+          "EVIDENCE": 49,
+          "RISIKO": "TINGGI",
+          "LOLOS": [
+            "MOMEN",
+            "LIKUID"
+          ],
+          "WASPADA": [
+            "VOLUME",
+            "RISIKO",
+            "TEMBUS",
+            "PASAR"
+          ],
+          "VETO": [],
+          "PEMICU": null,
+          "CAKUPAN": 90,
+          "REGIME": "DATA_LIMITED"
+        },
+        {
+          "SIMBOL": "KLBF",
           "AKSI": "LEWATI",
           "EVIDENCE": 46,
           "RISIKO": "TINGGI",
@@ -200,7 +282,7 @@
           "REGIME": "DATA_LIMITED"
         },
         {
-          "SIMBOL": "TLKM",
+          "SIMBOL": "ANTM",
           "AKSI": "LEWATI",
           "EVIDENCE": 45,
           "RISIKO": "TINGGI",
@@ -220,15 +302,55 @@
           "REGIME": "DATA_LIMITED"
         },
         {
-          "SIMBOL": "KLBF",
+          "SIMBOL": "BMRI",
           "AKSI": "LEWATI",
-          "EVIDENCE": 43,
+          "EVIDENCE": 45,
           "RISIKO": "TINGGI",
           "LOLOS": [
+            "MOMEN",
             "LIKUID"
           ],
           "WASPADA": [
+            "VOLUME",
+            "RISIKO",
+            "TEMBUS",
+            "PASAR"
+          ],
+          "VETO": [],
+          "PEMICU": null,
+          "CAKUPAN": 90,
+          "REGIME": "DATA_LIMITED"
+        },
+        {
+          "SIMBOL": "JSMR",
+          "AKSI": "LEWATI",
+          "EVIDENCE": 45,
+          "RISIKO": "TINGGI",
+          "LOLOS": [
             "MOMEN",
+            "LIKUID"
+          ],
+          "WASPADA": [
+            "VOLUME",
+            "RISIKO",
+            "TEMBUS",
+            "PASAR"
+          ],
+          "VETO": [],
+          "PEMICU": null,
+          "CAKUPAN": 90,
+          "REGIME": "DATA_LIMITED"
+        },
+        {
+          "SIMBOL": "TLKM",
+          "AKSI": "LEWATI",
+          "EVIDENCE": 45,
+          "RISIKO": "TINGGI",
+          "LOLOS": [
+            "MOMEN",
+            "LIKUID"
+          ],
+          "WASPADA": [
             "VOLUME",
             "RISIKO",
             "TEMBUS",
