@@ -48,5 +48,15 @@
     "source": "YAHOO_FINANCE_RESEARCH_ONLY",
     "recorded_at": "2026-07-30T18:05:47.764328+00:00",
     "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "ITMG",
+    "status": "READY",
+    "signal_timestamp": "2026-07-30T00:00:00+00:00",
+    "signal_close": 24800.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-07-31T18:49:05.734126+00:00",
+    "outcome": "PENDING"
   }
 ]
