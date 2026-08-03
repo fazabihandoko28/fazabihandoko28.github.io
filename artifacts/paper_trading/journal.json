@@ -58,5 +58,15 @@
     "source": "YAHOO_FINANCE_RESEARCH_ONLY",
     "recorded_at": "2026-07-31T18:49:05.734126+00:00",
     "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "TINS",
+    "status": "READY",
+    "signal_timestamp": "2026-07-31T00:00:00+00:00",
+    "signal_close": 3800.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-08-03T19:09:48.912500+00:00",
+    "outcome": "PENDING"
   }
 ]
