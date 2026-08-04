@@ -68,5 +68,45 @@
     "source": "YAHOO_FINANCE_RESEARCH_ONLY",
     "recorded_at": "2026-08-03T19:09:48.912500+00:00",
     "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "ICBP",
+    "status": "READY",
+    "signal_timestamp": "2026-08-03T00:00:00+00:00",
+    "signal_close": 7200.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-08-04T19:11:45.956583+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "INDF",
+    "status": "READY",
+    "signal_timestamp": "2026-08-03T00:00:00+00:00",
+    "signal_close": 7075.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-08-04T19:11:45.956611+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "INTP",
+    "status": "WAIT",
+    "signal_timestamp": "2026-08-03T00:00:00+00:00",
+    "signal_close": 4800.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-08-04T19:11:45.956623+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "BBCA",
+    "status": "WAIT",
+    "signal_timestamp": "2026-08-03T00:00:00+00:00",
+    "signal_close": 6300.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-08-04T19:11:45.956634+00:00",
+    "outcome": "PENDING"
   }
 ]
