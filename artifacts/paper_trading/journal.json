@@ -158,5 +158,55 @@
     "source": "YAHOO_FINANCE_RESEARCH_ONLY",
     "recorded_at": "2026-08-05T19:05:03.823585+00:00",
     "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "BBRI",
+    "status": "READY",
+    "signal_timestamp": "2026-08-07T00:00:00+00:00",
+    "signal_close": 3130.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-08-07T16:32:55.418180+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "ITMG",
+    "status": "WAIT",
+    "signal_timestamp": "2026-08-07T00:00:00+00:00",
+    "signal_close": 25125.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-08-07T16:32:55.418205+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "MIKA",
+    "status": "WAIT",
+    "signal_timestamp": "2026-08-07T00:00:00+00:00",
+    "signal_close": 1890.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-08-07T16:32:55.418217+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "ISAT",
+    "status": "WAIT",
+    "signal_timestamp": "2026-08-07T00:00:00+00:00",
+    "signal_close": 2170.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-08-07T16:32:55.418289+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "BRIS",
+    "status": "WAIT",
+    "signal_timestamp": "2026-08-07T00:00:00+00:00",
+    "signal_close": 1820.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-08-07T16:32:55.418299+00:00",
+    "outcome": "PENDING"
   }
 ]
