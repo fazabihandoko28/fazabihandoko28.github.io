@@ -208,5 +208,25 @@
     "source": "YAHOO_FINANCE_RESEARCH_ONLY",
     "recorded_at": "2026-08-07T16:32:55.418299+00:00",
     "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "ISAT",
+    "status": "READY",
+    "signal_timestamp": "2026-08-12T00:00:00+00:00",
+    "signal_close": 2460.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-08-12T16:37:26.112588+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "BBCA",
+    "status": "WAIT",
+    "signal_timestamp": "2026-08-12T00:00:00+00:00",
+    "signal_close": 6350.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-08-12T16:37:26.112680+00:00",
+    "outcome": "PENDING"
   }
 ]
