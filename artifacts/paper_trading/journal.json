@@ -258,5 +258,55 @@
     "source": "YAHOO_FINANCE_RESEARCH_ONLY",
     "recorded_at": "2026-08-13T16:34:41.010179+00:00",
     "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "EXCL",
+    "status": "WAIT",
+    "signal_timestamp": "2026-08-14T00:00:00+00:00",
+    "signal_close": 2800.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-08-14T12:29:36.819283+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "AKRA",
+    "status": "WAIT",
+    "signal_timestamp": "2026-08-14T00:00:00+00:00",
+    "signal_close": 1400.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-08-14T12:29:36.819314+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "MIKA",
+    "status": "WAIT",
+    "signal_timestamp": "2026-08-14T00:00:00+00:00",
+    "signal_close": 1760.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-08-14T12:29:36.819325+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "MEDC",
+    "status": "WAIT",
+    "signal_timestamp": "2026-08-14T00:00:00+00:00",
+    "signal_close": 1315.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-08-14T12:29:36.819335+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "BBCA",
+    "status": "WAIT",
+    "signal_timestamp": "2026-08-14T00:00:00+00:00",
+    "signal_close": 6350.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-08-14T12:29:36.819345+00:00",
+    "outcome": "PENDING"
   }
 ]
