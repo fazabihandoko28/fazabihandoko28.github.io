@@ -13,3 +13,8 @@
 - Added direct action instructions for every candidate and watchlist card.
 - Added quality progress meters and clearer visual hierarchy.
 - Upgraded desktop and mobile presentation to a premium institutional layout.
+
+## 2026-08-14 — BEI 100-stock screening universe
+- Expanded the enabled BEI paper-research universe from 30 to 100 symbols.
+- Existing scanner/ranking logic and candidate limit remain unchanged.
+- GitHub Actions will analyze the expanded universe on the next paper-scan run; individual data-provider failures remain isolated per symbol.
