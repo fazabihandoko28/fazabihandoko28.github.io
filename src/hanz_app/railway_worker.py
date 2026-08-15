@@ -34,6 +34,9 @@ def publish_to_supabase():
     decisions = read_json("dashboard/data/decisions.json")
     journal = read_json("artifacts/paper_trading/journal.json")
 
+    with open("dashboard/index.html", "r", encoding="utf-8") as f:
+        rendered_html = f.read()
+
     payload = {
         "id": "bei-main",
         "updated_at": datetime.now(timezone.utc).isoformat(),
@@ -42,6 +45,7 @@ def publish_to_supabase():
         "scan_data": scan_data,
         "decisions": decisions,
         "journal": journal,
+        "rendered_html": rendered_html,
     }
 
     body = json.dumps(payload).encode("utf-8")
@@ -72,7 +76,6 @@ def publish_to_supabase():
 def run_cycle():
     print("\n========== HANZ CYCLE START ==========", flush=True)
 
-    # 1. Build Dynamic Top 100 BEI
     run([
         "python", "-m", "hanz_app.build_liquid_universe",
         "--pool", "config/universe/bei_candidate_pool.csv",
@@ -83,7 +86,6 @@ def run_cycle():
         "--lookback", "60",
     ])
 
-    # 2. Scan Dynamic Top 100
     run([
         "python", "-m", "hanz_app.paper_scan",
         "--universe", "artifacts/universe/bei_top100.csv",
@@ -94,35 +96,30 @@ def run_cycle():
         "--output", "artifacts/paper_scans/latest.json",
     ])
 
-    # 3. Update paper-trading journal
     run([
         "python", "-m", "hanz_app.update_journal",
         "--scan", "artifacts/paper_scans/latest.json",
         "--journal", "artifacts/paper_trading/journal.json",
     ])
 
-    # 4. Render dashboard
     run([
         "python", "-m", "hanz_app.render_report",
         "--input", "artifacts/paper_scans/latest.json",
         "--output", "dashboard/index.html",
     ])
 
-    # 5. Publish lean dashboard data
     run([
         "python", "tools/publish_scan_results.py",
         "--scan", "artifacts/paper_scans/latest.json",
         "--report", "dashboard/index.html",
     ])
 
-    # 6. Foundation decisions
     run([
         "python", "tools/integrate_foundation.py",
         "--input", "artifacts/paper_scans/latest.json",
         "--output", "dashboard/data/decisions.json",
     ])
 
-    # 7. Publish latest state to Supabase
     publish_to_supabase()
 
     print("========== HANZ CYCLE COMPLETE ==========\n", flush=True)
