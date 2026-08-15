@@ -308,5 +308,35 @@
     "source": "YAHOO_FINANCE_RESEARCH_ONLY",
     "recorded_at": "2026-08-14T12:29:36.819345+00:00",
     "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "JPFA",
+    "status": "WAIT",
+    "signal_timestamp": "2026-08-14T00:00:00+00:00",
+    "signal_close": 2320.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-08-15T11:57:33.031362+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "RAJA",
+    "status": "WAIT",
+    "signal_timestamp": "2026-08-14T00:00:00+00:00",
+    "signal_close": 835.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-08-15T11:57:33.031392+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "WIFI",
+    "status": "WAIT",
+    "signal_timestamp": "2026-08-14T00:00:00+00:00",
+    "signal_close": 1935.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-08-15T11:57:33.031405+00:00",
+    "outcome": "PENDING"
   }
 ]
