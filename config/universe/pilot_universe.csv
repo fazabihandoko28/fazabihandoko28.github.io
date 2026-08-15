@@ -1,34 +1,104 @@
 market,symbol,yahoo_ticker,enabled,sector,notes
-BEI,BBCA,BBCA.JK,true,Banks,Jakarta delayed research mapping
-BEI,BBRI,BBRI.JK,true,Banks,Jakarta delayed research mapping
-BEI,BMRI,BMRI.JK,true,Banks,Jakarta delayed research mapping
-BEI,BBNI,BBNI.JK,true,Banks,Jakarta delayed research mapping
-BEI,BRIS,BRIS.JK,true,Banks,Jakarta delayed research mapping
-BEI,TLKM,TLKM.JK,true,Telecom,Jakarta delayed research mapping
-BEI,ISAT,ISAT.JK,true,Telecom,Jakarta delayed research mapping
-BEI,EXCL,EXCL.JK,true,Telecom,Jakarta delayed research mapping
-BEI,ASII,ASII.JK,true,Conglomerate,Jakarta delayed research mapping
-BEI,UNTR,UNTR.JK,true,Heavy Equipment,Jakarta delayed research mapping
-BEI,ADRO,ADRO.JK,true,Energy,Jakarta delayed research mapping
-BEI,PTBA,PTBA.JK,true,Energy,Jakarta delayed research mapping
-BEI,ITMG,ITMG.JK,true,Energy,Jakarta delayed research mapping
-BEI,MEDC,MEDC.JK,true,Energy,Jakarta delayed research mapping
-BEI,PGAS,PGAS.JK,true,Energy,Jakarta delayed research mapping
-BEI,ANTM,ANTM.JK,true,Metals,Jakarta delayed research mapping
-BEI,INCO,INCO.JK,true,Metals,Jakarta delayed research mapping
-BEI,TINS,TINS.JK,true,Metals,Jakarta delayed research mapping
-BEI,INDF,INDF.JK,true,Consumer,Jakarta delayed research mapping
-BEI,ICBP,ICBP.JK,true,Consumer,Jakarta delayed research mapping
-BEI,MYOR,MYOR.JK,true,Consumer,Jakarta delayed research mapping
-BEI,CPIN,CPIN.JK,true,Consumer,Jakarta delayed research mapping
-BEI,KLBF,KLBF.JK,true,Healthcare,Jakarta delayed research mapping
-BEI,MIKA,MIKA.JK,true,Healthcare,Jakarta delayed research mapping
-BEI,SMGR,SMGR.JK,true,Materials,Jakarta delayed research mapping
-BEI,INTP,INTP.JK,true,Materials,Jakarta delayed research mapping
-BEI,AKRA,AKRA.JK,true,Distribution,Jakarta delayed research mapping
-BEI,JSMR,JSMR.JK,true,Infrastructure,Jakarta delayed research mapping
-BEI,CTRA,CTRA.JK,true,Property,Jakarta delayed research mapping
-BEI,PWON,PWON.JK,true,Property,Jakarta delayed research mapping
+BEI,BBCA,BBCA.JK,true,Banks,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,BBRI,BBRI.JK,true,Banks,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,BMRI,BMRI.JK,true,Banks,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,BBNI,BBNI.JK,true,Banks,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,BRIS,BRIS.JK,true,Banks,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,TLKM,TLKM.JK,true,Telecom,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,ISAT,ISAT.JK,true,Telecom,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,EXCL,EXCL.JK,true,Telecom,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,ASII,ASII.JK,true,Conglomerate,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,UNTR,UNTR.JK,true,Heavy Equipment,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,ADRO,ADRO.JK,true,Energy,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,PTBA,PTBA.JK,true,Energy,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,ITMG,ITMG.JK,true,Energy,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,MEDC,MEDC.JK,true,Energy,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,PGAS,PGAS.JK,true,Energy,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,ANTM,ANTM.JK,true,Metals,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,INCO,INCO.JK,true,Metals,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,TINS,TINS.JK,true,Metals,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,INDF,INDF.JK,true,Consumer,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,ICBP,ICBP.JK,true,Consumer,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,MYOR,MYOR.JK,true,Consumer,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,CPIN,CPIN.JK,true,Consumer,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,KLBF,KLBF.JK,true,Healthcare,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,MIKA,MIKA.JK,true,Healthcare,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,SMGR,SMGR.JK,true,Materials,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,INTP,INTP.JK,true,Materials,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,AKRA,AKRA.JK,true,Distribution,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,JSMR,JSMR.JK,true,Infrastructure,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,CTRA,CTRA.JK,true,Property,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,PWON,PWON.JK,true,Property,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,AMMN,AMMN.JK,true,Metals,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,BREN,BREN.JK,true,Renewable Energy,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,GOTO,GOTO.JK,true,Technology,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,BUKA,BUKA.JK,true,Technology,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,EMTK,EMTK.JK,true,Technology,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,MDKA,MDKA.JK,true,Metals,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,MBMA,MBMA.JK,true,Metals,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,HRUM,HRUM.JK,true,Energy,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,INDY,INDY.JK,true,Energy,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,ESSA,ESSA.JK,true,Energy,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,ENRG,ENRG.JK,true,Energy,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,ELSA,ELSA.JK,true,Energy,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,RAJA,RAJA.JK,true,Energy,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,AADI,AADI.JK,true,Energy,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,CUAN,CUAN.JK,true,Energy,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,DSSA,DSSA.JK,true,Conglomerate,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,BRPT,BRPT.JK,true,Materials,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,TPIA,TPIA.JK,true,Materials,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,NCKL,NCKL.JK,true,Metals,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,BBTN,BBTN.JK,true,Banks,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,BNGA,BNGA.JK,true,Banks,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,NISP,NISP.JK,true,Banks,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,PNBN,PNBN.JK,true,Banks,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,BTPS,BTPS.JK,true,Banks,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,ARTO,ARTO.JK,true,Banks,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,UNVR,UNVR.JK,true,Consumer,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,HMSP,HMSP.JK,true,Consumer,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,GGRM,GGRM.JK,true,Consumer,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,SIDO,SIDO.JK,true,Healthcare,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,MAPI,MAPI.JK,true,Retail,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,MAPA,MAPA.JK,true,Retail,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,ACES,ACES.JK,true,Retail,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,ERAA,ERAA.JK,true,Retail,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,AMRT,AMRT.JK,true,Retail,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,MIDI,MIDI.JK,true,Retail,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,ULTJ,ULTJ.JK,true,Consumer,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,CMRY,CMRY.JK,true,Consumer,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,JPFA,JPFA.JK,true,Consumer,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,MAIN,MAIN.JK,true,Consumer,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,AUTO,AUTO.JK,true,Automotive,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,GJTL,GJTL.JK,true,Automotive,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,SMSM,SMSM.JK,true,Automotive,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,BSDE,BSDE.JK,true,Property,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,SMRA,SMRA.JK,true,Property,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,DMAS,DMAS.JK,true,Property,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,LPKR,LPKR.JK,true,Property,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,TOWR,TOWR.JK,true,Infrastructure,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,TBIG,TBIG.JK,true,Infrastructure,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,MTEL,MTEL.JK,true,Infrastructure,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,WIFI,WIFI.JK,true,Infrastructure,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,HEAL,HEAL.JK,true,Healthcare,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,SILO,SILO.JK,true,Healthcare,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,PRDA,PRDA.JK,true,Healthcare,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,TSPC,TSPC.JK,true,Healthcare,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,INKP,INKP.JK,true,Pulp & Paper,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,TKIM,TKIM.JK,true,Pulp & Paper,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,SCMA,SCMA.JK,true,Media,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,MNCN,MNCN.JK,true,Media,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,FILM,FILM.JK,true,Media,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,DCII,DCII.JK,true,Technology,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,MTDL,MTDL.JK,true,Technology,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,PGEO,PGEO.JK,true,Renewable Energy,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,KEEN,KEEN.JK,true,Renewable Energy,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,SRTG,SRTG.JK,true,Investment,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,BFIN,BFIN.JK,true,Finance,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,ADMF,ADMF.JK,true,Finance,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,MFIN,MFIN.JK,true,Finance,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,AVIA,AVIA.JK,true,Materials,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,ARNA,ARNA.JK,true,Materials,BEI 100-stock research universe; Yahoo delayed mapping
+BEI,MARK,MARK.JK,true,Materials,BEI 100-stock research universe; Yahoo delayed mapping
 ADX,ALDAR,ALDAR.AD,false,Property,Enable only after ticker is verified
 ADX,FAB,FAB.AD,false,Banks,Enable only after ticker is verified
 ADX,ADNOCGAS,ADNOCGAS.AD,false,Energy,Enable only after ticker is verified
