@@ -1,15 +1,72 @@
+import json
 import os
 import subprocess
 import time
+import urllib.request
 from datetime import datetime, timezone
 
 
-SCAN_INTERVAL = int(os.getenv("HANZ_SCAN_INTERVAL", "900"))  # default 15 menit
+SCAN_INTERVAL = int(os.getenv("HANZ_SCAN_INTERVAL", "900"))
+
+SUPABASE_URL = os.getenv("SUPABASE_URL", "").rstrip("/")
+SUPABASE_SECRET_KEY = os.getenv("SUPABASE_SECRET_KEY", "")
 
 
 def run(command):
-    print(f"\n[{datetime.now(timezone.utc).isoformat()}] RUN: {' '.join(command)}", flush=True)
+    print(
+        f"\n[{datetime.now(timezone.utc).isoformat()}] RUN: {' '.join(command)}",
+        flush=True,
+    )
     subprocess.run(command, check=True)
+
+
+def read_json(path):
+    with open(path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def publish_to_supabase():
+    if not SUPABASE_URL or not SUPABASE_SECRET_KEY:
+        print("Supabase variables missing — skipping live publish.", flush=True)
+        return
+
+    scan_data = read_json("artifacts/paper_scans/latest.json")
+    decisions = read_json("dashboard/data/decisions.json")
+    journal = read_json("artifacts/paper_trading/journal.json")
+
+    payload = {
+        "id": "bei-main",
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+        "market": "BEI",
+        "status": "online",
+        "scan_data": scan_data,
+        "decisions": decisions,
+        "journal": journal,
+    }
+
+    body = json.dumps(payload).encode("utf-8")
+
+    url = (
+        f"{SUPABASE_URL}/rest/v1/hanz_live_state"
+        "?on_conflict=id"
+    )
+
+    request = urllib.request.Request(
+        url,
+        data=body,
+        method="POST",
+        headers={
+            "apikey": SUPABASE_SECRET_KEY,
+            "Content-Type": "application/json",
+            "Prefer": "resolution=merge-duplicates,return=minimal",
+        },
+    )
+
+    with urllib.request.urlopen(request, timeout=30) as response:
+        print(
+            f"Supabase live publish OK: HTTP {response.status}",
+            flush=True,
+        )
 
 
 def run_cycle():
@@ -64,6 +121,9 @@ def run_cycle():
         "--input", "artifacts/paper_scans/latest.json",
         "--output", "dashboard/data/decisions.json",
     ])
+
+    # 7. Publish latest state to Supabase
+    publish_to_supabase()
 
     print("========== HANZ CYCLE COMPLETE ==========\n", flush=True)
 
