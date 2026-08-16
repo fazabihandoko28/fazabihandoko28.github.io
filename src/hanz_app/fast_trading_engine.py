@@ -2058,8 +2058,8 @@ def discover_fast_scout_candidates(
         try:
             _, frame, _ = download_data(
                 ticker,
-                interval=FAST_INTERVAL,
-                period=FAST_PERIOD,
+                interval=INTRADAY_INTERVAL,
+                period=INTRADAY_PERIOD,
             )
 
             age = data_age_seconds(
