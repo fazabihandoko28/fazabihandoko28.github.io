@@ -85,10 +85,7 @@ def supabase_request(
             "Supabase environment variables are missing"
         )
 
-    url = (
-        f"{SUPABASE_URL}/rest/v1/"
-        f"{endpoint}"
-    )
+    url = f"{SUPABASE_URL}/rest/v1/{endpoint}"
 
     body = None
 
@@ -128,7 +125,6 @@ def supabase_request(
 
 
 def restore_state():
-
     print(
         "Restoring HANZ persistent state from Supabase...",
         flush=True,
@@ -163,7 +159,6 @@ def restore_state():
     journal = state.get("journal")
 
     if journal:
-
         write_json(
             JOURNAL_PATH,
             journal,
@@ -197,7 +192,6 @@ def update_health(
     error=None,
     failure_count=None,
 ):
-
     payload = {
         "id": STATE_ID,
         "status": "online",
@@ -216,9 +210,7 @@ def update_health(
         payload["last_error"] = str(error)
 
     if failure_count is not None:
-        payload[
-            "consecutive_failures"
-        ] = failure_count
+        payload["consecutive_failures"] = failure_count
 
     supabase_request(
         "POST",
@@ -232,11 +224,9 @@ def update_health(
 
 
 def heartbeat_loop():
-
     while not stop_event.is_set():
 
         try:
-
             update_health(
                 heartbeat=True
             )
@@ -247,7 +237,6 @@ def heartbeat_loop():
             )
 
         except Exception as exc:
-
             print(
                 f"[{now_iso()}] "
                 f"Heartbeat failed: {exc}",
@@ -260,7 +249,6 @@ def heartbeat_loop():
 
 
 def build_universe():
-
     print(
         "\n========== BUILD DYNAMIC TOP 100 ==========",
         flush=True,
@@ -292,7 +280,6 @@ def build_universe():
 
 
 def run_intraday_health_test():
-
     global intraday_health_done
 
     if intraday_health_done:
@@ -303,13 +290,11 @@ def run_intraday_health_test():
     )
 
     if not universe.exists():
-
         print(
             "Intraday health skipped: "
             "Top 100 universe not ready.",
             flush=True,
         )
-
         return
 
     print(
@@ -318,7 +303,6 @@ def run_intraday_health_test():
     )
 
     try:
-
         run([
             "python",
             "-m",
@@ -333,7 +317,6 @@ def run_intraday_health_test():
         )
 
     except Exception as exc:
-
         print(
             f"Intraday health test failed: {exc}",
             flush=True,
@@ -345,8 +328,38 @@ def run_intraday_health_test():
     )
 
 
-def publish_to_supabase():
+def run_watchlist_feeder():
+    print(
+        "\n========== AUTO WATCHLIST FEEDER ==========",
+        flush=True,
+    )
 
+    try:
+        run([
+            "python",
+            "-m",
+            "hanz_app.watchlist_feeder",
+        ])
+
+        print(
+            "Auto watchlist feeder completed.",
+            flush=True,
+        )
+
+    except Exception as exc:
+        # Feeder failure must NOT kill the main worker.
+        print(
+            f"Auto watchlist feeder failed: {exc}",
+            flush=True,
+        )
+
+    print(
+        "========== AUTO WATCHLIST END ==========\n",
+        flush=True,
+    )
+
+
+def publish_to_supabase():
     scan_data = read_json(
         SCAN_PATH
     )
@@ -368,31 +381,18 @@ def publish_to_supabase():
         rendered_html = f.read()
 
     payload = {
-
         "id": STATE_ID,
-
         "updated_at": now_iso(),
-
         "market": "BEI",
-
         "status": "online",
-
         "scan_data": scan_data,
-
         "decisions": decisions,
-
         "journal": journal,
-
         "rendered_html": rendered_html,
-
         "heartbeat_at": now_iso(),
-
         "last_success_at": now_iso(),
-
         "last_error": None,
-
         "consecutive_failures": 0,
-
         "worker_started_at": worker_started_at,
     }
 
@@ -413,20 +413,19 @@ def publish_to_supabase():
 
 
 def run_cycle():
-
     print(
         "\n========== HANZ CYCLE START ==========",
         flush=True,
     )
 
-    # 1. BUILD TOP 100
+    # 1. BUILD DYNAMIC TOP 100
     build_universe()
 
     # 2. TEST INTRADAY DATA
-    # only once per Railway startup
+    # Only once per Railway restart.
     run_intraday_health_test()
 
-    # 3. MAIN SCAN
+    # 3. MAIN PAPER SCAN
     run([
         "python",
         "-m",
@@ -451,7 +450,11 @@ def run_cycle():
         str(SCAN_PATH),
     ])
 
-    # 4. JOURNAL
+    # 4. AUTO-FEED BEST CANDIDATES
+    # INTO hanz_watchlist
+    run_watchlist_feeder()
+
+    # 5. UPDATE PAPER JOURNAL
     run([
         "python",
         "-m",
@@ -464,7 +467,7 @@ def run_cycle():
         str(JOURNAL_PATH),
     ])
 
-    # 5. DASHBOARD
+    # 6. RENDER DASHBOARD
     run([
         "python",
         "-m",
@@ -477,7 +480,7 @@ def run_cycle():
         str(DASHBOARD_PATH),
     ])
 
-    # 6. DASHBOARD DATA
+    # 7. PUBLISH LEAN DASHBOARD FILES
     run([
         "python",
         "tools/publish_scan_results.py",
@@ -489,7 +492,7 @@ def run_cycle():
         str(DASHBOARD_PATH),
     ])
 
-    # 7. DECISION ENGINE
+    # 8. DECISION / FOUNDATION ENGINE
     run([
         "python",
         "tools/integrate_foundation.py",
@@ -501,7 +504,7 @@ def run_cycle():
         str(DECISIONS_PATH),
     ])
 
-    # 8. PERSIST TO SUPABASE
+    # 9. PERSIST COMPLETE LIVE STATE
     publish_to_supabase()
 
     print(
@@ -511,7 +514,6 @@ def run_cycle():
 
 
 def main():
-
     global consecutive_failures
 
     print(
@@ -534,20 +536,22 @@ def main():
         flush=True,
     )
 
-    # RESTORE MEMORY
+    # ==========================================
+    # RESTORE PERSISTENT STATE
+    # ==========================================
 
     try:
-
         restore_state()
 
     except Exception as exc:
-
         print(
             f"State restore failed: {exc}",
             flush=True,
         )
 
-    # WATCHDOG
+    # ==========================================
+    # START HEARTBEAT / WATCHDOG
+    # ==========================================
 
     heartbeat_thread = threading.Thread(
         target=heartbeat_loop,
@@ -556,25 +560,24 @@ def main():
 
     heartbeat_thread.start()
 
-    # 24/7 LOOP
+    # ==========================================
+    # 24/7 MAIN LOOP
+    # ==========================================
 
     while True:
 
         try:
-
             run_cycle()
 
             consecutive_failures = 0
 
             try:
-
                 update_health(
                     heartbeat=True,
                     success=True,
                 )
 
             except Exception as exc:
-
                 print(
                     f"Health update failed: {exc}",
                     flush=True,
@@ -590,7 +593,6 @@ def main():
             )
 
         except Exception as exc:
-
             consecutive_failures += 1
 
             print(
@@ -601,7 +603,6 @@ def main():
             )
 
             try:
-
                 update_health(
                     heartbeat=True,
                     error=exc,
@@ -609,7 +610,6 @@ def main():
                 )
 
             except Exception as health_exc:
-
                 print(
                     "Failure health update failed: "
                     f"{health_exc}",
@@ -617,7 +617,8 @@ def main():
                 )
 
             print(
-                f"Retrying in {RETRY_INTERVAL} seconds...",
+                f"Retrying in "
+                f"{RETRY_INTERVAL} seconds...",
                 flush=True,
             )
 
