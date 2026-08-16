@@ -5,9 +5,21 @@ import time
 import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 
 import pandas as pd
 import yfinance as yf
+
+# Firebase Admin is optional at import time so the trading engine
+# keeps running even before Railway has the dependency/credential.
+try:
+    import firebase_admin
+    from firebase_admin import credentials, messaging
+except Exception:
+    firebase_admin = None
+    credentials = None
+    messaging = None
+
 
 
 SUPABASE_URL = os.getenv("SUPABASE_URL", "").rstrip("/")
@@ -39,6 +51,29 @@ TRAILING_ATR_MULTIPLIER_T1 = float(
 TRAILING_ATR_MULTIPLIER_T2 = float(
     os.getenv("HANZ_TRAILING_ATR_MULTIPLIER_T2", "1.0")
 )
+
+FIREBASE_SERVICE_ACCOUNT_JSON = os.getenv(
+    "FIREBASE_SERVICE_ACCOUNT_JSON",
+    "",
+).strip()
+
+PUSH_DASHBOARD_URL = os.getenv(
+    "HANZ_DASHBOARD_URL",
+    "https://fazabihandoko28.github.io/dashboard/",
+)
+
+JAKARTA_TZ = ZoneInfo("Asia/Jakarta")
+
+# Deliberately quiet push policy.
+PUSH_ALERT_TYPES = {
+    "CONFIRMED_BUY",
+    "PROTECT_PROFIT",
+    "CONFIRMED_SELL",
+    "STOP_LOSS",
+    "TRAILING_ACTIVATED",
+}
+
+_FIREBASE_APP = None
 
 
 def utc_now():
@@ -669,8 +704,41 @@ def apply_auto_trailing(position, fast):
         updates["last_trailing_update_at"] = now_iso()
 
     if updates and portfolio_id is not None:
+        just_activated = (
+            should_activate
+            and not trailing_active
+        )
+
         update_portfolio_row(portfolio_id, updates)
         position.update(updates)
+
+        if just_activated:
+            user_id = position.get("user_id")
+            ticker = position.get("ticker")
+
+            title = (
+                f"{clean_ticker(ticker)} "
+                f"— TRAILING ACTIVATED"
+            )
+
+            message = (
+                f"Target 1 reached. "
+                f"Price {price:.2f} | "
+                f"Peak {peak_price:.2f} | "
+                f"Trailing "
+                f"{new_trailing:.2f} | "
+                f"{multiplier:.1f}× ATR"
+            )
+
+            queue_alert(
+                ticker=ticker,
+                alert_type="TRAILING_ACTIVATED",
+                priority=75,
+                title=title,
+                message=message,
+                user_id=user_id,
+                portfolio_id=portfolio_id,
+            )
 
         print(
             f"{position.get('ticker')}: trailing update "
@@ -987,6 +1055,15 @@ def queue_alert(
             flush=True,
         )
 
+        send_selective_push(
+            ticker=ticker,
+            alert_type=alert_type,
+            title=title,
+            message=message,
+            user_id=user_id,
+            portfolio_id=portfolio_id,
+        )
+
     except Exception as exc:
         if "409" in str(exc):
             print(
@@ -996,6 +1073,303 @@ def queue_alert(
             )
         else:
             raise
+
+
+
+def jakarta_date_string():
+    return utc_now().astimezone(JAKARTA_TZ).date().isoformat()
+
+
+def firebase_app():
+    global _FIREBASE_APP
+
+    if _FIREBASE_APP is not None:
+        return _FIREBASE_APP
+
+    if firebase_admin is None or credentials is None:
+        return None
+
+    if not FIREBASE_SERVICE_ACCOUNT_JSON:
+        return None
+
+    try:
+        info = json.loads(FIREBASE_SERVICE_ACCOUNT_JSON)
+        cred = credentials.Certificate(info)
+
+        try:
+            _FIREBASE_APP = firebase_admin.get_app()
+        except ValueError:
+            _FIREBASE_APP = firebase_admin.initialize_app(cred)
+
+        return _FIREBASE_APP
+
+    except Exception as exc:
+        print(
+            f"FCM init unavailable: {exc}",
+            flush=True,
+        )
+        return None
+
+
+def push_event_key(
+    *,
+    ticker,
+    alert_type,
+    user_id=None,
+    portfolio_id=None,
+):
+    ticker = clean_ticker(ticker)
+    day = jakarta_date_string()
+
+    if alert_type == "CONFIRMED_BUY":
+        # One shared confirmed BUY push per ticker per IDX trading day.
+        return f"SHARED:{ticker}:{alert_type}:{day}"
+
+    if alert_type == "PROTECT_PROFIT":
+        # At most one protect-profit push per position per trading day.
+        return (
+            f"{user_id}:{portfolio_id}:"
+            f"{alert_type}:{day}"
+        )
+
+    # STOP_LOSS / CONFIRMED_SELL / TRAILING_ACTIVATED
+    # are one-time events per portfolio row.
+    return f"{user_id}:{portfolio_id}:{alert_type}"
+
+
+def reserve_push_event(
+    *,
+    event_key,
+    ticker,
+    alert_type,
+    user_id=None,
+    portfolio_id=None,
+):
+    payload = {
+        "event_key": event_key,
+        "ticker": clean_ticker(ticker),
+        "alert_type": alert_type,
+        "status": "PENDING",
+        "created_at": now_iso(),
+    }
+
+    if user_id is not None:
+        payload["user_id"] = user_id
+
+    if portfolio_id is not None:
+        payload["portfolio_id"] = portfolio_id
+
+    try:
+        supabase_request(
+            "POST",
+            "hanz_push_log",
+            payload,
+            prefer="return=minimal",
+        )
+        return True
+
+    except Exception as exc:
+        if "409" in str(exc):
+            return False
+        raise
+
+
+def finish_push_event(event_key, status, error=None):
+    encoded = urllib.parse.quote(
+        str(event_key),
+        safe="",
+    )
+
+    payload = {
+        "status": status,
+        "updated_at": now_iso(),
+    }
+
+    if status == "SENT":
+        payload["sent_at"] = now_iso()
+
+    if error:
+        payload["last_error"] = str(error)[:1000]
+
+    try:
+        supabase_request(
+            "PATCH",
+            f"hanz_push_log?event_key=eq.{encoded}",
+            payload,
+            prefer="return=minimal",
+        )
+    except Exception:
+        pass
+
+
+def release_failed_push_event(event_key):
+    encoded = urllib.parse.quote(
+        str(event_key),
+        safe="",
+    )
+
+    try:
+        supabase_request(
+            "DELETE",
+            f"hanz_push_log?event_key=eq.{encoded}",
+            prefer="return=minimal",
+        )
+    except Exception:
+        pass
+
+
+def get_push_installation_ids(user_id=None):
+    query = (
+        "hanz_push_devices"
+        "?enabled=eq.true"
+        "&select=installation_id"
+    )
+
+    if user_id is not None:
+        encoded_user = urllib.parse.quote(
+            str(user_id),
+            safe="",
+        )
+        query += f"&user_id=eq.{encoded_user}"
+
+    rows = supabase_request(
+        "GET",
+        query,
+    ) or []
+
+    ids = []
+    seen = set()
+
+    for row in rows:
+        installation_id = str(
+            row.get("installation_id")
+            or ""
+        ).strip()
+
+        if (
+            installation_id
+            and installation_id not in seen
+        ):
+            seen.add(installation_id)
+            ids.append(installation_id)
+
+    return ids
+
+
+def send_selective_push(
+    *,
+    ticker,
+    alert_type,
+    title,
+    message,
+    user_id=None,
+    portfolio_id=None,
+):
+    if alert_type not in PUSH_ALERT_TYPES:
+        return
+
+    app = firebase_app()
+
+    if app is None or messaging is None:
+        print(
+            f"PUSH SKIPPED: Firebase not configured "
+            f"({alert_type} {clean_ticker(ticker)})",
+            flush=True,
+        )
+        return
+
+    event_key = push_event_key(
+        ticker=ticker,
+        alert_type=alert_type,
+        user_id=user_id,
+        portfolio_id=portfolio_id,
+    )
+
+    if not reserve_push_event(
+        event_key=event_key,
+        ticker=ticker,
+        alert_type=alert_type,
+        user_id=user_id,
+        portfolio_id=portfolio_id,
+    ):
+        print(
+            f"PUSH SUPPRESSED duplicate: {event_key}",
+            flush=True,
+        )
+        return
+
+    try:
+        # Shared confirmed BUY -> every enabled HANZ device.
+        # Portfolio alerts -> only that user's enabled devices.
+        target_user = (
+            None
+            if alert_type == "CONFIRMED_BUY"
+            else user_id
+        )
+
+        installation_ids = get_push_installation_ids(
+            target_user
+        )
+
+        if not installation_ids:
+            finish_push_event(
+                event_key,
+                "NO_DEVICE",
+            )
+            print(
+                f"PUSH NO DEVICE: {event_key}",
+                flush=True,
+            )
+            return
+
+        messages = []
+
+        for fid in installation_ids:
+            data = {
+                "title": str(title),
+                "body": str(message),
+                "message": str(message),
+                "ticker": clean_ticker(ticker),
+                "alert_type": str(alert_type),
+                "url": PUSH_DASHBOARD_URL,
+                "dedupe_key": event_key,
+            }
+
+            if portfolio_id is not None:
+                data["portfolio_id"] = str(portfolio_id)
+
+            messages.append(
+                messaging.Message(
+                    data=data,
+                    fid=fid,
+                )
+            )
+
+        response = messaging.send_each(
+            messages,
+            app=app,
+        )
+
+        finish_push_event(
+            event_key,
+            "SENT",
+        )
+
+        print(
+            f"PUSH SENT: {event_key} "
+            f"success={response.success_count} "
+            f"failed={response.failure_count}",
+            flush=True,
+        )
+
+    except Exception as exc:
+        release_failed_push_event(event_key)
+
+        print(
+            f"PUSH FAILED: {event_key} — {exc}",
+            flush=True,
+        )
+
 
 
 def update_fast_health(
@@ -1070,6 +1444,115 @@ def get_symbol_context(ticker):
             3,
         ),
     }
+
+
+
+def trend_label(metrics):
+    ema9 = safe_float(metrics.get("ema9"))
+    ema21 = safe_float(metrics.get("ema21"))
+
+    if ema9 is None or ema21 is None:
+        return "UNKNOWN"
+
+    if ema9 > ema21:
+        return "BULLISH"
+
+    if ema9 < ema21:
+        return "BEARISH"
+
+    return "FLAT"
+
+
+def upsert_signal_monitor(
+    *,
+    ticker,
+    state,
+    price=None,
+    fast_trend=None,
+    confirm_trend=None,
+    score=None,
+    confidence=None,
+    rsi_1m=None,
+    rsi_5m=None,
+    relative_volume=None,
+    confirmation_price=None,
+    entry_low=None,
+    entry_high=None,
+    invalidation_price=None,
+    distance_to_confirm_pct=None,
+    last_market_bar_at=None,
+    data_age_seconds_value=None,
+    data_status="FRESH",
+    evidence=None,
+):
+    payload = {
+        "ticker": clean_ticker(ticker),
+        "state": state,
+        "price": price,
+        "fast_trend": fast_trend,
+        "confirm_trend": confirm_trend,
+        "score": score,
+        "confidence": confidence,
+        "rsi_1m": rsi_1m,
+        "rsi_5m": rsi_5m,
+        "relative_volume": relative_volume,
+        "confirmation_price": confirmation_price,
+        "entry_low": entry_low,
+        "entry_high": entry_high,
+        "invalidation_price": invalidation_price,
+        "distance_to_confirm_pct": distance_to_confirm_pct,
+        "last_market_bar_at": last_market_bar_at,
+        "data_age_seconds": data_age_seconds_value,
+        "data_status": data_status,
+        "evidence": evidence,
+        "updated_at": now_iso(),
+    }
+
+    supabase_request(
+        "POST",
+        "hanz_signal_monitor?on_conflict=ticker",
+        payload,
+        prefer=(
+            "resolution=merge-duplicates,"
+            "return=minimal"
+        ),
+    )
+
+
+def delete_stale_signal_monitor_rows(active_tickers):
+    normalized = sorted({
+        clean_ticker(ticker)
+        for ticker in active_tickers
+        if ticker
+    })
+
+    if not normalized:
+        try:
+            supabase_request(
+                "DELETE",
+                "hanz_signal_monitor?ticker=not.is.null",
+                prefer="return=minimal",
+            )
+        except Exception:
+            pass
+        return
+
+    encoded = urllib.parse.quote(
+        "(" + ",".join(normalized) + ")",
+        safe="(),"
+    )
+
+    try:
+        supabase_request(
+            "DELETE",
+            f"hanz_signal_monitor?ticker=not.in.{encoded}",
+            prefer="return=minimal",
+        )
+    except Exception as exc:
+        print(
+            f"Signal monitor stale cleanup skipped: {exc}",
+            flush=True,
+        )
 
 
 def monitor_portfolio(positions, context_cache=None):
@@ -1197,6 +1680,12 @@ def monitor_watchlist(watchlist, context_cache=None):
     monitored = 0
     context_cache = context_cache if context_cache is not None else {}
 
+    active_tickers = [
+        watch.get("ticker")
+        for watch in watchlist
+        if watch.get("ticker")
+    ]
+
     for watch in watchlist:
         ticker = watch.get("ticker")
 
@@ -1210,21 +1699,7 @@ def monitor_watchlist(watchlist, context_cache=None):
                 context_cache[cache_key] = get_symbol_context(ticker)
 
             ctx = context_cache[cache_key]
-
             monitored += 1
-
-            if (
-                ctx["age_seconds"]
-                > MAX_DATA_AGE_SECONDS
-            ):
-                print(
-                    f"{ticker}: BUY scan blocked "
-                    f"— stale data "
-                    f"{ctx['age_seconds']} sec",
-                    flush=True,
-                )
-
-                continue
 
             result = buy_confirmation(
                 ctx["fast"],
@@ -1233,28 +1708,37 @@ def monitor_watchlist(watchlist, context_cache=None):
             )
 
             if not result:
-                continue
-
-            if result["confirmed"]:
-                signal_type = "CONFIRMED_BUY"
-                severity = 70
-                confirmed = True
-
-            elif result["early_watch"]:
-                signal_type = "EARLY_WATCH"
-                severity = 35
-                confirmed = False
-
-            else:
-                print(
-                    f"{ticker}: no actionable setup",
-                    flush=True,
+                upsert_signal_monitor(
+                    ticker=ticker,
+                    state="NO_DATA",
+                    data_status="NO_DATA",
+                    last_market_bar_at=ctx.get("last_bar"),
+                    data_age_seconds_value=ctx.get("age_seconds"),
                 )
                 continue
 
-            evidence = "; ".join(
-                result["evidence"]
+            fast = ctx["fast"]
+            confirm = ctx["confirm"]
+
+            confirmation_price = safe_float(
+                watch.get("confirmation_price")
             )
+
+            distance_to_confirm_pct = None
+
+            if (
+                confirmation_price is not None
+                and result["price"] is not None
+                and result["price"] > 0
+            ):
+                distance_to_confirm_pct = (
+                    (
+                        confirmation_price
+                        - result["price"]
+                    )
+                    / result["price"]
+                    * 100
+                )
 
             confidence = min(
                 100,
@@ -1262,6 +1746,85 @@ def monitor_watchlist(watchlist, context_cache=None):
                 / 9
                 * 100,
             )
+
+            if (
+                ctx["age_seconds"]
+                > MAX_DATA_AGE_SECONDS
+            ):
+                state = "STALE_DATA"
+                data_status = "STALE"
+
+            elif result["confirmed"]:
+                state = "CONFIRMED_BUY"
+                data_status = "FRESH"
+
+            elif result["early_watch"]:
+                state = "EARLY_WATCH"
+                data_status = "FRESH"
+
+            else:
+                state = "WAIT_CONFIRM"
+                data_status = "FRESH"
+
+            evidence = (
+                "; ".join(result["evidence"])
+                or "waiting for confirmation"
+            )
+
+            upsert_signal_monitor(
+                ticker=ticker,
+                state=state,
+                price=result["price"],
+                fast_trend=trend_label(fast),
+                confirm_trend=trend_label(confirm),
+                score=result["score"],
+                confidence=round(confidence, 1),
+                rsi_1m=fast.get("rsi"),
+                rsi_5m=confirm.get("rsi"),
+                relative_volume=fast.get("relative_volume"),
+                confirmation_price=confirmation_price,
+                entry_low=result["entry_low"],
+                entry_high=result["entry_high"],
+                invalidation_price=safe_float(
+                    watch.get("invalidation_price")
+                ),
+                distance_to_confirm_pct=(
+                    round(distance_to_confirm_pct, 3)
+                    if distance_to_confirm_pct is not None
+                    else None
+                ),
+                last_market_bar_at=ctx["last_bar"],
+                data_age_seconds_value=ctx["age_seconds"],
+                data_status=data_status,
+                evidence=evidence,
+            )
+
+            if state == "STALE_DATA":
+                print(
+                    f"{ticker}: BUY scan blocked "
+                    f"— stale data "
+                    f"{ctx['age_seconds']} sec",
+                    flush=True,
+                )
+                continue
+
+            if state == "WAIT_CONFIRM":
+                print(
+                    f"{ticker}: WAIT_CONFIRM "
+                    f"score {result['score']}/9",
+                    flush=True,
+                )
+                continue
+
+            if state == "CONFIRMED_BUY":
+                signal_type = "CONFIRMED_BUY"
+                severity = 70
+                confirmed = True
+
+            else:
+                signal_type = "EARLY_WATCH"
+                severity = 35
+                confirmed = False
 
             signal = insert_signal(
                 ticker=ticker,
@@ -1308,12 +1871,6 @@ def monitor_watchlist(watchlist, context_cache=None):
                 )
 
             else:
-                confirmation_price = (
-                    watch.get(
-                        "confirmation_price"
-                    )
-                )
-
                 message = (
                     f"Setup developing. "
                     f"Price "
@@ -1339,7 +1896,20 @@ def monitor_watchlist(watchlist, context_cache=None):
                 flush=True,
             )
 
+            try:
+                upsert_signal_monitor(
+                    ticker=ticker,
+                    state="ERROR",
+                    data_status="ERROR",
+                    evidence=str(exc),
+                )
+            except Exception:
+                pass
+
+    delete_stale_signal_monitor_rows(active_tickers)
+
     return monitored
+
 
 
 def run_fast_cycle():
