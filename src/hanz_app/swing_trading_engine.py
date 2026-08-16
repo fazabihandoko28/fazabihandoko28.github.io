@@ -51,7 +51,7 @@ MIN_BUY_SCORE = int(
 )
 
 MAX_SYMBOLS_PER_CYCLE = int(
-    os.getenv("HANZ_SWING_MAX_SYMBOLS_PER_CYCLE", "60")
+    os.getenv("HANZ_SWING_MAX_SYMBOLS_PER_CYCLE", "220")
 )
 
 
@@ -461,7 +461,7 @@ def risk_levels(daily):
 def fetch_universe():
     rows = supabase_request(
         "GET",
-        "hanz_scout_universe"
+        "hanz_swing_universe"
         "?enabled=eq.true"
         "&select=ticker,priority"
         "&order=priority.desc,ticker.asc",
