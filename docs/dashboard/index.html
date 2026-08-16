@@ -2,76 +2,100 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta
-  name="viewport"
-  content="width=device-width, initial-scale=1, viewport-fit=cover"
->
-<meta name="theme-color" content="#071019">
-
-<title>HANZ TRADE — Live Trading Intelligence</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#050914">
+<title>HANZ — Trading Intelligence</title>
 
 <style>
 :root{
-  --bg:#071019;
-  --bg-soft:#0b1522;
-  --card:#101b2b;
-  --card2:#142236;
-  --line:#22344d;
-  --text:#f4f7fb;
-  --muted:#8fa0b7;
-  --green:#25d79d;
-  --red:#ff6670;
+  --bg:#050914;
+  --surface:#0a1020;
+  --surface2:#0e172a;
+  --glass:rgba(15,24,43,.72);
+  --line:rgba(148,163,184,.14);
+
+  --text:#f8fafc;
+  --muted:#8796ad;
+
+  --green:#28e0a2;
+  --green2:#10b981;
+  --blue:#4da3ff;
+  --cyan:#48d7ff;
+  --purple:#9d7cff;
   --yellow:#ffc857;
-  --blue:#56a8ff;
-  --purple:#a77cff;
-  --radius:18px;
+  --red:#ff6170;
+
+  --radius:22px;
+  --shadow:0 20px 60px rgba(0,0,0,.28);
 }
 
 *{
   box-sizing:border-box;
 }
 
-html,body{
+html{
+  background:var(--bg);
+}
+
+body{
   margin:0;
-  min-height:100%;
+  min-height:100vh;
+  color:var(--text);
   font-family:
     Inter,
     -apple-system,
     BlinkMacSystemFont,
     "Segoe UI",
     Roboto,
+    Helvetica,
     Arial,
     sans-serif;
+
   background:
-    radial-gradient(circle at top right,#14223a 0,#071019 40%);
-  color:var(--text);
+    radial-gradient(circle at 85% 0%,rgba(77,163,255,.16),transparent 28%),
+    radial-gradient(circle at 15% 18%,rgba(40,224,162,.09),transparent 25%),
+    linear-gradient(180deg,#050914,#070c17 60%,#050914);
 }
 
-body{
-  padding-bottom:88px;
+body:before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+
+  background-image:
+    linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);
+
+  background-size:44px 44px;
+  mask-image:linear-gradient(to bottom,black,transparent 78%);
 }
 
 button{
   font:inherit;
 }
 
-.app{
-  max-width:1500px;
+.app-shell{
+  max-width:1520px;
   margin:auto;
-  padding:20px;
+  padding:22px 24px 110px;
 }
 
 
 /* =========================================================
-   HEADER
+   TOP BAR
 ========================================================= */
 
-.header{
+.topbar{
+  height:72px;
+
   display:flex;
   align-items:center;
   justify-content:space-between;
-  gap:15px;
-  margin-bottom:20px;
+
+  margin-bottom:22px;
+
+  padding:0 4px;
 }
 
 .brand{
@@ -81,108 +105,336 @@ button{
 }
 
 .logo{
+  position:relative;
+
   width:48px;
   height:48px;
+
   display:grid;
   place-items:center;
+
   border-radius:15px;
-  font-size:21px;
-  font-weight:900;
-  color:#03110c;
+
   background:
-    linear-gradient(135deg,var(--green),var(--blue));
-  box-shadow:0 10px 30px rgba(37,215,157,.20);
+    linear-gradient(135deg,#2ae2a7,#43b9ff);
+
+  color:#02130c;
+
+  font-weight:1000;
+  font-size:20px;
+
+  box-shadow:
+    0 10px 30px rgba(40,224,162,.18),
+    inset 0 1px 0 rgba(255,255,255,.45);
 }
 
-.brand h1{
-  margin:0;
-  font-size:21px;
-  letter-spacing:.4px;
+.logo:after{
+  content:"";
+  position:absolute;
+  inset:-5px;
+
+  border-radius:19px;
+  border:1px solid rgba(40,224,162,.16);
 }
 
-.brand small{
-  display:block;
+.brand-title{
+  display:flex;
+  flex-direction:column;
+}
+
+.brand-title strong{
+  font-size:19px;
+  letter-spacing:.8px;
+}
+
+.brand-title span{
+  margin-top:3px;
+
   color:var(--muted);
-  margin-top:4px;
+  font-size:11px;
+  letter-spacing:.3px;
 }
 
-.header-right{
+.top-actions{
   display:flex;
   align-items:center;
   gap:9px;
 }
 
-.live{
+.engine-pill{
+  height:38px;
+
   display:flex;
   align-items:center;
   gap:8px;
-  padding:9px 13px;
+
+  padding:0 13px;
+
+  border-radius:999px;
+
   border:1px solid var(--line);
-  border-radius:30px;
-  background:rgba(16,27,43,.82);
-  font-size:12px;
+
+  background:rgba(10,16,32,.68);
+
+  backdrop-filter:blur(12px);
+
   color:var(--muted);
+
+  font-size:11px;
+  font-weight:700;
 }
 
 .live-dot{
   width:8px;
   height:8px;
+
   border-radius:50%;
+
   background:var(--yellow);
 }
 
 .live-dot.online{
   background:var(--green);
-  box-shadow:0 0 12px var(--green);
+
+  box-shadow:
+    0 0 0 4px rgba(40,224,162,.08),
+    0 0 15px rgba(40,224,162,.75);
 }
 
-.refresh{
-  padding:9px 13px;
-  border-radius:12px;
+.icon-btn{
+  height:38px;
+
   border:1px solid var(--line);
-  background:var(--card);
-  color:var(--text);
+
+  border-radius:11px;
+
+  padding:0 13px;
+
+  color:#dbe5f2;
+
+  background:rgba(10,16,32,.68);
+
+  backdrop-filter:blur(12px);
+
   cursor:pointer;
 }
 
 
 /* =========================================================
-   SUMMARY
+   HERO
 ========================================================= */
 
-.summary{
+.hero{
+  position:relative;
+
+  overflow:hidden;
+
+  min-height:210px;
+
+  display:flex;
+  align-items:center;
+
+  border:1px solid var(--line);
+  border-radius:28px;
+
+  padding:30px;
+
+  margin-bottom:18px;
+
+  background:
+    linear-gradient(120deg,rgba(14,23,42,.96),rgba(8,15,29,.88));
+
+  box-shadow:var(--shadow);
+}
+
+.hero:before{
+  content:"";
+
+  position:absolute;
+
+  width:420px;
+  height:420px;
+
+  right:-130px;
+  top:-180px;
+
+  border-radius:50%;
+
+  background:
+    radial-gradient(circle,rgba(74,165,255,.26),transparent 68%);
+}
+
+.hero:after{
+  content:"";
+
+  position:absolute;
+
+  width:300px;
+  height:300px;
+
+  left:37%;
+  bottom:-250px;
+
+  border-radius:50%;
+
+  background:
+    radial-gradient(circle,rgba(40,224,162,.17),transparent 70%);
+}
+
+.hero-content{
+  position:relative;
+  z-index:2;
+
+  width:100%;
+
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+
+  gap:28px;
+}
+
+.hero-copy small{
+  color:var(--green);
+
+  font-size:10px;
+  font-weight:900;
+
+  letter-spacing:1.5px;
+}
+
+.hero-copy h1{
+  margin:9px 0 7px;
+
+  font-size:38px;
+
+  line-height:1.05;
+  letter-spacing:-1.2px;
+}
+
+.hero-copy p{
+  max-width:620px;
+
+  margin:0;
+
+  color:var(--muted);
+
+  font-size:13px;
+  line-height:1.6;
+}
+
+.hero-market{
+  min-width:260px;
+
+  padding:17px;
+
+  border-radius:18px;
+
+  border:1px solid rgba(255,255,255,.08);
+
+  background:rgba(3,9,20,.44);
+
+  backdrop-filter:blur(10px);
+}
+
+.hero-market-label{
+  color:var(--muted);
+  font-size:10px;
+  letter-spacing:.8px;
+}
+
+.hero-market-value{
+  margin-top:7px;
+
+  font-size:26px;
+  font-weight:950;
+}
+
+.hero-market-sub{
+  margin-top:6px;
+
+  color:var(--green);
+
+  font-size:11px;
+}
+
+
+/* =========================================================
+   KPI CARDS
+========================================================= */
+
+.kpis{
   display:grid;
   grid-template-columns:repeat(4,minmax(0,1fr));
-  gap:14px;
-  margin-bottom:19px;
+
+  gap:12px;
+
+  margin-bottom:18px;
 }
 
-.stat{
-  min-height:112px;
+.kpi{
+  position:relative;
+  overflow:hidden;
+
+  min-height:124px;
+
   padding:17px;
+
+  border-radius:20px;
+
   border:1px solid var(--line);
-  border-radius:var(--radius);
+
   background:
-    linear-gradient(145deg,var(--card),var(--bg-soft));
+    linear-gradient(145deg,rgba(14,23,42,.88),rgba(8,15,28,.78));
+
+  backdrop-filter:blur(12px);
+
+  box-shadow:0 12px 35px rgba(0,0,0,.13);
 }
 
-.stat-label{
-  font-size:11px;
+.kpi:after{
+  content:"";
+
+  position:absolute;
+
+  width:90px;
+  height:90px;
+
+  right:-35px;
+  top:-35px;
+
+  border-radius:50%;
+
+  background:radial-gradient(circle,rgba(77,163,255,.15),transparent 70%);
+}
+
+.kpi-label{
+  color:var(--muted);
+
+  font-size:10px;
+
   text-transform:uppercase;
-  letter-spacing:.7px;
-  color:var(--muted);
+  letter-spacing:.8px;
 }
 
-.stat-value{
+.kpi-value{
   margin-top:9px;
-  font-size:26px;
-  font-weight:900;
+
+  font-size:28px;
+  font-weight:950;
+
+  letter-spacing:-.6px;
 }
 
-.stat-sub{
-  margin-top:6px;
+.kpi-sub{
+  margin-top:7px;
+
   color:var(--muted);
   font-size:11px;
+}
+
+.green-text{
+  color:var(--green);
 }
 
 
@@ -190,38 +442,55 @@ button{
    NAV
 ========================================================= */
 
-.nav{
+.desktop-nav{
   display:flex;
-  gap:8px;
-  margin-bottom:18px;
-  overflow:auto;
-  scrollbar-width:none;
-}
 
-.nav::-webkit-scrollbar{
-  display:none;
-}
+  gap:7px;
 
-.nav button{
-  white-space:nowrap;
-  padding:10px 15px;
-  border-radius:12px;
+  margin:4px 0 17px;
+
+  padding:5px;
+
+  width:max-content;
+
+  border-radius:15px;
+
   border:1px solid var(--line);
-  background:transparent;
-  color:var(--muted);
-  cursor:pointer;
+
+  background:rgba(9,15,27,.62);
+
+  backdrop-filter:blur(12px);
 }
 
-.nav button.active{
-  color:#03110c;
-  background:var(--green);
-  border-color:var(--green);
-  font-weight:800;
+.desktop-nav button{
+  border:0;
+
+  padding:9px 14px;
+
+  border-radius:10px;
+
+  color:var(--muted);
+
+  background:transparent;
+
+  cursor:pointer;
+
+  font-size:12px;
+  font-weight:700;
+}
+
+.desktop-nav button.active{
+  color:#06130e;
+
+  background:
+    linear-gradient(135deg,var(--green),#52d6ff);
+
+  box-shadow:0 8px 22px rgba(40,224,162,.16);
 }
 
 
 /* =========================================================
-   PANELS
+   SECTIONS
 ========================================================= */
 
 .panel{
@@ -232,38 +501,72 @@ button{
   display:block;
 }
 
-.section-head{
-  display:flex;
-  justify-content:space-between;
-  align-items:end;
-  margin:4px 0 13px;
-}
-
-.section-head h2{
-  margin:0;
-  font-size:18px;
-}
-
-.section-head small{
-  color:var(--muted);
-}
-
-.grid-2{
+.layout{
   display:grid;
-  grid-template-columns:1.35fr .65fr;
+  grid-template-columns:minmax(0,1.6fr) minmax(290px,.7fr);
+
   gap:14px;
 }
 
-.box{
+.glass{
   border:1px solid var(--line);
+
   border-radius:var(--radius);
-  background:rgba(16,27,43,.82);
-  padding:17px;
+
+  background:
+    linear-gradient(145deg,rgba(14,23,42,.82),rgba(8,15,28,.72));
+
+  backdrop-filter:blur(14px);
+
+  box-shadow:0 20px 50px rgba(0,0,0,.14);
 }
 
-.box h3{
-  margin:0 0 14px;
+.card{
+  padding:18px;
+}
+
+.section-heading{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+
+  gap:12px;
+
+  margin-bottom:15px;
+}
+
+.section-heading h2{
+  margin:0;
+
   font-size:15px;
+}
+
+.section-heading p{
+  margin:4px 0 0;
+
+  color:var(--muted);
+
+  font-size:10px;
+}
+
+.small-tag{
+  display:inline-flex;
+  align-items:center;
+
+  min-height:25px;
+
+  padding:0 8px;
+
+  border-radius:999px;
+
+  background:rgba(40,224,162,.08);
+
+  color:var(--green);
+
+  border:1px solid rgba(40,224,162,.14);
+
+  font-size:9px;
+  font-weight:800;
 }
 
 
@@ -274,246 +577,394 @@ button{
 .ranking{
   display:flex;
   flex-direction:column;
-  gap:9px;
-}
 
-.rank-item{
-  display:grid;
-  grid-template-columns:40px 70px 1fr 55px;
-  align-items:center;
   gap:8px;
-  padding:10px;
-  border-radius:12px;
-  background:#0b1524;
 }
 
-.rank-number{
-  color:var(--muted);
+.rank{
+  display:grid;
+
+  grid-template-columns:30px 70px 1fr 44px;
+
+  gap:10px;
+
+  align-items:center;
+
+  min-height:51px;
+
+  padding:8px 10px;
+
+  border-radius:14px;
+
+  border:1px solid rgba(255,255,255,.025);
+
+  background:rgba(6,12,23,.53);
 }
 
-.rank-bar{
-  height:6px;
-  background:#1d2c42;
-  border-radius:10px;
+.rank-no{
+  color:#62728a;
+
+  font-size:11px;
+}
+
+.rank-symbol{
+  font-size:13px;
+  font-weight:900;
+}
+
+.rank-track{
+  height:5px;
+
+  border-radius:999px;
+
+  background:#19253a;
+
   overflow:hidden;
 }
 
-.rank-bar > div{
+.rank-track > div{
   height:100%;
+
+  border-radius:inherit;
+
   background:
     linear-gradient(90deg,var(--green),var(--blue));
 }
 
+.rank-score{
+  color:#dce9f8;
 
-/* =========================================================
-   TABLE
-========================================================= */
+  text-align:right;
 
-.table-wrap{
-  border:1px solid var(--line);
-  border-radius:var(--radius);
-  overflow:auto;
-  background:rgba(16,27,43,.82);
-}
-
-table{
-  width:100%;
-  min-width:900px;
-  border-collapse:collapse;
-}
-
-th{
-  padding:14px 15px;
-  border-bottom:1px solid var(--line);
-  text-align:left;
-  color:var(--muted);
-  font-size:11px;
-  letter-spacing:.5px;
-  text-transform:uppercase;
-}
-
-td{
-  padding:15px;
-  border-bottom:1px solid rgba(34,52,77,.70);
-  font-size:13px;
-}
-
-tr:last-child td{
-  border-bottom:none;
-}
-
-.ticker{
-  font-size:15px;
-  font-weight:900;
-}
-
-.priority{
+  font-size:12px;
   font-weight:900;
 }
 
 
 /* =========================================================
-   BADGES
+   SYSTEM
 ========================================================= */
 
-.badge{
-  display:inline-flex;
+.status-list{
+  display:flex;
+  flex-direction:column;
+}
+
+.status-row{
+  display:flex;
+  justify-content:space-between;
   align-items:center;
-  padding:6px 9px;
-  border-radius:20px;
-  font-size:10px;
+
+  gap:20px;
+
+  min-height:45px;
+
+  border-bottom:1px solid var(--line);
+
+  font-size:11px;
+}
+
+.status-row:last-child{
+  border-bottom:0;
+}
+
+.status-row span{
+  color:var(--muted);
+}
+
+.status-value{
   font-weight:800;
-  letter-spacing:.3px;
 }
 
-.badge.wait{
-  color:var(--yellow);
-  background:rgba(255,200,87,.11);
-}
-
-.badge.buy{
+.status-good{
   color:var(--green);
-  background:rgba(37,215,157,.11);
-}
-
-.badge.sell{
-  color:var(--red);
-  background:rgba(255,102,112,.11);
-}
-
-.badge.auto{
-  color:var(--blue);
-  background:rgba(86,168,255,.11);
-}
-
-.badge.watch{
-  color:var(--purple);
-  background:rgba(167,124,255,.12);
 }
 
 
 /* =========================================================
-   MOBILE CARDS
+   OPPORTUNITIES
 ========================================================= */
 
-.cards{
-  display:none;
+.opportunity-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+
   gap:12px;
 }
 
-.op-card{
+.opportunity{
+  position:relative;
+  overflow:hidden;
+
   padding:16px;
+
+  border-radius:19px;
+
   border:1px solid var(--line);
-  border-radius:var(--radius);
+
   background:
-    linear-gradient(145deg,var(--card),var(--bg-soft));
+    linear-gradient(145deg,rgba(14,23,42,.88),rgba(8,15,28,.72));
+
+  box-shadow:0 15px 38px rgba(0,0,0,.13);
+}
+
+.opportunity:before{
+  content:"";
+
+  position:absolute;
+
+  height:3px;
+
+  top:0;
+  left:0;
+  right:0;
+
+  background:
+    linear-gradient(90deg,var(--green),var(--blue));
 }
 
 .op-top{
   display:flex;
-  align-items:center;
   justify-content:space-between;
+  align-items:center;
+
+  gap:14px;
 }
 
 .op-symbol{
-  font-size:21px;
-  font-weight:900;
+  font-size:20px;
+  font-weight:950;
 }
 
-.score-ring{
-  width:46px;
-  height:46px;
-  border-radius:50%;
+.op-source{
+  margin-top:3px;
+
+  color:var(--muted);
+
+  font-size:9px;
+}
+
+.priority-ring{
+  width:48px;
+  height:48px;
+
   display:grid;
   place-items:center;
+
+  border-radius:50%;
+
   border:3px solid var(--green);
+
+  background:rgba(40,224,162,.05);
+
+  color:#dffdf3;
+
+  font-size:13px;
   font-weight:900;
 }
 
-.level-grid{
+.wait-chip{
+  display:inline-flex;
+
+  margin-top:10px;
+
+  padding:5px 8px;
+
+  border-radius:999px;
+
+  color:var(--yellow);
+
+  background:rgba(255,200,87,.08);
+
+  border:1px solid rgba(255,200,87,.13);
+
+  font-size:9px;
+  font-weight:900;
+
+  letter-spacing:.4px;
+}
+
+.levels{
   display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:9px;
-  margin-top:15px;
+  grid-template-columns:repeat(2,1fr);
+
+  gap:8px;
+
+  margin-top:13px;
 }
 
 .level{
   padding:10px;
+
   border-radius:12px;
-  background:#0a1422;
+
+  background:rgba(3,9,19,.47);
+
+  border:1px solid rgba(255,255,255,.025);
 }
 
 .level span{
   display:block;
-  margin-bottom:5px;
-  color:var(--muted);
-  font-size:10px;
+
+  color:#718197;
+
+  font-size:8px;
+
+  text-transform:uppercase;
+  letter-spacing:.6px;
 }
 
 .level strong{
-  font-size:13px;
+  display:block;
+
+  margin-top:5px;
+
+  font-size:12px;
+}
+
+.level.confirm strong{
+  color:var(--green);
+}
+
+.level.invalid strong{
+  color:#ff8992;
 }
 
 .reason{
   margin-top:12px;
-  color:var(--muted);
-  font-size:11px;
+
+  color:#8191a8;
+
+  font-size:9.5px;
   line-height:1.5;
 }
 
 
 /* =========================================================
-   HEALTH
+   TABLES
 ========================================================= */
 
-.health-row{
-  display:flex;
-  justify-content:space-between;
-  gap:20px;
-  padding:10px 0;
+.table-shell{
+  overflow:auto;
+
+  border-radius:18px;
+
+  border:1px solid var(--line);
+
+  background:rgba(9,15,28,.65);
+}
+
+table{
+  width:100%;
+
+  border-collapse:collapse;
+
+  min-width:760px;
+}
+
+th{
+  padding:13px;
+
+  text-align:left;
+
   border-bottom:1px solid var(--line);
+
+  color:#74849b;
+
+  font-size:9px;
+
+  letter-spacing:.6px;
+  text-transform:uppercase;
 }
 
-.health-row:last-child{
-  border-bottom:none;
+td{
+  padding:13px;
+
+  border-bottom:1px solid rgba(148,163,184,.08);
+
+  font-size:11px;
 }
 
-.health-row span:first-child{
-  color:var(--muted);
+tr:last-child td{
+  border-bottom:0;
 }
-
-
-/* =========================================================
-   EMPTY / ERROR
-========================================================= */
 
 .empty{
-  padding:45px 20px;
+  padding:55px 20px;
+
   text-align:center;
+
   color:var(--muted);
+
+  font-size:11px;
 }
 
-.empty-icon{
+.empty-symbol{
   font-size:30px;
-  margin-bottom:10px;
-}
 
-.error-box{
-  display:none;
-  margin-bottom:14px;
-  padding:13px;
-  border-radius:13px;
-  border:1px solid rgba(255,102,112,.35);
-  background:rgba(255,102,112,.08);
-  color:#ffc0c4;
+  margin-bottom:9px;
 }
 
 
 /* =========================================================
-   MOBILE BOTTOM NAV
+   ALERT
 ========================================================= */
 
-.bottom-nav{
+.badge{
+  display:inline-flex;
+
+  padding:5px 8px;
+
+  border-radius:999px;
+
+  font-size:9px;
+  font-weight:900;
+}
+
+.badge.watch{
+  background:rgba(157,124,255,.1);
+  color:var(--purple);
+}
+
+.badge.buy{
+  background:rgba(40,224,162,.09);
+  color:var(--green);
+}
+
+.badge.sell{
+  background:rgba(255,97,112,.09);
+  color:var(--red);
+}
+
+
+/* =========================================================
+   CONNECTION ERROR
+========================================================= */
+
+.error{
+  display:none;
+
+  margin-bottom:13px;
+
+  padding:12px 14px;
+
+  border-radius:14px;
+
+  color:#ffbbc1;
+
+  border:1px solid rgba(255,97,112,.23);
+
+  background:rgba(255,97,112,.07);
+
+  font-size:11px;
+}
+
+
+/* =========================================================
+   MOBILE NAV
+========================================================= */
+
+.mobile-nav{
   display:none;
 }
 
@@ -522,128 +973,225 @@ tr:last-child td{
    RESPONSIVE
 ========================================================= */
 
-@media(max-width:900px){
+@media(max-width:980px){
 
-  .app{
-    padding:14px;
+  .app-shell{
+    padding:14px 14px 100px;
   }
 
-  .summary{
-    grid-template-columns:1fr 1fr;
+  .hero{
+    min-height:auto;
+    padding:22px;
   }
 
-  .grid-2{
+  .hero-content{
+    align-items:flex-start;
+  }
+
+  .hero-copy h1{
+    font-size:31px;
+  }
+
+  .hero-market{
+    min-width:220px;
+  }
+
+  .kpis{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+  .layout{
     grid-template-columns:1fr;
   }
 
-  .desktop-opportunities{
+}
+
+
+@media(max-width:700px){
+
+  body{
+    background:
+      radial-gradient(circle at 90% 0%,rgba(77,163,255,.14),transparent 30%),
+      #050914;
+  }
+
+  .app-shell{
+    padding:10px 10px 94px;
+  }
+
+  .topbar{
+    height:64px;
+    margin-bottom:10px;
+  }
+
+  .logo{
+    width:42px;
+    height:42px;
+
+    font-size:18px;
+  }
+
+  .brand-title strong{
+    font-size:16px;
+  }
+
+  .brand-title span{
+    font-size:9px;
+  }
+
+  .engine-pill{
     display:none;
   }
 
-  .cards{
-    display:grid;
+  .hero{
+    padding:20px;
+
+    border-radius:22px;
+
+    margin-bottom:10px;
   }
 
-  .nav{
+  .hero-content{
+    display:block;
+  }
+
+  .hero-copy h1{
+    font-size:29px;
+  }
+
+  .hero-copy p{
+    font-size:11px;
+  }
+
+  .hero-market{
+    margin-top:19px;
+
+    min-width:0;
+
+    width:100%;
+  }
+
+  .hero-market-value{
+    font-size:23px;
+  }
+
+  .kpis{
+    gap:8px;
+
+    margin-bottom:10px;
+  }
+
+  .kpi{
+    min-height:104px;
+
+    padding:13px;
+
+    border-radius:17px;
+  }
+
+  .kpi-value{
+    font-size:21px;
+  }
+
+  .desktop-nav{
     display:none;
   }
 
-  .bottom-nav{
+  .opportunity-grid{
+    grid-template-columns:1fr;
+  }
+
+  .mobile-nav{
     position:fixed;
+
     left:0;
     right:0;
     bottom:0;
-    z-index:100;
+
+    z-index:200;
 
     display:grid;
     grid-template-columns:repeat(5,1fr);
 
-    background:rgba(7,16,25,.95);
-    backdrop-filter:blur(18px);
-    border-top:1px solid var(--line);
-
     padding:
       7px
-      max(6px,env(safe-area-inset-right))
+      max(7px,env(safe-area-inset-right))
       calc(7px + env(safe-area-inset-bottom))
-      max(6px,env(safe-area-inset-left));
+      max(7px,env(safe-area-inset-left));
+
+    border-top:1px solid var(--line);
+
+    background:rgba(5,9,20,.93);
+
+    backdrop-filter:blur(18px);
   }
 
-  .bottom-nav button{
-    border:none;
-    background:none;
-    color:var(--muted);
-    padding:7px 2px;
-    font-size:10px;
+  .mobile-nav button{
+    border:0;
+
+    background:transparent;
+
+    color:#64748b;
+
+    padding:6px 1px;
+
+    font-size:9px;
+
+    cursor:pointer;
   }
 
-  .bottom-nav button.active{
+  .mobile-nav button.active{
     color:var(--green);
-    font-weight:800;
   }
 
-  .bottom-nav span{
+  .mobile-nav button b{
     display:block;
-    font-size:19px;
+
     margin-bottom:3px;
+
+    font-size:17px;
+    line-height:1;
   }
+
 }
 
-
-@media(max-width:520px){
-
-  .header{
-    align-items:flex-start;
-  }
-
-  .brand h1{
-    font-size:18px;
-  }
-
-  .live{
-    display:none;
-  }
-
-  .summary{
-    gap:9px;
-  }
-
-  .stat{
-    padding:14px;
-    min-height:103px;
-  }
-
-  .stat-value{
-    font-size:21px;
-  }
-}
 </style>
 </head>
 
 
 <body>
 
-<div class="app">
+<div class="app-shell">
 
-<header class="header">
+
+<!-- TOP BAR -->
+
+<header class="topbar">
 
   <div class="brand">
-    <div class="logo">H</div>
 
-    <div>
-      <h1>HANZ TRADE</h1>
-      <small>Live Trading Intelligence</small>
+    <div class="logo">
+      H
     </div>
+
+    <div class="brand-title">
+      <strong>HANZ</strong>
+      <span>Trading Intelligence System</span>
+    </div>
+
   </div>
 
-  <div class="header-right">
 
-    <div class="live">
+  <div class="top-actions">
+
+    <div class="engine-pill">
       <span id="engineDot" class="live-dot"></span>
-      <span id="engineLabel">Connecting...</span>
+      <span id="engineLabel">
+        CONNECTING
+      </span>
     </div>
 
-    <button class="refresh" onclick="loadAll()">
+    <button class="icon-btn" onclick="loadAll()">
       ↻ Refresh
     </button>
 
@@ -652,45 +1200,160 @@ tr:last-child td{
 </header>
 
 
-<div id="errorBox" class="error-box"></div>
+<div id="errorBox" class="error"></div>
 
 
-<section class="summary">
+<!-- HERO -->
 
-  <div class="stat">
-    <div class="stat-label">Opportunities</div>
-    <div id="opportunityCount" class="stat-value">—</div>
-    <div class="stat-sub">Active HANZ shortlist</div>
-  </div>
+<section class="hero">
 
-  <div class="stat">
-    <div class="stat-label">Top Candidate</div>
-    <div id="topCandidate" class="stat-value">—</div>
-    <div id="topCandidateSub" class="stat-sub">
-      Waiting for data
+  <div class="hero-content">
+
+    <div class="hero-copy">
+
+      <small>HANZ INTELLIGENCE NETWORK</small>
+
+      <h1>
+        Market opportunities.<br>
+        Confirmed by intelligence.
+      </h1>
+
+      <p>
+        Autonomous BEI market scanning,
+        opportunity ranking, intraday confirmation
+        and portfolio risk monitoring.
+      </p>
+
     </div>
-  </div>
 
-  <div class="stat">
-    <div class="stat-label">Engine</div>
-    <div id="engineState" class="stat-value">—</div>
-    <div class="stat-sub">Main + Fast Engine</div>
-  </div>
 
-  <div class="stat">
-    <div class="stat-label">Last Update</div>
-    <div id="lastUpdate" class="stat-value">—</div>
-    <div id="lastUpdateDate" class="stat-sub">
-      Supabase Live
+    <div class="hero-market">
+
+      <div class="hero-market-label">
+        CURRENT TOP OPPORTUNITY
+      </div>
+
+      <div
+        class="hero-market-value"
+        id="heroTopCandidate"
+      >
+        —
+      </div>
+
+      <div
+        class="hero-market-sub"
+        id="heroTopSub"
+      >
+        Waiting for HANZ scan
+      </div>
+
     </div>
+
   </div>
 
 </section>
 
 
-<nav class="nav">
+<!-- KPI -->
 
-  <button class="active" data-panel="overview">
+<section class="kpis">
+
+  <article class="kpi">
+
+    <div class="kpi-label">
+      Opportunities
+    </div>
+
+    <div
+      id="opportunityCount"
+      class="kpi-value"
+    >
+      —
+    </div>
+
+    <div class="kpi-sub">
+      Active slow-engine shortlist
+    </div>
+
+  </article>
+
+
+  <article class="kpi">
+
+    <div class="kpi-label">
+      Top Candidate
+    </div>
+
+    <div
+      id="topCandidate"
+      class="kpi-value green-text"
+    >
+      —
+    </div>
+
+    <div
+      id="topCandidateSub"
+      class="kpi-sub"
+    >
+      Priority —
+    </div>
+
+  </article>
+
+
+  <article class="kpi">
+
+    <div class="kpi-label">
+      HANZ Engine
+    </div>
+
+    <div
+      id="engineState"
+      class="kpi-value"
+    >
+      —
+    </div>
+
+    <div class="kpi-sub">
+      Slow + Fast intelligence
+    </div>
+
+  </article>
+
+
+  <article class="kpi">
+
+    <div class="kpi-label">
+      Last Update
+    </div>
+
+    <div
+      id="lastUpdate"
+      class="kpi-value"
+    >
+      —
+    </div>
+
+    <div
+      id="lastUpdateDate"
+      class="kpi-sub"
+    >
+      Supabase Live
+    </div>
+
+  </article>
+
+</section>
+
+
+<!-- DESKTOP NAV -->
+
+<nav class="desktop-nav">
+
+  <button
+    class="active"
+    data-panel="overview"
+  >
     Overview
   </button>
 
@@ -713,236 +1376,452 @@ tr:last-child td{
 </nav>
 
 
-<section id="overview" class="panel active">
+<!-- OVERVIEW -->
 
-  <div class="grid-2">
+<section
+  id="overview"
+  class="panel active"
+>
 
-    <div class="box">
+  <div class="layout">
 
-      <h3>Today's Opportunity Ranking</h3>
 
-      <div id="ranking" class="ranking"></div>
+    <article class="glass card">
+
+      <div class="section-heading">
+
+        <div>
+          <h2>
+            Opportunity Ranking
+          </h2>
+
+          <p>
+            Slow Engine candidate priority
+          </p>
+        </div>
+
+        <span class="small-tag">
+          BEI LIVE
+        </span>
+
+      </div>
+
+
+      <div
+        id="ranking"
+        class="ranking"
+      ></div>
+
+    </article>
+
+
+    <article class="glass card">
+
+      <div class="section-heading">
+
+        <div>
+
+          <h2>
+            Engine Status
+          </h2>
+
+          <p>
+            Autonomous market intelligence
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div class="status-list">
+
+        <div class="status-row">
+
+          <span>
+            Main Worker
+          </span>
+
+          <strong
+            id="mainWorkerStatus"
+            class="status-value"
+          >
+            —
+          </strong>
+
+        </div>
+
+
+        <div class="status-row">
+
+          <span>
+            Fast Engine
+          </span>
+
+          <strong>
+            60 sec
+          </strong>
+
+        </div>
+
+
+        <div class="status-row">
+
+          <span>
+            Trigger
+          </span>
+
+          <strong>
+            1 minute
+          </strong>
+
+        </div>
+
+
+        <div class="status-row">
+
+          <span>
+            Confirmation
+          </span>
+
+          <strong>
+            5 minutes
+          </strong>
+
+        </div>
+
+
+        <div class="status-row">
+
+          <span>
+            Portfolio
+          </span>
+
+          <strong id="portfolioStatus">
+            0 positions
+          </strong>
+
+        </div>
+
+      </div>
+
+    </article>
+
+
+  </div>
+
+</section>
+
+
+<!-- OPPORTUNITIES -->
+
+<section
+  id="opportunities"
+  class="panel"
+>
+
+  <article class="glass card">
+
+    <div class="section-heading">
+
+      <div>
+
+        <h2>
+          Active Opportunities
+        </h2>
+
+        <p>
+          Candidates waiting for fast-engine confirmation
+        </p>
+
+      </div>
+
+      <span class="small-tag">
+        AUTO SCAN
+      </span>
 
     </div>
 
 
-    <div class="box">
+    <div
+      id="opportunityGrid"
+      class="opportunity-grid"
+    ></div>
 
-      <h3>HANZ Status</h3>
+  </article>
 
-      <div class="health-row">
-        <span>Main Worker</span>
-        <strong id="mainWorkerStatus">—</strong>
+</section>
+
+
+<!-- PORTFOLIO -->
+
+<section
+  id="portfolio"
+  class="panel"
+>
+
+  <article class="glass card">
+
+    <div class="section-heading">
+
+      <div>
+
+        <h2>
+          Portfolio
+        </h2>
+
+        <p>
+          Open positions monitored by HANZ
+        </p>
+
       </div>
 
-      <div class="health-row">
-        <span>Fast Engine</span>
-        <strong>60 sec</strong>
+    </div>
+
+
+    <div id="portfolioBox">
+
+      <div class="empty">
+
+        <div class="empty-symbol">
+          ◉
+        </div>
+
+        No open positions yet.
+
       </div>
 
-      <div class="health-row">
-        <span>Trigger</span>
-        <strong>1m</strong>
+    </div>
+
+  </article>
+
+</section>
+
+
+<!-- ALERTS -->
+
+<section
+  id="alerts"
+  class="panel"
+>
+
+  <article class="glass card">
+
+    <div class="section-heading">
+
+      <div>
+
+        <h2>
+          Trading Alerts
+        </h2>
+
+        <p>
+          Early Watch · Confirmed Buy · Sell
+        </p>
+
       </div>
 
-      <div class="health-row">
-        <span>Confirmation</span>
-        <strong>5m</strong>
+    </div>
+
+
+    <div id="alertsBox">
+
+      <div class="empty">
+
+        <div class="empty-symbol">
+          ⚡
+        </div>
+
+        No alerts yet.
+
       </div>
 
-      <div class="health-row">
-        <span>Portfolio</span>
-        <strong id="portfolioStatus">
-          0 positions
+    </div>
+
+  </article>
+
+</section>
+
+
+<!-- SYSTEM -->
+
+<section
+  id="system"
+  class="panel"
+>
+
+  <article class="glass card">
+
+    <div class="section-heading">
+
+      <div>
+
+        <h2>
+          HANZ System Health
+        </h2>
+
+        <p>
+          Infrastructure and worker telemetry
+        </p>
+
+      </div>
+
+    </div>
+
+
+    <div class="status-list">
+
+
+      <div class="status-row">
+
+        <span>
+          Main Worker
+        </span>
+
+        <strong id="sysStatus">
+          —
         </strong>
+
       </div>
 
+
+      <div class="status-row">
+
+        <span>
+          Heartbeat
+        </span>
+
+        <strong id="heartbeat">
+          —
+        </strong>
+
+      </div>
+
+
+      <div class="status-row">
+
+        <span>
+          Last Successful Cycle
+        </span>
+
+        <strong id="lastSuccess">
+          —
+        </strong>
+
+      </div>
+
+
+      <div class="status-row">
+
+        <span>
+          Consecutive Failures
+        </span>
+
+        <strong id="failures">
+          —
+        </strong>
+
+      </div>
+
+
+      <div class="status-row">
+
+        <span>
+          Last Error
+        </span>
+
+        <strong id="lastError">
+          None
+        </strong>
+
+      </div>
+
+
+      <div class="status-row">
+
+        <span>
+          Dashboard Refresh
+        </span>
+
+        <strong>
+          30 sec
+        </strong>
+
+      </div>
+
+
     </div>
 
-  </div>
+  </article>
 
 </section>
 
-
-<section id="opportunities" class="panel">
-
-  <div class="section-head">
-
-    <div>
-      <h2>Opportunities</h2>
-      <small>
-        Slow Engine → Fast Confirmation
-      </small>
-    </div>
-
-  </div>
-
-
-  <div class="desktop-opportunities table-wrap">
-
-    <table>
-
-      <thead>
-      <tr>
-        <th>Ticker</th>
-        <th>Priority</th>
-        <th>Status</th>
-        <th>Entry Zone</th>
-        <th>Confirm Above</th>
-        <th>Invalidation</th>
-        <th>Source</th>
-      </tr>
-      </thead>
-
-      <tbody id="opportunityRows"></tbody>
-
-    </table>
-
-  </div>
-
-
-  <div id="opportunityCards" class="cards"></div>
-
-</section>
-
-
-<section id="portfolio" class="panel">
-
-  <div class="section-head">
-
-    <div>
-      <h2>Portfolio</h2>
-      <small>
-        Open positions monitored for SELL signal
-      </small>
-    </div>
-
-  </div>
-
-  <div id="portfolioBox" class="table-wrap">
-
-    <div class="empty">
-      <div class="empty-icon">◎</div>
-      No open positions yet.
-    </div>
-
-  </div>
-
-</section>
-
-
-<section id="alerts" class="panel">
-
-  <div class="section-head">
-
-    <div>
-      <h2>Trading Alerts</h2>
-      <small>
-        EARLY WATCH · CONFIRMED BUY · SELL
-      </small>
-    </div>
-
-  </div>
-
-
-  <div id="alertsBox" class="table-wrap">
-
-    <div class="empty">
-      <div class="empty-icon">⚡</div>
-      No alerts yet.
-    </div>
-
-  </div>
-
-</section>
-
-
-<section id="system" class="panel">
-
-  <div class="box">
-
-    <h3>System Health</h3>
-
-    <div class="health-row">
-      <span>Main Worker</span>
-      <strong id="sysStatus">—</strong>
-    </div>
-
-    <div class="health-row">
-      <span>Heartbeat</span>
-      <strong id="heartbeat">—</strong>
-    </div>
-
-    <div class="health-row">
-      <span>Last Successful Cycle</span>
-      <strong id="lastSuccess">—</strong>
-    </div>
-
-    <div class="health-row">
-      <span>Consecutive Failures</span>
-      <strong id="failures">—</strong>
-    </div>
-
-    <div class="health-row">
-      <span>Last Error</span>
-      <strong id="lastError">None</strong>
-    </div>
-
-    <div class="health-row">
-      <span>Dashboard Refresh</span>
-      <strong>30 sec</strong>
-    </div>
-
-  </div>
-
-</section>
 
 </div>
 
 
-<div class="bottom-nav">
+<!-- MOBILE NAV -->
 
-  <button class="active" data-panel="overview">
-    <span>⌂</span>
+<nav class="mobile-nav">
+
+  <button
+    class="active"
+    data-panel="overview"
+  >
+    <b>⌂</b>
     Home
   </button>
 
-  <button data-panel="opportunities">
-    <span>⌁</span>
+
+  <button
+    data-panel="opportunities"
+  >
+    <b>⌁</b>
     Signals
   </button>
 
-  <button data-panel="portfolio">
-    <span>◉</span>
+
+  <button
+    data-panel="portfolio"
+  >
+    <b>◉</b>
     Portfolio
   </button>
 
-  <button data-panel="alerts">
-    <span>⚡</span>
+
+  <button
+    data-panel="alerts"
+  >
+    <b>⚡</b>
     Alerts
   </button>
 
-  <button data-panel="system">
-    <span>⚙</span>
+
+  <button
+    data-panel="system"
+  >
+    <b>⚙</b>
     System
   </button>
 
-</div>
+</nav>
 
 
 <script>
 
 /* =========================================================
    SUPABASE CONFIG
-   Isi dua value di bawah.
-   JANGAN pakai SUPABASE_SECRET_KEY.
+
+   MASUKKAN VALUE YANG SEKARANG SUDAH BERHASIL.
+   JANGAN gunakan SUPABASE_SECRET_KEY.
 ========================================================= */
 
 const SUPABASE_URL =
-  "https://fgyfszkadstmdzqvwppt.supabase.co/";
+  "https://fgyfszkadstmdzqwppt.supabase.co";
 
 const SUPABASE_KEY =
   "sb_publishable_rBY4VJwPS1T5tm0zPw4tbg_BhApWtfM";
+
 const REFRESH_MS = 30000;
 
 
@@ -953,8 +1832,9 @@ const REFRESH_MS = 30000;
 function apiHeaders(){
 
   return {
-    "apikey":SUPABASE_KEY,
-    "Authorization":"Bearer " + SUPABASE_KEY
+    "apikey": SUPABASE_KEY,
+    "Authorization":
+      "Bearer " + SUPABASE_KEY
   };
 
 }
@@ -962,15 +1842,17 @@ function apiHeaders(){
 
 async function api(path){
 
-  const response = await fetch(
-    SUPABASE_URL +
-    "/rest/v1/" +
-    path,
-    {
-      headers:apiHeaders(),
-      cache:"no-store"
-    }
-  );
+  const response =
+    await fetch(
+      SUPABASE_URL +
+      "/rest/v1/" +
+      path,
+      {
+        headers:apiHeaders(),
+        cache:"no-store"
+      }
+    );
+
 
   if(!response.ok){
 
@@ -985,16 +1867,17 @@ async function api(path){
 
   }
 
+
   return response.json();
 
 }
 
 
 /* =========================================================
-   FORMATTERS
+   HELPERS
 ========================================================= */
 
-function fmtPrice(value){
+function formatPrice(value){
 
   if(
     value === null ||
@@ -1004,11 +1887,15 @@ function fmtPrice(value){
     return "—";
   }
 
-  const n = Number(value);
+
+  const n =
+    Number(value);
+
 
   if(!Number.isFinite(n)){
     return value;
   }
+
 
   return n.toLocaleString(
     "en-US",
@@ -1020,17 +1907,25 @@ function fmtPrice(value){
 }
 
 
-function fmtTime(value){
+function formatTime(value){
 
   if(!value){
     return "—";
   }
 
-  const d = new Date(value);
 
-  if(Number.isNaN(d.getTime())){
+  const d =
+    new Date(value);
+
+
+  if(
+    Number.isNaN(
+      d.getTime()
+    )
+  ){
     return "—";
   }
+
 
   return new Intl.DateTimeFormat(
     "en-GB",
@@ -1044,14 +1939,12 @@ function fmtTime(value){
 }
 
 
-function fmtDate(value){
+function formatDate(value){
 
   if(!value){
     return "";
   }
 
-  const d =
-    new Date(value);
 
   return new Intl.DateTimeFormat(
     "en-GB",
@@ -1059,15 +1952,17 @@ function fmtDate(value){
       day:"2-digit",
       month:"short"
     }
-  ).format(d);
+  ).format(
+    new Date(value)
+  );
 
 }
 
 
-function escapeHtml(text){
+function safe(value){
 
   return String(
-    text ?? ""
+    value ?? ""
   )
   .replaceAll("&","&amp;")
   .replaceAll("<","&lt;")
@@ -1081,30 +1976,38 @@ function escapeHtml(text){
    NAVIGATION
 ========================================================= */
 
-function setPanel(name){
+function showPanel(name){
 
   document
-  .querySelectorAll(".panel")
-  .forEach(panel=>{
+  .querySelectorAll(
+    ".panel"
+  )
+  .forEach(
+    panel=>{
 
-    panel.classList.toggle(
-      "active",
-      panel.id === name
-    );
+      panel.classList.toggle(
+        "active",
+        panel.id === name
+      );
 
-  });
+    }
+  );
 
 
   document
-  .querySelectorAll("[data-panel]")
-  .forEach(button=>{
+  .querySelectorAll(
+    "[data-panel]"
+  )
+  .forEach(
+    button=>{
 
-    button.classList.toggle(
-      "active",
-      button.dataset.panel === name
-    );
+      button.classList.toggle(
+        "active",
+        button.dataset.panel === name
+      );
 
-  });
+    }
+  );
 
 
   window.scrollTo({
@@ -1116,17 +2019,21 @@ function setPanel(name){
 
 
 document
-.querySelectorAll("[data-panel]")
-.forEach(button=>{
+.querySelectorAll(
+  "[data-panel]"
+)
+.forEach(
+  button=>{
 
-  button.addEventListener(
-    "click",
-    ()=>setPanel(
-      button.dataset.panel
-    )
-  );
+    button.addEventListener(
+      "click",
+      ()=>showPanel(
+        button.dataset.panel
+      )
+    );
 
-});
+  }
+);
 
 
 /* =========================================================
@@ -1171,6 +2078,7 @@ async function loadWatchlist(){
     const top =
       rows[0];
 
+
     document
     .getElementById(
       "topCandidate"
@@ -1187,59 +2095,55 @@ async function loadWatchlist(){
       "Priority " +
       top.priority;
 
-  }else{
 
     document
     .getElementById(
-      "topCandidate"
+      "heroTopCandidate"
     )
     .textContent =
-      "—";
+      top.ticker;
 
 
     document
     .getElementById(
-      "topCandidateSub"
+      "heroTopSub"
     )
     .textContent =
-      "No active setup";
+      "Priority " +
+      top.priority +
+      " · Waiting confirmation";
+
+
+    if(top.updated_at){
+
+      document
+      .getElementById(
+        "lastUpdate"
+      )
+      .textContent =
+        formatTime(
+          top.updated_at
+        );
+
+
+      document
+      .getElementById(
+        "lastUpdateDate"
+      )
+      .textContent =
+        formatDate(
+          top.updated_at
+        ) +
+        " · Supabase Live";
+
+    }
 
   }
 
 
   renderRanking(rows);
 
-  renderOpportunityTable(rows);
-
-  renderOpportunityCards(rows);
-
-
-  if(
-    rows.length &&
-    rows[0].updated_at
-  ){
-
-    document
-    .getElementById(
-      "lastUpdate"
-    )
-    .textContent =
-      fmtTime(
-        rows[0].updated_at
-      );
-
-
-    document
-    .getElementById(
-      "lastUpdateDate"
-    )
-    .textContent =
-      fmtDate(
-        rows[0].updated_at
-      ) +
-      " · Supabase";
-
-  }
+  renderOpportunities(rows);
 
 }
 
@@ -1250,7 +2154,7 @@ async function loadWatchlist(){
 
 function renderRanking(rows){
 
-  const box =
+  const container =
     document.getElementById(
       "ranking"
     );
@@ -1258,7 +2162,7 @@ function renderRanking(rows){
 
   if(!rows.length){
 
-    box.innerHTML =
+    container.innerHTML =
       '<div class="empty">' +
       'No opportunities.' +
       '</div>';
@@ -1268,7 +2172,7 @@ function renderRanking(rows){
   }
 
 
-  box.innerHTML =
+  container.innerHTML =
     rows.map(
       (row,index)=>{
 
@@ -1286,185 +2190,160 @@ function renderRanking(rows){
 
         return `
 
-          <div class="rank-item">
+          <div class="rank">
 
-            <div class="rank-number">
-              #${index+1}
+            <div class="rank-no">
+              #${index + 1}
             </div>
 
-            <strong>
-              ${escapeHtml(row.ticker)}
-            </strong>
-
-            <div class="rank-bar">
-              <div style="width:${score}%"></div>
+            <div class="rank-symbol">
+              ${safe(row.ticker)}
             </div>
 
-            <strong>
+            <div class="rank-track">
+              <div
+                style="width:${score}%"
+              ></div>
+            </div>
+
+            <div class="rank-score">
               ${score}
-            </strong>
+            </div>
 
           </div>
 
         `;
 
       }
-
-    ).join("");
-
-}
-
-
-/* =========================================================
-   OPPORTUNITY TABLE
-========================================================= */
-
-function renderOpportunityTable(rows){
-
-  const body =
-    document.getElementById(
-      "opportunityRows"
-    );
-
-
-  body.innerHTML =
-    rows.map(
-      row=>`
-
-      <tr>
-
-        <td class="ticker">
-          ${escapeHtml(row.ticker)}
-        </td>
-
-        <td class="priority">
-          ${row.priority ?? "—"}
-        </td>
-
-        <td>
-          <span class="badge wait">
-            WAIT CONFIRM
-          </span>
-        </td>
-
-        <td>
-          ${fmtPrice(row.entry_zone_low)}
-          –
-          ${fmtPrice(row.entry_zone_high)}
-        </td>
-
-        <td>
-          ${fmtPrice(
-            row.confirmation_price
-          )}
-        </td>
-
-        <td>
-          ${fmtPrice(
-            row.invalidation_price
-          )}
-        </td>
-
-        <td>
-          <span class="badge auto">
-            AUTO
-          </span>
-        </td>
-
-      </tr>
-
-    `
-    ).join("");
+    )
+    .join("");
 
 }
 
 
 /* =========================================================
-   MOBILE CARDS
+   OPPORTUNITY CARDS
 ========================================================= */
 
-function renderOpportunityCards(rows){
+function renderOpportunities(rows){
 
   const container =
     document.getElementById(
-      "opportunityCards"
+      "opportunityGrid"
     );
+
+
+  if(!rows.length){
+
+    container.innerHTML =
+      '<div class="empty">' +
+      'No candidates.' +
+      '</div>';
+
+    return;
+
+  }
 
 
   container.innerHTML =
     rows.map(
       row=>`
 
-      <article class="op-card">
+      <article class="opportunity">
 
         <div class="op-top">
 
           <div>
 
             <div class="op-symbol">
-              ${escapeHtml(row.ticker)}
+              ${safe(row.ticker)}
             </div>
 
-            <span class="badge wait">
-              WAIT CONFIRM
-            </span>
+            <div class="op-source">
+              HANZ AUTO SLOW ENGINE
+            </div>
 
           </div>
 
 
-          <div class="score-ring">
+          <div class="priority-ring">
             ${row.priority ?? "—"}
           </div>
 
         </div>
 
 
-        <div class="level-grid">
+        <span class="wait-chip">
+          WAIT CONFIRM
+        </span>
+
+
+        <div class="levels">
 
           <div class="level">
-            <span>ENTRY LOW</span>
+
+            <span>
+              Entry Low
+            </span>
+
             <strong>
-              ${fmtPrice(
+              ${formatPrice(
                 row.entry_zone_low
               )}
             </strong>
+
           </div>
 
 
           <div class="level">
-            <span>ENTRY HIGH</span>
+
+            <span>
+              Entry High
+            </span>
+
             <strong>
-              ${fmtPrice(
+              ${formatPrice(
                 row.entry_zone_high
               )}
             </strong>
+
           </div>
 
 
-          <div class="level">
-            <span>CONFIRM ABOVE</span>
+          <div class="level confirm">
+
+            <span>
+              Confirm Above
+            </span>
+
             <strong>
-              ${fmtPrice(
+              ${formatPrice(
                 row.confirmation_price
               )}
             </strong>
+
           </div>
 
 
-          <div class="level">
-            <span>INVALIDATION</span>
+          <div class="level invalid">
+
+            <span>
+              Invalidation
+            </span>
+
             <strong>
-              ${fmtPrice(
+              ${formatPrice(
                 row.invalidation_price
               )}
             </strong>
+
           </div>
 
         </div>
 
 
         <div class="reason">
-          ${escapeHtml(
+          ${safe(
             row.reason || ""
           )}
         </div>
@@ -1472,7 +2351,8 @@ function renderOpportunityCards(rows){
       </article>
 
     `
-    ).join("");
+    )
+    .join("");
 
 }
 
@@ -1516,7 +2396,8 @@ async function loadHealth(){
   const status =
     String(
       state.status || ""
-    ).toLowerCase();
+    )
+    .toLowerCase();
 
 
   const online =
@@ -1545,6 +2426,16 @@ async function loadHealth(){
 
   document
   .getElementById(
+    "mainWorkerStatus"
+  )
+  .classList.toggle(
+    "status-good",
+    online
+  );
+
+
+  document
+  .getElementById(
     "sysStatus"
   )
   .textContent =
@@ -1556,7 +2447,7 @@ async function loadHealth(){
     "heartbeat"
   )
   .textContent =
-    fmtTime(
+    formatTime(
       state.heartbeat_at
     );
 
@@ -1566,7 +2457,7 @@ async function loadHealth(){
     "lastSuccess"
   )
   .textContent =
-    fmtTime(
+    formatTime(
       state.last_success_at
     );
 
@@ -1603,7 +2494,7 @@ async function loadHealth(){
   )
   .textContent =
     online
-      ? "HANZ LIVE"
+      ? "HANZ ONLINE"
       : "CHECK ENGINE";
 
 }
@@ -1647,91 +2538,94 @@ async function loadPortfolio(){
     }
 
 
-    const box =
-      document.getElementById(
-        "portfolioBox"
-      );
+    document
+    .getElementById(
+      "portfolioBox"
+    )
+    .innerHTML = `
+
+      <div class="table-shell">
+
+        <table>
+
+          <thead>
+
+            <tr>
+              <th>Ticker</th>
+              <th>Avg Buy</th>
+              <th>Qty</th>
+              <th>Last Price</th>
+              <th>P/L</th>
+              <th>Signal</th>
+            </tr>
+
+          </thead>
 
 
-    box.innerHTML = `
+          <tbody>
 
-      <table>
+            ${rows.map(
+              row=>`
 
-        <thead>
+              <tr>
 
-          <tr>
-            <th>Ticker</th>
-            <th>Avg Buy</th>
-            <th>Qty</th>
-            <th>Last Price</th>
-            <th>P/L</th>
-            <th>Signal</th>
-          </tr>
+                <td>
+                  <strong>
+                    ${safe(row.ticker)}
+                  </strong>
+                </td>
 
-        </thead>
+                <td>
+                  ${formatPrice(
+                    row.avg_buy
+                  )}
+                </td>
 
+                <td>
+                  ${
+                    row.quantity ??
+                    row.lots ??
+                    "—"
+                  }
+                </td>
 
-        <tbody>
+                <td>
+                  ${formatPrice(
+                    row.last_price
+                  )}
+                </td>
 
-        ${rows.map(row=>`
+                <td>
+                  ${
+                    row.pnl_percent ??
+                    "—"
+                  }
+                </td>
 
-          <tr>
+                <td>
+                  ${
+                    safe(
+                      row.signal ||
+                      "MONITOR"
+                    )
+                  }
+                </td>
 
-            <td class="ticker">
-              ${escapeHtml(
-                row.ticker
-              )}
-            </td>
+              </tr>
 
-            <td>
-              ${fmtPrice(
-                row.avg_buy
-              )}
-            </td>
+              `
+            ).join("")}
 
-            <td>
-              ${
-                row.quantity ??
-                row.lots ??
-                "—"
-              }
-            </td>
+          </tbody>
 
-            <td>
-              ${fmtPrice(
-                row.last_price
-              )}
-            </td>
+        </table>
 
-            <td>
-              ${
-                row.pnl_percent ??
-                "—"
-              }
-            </td>
-
-            <td>
-              <span class="badge watch">
-                ${
-                  escapeHtml(
-                    row.signal ||
-                    "MONITOR"
-                  )
-                }
-              </span>
-            </td>
-
-          </tr>
-
-        `).join("")}
-
-        </tbody>
-
-      </table>
+      </div>
 
     `;
 
-  }catch(error){
+  }
+  catch(error){
 
     document
     .getElementById(
@@ -1772,110 +2666,123 @@ async function loadAlerts(){
     }
 
 
-    const box =
-      document.getElementById(
-        "alertsBox"
-      );
+    document
+    .getElementById(
+      "alertsBox"
+    )
+    .innerHTML = `
 
+      <div class="table-shell">
 
-    box.innerHTML = `
+        <table>
 
-      <table>
-
-        <thead>
-
-          <tr>
-            <th>Time</th>
-            <th>Ticker</th>
-            <th>Alert</th>
-            <th>Price</th>
-            <th>Reason</th>
-          </tr>
-
-        </thead>
-
-
-        <tbody>
-
-        ${rows.map(row=>{
-
-          const type =
-            String(
-              row.alert_type ||
-              row.type ||
-              ""
-            ).toUpperCase();
-
-
-          let badgeClass =
-            "watch";
-
-
-          if(
-            type.includes("BUY")
-          ){
-            badgeClass =
-              "buy";
-          }
-
-
-          if(
-            type.includes("SELL")
-          ){
-            badgeClass =
-              "sell";
-          }
-
-
-          return `
+          <thead>
 
             <tr>
-
-              <td>
-                ${fmtTime(
-                  row.created_at
-                )}
-              </td>
-
-              <td class="ticker">
-                ${escapeHtml(
-                  row.ticker
-                )}
-              </td>
-
-              <td>
-                <span class="badge ${badgeClass}">
-                  ${escapeHtml(type)}
-                </span>
-              </td>
-
-              <td>
-                ${fmtPrice(
-                  row.price
-                )}
-              </td>
-
-              <td>
-                ${escapeHtml(
-                  row.reason || ""
-                )}
-              </td>
-
+              <th>Time</th>
+              <th>Ticker</th>
+              <th>Alert</th>
+              <th>Price</th>
+              <th>Reason</th>
             </tr>
 
-          `;
+          </thead>
 
-        }).join("")}
 
-        </tbody>
+          <tbody>
 
-      </table>
+            ${rows.map(
+              row=>{
+
+                const type =
+                  String(
+                    row.alert_type ||
+                    row.type ||
+                    ""
+                  )
+                  .toUpperCase();
+
+
+                let badge =
+                  "watch";
+
+
+                if(
+                  type.includes("BUY")
+                ){
+                  badge =
+                    "buy";
+                }
+
+
+                if(
+                  type.includes("SELL")
+                ){
+                  badge =
+                    "sell";
+                }
+
+
+                return `
+
+                  <tr>
+
+                    <td>
+                      ${formatTime(
+                        row.created_at
+                      )}
+                    </td>
+
+                    <td>
+                      <strong>
+                        ${safe(
+                          row.ticker
+                        )}
+                      </strong>
+                    </td>
+
+                    <td>
+                      <span
+                        class="badge ${badge}"
+                      >
+                        ${safe(type)}
+                      </span>
+                    </td>
+
+                    <td>
+                      ${formatPrice(
+                        row.price
+                      )}
+                    </td>
+
+                    <td>
+                      ${safe(
+                        row.reason || ""
+                      )}
+                    </td>
+
+                  </tr>
+
+                `;
+
+              }
+            ).join("")}
+
+          </tbody>
+
+        </table>
+
+      </div>
 
     `;
 
-  }catch(error){
+  }
+  catch(error){
 
-    /* hanz_alerts may not exist yet */
+    /*
+      hanz_alerts belum wajib
+      ada pada fase ini.
+    */
 
   }
 
@@ -1912,8 +2819,8 @@ async function loadAll(){
 
     ]);
 
-
-  }catch(error){
+  }
+  catch(error){
 
     console.error(error);
 
