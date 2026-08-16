@@ -125,172 +125,6 @@ button{cursor:pointer}
 .green-text{color:var(--green)!important}.red-text{color:#ff8992!important}.yellow-text{color:var(--yellow)!important}
 
 
-/* PUSH NOTIFICATIONS */
-function renderPushState(){
-  const btn = $("pushButton");
-  if(!btn) return;
-
-  btn.classList.remove("push-on","push-denied");
-
-  if(!currentUser){
-    btn.style.display="none";
-    return;
-  }
-
-  btn.style.display="inline-flex";
-
-  if(!("Notification" in window)){
-    btn.textContent="🔕 Unsupported";
-    btn.disabled=true;
-    return;
-  }
-
-  btn.disabled=false;
-
-  if(Notification.permission === "denied"){
-    btn.textContent="🔕 Push Blocked";
-    btn.classList.add("push-denied");
-    return;
-  }
-
-  if(pushReady && currentInstallationId){
-    btn.textContent="🔔 Push ON";
-    btn.classList.add("push-on");
-  }else{
-    btn.textContent="🔔 Enable Push";
-  }
-}
-
-async function upsertPushDevice(installationId){
-  if(!currentUser || !installationId) return;
-
-  const payload = {
-    user_id: currentUser.id,
-    installation_id: installationId,
-    platform: navigator.platform || null,
-    user_agent: navigator.userAgent || null,
-    enabled: true,
-    last_seen_at: new Date().toISOString()
-  };
-
-  const {error} = await supabase
-    .from("hanz_push_devices")
-    .upsert(payload,{onConflict:"user_id,installation_id"});
-
-  if(error) throw error;
-}
-
-async function initPushMessaging(){
-  if(!currentUser) return false;
-
-  if(!("Notification" in window) || !("serviceWorker" in navigator)){
-    renderPushState();
-    return false;
-  }
-
-  const supported = await isMessagingSupported();
-  if(!supported){
-    renderPushState();
-    return false;
-  }
-
-  if(!pushServiceWorkerRegistration){
-    pushServiceWorkerRegistration = await navigator.serviceWorker.register(
-      "./firebase-messaging-sw.js",
-      {scope:"./"}
-    );
-  }
-
-  if(!firebaseMessaging){
-    firebaseMessaging = getMessaging(firebaseApp);
-
-    onRegistered(firebaseMessaging, async installationId=>{
-      try{
-        currentInstallationId = installationId;
-        await upsertPushDevice(installationId);
-        pushReady = true;
-        renderPushState();
-        console.log("HANZ push registered:", installationId);
-      }catch(error){
-        console.error("Push registration save failed:",error);
-        notify("Push registration failed: " + error.message,"error");
-      }
-    });
-
-    onMessage(firebaseMessaging, payload=>{
-      const data = payload?.data || {};
-      const title = data.title || "HANZ Alert";
-      const body = data.body || data.message || "New HANZ trading alert.";
-
-      if(Notification.permission === "granted" && pushServiceWorkerRegistration){
-        pushServiceWorkerRegistration.showNotification(title,{
-          body,
-          icon:"./hanz-icon-192.png",
-          badge:"./hanz-icon-192.png",
-          tag:data.dedupe_key || data.alert_id || undefined,
-          data:{
-            url:data.url || "./",
-            ticker:data.ticker || null,
-            alert_type:data.alert_type || null
-          }
-        });
-      }
-    });
-  }
-
-  return true;
-}
-
-async function enablePush(){
-  if(!currentUser){
-    openAuth("login");
-    return;
-  }
-
-  try{
-    const okay = await initPushMessaging();
-    if(!okay){
-      notify("Push notification is not supported on this browser.","error");
-      return;
-    }
-
-    const permission = await Notification.requestPermission();
-    renderPushState();
-
-    if(permission !== "granted"){
-      notify("Notification permission was not granted.","error");
-      return;
-    }
-
-    await registerMessaging(firebaseMessaging,{
-      vapidKey:FIREBASE_VAPID_KEY,
-      serviceWorkerRegistration:pushServiceWorkerRegistration
-    });
-
-    notify("HANZ push notifications enabled.");
-  }catch(error){
-    console.error(error);
-    notify("Push setup failed: " + error.message,"error");
-  }
-}
-
-async function syncPushIfAlreadyGranted(){
-  if(!currentUser || Notification.permission !== "granted") return;
-
-  try{
-    const okay = await initPushMessaging();
-    if(!okay) return;
-
-    await registerMessaging(firebaseMessaging,{
-      vapidKey:FIREBASE_VAPID_KEY,
-      serviceWorkerRegistration:pushServiceWorkerRegistration
-    });
-  }catch(error){
-    console.warn("Background push sync failed:",error);
-  }
-}
-
-
 /* NAV */
 .desktop-nav{
   display:flex;gap:5px;width:max-content;padding:4px;margin:0 0 13px;
@@ -514,6 +348,52 @@ th{color:var(--muted)}
   .form-grid{grid-template-columns:1fr}.full-width{grid-column:auto}
   .toast{left:10px;right:10px;bottom:82px;max-width:none}
 }
+
+/* LIVE SIGNAL MONITOR */
+.live-monitor-grid{
+  display:grid;
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:8px
+}
+.signal-card{
+  position:relative;padding:13px;border-radius:16px;
+  border:1px solid var(--line);background:rgba(5,12,24,.72);overflow:hidden
+}
+.signal-card:before{
+  content:"";position:absolute;left:0;right:0;top:0;height:3px;background:#53627a
+}
+.signal-card.early:before{background:var(--yellow)}
+.signal-card.buy:before{background:var(--green)}
+.signal-card.stale:before{background:#718096}
+.signal-card.error:before{background:var(--red)}
+.sig-head{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.sig-ticker{font-size:16px;font-weight:950}
+.sig-price{margin-top:3px;color:var(--muted);font-size:8px}
+.signal-state{
+  padding:5px 7px;border-radius:999px;font-size:7px;font-weight:950;white-space:nowrap;
+  background:rgba(130,145,168,.11);color:#aab7c8
+}
+.signal-state.early{color:var(--yellow);background:rgba(255,200,87,.11)}
+.signal-state.buy{color:#03130d;background:var(--green)}
+.signal-state.stale{color:#b5c0cf;background:rgba(130,145,168,.12)}
+.signal-state.error{color:#ffc1c5;background:rgba(255,101,114,.12)}
+.sig-score{display:flex;align-items:center;justify-content:space-between;margin-top:10px;color:var(--muted);font-size:8px}
+.sig-score strong{color:var(--text);font-size:10px}
+.sig-bar{height:5px;margin-top:5px;border-radius:999px;overflow:hidden;background:#172338}
+.sig-bar div{height:100%;background:linear-gradient(90deg,var(--yellow),var(--green))}
+.sig-trends,.sig-meta{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:9px}
+.sig-trend,.sig-meta div{padding:7px;border-radius:9px;background:rgba(255,255,255,.025)}
+.sig-trend span,.sig-meta span{display:block;color:var(--muted);font-size:7px}
+.sig-trend strong,.sig-meta strong{display:block;margin-top:3px;font-size:8px}
+.bull{color:var(--green)!important}.bear{color:var(--red)!important}.neutral{color:#aab7c8!important}
+.sig-evidence{margin-top:8px;color:var(--muted);font-size:7px;line-height:1.45;min-height:20px}
+.monitor-note{
+  margin-top:10px;padding:9px 10px;border-radius:10px;background:rgba(77,163,255,.055);
+  color:var(--muted);font-size:8px;line-height:1.5
+}
+@media(max-width:1100px){.live-monitor-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:700px){.live-monitor-grid{grid-template-columns:1fr}}
+
 </style>
 </head>
 
@@ -633,6 +513,26 @@ th{color:var(--muted)}
       <div class="status-row"><span>Auto Trailing</span><strong>Per Position</strong></div>
     </article>
   </div>
+
+  <article class="card" style="margin-top:12px">
+    <div class="section-head">
+      <div>
+        <h2>Live Signal Monitor</h2>
+        <p>Fast Engine 1m trigger · 5m confirmation · dashboard refresh 30 sec</p>
+      </div>
+      <span class="small-tag">LIVE MONITOR</span>
+    </div>
+
+    <div id="liveSignalMonitor" class="live-monitor-grid">
+      <div class="empty large-empty">Waiting for Fast Engine monitor data...</div>
+    </div>
+
+    <div class="monitor-note">
+      WAIT CONFIRM = belum actionable · EARLY WATCH = setup mulai dekat ·
+      CONFIRMED BUY = konfirmasi 1m/5m lolos · STALE DATA = tidak ada action.
+    </div>
+  </article>
+
 </section>
 
 <section id="opportunities" class="panel">
@@ -1026,8 +926,6 @@ async function initPushMessaging(){
       if(Notification.permission === "granted" && pushServiceWorkerRegistration){
         pushServiceWorkerRegistration.showNotification(title,{
           body,
-          icon:"./hanz-icon-192.png",
-          badge:"./hanz-icon-192.png",
           tag:data.dedupe_key || data.alert_id || undefined,
           data:{
             url:data.url || "./",
@@ -1306,6 +1204,99 @@ function renderOpportunities(rows){
 
       <div class="reason">${safe(row.reason || "")}</div>
     </article>`).join("");
+}
+
+
+/* LIVE SIGNAL MONITOR */
+function signalStateClass(state){
+  const s=String(state || "").toUpperCase();
+  if(s==="CONFIRMED_BUY") return "buy";
+  if(s==="EARLY_WATCH") return "early";
+  if(s==="STALE_DATA") return "stale";
+  if(s==="ERROR") return "error";
+  return "";
+}
+
+function signalTrendClass(value){
+  const s=String(value || "").toUpperCase();
+  if(s==="BULLISH") return "bull";
+  if(s==="BEARISH") return "bear";
+  return "neutral";
+}
+
+async function loadLiveSignalMonitor(){
+  const {data,error}=await supabase
+    .from("hanz_signal_monitor")
+    .select("*")
+    .order("score",{ascending:false})
+    .order("updated_at",{ascending:false});
+
+  if(error){
+    console.warn("Live monitor unavailable:",error);
+    $("liveSignalMonitor").innerHTML=
+      '<div class="empty large-empty">Live monitor table is not ready yet.</div>';
+    return;
+  }
+
+  const rows=data || [];
+
+  if(!rows.length){
+    $("liveSignalMonitor").innerHTML=
+      '<div class="empty large-empty">Waiting for Fast Engine monitor data...</div>';
+    return;
+  }
+
+  $("liveSignalMonitor").innerHTML=rows.map(row=>{
+    const cls=signalStateClass(row.state);
+    const score=Math.max(0,Math.min(9,Number(row.score || 0)));
+    const scorePct=(score/9)*100;
+    const dist=row.distance_to_confirm_pct;
+    const distText=(dist===null || dist===undefined)
+      ? "—"
+      : `${Number(dist).toFixed(2)}%`;
+
+    return `
+      <article class="signal-card ${cls}">
+        <div class="sig-head">
+          <div>
+            <div class="sig-ticker">${safe(row.ticker)}</div>
+            <div class="sig-price">Price ${price(row.price)} · ${safe(row.data_status || "—")}</div>
+          </div>
+          <span class="signal-state ${cls}">
+            ${safe(String(row.state || "WAIT_CONFIRM").replaceAll("_"," "))}
+          </span>
+        </div>
+
+        <div class="sig-score">
+          <span>Confirmation score</span>
+          <strong>${row.score ?? "—"}/9</strong>
+        </div>
+        <div class="sig-bar"><div style="width:${scorePct}%"></div></div>
+
+        <div class="sig-trends">
+          <div class="sig-trend">
+            <span>1 MINUTE</span>
+            <strong class="${signalTrendClass(row.fast_trend)}">${safe(row.fast_trend || "UNKNOWN")}</strong>
+          </div>
+          <div class="sig-trend">
+            <span>5 MINUTE</span>
+            <strong class="${signalTrendClass(row.confirm_trend)}">${safe(row.confirm_trend || "UNKNOWN")}</strong>
+          </div>
+        </div>
+
+        <div class="sig-meta">
+          <div><span>RSI 1M</span><strong>${row.rsi_1m == null ? "—" : Number(row.rsi_1m).toFixed(1)}</strong></div>
+          <div><span>RSI 5M</span><strong>${row.rsi_5m == null ? "—" : Number(row.rsi_5m).toFixed(1)}</strong></div>
+          <div><span>RVOL</span><strong>${row.relative_volume == null ? "—" : `${Number(row.relative_volume).toFixed(2)}×`}</strong></div>
+          <div><span>TO CONFIRM</span><strong>${distText}</strong></div>
+        </div>
+
+        <div class="sig-evidence">${safe(row.evidence || "Waiting for Fast Engine evaluation")}</div>
+        <div class="sig-price" style="margin-top:7px">
+          Market bar ${formatTime(row.last_market_bar_at)} · engine ${formatTime(row.updated_at)}
+        </div>
+      </article>`;
+  }).join("");
 }
 
 /* HEALTH */
@@ -1669,7 +1660,7 @@ async function loadAll(){
   clearError();
 
   try{
-    await Promise.all([loadWatchlist(),loadHealth()]);
+    await Promise.all([loadWatchlist(),loadHealth(),loadLiveSignalMonitor()]);
 
     if(currentUser){
       await Promise.all([loadPortfolio(),loadAlerts()]);
