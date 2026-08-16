@@ -22,17 +22,58 @@ def utc_now():
     return datetime.now(timezone.utc)
 
 
+def normalize_symbol(symbol):
+    symbol = str(symbol).strip().upper()
+
+    if not symbol:
+        return None
+
+    if not symbol.endswith(".JK"):
+        symbol = f"{symbol}.JK"
+
+    return symbol
+
+
 def load_symbols():
+    if not UNIVERSE.exists():
+        raise FileNotFoundError(
+            f"Universe file not found: {UNIVERSE}"
+        )
+
     df = pd.read_csv(UNIVERSE)
+
+    symbols = None
 
     for col in ["symbol", "ticker", "code"]:
         if col in df.columns:
-            symbols = df[col].dropna().astype(str).tolist()
+            symbols = (
+                df[col]
+                .dropna()
+                .astype(str)
+                .tolist()
+            )
             break
-    else:
-        symbols = df.iloc[:, 0].dropna().astype(str).tolist()
 
-    return symbols[:SAMPLE_SIZE]
+    if symbols is None:
+        symbols = (
+            df.iloc[:, 0]
+            .dropna()
+            .astype(str)
+            .tolist()
+        )
+
+    normalized = []
+
+    for symbol in symbols:
+        symbol = normalize_symbol(symbol)
+
+        if symbol:
+            normalized.append(symbol)
+
+    # Remove duplicates while preserving order
+    normalized = list(dict.fromkeys(normalized))
+
+    return normalized[:SAMPLE_SIZE]
 
 
 def test_symbol(symbol, interval, period):
@@ -48,7 +89,10 @@ def test_symbol(symbol, interval, period):
             threads=False,
         )
 
-        latency = round(time.time() - started, 2)
+        latency = round(
+            time.time() - started,
+            2,
+        )
 
         if df.empty:
             return {
@@ -66,7 +110,8 @@ def test_symbol(symbol, interval, period):
             last_ts = last_ts.tz_convert("UTC")
 
         age_minutes = (
-            utc_now() - last_ts.to_pydatetime()
+            utc_now()
+            - last_ts.to_pydatetime()
         ).total_seconds() / 60
 
         return {
@@ -74,7 +119,10 @@ def test_symbol(symbol, interval, period):
             "ok": True,
             "rows": len(df),
             "last_bar_utc": last_ts.isoformat(),
-            "age_minutes": round(age_minutes, 1),
+            "age_minutes": round(
+                age_minutes,
+                1,
+            ),
             "latency_sec": latency,
         }
 
@@ -83,7 +131,10 @@ def test_symbol(symbol, interval, period):
             "symbol": symbol,
             "ok": False,
             "reason": str(exc),
-            "latency_sec": round(time.time() - started, 2),
+            "latency_sec": round(
+                time.time() - started,
+                2,
+            ),
         }
 
 
@@ -91,21 +142,41 @@ def run_test(interval, period, symbols):
     results = []
 
     for symbol in symbols:
-        print(f"Testing {symbol} {interval}...", flush=True)
-        results.append(
-            test_symbol(symbol, interval, period)
+        print(
+            f"Testing {symbol} {interval}...",
+            flush=True,
         )
 
-    successful = [x for x in results if x["ok"]]
+        result = test_symbol(
+            symbol,
+            interval,
+            period,
+        )
+
+        results.append(result)
+
+    successful = [
+        item
+        for item in results
+        if item["ok"]
+    ]
 
     success_rate = (
-        len(successful) / len(results) * 100
-        if results else 0
+        len(successful)
+        / len(results)
+        * 100
+        if results
+        else 0
     )
 
     avg_latency = (
-        sum(x["latency_sec"] for x in results) / len(results)
-        if results else 0
+        sum(
+            item["latency_sec"]
+            for item in results
+        )
+        / len(results)
+        if results
+        else 0
     )
 
     return {
@@ -113,8 +184,14 @@ def run_test(interval, period, symbols):
         "period": period,
         "symbols_tested": len(results),
         "success_count": len(successful),
-        "success_rate_pct": round(success_rate, 1),
-        "avg_latency_sec": round(avg_latency, 2),
+        "success_rate_pct": round(
+            success_rate,
+            1,
+        ),
+        "avg_latency_sec": round(
+            avg_latency,
+            2,
+        ),
         "results": results,
     }
 
@@ -122,36 +199,61 @@ def run_test(interval, period, symbols):
 def main():
     symbols = load_symbols()
 
+    print(
+        f"Intraday health sample: "
+        f"{len(symbols)} symbols",
+        flush=True,
+    )
+
     report = {
         "tested_at": utc_now().isoformat(),
         "sample_size": len(symbols),
+        "symbols": symbols,
         "tests": [],
     }
 
     for test in TESTS:
-        report["tests"].append(
-            run_test(
-                test["interval"],
-                test["period"],
-                symbols,
-            )
+        result = run_test(
+            test["interval"],
+            test["period"],
+            symbols,
         )
 
-    OUTPUT.parent.mkdir(parents=True, exist_ok=True)
+        report["tests"].append(result)
 
-    with open(OUTPUT, "w", encoding="utf-8") as f:
-        json.dump(report, f, indent=2)
+    OUTPUT.parent.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
 
-    print("\n========== INTRADAY HEALTH ==========")
+    with open(
+        OUTPUT,
+        "w",
+        encoding="utf-8",
+    ) as f:
+        json.dump(
+            report,
+            f,
+            indent=2,
+        )
+
+    print(
+        "\n========== INTRADAY HEALTH ==========",
+        flush=True,
+    )
 
     for test in report["tests"]:
         print(
             f"{test['interval']} | "
             f"success={test['success_rate_pct']}% | "
-            f"avg latency={test['avg_latency_sec']}s"
+            f"avg latency={test['avg_latency_sec']}s",
+            flush=True,
         )
 
-    print(f"Report written to {OUTPUT}")
+    print(
+        f"Report written to {OUTPUT}",
+        flush=True,
+    )
 
 
 if __name__ == "__main__":
