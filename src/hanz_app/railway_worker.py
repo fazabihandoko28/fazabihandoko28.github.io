@@ -24,7 +24,10 @@ DECISIONS_PATH = Path("dashboard/data/decisions.json")
 DASHBOARD_PATH = Path("dashboard/index.html")
 
 worker_started_at = datetime.now(timezone.utc).isoformat()
+
 consecutive_failures = 0
+intraday_health_done = False
+
 stop_event = threading.Event()
 
 
@@ -37,7 +40,11 @@ def run(command):
         f"\n[{now_iso()}] RUN: {' '.join(command)}",
         flush=True,
     )
-    subprocess.run(command, check=True)
+
+    subprocess.run(
+        command,
+        check=True,
+    )
 
 
 def read_json(path):
@@ -47,17 +54,41 @@ def read_json(path):
 
 def write_json(path, data):
     path = Path(path)
-    path.parent.mkdir(parents=True, exist_ok=True)
 
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+    path.parent.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    with open(
+        path,
+        "w",
+        encoding="utf-8",
+    ) as f:
+
+        json.dump(
+            data,
+            f,
+            ensure_ascii=False,
+            indent=2,
+        )
 
 
-def supabase_request(method, endpoint, payload=None, prefer=None):
+def supabase_request(
+    method,
+    endpoint,
+    payload=None,
+    prefer=None,
+):
     if not SUPABASE_URL or not SUPABASE_SECRET_KEY:
-        raise RuntimeError("Supabase environment variables are missing")
+        raise RuntimeError(
+            "Supabase environment variables are missing"
+        )
 
-    url = f"{SUPABASE_URL}/rest/v1/{endpoint}"
+    url = (
+        f"{SUPABASE_URL}/rest/v1/"
+        f"{endpoint}"
+    )
 
     body = None
 
@@ -70,7 +101,9 @@ def supabase_request(method, endpoint, payload=None, prefer=None):
         headers["Prefer"] = prefer
 
     if payload is not None:
-        body = json.dumps(payload).encode("utf-8")
+        body = json.dumps(
+            payload
+        ).encode("utf-8")
 
     request = urllib.request.Request(
         url,
@@ -79,16 +112,23 @@ def supabase_request(method, endpoint, payload=None, prefer=None):
         headers=headers,
     )
 
-    with urllib.request.urlopen(request, timeout=30) as response:
+    with urllib.request.urlopen(
+        request,
+        timeout=30,
+    ) as response:
+
         raw = response.read()
 
         if raw:
-            return json.loads(raw.decode("utf-8"))
+            return json.loads(
+                raw.decode("utf-8")
+            )
 
         return None
 
 
 def restore_state():
+
     print(
         "Restoring HANZ persistent state from Supabase...",
         flush=True,
@@ -113,7 +153,7 @@ def restore_state():
 
     if not rows:
         print(
-            "No previous Supabase state found. Starting fresh.",
+            "No previous Supabase state found.",
             flush=True,
         )
         return
@@ -123,7 +163,11 @@ def restore_state():
     journal = state.get("journal")
 
     if journal:
-        write_json(JOURNAL_PATH, journal)
+
+        write_json(
+            JOURNAL_PATH,
+            journal,
+        )
 
         print(
             f"Journal restored to {JOURNAL_PATH}",
@@ -138,7 +182,10 @@ def restore_state():
 
     print(
         "Previous consecutive_failures:",
-        state.get("consecutive_failures", 0),
+        state.get(
+            "consecutive_failures",
+            0,
+        ),
         flush=True,
     )
 
@@ -150,6 +197,7 @@ def update_health(
     error=None,
     failure_count=None,
 ):
+
     payload = {
         "id": STATE_ID,
         "status": "online",
@@ -168,20 +216,30 @@ def update_health(
         payload["last_error"] = str(error)
 
     if failure_count is not None:
-        payload["consecutive_failures"] = failure_count
+        payload[
+            "consecutive_failures"
+        ] = failure_count
 
     supabase_request(
         "POST",
         "hanz_live_state?on_conflict=id",
         payload,
-        prefer="resolution=merge-duplicates,return=minimal",
+        prefer=(
+            "resolution=merge-duplicates,"
+            "return=minimal"
+        ),
     )
 
 
 def heartbeat_loop():
+
     while not stop_event.is_set():
+
         try:
-            update_health(heartbeat=True)
+
+            update_health(
+                heartbeat=True
+            )
 
             print(
                 f"[{now_iso()}] Heartbeat OK",
@@ -189,26 +247,85 @@ def heartbeat_loop():
             )
 
         except Exception as exc:
+
             print(
-                f"[{now_iso()}] Heartbeat failed: {exc}",
+                f"[{now_iso()}] "
+                f"Heartbeat failed: {exc}",
                 flush=True,
             )
 
-        stop_event.wait(HEARTBEAT_INTERVAL)
+        stop_event.wait(
+            HEARTBEAT_INTERVAL
+        )
+
+
+def build_universe():
+
+    print(
+        "\n========== BUILD DYNAMIC TOP 100 ==========",
+        flush=True,
+    )
+
+    run([
+        "python",
+        "-m",
+        "hanz_app.build_liquid_universe",
+
+        "--pool",
+        "config/universe/bei_candidate_pool.csv",
+
+        "--output",
+        "artifacts/universe/bei_top100.csv",
+
+        "--metrics",
+        "artifacts/universe/bei_liquidity_metrics.json",
+
+        "--target",
+        "100",
+
+        "--period",
+        "6mo",
+
+        "--lookback",
+        "60",
+    ])
 
 
 def run_intraday_health_test():
+
+    global intraday_health_done
+
+    if intraday_health_done:
+        return
+
+    universe = Path(
+        "artifacts/universe/bei_top100.csv"
+    )
+
+    if not universe.exists():
+
+        print(
+            "Intraday health skipped: "
+            "Top 100 universe not ready.",
+            flush=True,
+        )
+
+        return
+
     print(
         "\n========== INTRADAY DATA HEALTH TEST ==========",
         flush=True,
     )
 
     try:
+
         run([
             "python",
             "-m",
             "hanz_app.intraday_health",
         ])
+
+        intraday_health_done = True
 
         print(
             "Intraday health test completed.",
@@ -216,7 +333,7 @@ def run_intraday_health_test():
         )
 
     except Exception as exc:
-        # Health test must NEVER kill the main trading worker.
+
         print(
             f"Intraday health test failed: {exc}",
             flush=True,
@@ -229,26 +346,53 @@ def run_intraday_health_test():
 
 
 def publish_to_supabase():
-    scan_data = read_json(SCAN_PATH)
-    decisions = read_json(DECISIONS_PATH)
-    journal = read_json(JOURNAL_PATH)
 
-    with open(DASHBOARD_PATH, "r", encoding="utf-8") as f:
+    scan_data = read_json(
+        SCAN_PATH
+    )
+
+    decisions = read_json(
+        DECISIONS_PATH
+    )
+
+    journal = read_json(
+        JOURNAL_PATH
+    )
+
+    with open(
+        DASHBOARD_PATH,
+        "r",
+        encoding="utf-8",
+    ) as f:
+
         rendered_html = f.read()
 
     payload = {
+
         "id": STATE_ID,
+
         "updated_at": now_iso(),
+
         "market": "BEI",
+
         "status": "online",
+
         "scan_data": scan_data,
+
         "decisions": decisions,
+
         "journal": journal,
+
         "rendered_html": rendered_html,
+
         "heartbeat_at": now_iso(),
+
         "last_success_at": now_iso(),
+
         "last_error": None,
+
         "consecutive_failures": 0,
+
         "worker_started_at": worker_started_at,
     }
 
@@ -256,7 +400,10 @@ def publish_to_supabase():
         "POST",
         "hanz_live_state?on_conflict=id",
         payload,
-        prefer="resolution=merge-duplicates,return=minimal",
+        prefer=(
+            "resolution=merge-duplicates,"
+            "return=minimal"
+        ),
     )
 
     print(
@@ -266,92 +413,95 @@ def publish_to_supabase():
 
 
 def run_cycle():
+
     print(
         "\n========== HANZ CYCLE START ==========",
         flush=True,
     )
 
-    # 1. Build Dynamic Top 100 BEI
-    run([
-        "python",
-        "-m",
-        "hanz_app.build_liquid_universe",
-        "--pool",
-        "config/universe/bei_candidate_pool.csv",
-        "--output",
-        "artifacts/universe/bei_top100.csv",
-        "--metrics",
-        "artifacts/universe/bei_liquidity_metrics.json",
-        "--target",
-        "100",
-        "--period",
-        "6mo",
-        "--lookback",
-        "60",
-    ])
+    # 1. BUILD TOP 100
+    build_universe()
 
-    # 2. Main paper scan
+    # 2. TEST INTRADAY DATA
+    # only once per Railway startup
+    run_intraday_health_test()
+
+    # 3. MAIN SCAN
     run([
         "python",
         "-m",
         "hanz_app.paper_scan",
+
         "--universe",
         "artifacts/universe/bei_top100.csv",
+
         "--markets",
         "BEI",
+
         "--period",
         "1y",
+
         "--interval",
         "1d",
+
         "--candidate-limit",
         "5",
+
         "--output",
         str(SCAN_PATH),
     ])
 
-    # 3. Update persistent journal
+    # 4. JOURNAL
     run([
         "python",
         "-m",
         "hanz_app.update_journal",
+
         "--scan",
         str(SCAN_PATH),
+
         "--journal",
         str(JOURNAL_PATH),
     ])
 
-    # 4. Render dashboard
+    # 5. DASHBOARD
     run([
         "python",
         "-m",
         "hanz_app.render_report",
+
         "--input",
         str(SCAN_PATH),
+
         "--output",
         str(DASHBOARD_PATH),
     ])
 
-    # 5. Publish lean dashboard files
+    # 6. DASHBOARD DATA
     run([
         "python",
         "tools/publish_scan_results.py",
+
         "--scan",
         str(SCAN_PATH),
+
         "--report",
         str(DASHBOARD_PATH),
     ])
 
-    # 6. Foundation / decision engine
+    # 7. DECISION ENGINE
     run([
         "python",
         "tools/integrate_foundation.py",
+
         "--input",
         str(SCAN_PATH),
+
         "--output",
         str(DECISIONS_PATH),
     ])
 
-    # 7. Persist complete state to Supabase
+    # 8. PERSIST TO SUPABASE
     publish_to_supabase()
 
     print(
@@ -361,6 +511,7 @@ def run_cycle():
 
 
 def main():
+
     global consecutive_failures
 
     print(
@@ -383,22 +534,20 @@ def main():
         flush=True,
     )
 
-    # ---------------------------------
-    # RESTORE PERSISTENT MEMORY
-    # ---------------------------------
+    # RESTORE MEMORY
 
     try:
+
         restore_state()
 
     except Exception as exc:
+
         print(
             f"State restore failed: {exc}",
             flush=True,
         )
 
-    # ---------------------------------
-    # START WATCHDOG FIRST
-    # ---------------------------------
+    # WATCHDOG
 
     heartbeat_thread = threading.Thread(
         target=heartbeat_loop,
@@ -407,29 +556,25 @@ def main():
 
     heartbeat_thread.start()
 
-    # ---------------------------------
-    # TEST INTRADAY DATA CAPABILITY
-    # ---------------------------------
-
-    run_intraday_health_test()
-
-    # ---------------------------------
-    # NORMAL 24/7 WORKER LOOP
-    # ---------------------------------
+    # 24/7 LOOP
 
     while True:
+
         try:
+
             run_cycle()
 
             consecutive_failures = 0
 
             try:
+
                 update_health(
                     heartbeat=True,
                     success=True,
                 )
 
             except Exception as exc:
+
                 print(
                     f"Health update failed: {exc}",
                     flush=True,
@@ -440,18 +585,23 @@ def main():
                 flush=True,
             )
 
-            time.sleep(SCAN_INTERVAL)
+            time.sleep(
+                SCAN_INTERVAL
+            )
 
         except Exception as exc:
+
             consecutive_failures += 1
 
             print(
                 f"HANZ cycle failed "
-                f"(#{consecutive_failures}): {exc}",
+                f"(#{consecutive_failures}): "
+                f"{exc}",
                 flush=True,
             )
 
             try:
+
                 update_health(
                     heartbeat=True,
                     error=exc,
@@ -459,6 +609,7 @@ def main():
                 )
 
             except Exception as health_exc:
+
                 print(
                     "Failure health update failed: "
                     f"{health_exc}",
@@ -470,7 +621,9 @@ def main():
                 flush=True,
             )
 
-            time.sleep(RETRY_INTERVAL)
+            time.sleep(
+                RETRY_INTERVAL
+            )
 
 
 if __name__ == "__main__":
