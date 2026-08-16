@@ -73,6 +73,40 @@ PUSH_ALERT_TYPES = {
     "TRAILING_ACTIVATED",
 }
 
+# =========================
+# FAST SCOUT
+# =========================
+FAST_SCOUT_ENABLED = os.getenv(
+    "HANZ_FAST_SCOUT_ENABLED",
+    "1",
+).strip() not in {"0", "false", "False"}
+
+FAST_SCOUT_BATCH_SIZE = int(
+    os.getenv(
+        "HANZ_FAST_SCOUT_BATCH_SIZE",
+        "12",
+    )
+)
+
+FAST_SCOUT_MIN_SCORE = int(
+    os.getenv(
+        "HANZ_FAST_SCOUT_MIN_SCORE",
+        "7",
+    )
+)
+
+FAST_SCOUT_CANDIDATE_MINUTES = int(
+    os.getenv(
+        "HANZ_FAST_SCOUT_CANDIDATE_MINUTES",
+        "30",
+    )
+)
+
+FAST_SCOUT_CURSOR_FILE = os.getenv(
+    "HANZ_FAST_SCOUT_CURSOR_FILE",
+    "/tmp/hanz_fast_scout_cursor.txt",
+)
+
 _FIREBASE_APP = None
 
 
@@ -1484,6 +1518,9 @@ def upsert_signal_monitor(
     data_age_seconds_value=None,
     data_status="FRESH",
     evidence=None,
+    source="SLOW_WATCHLIST",
+    scout_score=None,
+    expires_at=None,
 ):
     payload = {
         "ticker": clean_ticker(ticker),
@@ -1505,6 +1542,9 @@ def upsert_signal_monitor(
         "data_age_seconds": data_age_seconds_value,
         "data_status": data_status,
         "evidence": evidence,
+        "source": source,
+        "scout_score": scout_score,
+        "expires_at": expires_at,
         "updated_at": now_iso(),
     }
 
@@ -1526,33 +1566,41 @@ def delete_stale_signal_monitor_rows(active_tickers):
         if ticker
     })
 
-    if not normalized:
-        try:
+    try:
+        rows = supabase_request(
+            "GET",
+            "hanz_signal_monitor"
+            "?source=eq.SLOW_WATCHLIST"
+            "&select=ticker",
+        ) or []
+
+        for row in rows:
+            ticker = clean_ticker(
+                row.get("ticker")
+            )
+
+            if ticker in normalized:
+                continue
+
+            encoded = urllib.parse.quote(
+                ticker,
+                safe="",
+            )
+
             supabase_request(
                 "DELETE",
-                "hanz_signal_monitor?ticker=not.is.null",
+                "hanz_signal_monitor"
+                f"?ticker=eq.{encoded}"
+                "&source=eq.SLOW_WATCHLIST",
                 prefer="return=minimal",
             )
-        except Exception:
-            pass
-        return
 
-    encoded = urllib.parse.quote(
-        "(" + ",".join(normalized) + ")",
-        safe="(),"
-    )
-
-    try:
-        supabase_request(
-            "DELETE",
-            f"hanz_signal_monitor?ticker=not.in.{encoded}",
-            prefer="return=minimal",
-        )
     except Exception as exc:
         print(
             f"Signal monitor stale cleanup skipped: {exc}",
             flush=True,
         )
+
 
 
 def monitor_portfolio(positions, context_cache=None):
@@ -1674,6 +1722,720 @@ def monitor_portfolio(positions, context_cache=None):
             )
 
     return monitored
+
+
+
+def fetch_scout_universe():
+    rows = supabase_request(
+        "GET",
+        "hanz_scout_universe"
+        "?enabled=eq.true"
+        "&select=ticker,priority"
+        "&order=priority.desc,ticker.asc",
+    ) or []
+
+    tickers = []
+
+    for row in rows:
+        ticker = clean_ticker(
+            row.get("ticker")
+        )
+
+        if ticker:
+            tickers.append(ticker)
+
+    return tickers
+
+
+def scout_cursor():
+    try:
+        return int(
+            Path(
+                FAST_SCOUT_CURSOR_FILE
+            ).read_text(
+                encoding="utf-8"
+            ).strip()
+            or 0
+        )
+    except Exception:
+        return 0
+
+
+def save_scout_cursor(value):
+    try:
+        Path(
+            FAST_SCOUT_CURSOR_FILE
+        ).write_text(
+            str(int(value)),
+            encoding="utf-8",
+        )
+    except Exception:
+        pass
+
+
+def scout_batch(universe, excluded):
+    candidates = [
+        ticker
+        for ticker in universe
+        if ticker not in excluded
+    ]
+
+    if not candidates:
+        return []
+
+    batch_size = max(
+        1,
+        min(
+            FAST_SCOUT_BATCH_SIZE,
+            len(candidates),
+        ),
+    )
+
+    start = scout_cursor() % len(
+        candidates
+    )
+
+    batch = []
+
+    for offset in range(batch_size):
+        batch.append(
+            candidates[
+                (start + offset)
+                % len(candidates)
+            ]
+        )
+
+    save_scout_cursor(
+        (start + batch_size)
+        % len(candidates)
+    )
+
+    return batch
+
+
+def scout_metrics(frame):
+    metrics = calculate_metrics(frame)
+
+    price = safe_float(
+        metrics.get("price")
+    )
+
+    open_price = safe_float(
+        metrics.get("open")
+    )
+
+    move_1m_pct = None
+
+    if (
+        price is not None
+        and open_price is not None
+        and open_price > 0
+    ):
+        move_1m_pct = (
+            (price - open_price)
+            / open_price
+            * 100
+        )
+
+    move_5m_pct = None
+
+    if (
+        price is not None
+        and len(frame) >= 6
+    ):
+        base = safe_float(
+            frame["Close"].iloc[-6]
+        )
+
+        if (
+            base is not None
+            and base > 0
+        ):
+            move_5m_pct = (
+                (price - base)
+                / base
+                * 100
+            )
+
+    metrics["move_1m_pct"] = (
+        move_1m_pct
+    )
+
+    metrics["move_5m_pct"] = (
+        move_5m_pct
+    )
+
+    return metrics
+
+
+def fast_scout_score(metrics):
+    score = 0
+    evidence = []
+
+    price = safe_float(
+        metrics.get("price")
+    )
+
+    prior_high = safe_float(
+        metrics.get("prior_high20")
+    )
+
+    breakout = (
+        price is not None
+        and prior_high is not None
+        and price > prior_high
+    )
+
+    if breakout:
+        score += 3
+        evidence.append(
+            "1m breakout above prior 20-bar high"
+        )
+
+    rvol = safe_float(
+        metrics.get("relative_volume")
+    ) or 0
+
+    if rvol >= 2.0:
+        score += 3
+        evidence.append(
+            f"RVOL surge {rvol:.2f}x"
+        )
+    elif rvol >= 1.5:
+        score += 2
+        evidence.append(
+            f"RVOL strong {rvol:.2f}x"
+        )
+    elif rvol >= 1.25:
+        score += 1
+        evidence.append(
+            f"RVOL improving {rvol:.2f}x"
+        )
+
+    ema9 = safe_float(
+        metrics.get("ema9")
+    )
+
+    ema21 = safe_float(
+        metrics.get("ema21")
+    )
+
+    if (
+        ema9 is not None
+        and ema21 is not None
+        and ema9 > ema21
+    ):
+        score += 1
+        evidence.append(
+            "1m EMA9 above EMA21"
+        )
+
+    rsi_value = safe_float(
+        metrics.get("rsi")
+    )
+
+    if (
+        rsi_value is not None
+        and 55 <= rsi_value <= 82
+    ):
+        score += 1
+        evidence.append(
+            f"1m RSI {rsi_value:.1f}"
+        )
+
+    move_5m = safe_float(
+        metrics.get("move_5m_pct")
+    )
+
+    if (
+        move_5m is not None
+        and move_5m >= 0.8
+    ):
+        score += 1
+        evidence.append(
+            f"5m acceleration +{move_5m:.2f}%"
+        )
+
+    return {
+        "score": score,
+        "evidence": evidence,
+        "breakout": breakout,
+    }
+
+
+def scout_expiry_iso():
+    return (
+        utc_now()
+        + pd.Timedelta(
+            minutes=
+            FAST_SCOUT_CANDIDATE_MINUTES
+        ).to_pytimedelta()
+    ).isoformat()
+
+
+def fetch_active_scout_candidates():
+    now_encoded = urllib.parse.quote(
+        now_iso(),
+        safe="",
+    )
+
+    return supabase_request(
+        "GET",
+        "hanz_signal_monitor"
+        "?source=eq.FAST_SCOUT"
+        f"&expires_at=gt.{now_encoded}"
+        "&select=*",
+    ) or []
+
+
+def cleanup_expired_scout_candidates():
+    now_encoded = urllib.parse.quote(
+        now_iso(),
+        safe="",
+    )
+
+    try:
+        supabase_request(
+            "DELETE",
+            "hanz_signal_monitor"
+            "?source=eq.FAST_SCOUT"
+            f"&expires_at=lt.{now_encoded}",
+            prefer="return=minimal",
+        )
+    except Exception as exc:
+        print(
+            f"Fast Scout cleanup skipped: {exc}",
+            flush=True,
+        )
+
+
+def discover_fast_scout_candidates(
+    universe,
+    watchlist,
+    portfolio,
+):
+    if not FAST_SCOUT_ENABLED:
+        return 0
+
+    excluded = {
+        clean_ticker(
+            row.get("ticker")
+        )
+        for row in (
+            list(watchlist)
+            + list(portfolio)
+        )
+        if row.get("ticker")
+    }
+
+    active = fetch_active_scout_candidates()
+
+    excluded.update({
+        clean_ticker(
+            row.get("ticker")
+        )
+        for row in active
+        if row.get("ticker")
+    })
+
+    batch = scout_batch(
+        universe,
+        excluded,
+    )
+
+    if not batch:
+        return 0
+
+    print(
+        "FAST SCOUT batch: "
+        + ", ".join(batch),
+        flush=True,
+    )
+
+    discovered = 0
+
+    for ticker in batch:
+        try:
+            _, frame, _ = download_data(
+                ticker,
+                interval=FAST_INTERVAL,
+                period=FAST_PERIOD,
+            )
+
+            age = data_age_seconds(
+                frame
+            )
+
+            if age > MAX_DATA_AGE_SECONDS:
+                continue
+
+            metrics = scout_metrics(
+                frame
+            )
+
+            result = fast_scout_score(
+                metrics
+            )
+
+            # Surprise detector is intentionally strict:
+            # breakout is mandatory and total score must be high.
+            if not (
+                result["breakout"]
+                and result["score"]
+                >= FAST_SCOUT_MIN_SCORE
+            ):
+                continue
+
+            price = safe_float(
+                metrics.get("price")
+            )
+
+            prior_high = safe_float(
+                metrics.get("prior_high20")
+            )
+
+            evidence = "; ".join(
+                result["evidence"]
+            )
+
+            upsert_signal_monitor(
+                ticker=ticker,
+                state="SURPRISE_WATCH",
+                price=price,
+                fast_trend=trend_label(
+                    metrics
+                ),
+                confirm_trend="PENDING",
+                score=None,
+                confidence=None,
+                rsi_1m=metrics.get("rsi"),
+                rsi_5m=None,
+                relative_volume=(
+                    metrics.get(
+                        "relative_volume"
+                    )
+                ),
+                confirmation_price=prior_high,
+                entry_low=price,
+                entry_high=price,
+                invalidation_price=(
+                    metrics.get(
+                        "prior_low20"
+                    )
+                ),
+                distance_to_confirm_pct=0,
+                last_market_bar_at=(
+                    last_timestamp_utc(
+                        frame
+                    ).isoformat()
+                ),
+                data_age_seconds_value=age,
+                data_status="FRESH",
+                evidence=evidence,
+                source="FAST_SCOUT",
+                scout_score=result["score"],
+                expires_at=scout_expiry_iso(),
+            )
+
+            discovered += 1
+
+            print(
+                f"FAST SCOUT discovered "
+                f"{ticker} score "
+                f"{result['score']}/9",
+                flush=True,
+            )
+
+        except Exception as exc:
+            print(
+                f"FAST SCOUT {ticker} skipped: "
+                f"{exc}",
+                flush=True,
+            )
+
+    return discovered
+
+
+def confirm_fast_scout_candidates(
+    context_cache=None,
+):
+    context_cache = (
+        context_cache
+        if context_cache is not None
+        else {}
+    )
+
+    candidates = (
+        fetch_active_scout_candidates()
+    )
+
+    confirmed_count = 0
+
+    for candidate in candidates:
+        ticker = candidate.get(
+            "ticker"
+        )
+
+        if not ticker:
+            continue
+
+        previous_state = str(
+            candidate.get("state")
+            or ""
+        ).upper()
+
+        try:
+            cache_key = clean_ticker(
+                ticker
+            )
+
+            if (
+                cache_key
+                not in context_cache
+            ):
+                context_cache[
+                    cache_key
+                ] = get_symbol_context(
+                    ticker
+                )
+
+            ctx = context_cache[
+                cache_key
+            ]
+
+            fast = ctx["fast"]
+            confirm = ctx["confirm"]
+
+            watch = {
+                "confirmation_price":
+                    candidate.get(
+                        "confirmation_price"
+                    ),
+                "entry_zone_low":
+                    candidate.get(
+                        "entry_low"
+                    ),
+                "entry_zone_high":
+                    candidate.get(
+                        "entry_high"
+                    ),
+                "invalidation_price":
+                    candidate.get(
+                        "invalidation_price"
+                    ),
+            }
+
+            result = buy_confirmation(
+                fast,
+                confirm,
+                watch,
+            )
+
+            if not result:
+                continue
+
+            if (
+                ctx["age_seconds"]
+                > MAX_DATA_AGE_SECONDS
+            ):
+                state = "STALE_DATA"
+                data_status = "STALE"
+            elif result["confirmed"]:
+                state = "CONFIRMED_BUY"
+                data_status = "FRESH"
+            else:
+                state = "FAST_CONFIRMING"
+                data_status = "FRESH"
+
+            confidence = min(
+                100,
+                result["score"]
+                / 9
+                * 100,
+            )
+
+            evidence = (
+                "; ".join(
+                    result["evidence"]
+                )
+                or candidate.get(
+                    "evidence"
+                )
+                or "Fast Scout confirmation pending"
+            )
+
+            upsert_signal_monitor(
+                ticker=ticker,
+                state=state,
+                price=result["price"],
+                fast_trend=trend_label(
+                    fast
+                ),
+                confirm_trend=trend_label(
+                    confirm
+                ),
+                score=result["score"],
+                confidence=round(
+                    confidence,
+                    1,
+                ),
+                rsi_1m=fast.get("rsi"),
+                rsi_5m=confirm.get("rsi"),
+                relative_volume=(
+                    fast.get(
+                        "relative_volume"
+                    )
+                ),
+                confirmation_price=(
+                    candidate.get(
+                        "confirmation_price"
+                    )
+                ),
+                entry_low=(
+                    candidate.get(
+                        "entry_low"
+                    )
+                ),
+                entry_high=(
+                    candidate.get(
+                        "entry_high"
+                    )
+                ),
+                invalidation_price=(
+                    candidate.get(
+                        "invalidation_price"
+                    )
+                ),
+                distance_to_confirm_pct=0,
+                last_market_bar_at=(
+                    ctx["last_bar"]
+                ),
+                data_age_seconds_value=(
+                    ctx["age_seconds"]
+                ),
+                data_status=data_status,
+                evidence=evidence,
+                source="FAST_SCOUT",
+                scout_score=(
+                    candidate.get(
+                        "scout_score"
+                    )
+                ),
+                expires_at=(
+                    candidate.get(
+                        "expires_at"
+                    )
+                ),
+            )
+
+            if (
+                state
+                != "CONFIRMED_BUY"
+            ):
+                print(
+                    f"{ticker}: "
+                    f"FAST_CONFIRMING "
+                    f"{result['score']}/9",
+                    flush=True,
+                )
+                continue
+
+            confirmed_count += 1
+
+            # Only create a new signal/alert on state transition.
+            if (
+                previous_state
+                == "CONFIRMED_BUY"
+            ):
+                continue
+
+            signal = insert_signal(
+                ticker=ticker,
+                signal_type=(
+                    "CONFIRMED_BUY"
+                ),
+                severity=85,
+                price=result["price"],
+                reason=(
+                    "FAST SCOUT: "
+                    + evidence
+                ),
+                confirmed=True,
+                entry_low=(
+                    result["entry_low"]
+                ),
+                entry_high=(
+                    result["entry_high"]
+                ),
+                stop_loss=(
+                    result["stop_loss"]
+                ),
+                target_1=(
+                    result["target_1"]
+                ),
+                target_2=(
+                    result["target_2"]
+                ),
+                risk_reward=(
+                    result["risk_reward"]
+                ),
+                confidence=round(
+                    confidence,
+                    1,
+                ),
+                expires_at=(
+                    candidate.get(
+                        "expires_at"
+                    )
+                ),
+            )
+
+            signal_id = (
+                signal.get("id")
+                if signal
+                else None
+            )
+
+            title = (
+                f"{clean_ticker(ticker)} "
+                f"— CONFIRMED BUY"
+            )
+
+            message = (
+                f"FAST SCOUT confirmed. "
+                f"Price "
+                f"{result['price']:.2f} | "
+                f"Score "
+                f"{result['score']}/9 | "
+                f"{evidence}"
+            )
+
+            queue_alert(
+                ticker=ticker,
+                alert_type=(
+                    "CONFIRMED_BUY"
+                ),
+                priority=85,
+                title=title,
+                message=message,
+                signal_id=signal_id,
+            )
+
+            print(
+                f"FAST SCOUT CONFIRMED BUY: "
+                f"{ticker}",
+                flush=True,
+            )
+
+        except Exception as exc:
+            print(
+                f"FAST SCOUT confirm "
+                f"{ticker} failed: {exc}",
+                flush=True,
+            )
+
+    return confirmed_count
+
 
 
 def monitor_watchlist(watchlist, context_cache=None):
@@ -1921,6 +2683,19 @@ def run_fast_cycle():
     portfolio = fetch_portfolio()
     watchlist = fetch_watchlist()
 
+    try:
+        scout_universe = (
+            fetch_scout_universe()
+            if FAST_SCOUT_ENABLED
+            else []
+        )
+    except Exception as exc:
+        print(
+            f"FAST SCOUT universe unavailable: {exc}",
+            flush=True,
+        )
+        scout_universe = []
+
     print(
         f"Portfolio positions: "
         f"{len(portfolio)}",
@@ -1930,6 +2705,12 @@ def run_fast_cycle():
     print(
         f"Watchlist symbols: "
         f"{len(watchlist)}",
+        flush=True,
+    )
+
+    print(
+        f"Fast Scout universe: "
+        f"{len(scout_universe)}",
         flush=True,
     )
 
@@ -1945,9 +2726,31 @@ def run_fast_cycle():
         context_cache=context_cache,
     )
 
+    cleanup_expired_scout_candidates()
+
+    scout_discovered = (
+        discover_fast_scout_candidates(
+            scout_universe,
+            watchlist,
+            portfolio,
+        )
+        if scout_universe
+        else 0
+    )
+
+    scout_confirmed = (
+        confirm_fast_scout_candidates(
+            context_cache=context_cache,
+        )
+        if FAST_SCOUT_ENABLED
+        else 0
+    )
+
     total = (
         portfolio_count
         + watch_count
+        + scout_discovered
+        + scout_confirmed
     )
 
     update_fast_health(
@@ -1971,6 +2774,14 @@ def main():
 
     print(
         f"Run once mode: {RUN_ONCE}",
+        flush=True,
+    )
+
+    print(
+        f"Fast Scout enabled: "
+        f"{FAST_SCOUT_ENABLED} | "
+        f"batch={FAST_SCOUT_BATCH_SIZE} | "
+        f"min_score={FAST_SCOUT_MIN_SCORE}",
         flush=True,
     )
 
