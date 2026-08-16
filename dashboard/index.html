@@ -957,6 +957,87 @@ th{color:var(--muted)}
   </section>
 </div>
 
+
+<script>
+(function(){
+  function byId(id){ return document.getElementById(id); }
+
+  window.HANZ_setTradingMode = function(mode){
+    var isSwing = mode === "swing";
+
+    var intradayPanel = byId("intradayModePanel");
+    var swingPanel = byId("swingModePanel");
+    var intradayBtn = byId("modeIntradayBtn");
+    var swingBtn = byId("modeSwingBtn");
+
+    if(intradayPanel){
+      intradayPanel.classList.toggle("active", !isSwing);
+      intradayPanel.style.display = isSwing ? "none" : "block";
+    }
+
+    if(swingPanel){
+      swingPanel.classList.toggle("active", isSwing);
+      swingPanel.style.display = isSwing ? "block" : "none";
+    }
+
+    if(intradayBtn){
+      intradayBtn.classList.toggle("active", !isSwing);
+      intradayBtn.setAttribute("aria-pressed", String(!isSwing));
+    }
+
+    if(swingBtn){
+      swingBtn.classList.toggle("active", isSwing);
+      swingBtn.setAttribute("aria-pressed", String(isSwing));
+    }
+
+    try{
+      localStorage.setItem("hanzTradingMode", isSwing ? "swing" : "intraday");
+    }catch(e){}
+
+    window.dispatchEvent(new CustomEvent(
+      "hanz-trading-mode-change",
+      { detail: { mode: isSwing ? "swing" : "intraday" } }
+    ));
+  };
+
+  function bind(){
+    var intradayBtn = byId("modeIntradayBtn");
+    var swingBtn = byId("modeSwingBtn");
+
+    if(intradayBtn && !intradayBtn.dataset.hanzModeBound){
+      intradayBtn.dataset.hanzModeBound = "1";
+      intradayBtn.onclick = function(ev){
+        ev.preventDefault();
+        ev.stopPropagation();
+        window.HANZ_setTradingMode("intraday");
+      };
+    }
+
+    if(swingBtn && !swingBtn.dataset.hanzModeBound){
+      swingBtn.dataset.hanzModeBound = "1";
+      swingBtn.onclick = function(ev){
+        ev.preventDefault();
+        ev.stopPropagation();
+        window.HANZ_setTradingMode("swing");
+      };
+    }
+
+    var saved = "intraday";
+    try{
+      saved = localStorage.getItem("hanzTradingMode") || "intraday";
+    }catch(e){}
+
+    window.HANZ_setTradingMode(saved === "swing" ? "swing" : "intraday");
+  }
+
+  if(document.readyState === "loading"){
+    document.addEventListener("DOMContentLoaded", bind, { once:true });
+  }else{
+    bind();
+  }
+})();
+</script>
+
 <script type="module">
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
@@ -1544,34 +1625,12 @@ async function loadLiveSignalMonitor(){
 
 /* TRADING MODE */
 function setTradingMode(mode){
-  const intraday = mode !== "swing";
+  if(window.HANZ_setTradingMode){
+    window.HANZ_setTradingMode(mode);
+  }
 
-  $("intradayModePanel")?.classList.toggle("active",intraday);
-  $("swingModePanel")?.classList.toggle("active",!intraday);
-
-  $("modeIntradayBtn")?.classList.toggle("active",intraday);
-  $("modeSwingBtn")?.classList.toggle("active",!intraday);
-
-  try{
-    localStorage.setItem("hanzTradingMode", intraday ? "intraday" : "swing");
-  }catch(e){}
-
-  if(!intraday){
+  if(mode === "swing"){
     loadSwingSignalMonitor();
-  }
-}
-
-
-function bindTradingModeButtons(){
-  const intradayBtn = $("modeIntradayBtn");
-  const swingBtn = $("modeSwingBtn");
-
-  if(intradayBtn){
-    intradayBtn.addEventListener("click", () => setTradingMode("intraday"));
-  }
-
-  if(swingBtn){
-    swingBtn.addEventListener("click", () => setTradingMode("swing"));
   }
 }
 
@@ -1580,6 +1639,7 @@ function restoreTradingMode(){
   try{
     mode=localStorage.getItem("hanzTradingMode") || "intraday";
   }catch(e){}
+
   setTradingMode(mode);
 }
 
@@ -1678,6 +1738,13 @@ async function loadSwingSignalMonitor(){
       </article>`;
   }).join("");
 }
+
+
+window.addEventListener("hanz-trading-mode-change",(event)=>{
+  if(event?.detail?.mode === "swing"){
+    loadSwingSignalMonitor();
+  }
+});
 
 /* HEALTH */
 async function loadHealth(){
@@ -2053,7 +2120,6 @@ async function loadAll(){
 
 /* EVENTS + START */
 window.addEventListener("DOMContentLoaded",async ()=>{
-  bindTradingModeButtons();
   restoreTradingMode();
 
   document.querySelectorAll("[data-panel]").forEach(btn=>{
