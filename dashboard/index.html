@@ -1,296 +1,1645 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>HANZ Intelligence</title><style>
-:root{--bg:#050b14;--panel:#0d1727;--panel2:#111f34;--line:#263650;--text:#f5f7fb;--muted:#98a7bd;--blue:#54a8ff;--green:#66e3a4;--yellow:#ffd76a;--red:#ff8299;--violet:#c5a7ff}
-*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:radial-gradient(circle at top right,#10213c 0,#050b14 38%);color:var(--text)}
-body:before{content:"";position:fixed;inset:0;pointer-events:none;background:linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);background-size:32px 32px;mask-image:linear-gradient(to bottom,black,transparent 70%)}
-main{max-width:1280px;margin:auto;padding:26px 20px 56px;position:relative}a{color:#9bcaff;text-decoration:none}.eyebrow{color:#7fa7d6;font-size:11px;font-weight:800;letter-spacing:.14em}
-.hero{padding:30px;border:1px solid #2a3f5f;border-radius:26px;background:linear-gradient(135deg,rgba(27,53,91,.96),rgba(13,23,39,.96));box-shadow:0 24px 60px rgba(0,0,0,.32);position:relative;overflow:hidden}
-.hero:after{content:"HANZ";position:absolute;right:-14px;top:-42px;font-size:160px;font-weight:900;color:rgba(255,255,255,.025);letter-spacing:-.08em}h1{margin:0 0 8px;font-size:clamp(34px,5vw,58px);letter-spacing:-.04em}.motto{margin:0 0 20px;font-size:18px;color:#d8e4f4}
-.notice{display:inline-flex;padding:10px 14px;border:1px solid #5b3548;border-radius:999px;background:#2c1c28;color:#ffd4df;font-size:13px;font-weight:700}.meta-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px;color:var(--muted)}.meta-row span{border:1px solid #324765;background:rgba(8,15,26,.35);border-radius:999px;padding:7px 10px;font-size:12px}
-.market-section{margin-top:34px}.section-head,.subsection-head{display:flex;align-items:end;justify-content:space-between;gap:16px;margin-bottom:16px}h2{margin:4px 0 0;font-size:34px}h3{margin:4px 0 0;font-size:24px}.section-head p{margin:5px 0 0;color:var(--muted)}
-.counts{display:flex;gap:8px;flex-wrap:wrap}.counts span{border:1px solid var(--line);background:rgba(13,23,39,.72);border-radius:999px;padding:8px 11px;color:var(--muted);font-size:12px}.counts b{color:var(--text);font-size:15px}
-.decision-panel{display:grid;grid-template-columns:2fr repeat(4,1fr);gap:10px;background:linear-gradient(135deg,#132744,#0b1524);border:1px solid #35527a;border-radius:22px;padding:16px;margin:18px 0 10px;box-shadow:0 18px 44px rgba(0,0,0,.24)}
-.decision-main,.decision-stat{border:1px solid rgba(130,170,220,.16);border-radius:16px;padding:15px;display:flex;flex-direction:column;justify-content:center;min-width:0}.decision-main small,.decision-stat small{color:var(--muted);font-size:10px;font-weight:800;letter-spacing:.12em}.decision-main strong{font-size:30px;margin-top:4px;line-height:1.05}.decision-main p{margin:8px 0 0;color:#d8e5f5;font-size:13px;line-height:1.45}.decision-stat strong{font-size:24px;margin-top:7px}.decision-stat strong span{font-size:13px;color:var(--muted)}
-.ready,.good{color:var(--green)}.wait,.caution{color:var(--yellow)}.risk,.reject,.bad{color:var(--red)}.neutral{color:#cbd6e7}.unknown{color:var(--muted)}
-.health-line,.quality-meter{height:6px;background:#15243a;border-radius:999px;overflow:hidden}.health-line span,.quality-meter span{display:block;height:100%;background:linear-gradient(90deg,#3f88ff,#66e3a4);border-radius:999px}.health-copy{color:var(--muted);margin:10px 2px 24px;font-size:13px}
-.candidate-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:16px}.candidate-card,.empty,.errors,.market-explanation{background:linear-gradient(180deg,#111f34,#0d1727);border:1px solid var(--line);border-radius:22px;padding:19px;box-shadow:0 14px 34px rgba(0,0,0,.18)}.watch-card{border-style:dashed}.candidate-head{display:flex;justify-content:space-between;gap:14px;align-items:start}.symbol-row{display:flex;align-items:center;gap:10px}.symbol{font-size:31px;font-weight:900;letter-spacing:-.03em}.market,.meta{color:var(--muted);font-size:12px}.mini-action{font-size:10px;font-weight:900;padding:5px 8px;border-radius:999px;background:#17263c}
-.badges{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.status,.strength,.quality,.grade{border-radius:999px;padding:6px 9px;font-weight:800;font-size:11px}.status.ready,.strength.strong{background:#113729;color:var(--green)}.status.wait,.strength.developing{background:#3c3316;color:var(--yellow)}.status.risk,.status.reject,.strength.weak{background:#401d27;color:var(--red)}.quality{background:#17314e;color:#b8dcff}.grade{background:#30264b;color:#d8c7ff}.quality-meter{margin:13px 0 14px}
-.instruction{border-left:3px solid #4d9fff;background:#0b1628;border-radius:10px;padding:10px 12px;margin-bottom:14px}.instruction strong{font-size:10px;letter-spacing:.12em;color:#8ebfff}.instruction p{margin:4px 0 0;font-size:13px;color:#dce7f5;line-height:1.45}
-.signal-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0}.signal{padding:11px;border:1px solid var(--line);border-radius:13px;display:flex;flex-direction:column;gap:5px;background:#0b1626}.signal small{color:var(--muted);font-size:11px}.signal strong{font-size:13px}
-.plan{display:grid;grid-template-columns:1.3fr repeat(3,1fr);gap:8px;margin:14px 0}.plan>div{border:1px solid var(--line);border-radius:13px;padding:11px;display:flex;flex-direction:column;gap:4px;background:#0b1626}.plan-primary{background:linear-gradient(145deg,#122b49,#0b1626)!important}.plan small,.plan span,.plan-note{color:var(--muted);font-size:11px}.plan strong{font-size:16px}.plan-note{line-height:1.45}
-details{margin:14px 0}summary{cursor:pointer;color:#bad6ff;font-weight:700}ul{line-height:1.55}.technical-values{display:flex;gap:7px;flex-wrap:wrap;margin-top:14px}.technical-values span{border:1px solid var(--line);border-radius:999px;padding:6px 8px;color:var(--muted);font-size:11px}.meta{margin-top:8px}.market-explanation{background:#17162a;border-color:#3d3760;margin:16px 0}.empty p{color:var(--muted);margin-bottom:0}footer{margin-top:34px;color:var(--muted);font-size:12px;line-height:1.5}
-@media(max-width:980px){.decision-panel{grid-template-columns:2fr repeat(2,1fr)}.decision-main{grid-row:span 2}.plan{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:720px){body{background:#060d18;padding-bottom:24px}main{padding:12px 10px 34px;max-width:none}.hero{padding:20px 16px;border-radius:20px}.hero:after{font-size:100px}h1{font-size:38px}.motto{font-size:14px;line-height:1.45}.notice{font-size:11px;border-radius:12px;line-height:1.35}.meta-row{display:grid;grid-template-columns:1fr;gap:6px}.meta-row span{font-size:10px;overflow-wrap:anywhere}
-.section-head,.subsection-head{align-items:start;flex-direction:column;gap:10px}h2{font-size:28px}h3{font-size:21px}.counts{display:grid;grid-template-columns:repeat(2,1fr);width:100%}.counts span{text-align:center}
-.decision-panel{position:sticky;top:8px;z-index:8;grid-template-columns:repeat(2,1fr);padding:12px;border-radius:18px;box-shadow:0 16px 30px rgba(0,0,0,.4)}.decision-main{grid-column:1/-1;grid-row:auto;padding:13px}.decision-main strong{font-size:25px}.decision-main p{font-size:12px}.decision-stat{padding:10px}.decision-stat strong{font-size:18px}
-.candidate-grid{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:12px;padding:2px 2px 12px;margin:0 -2px}.candidate-card{min-width:calc(100vw - 30px);scroll-snap-align:center;padding:16px;border-radius:18px}.watch-card{min-width:88vw}.candidate-head{flex-direction:column;gap:10px}.badges{justify-content:flex-start}.symbol{font-size:34px}.quality-meter{margin-top:10px}
-.signal-grid{grid-template-columns:repeat(2,1fr);gap:7px}.signal{min-height:68px;padding:10px 9px}.plan{grid-template-columns:repeat(2,1fr);gap:7px}.plan>div{min-height:92px;padding:10px 9px}.technical-values{gap:6px}.technical-values span{font-size:10px}.subsection-head a{font-size:12px}}
-@media(max-width:390px){.decision-panel{grid-template-columns:1fr 1fr}.candidate-card{min-width:calc(100vw - 22px)}.watch-card{min-width:92vw}}
-</style></head><body><main id="top"><section class="hero"><span class="eyebrow">INSTITUTIONAL RESEARCH DASHBOARD</span><h1>HANZ Intelligence</h1><p class="motto">HANZ isn't loyal to stocks. HANZ is loyal to profits.</p>
-<div class="notice">PAPER-TRADE RESEARCH ONLY — not approved for live-money execution.</div><div class="meta-row"><span>Generated: 2026-08-15T11:57:32.886448+00:00</span><span>Source: YAHOO_FINANCE_RESEARCH_ONLY</span><span>Grade: RESEARCH</span><span>Delayed: True</span></div></section>
-    <section class="market-section" id="market">
-      <div class="section-head">
-        <div><span class="eyebrow">MARKET OVERVIEW</span><h2>BEI</h2><p>100 symbols · 99.0% analyzed</p></div>
-        <div class="counts"><span><b>5</b> candidates</span><span><b>38</b> reviewed</span><span><b>56</b> rejected</span><span><b>1</b> errors</span></div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#070b14">
+<title>HANZ TRADE — Live Trading Intelligence</title>
+
+<style>
+:root{
+  --bg:#070b14;
+  --bg2:#0b1120;
+  --card:#101827;
+  --card2:#141e30;
+  --line:#23304a;
+  --text:#f5f7fb;
+  --muted:#8d9bb2;
+  --green:#20d997;
+  --red:#ff5f68;
+  --yellow:#ffc857;
+  --blue:#51a7ff;
+  --purple:#a879ff;
+  --radius:18px;
+}
+
+*{
+  box-sizing:border-box;
+}
+
+html,body{
+  margin:0;
+  min-height:100%;
+  background:
+    radial-gradient(circle at top right,#121d35 0,#070b14 40%);
+  color:var(--text);
+  font-family:
+    Inter,
+    ui-sans-serif,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+}
+
+body{
+  padding-bottom:88px;
+}
+
+button{
+  font:inherit;
+}
+
+.app{
+  max-width:1500px;
+  margin:auto;
+  padding:20px;
+}
+
+/* HEADER */
+
+.header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:16px;
+  margin-bottom:22px;
+}
+
+.brand{
+  display:flex;
+  align-items:center;
+  gap:13px;
+}
+
+.logo{
+  width:46px;
+  height:46px;
+  border-radius:15px;
+  display:grid;
+  place-items:center;
+  font-weight:900;
+  font-size:20px;
+  background:
+    linear-gradient(135deg,var(--green),var(--blue));
+  color:#031010;
+  box-shadow:0 10px 30px rgba(32,217,151,.18);
+}
+
+.brand h1{
+  font-size:21px;
+  margin:0;
+  letter-spacing:.3px;
+}
+
+.brand small{
+  display:block;
+  color:var(--muted);
+  margin-top:3px;
+}
+
+.header-actions{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.live-pill{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  padding:9px 13px;
+  border-radius:30px;
+  border:1px solid var(--line);
+  background:rgba(16,24,39,.8);
+  font-size:12px;
+  color:var(--muted);
+}
+
+.dot{
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:var(--yellow);
+}
+
+.dot.online{
+  background:var(--green);
+  box-shadow:0 0 12px var(--green);
+}
+
+.refresh-btn{
+  border:1px solid var(--line);
+  color:var(--text);
+  background:var(--card);
+  border-radius:12px;
+  padding:9px 13px;
+  cursor:pointer;
+}
+
+/* SUMMARY */
+
+.summary{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:14px;
+  margin-bottom:20px;
+}
+
+.stat{
+  position:relative;
+  overflow:hidden;
+  background:linear-gradient(145deg,var(--card),var(--bg2));
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:18px;
+  min-height:115px;
+}
+
+.stat-label{
+  color:var(--muted);
+  font-size:12px;
+  text-transform:uppercase;
+  letter-spacing:.7px;
+}
+
+.stat-value{
+  font-size:27px;
+  font-weight:800;
+  margin-top:9px;
+}
+
+.stat-sub{
+  font-size:12px;
+  color:var(--muted);
+  margin-top:6px;
+}
+
+/* NAV */
+
+.nav{
+  display:flex;
+  gap:8px;
+  margin-bottom:18px;
+  overflow:auto;
+  scrollbar-width:none;
+}
+
+.nav::-webkit-scrollbar{
+  display:none;
+}
+
+.nav button{
+  border:1px solid var(--line);
+  color:var(--muted);
+  background:transparent;
+  padding:10px 15px;
+  border-radius:12px;
+  cursor:pointer;
+  white-space:nowrap;
+}
+
+.nav button.active{
+  color:#06110d;
+  background:var(--green);
+  border-color:var(--green);
+  font-weight:800;
+}
+
+/* PANEL */
+
+.panel{
+  display:none;
+}
+
+.panel.active{
+  display:block;
+}
+
+.section-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:end;
+  margin:4px 0 13px;
+}
+
+.section-head h2{
+  margin:0;
+  font-size:18px;
+}
+
+.section-head small{
+  color:var(--muted);
+}
+
+/* TABLE */
+
+.table-wrap{
+  background:rgba(16,24,39,.8);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  overflow:auto;
+}
+
+table{
+  border-collapse:collapse;
+  width:100%;
+  min-width:900px;
+}
+
+th{
+  color:var(--muted);
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:.6px;
+  text-align:left;
+  padding:14px 15px;
+  border-bottom:1px solid var(--line);
+}
+
+td{
+  padding:15px;
+  border-bottom:1px solid rgba(35,48,74,.7);
+  font-size:13px;
+}
+
+tr:last-child td{
+  border-bottom:none;
+}
+
+.ticker{
+  font-weight:900;
+  font-size:15px;
+}
+
+.priority{
+  font-weight:800;
+}
+
+.badge{
+  display:inline-flex;
+  align-items:center;
+  border-radius:20px;
+  padding:6px 9px;
+  font-weight:700;
+  font-size:10px;
+  letter-spacing:.3px;
+}
+
+.badge.wait{
+  color:var(--yellow);
+  background:rgba(255,200,87,.11);
+}
+
+.badge.buy{
+  color:var(--green);
+  background:rgba(32,217,151,.11);
+}
+
+.badge.sell{
+  color:var(--red);
+  background:rgba(255,95,104,.11);
+}
+
+.badge.auto{
+  color:var(--blue);
+  background:rgba(81,167,255,.11);
+}
+
+/* OPPORTUNITY MOBILE CARDS */
+
+.cards{
+  display:none;
+  gap:12px;
+}
+
+.op-card{
+  background:linear-gradient(145deg,var(--card),var(--bg2));
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:16px;
+}
+
+.op-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.op-symbol{
+  font-size:20px;
+  font-weight:900;
+}
+
+.score-ring{
+  width:44px;
+  height:44px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  border:3px solid var(--green);
+  font-weight:900;
+}
+
+.level-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:9px;
+  margin-top:16px;
+}
+
+.level{
+  padding:10px;
+  border-radius:12px;
+  background:#0b1220;
+}
+
+.level span{
+  display:block;
+  color:var(--muted);
+  font-size:10px;
+  margin-bottom:5px;
+}
+
+.level strong{
+  font-size:13px;
+}
+
+.reason{
+  margin-top:13px;
+  color:var(--muted);
+  font-size:11px;
+  line-height:1.5;
+}
+
+/* OVERVIEW */
+
+.grid-2{
+  display:grid;
+  grid-template-columns:1.35fr .65fr;
+  gap:14px;
+}
+
+.box{
+  border:1px solid var(--line);
+  background:rgba(16,24,39,.8);
+  border-radius:var(--radius);
+  padding:17px;
+}
+
+.box h3{
+  margin:0 0 14px;
+  font-size:15px;
+}
+
+.ranking{
+  display:flex;
+  flex-direction:column;
+  gap:9px;
+}
+
+.rank-item{
+  display:grid;
+  grid-template-columns:40px 70px 1fr 55px;
+  gap:8px;
+  align-items:center;
+  padding:10px;
+  border-radius:12px;
+  background:#0c1422;
+}
+
+.rank-number{
+  color:var(--muted);
+}
+
+.rank-bar{
+  height:6px;
+  background:#1d2a40;
+  border-radius:10px;
+  overflow:hidden;
+}
+
+.rank-bar > div{
+  height:100%;
+  background:linear-gradient(90deg,var(--green),var(--blue));
+}
+
+.health-row{
+  display:flex;
+  justify-content:space-between;
+  padding:10px 0;
+  border-bottom:1px solid var(--line);
+  gap:20px;
+}
+
+.health-row:last-child{
+  border-bottom:none;
+}
+
+.health-row span:first-child{
+  color:var(--muted);
+}
+
+/* EMPTY */
+
+.empty{
+  padding:45px 20px;
+  text-align:center;
+  color:var(--muted);
+}
+
+.empty-icon{
+  font-size:30px;
+  margin-bottom:10px;
+}
+
+/* ERROR */
+
+.error-box{
+  border:1px solid rgba(255,95,104,.35);
+  background:rgba(255,95,104,.07);
+  color:#ffb7bb;
+  border-radius:14px;
+  padding:14px;
+  margin-bottom:14px;
+  display:none;
+}
+
+/* BOTTOM NAV */
+
+.bottom-nav{
+  display:none;
+}
+
+/* RESPONSIVE */
+
+@media(max-width:900px){
+
+  .app{
+    padding:14px;
+  }
+
+  .header{
+    align-items:flex-start;
+  }
+
+  .brand h1{
+    font-size:18px;
+  }
+
+  .summary{
+    grid-template-columns:1fr 1fr;
+  }
+
+  .grid-2{
+    grid-template-columns:1fr;
+  }
+
+  .desktop-opportunities{
+    display:none;
+  }
+
+  .cards{
+    display:grid;
+  }
+
+  .nav{
+    display:none;
+  }
+
+  .bottom-nav{
+    position:fixed;
+    z-index:20;
+    left:0;
+    right:0;
+    bottom:0;
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    background:rgba(7,11,20,.94);
+    backdrop-filter:blur(18px);
+    border-top:1px solid var(--line);
+    padding:
+      7px
+      max(6px,env(safe-area-inset-right))
+      calc(7px + env(safe-area-inset-bottom))
+      max(6px,env(safe-area-inset-left));
+  }
+
+  .bottom-nav button{
+    border:none;
+    background:none;
+    color:var(--muted);
+    padding:8px 2px;
+    font-size:10px;
+  }
+
+  .bottom-nav button.active{
+    color:var(--green);
+    font-weight:800;
+  }
+
+  .bottom-nav span{
+    display:block;
+    font-size:19px;
+    margin-bottom:3px;
+  }
+}
+
+@media(max-width:520px){
+
+  .summary{
+    gap:9px;
+  }
+
+  .stat{
+    padding:14px;
+    min-height:105px;
+  }
+
+  .stat-value{
+    font-size:22px;
+  }
+
+  .live-pill{
+    display:none;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<header class="header">
+  <div class="brand">
+    <div class="logo">H</div>
+    <div>
+      <h1>HANZ TRADE</h1>
+      <small>Autonomous Trading Intelligence</small>
+    </div>
+  </div>
+
+  <div class="header-actions">
+    <div class="live-pill">
+      <span id="engineDot" class="dot"></span>
+      <span id="engineLabel">Connecting...</span>
+    </div>
+
+    <button class="refresh-btn" onclick="loadAll()">
+      ↻ Refresh
+    </button>
+  </div>
+</header>
+
+<div id="errorBox" class="error-box"></div>
+
+<section class="summary">
+
+  <div class="stat">
+    <div class="stat-label">Opportunities</div>
+    <div class="stat-value" id="opportunityCount">—</div>
+    <div class="stat-sub">HANZ active shortlist</div>
+  </div>
+
+  <div class="stat">
+    <div class="stat-label">Top Candidate</div>
+    <div class="stat-value" id="topCandidate">—</div>
+    <div class="stat-sub" id="topCandidateSub">Waiting for data</div>
+  </div>
+
+  <div class="stat">
+    <div class="stat-label">Engine</div>
+    <div class="stat-value" id="engineState">—</div>
+    <div class="stat-sub">24/7 HANZ worker</div>
+  </div>
+
+  <div class="stat">
+    <div class="stat-label">Last Update</div>
+    <div class="stat-value" id="lastUpdate">—</div>
+    <div class="stat-sub" id="lastUpdateDate">Supabase live</div>
+  </div>
+
+</section>
+
+<nav class="nav">
+  <button class="active" data-panel="overview">Overview</button>
+  <button data-panel="opportunities">Opportunities</button>
+  <button data-panel="portfolio">Portfolio</button>
+  <button data-panel="alerts">Alerts</button>
+  <button data-panel="system">System</button>
+</nav>
+
+
+<!-- OVERVIEW -->
+
+<section id="overview" class="panel active">
+
+  <div class="grid-2">
+
+    <div class="box">
+      <h3>Today's Opportunity Ranking</h3>
+      <div id="ranking" class="ranking"></div>
+    </div>
+
+    <div class="box">
+      <h3>HANZ Status</h3>
+
+      <div class="health-row">
+        <span>Main Worker</span>
+        <strong id="mainWorkerStatus">—</strong>
       </div>
-      <section class="decision-panel">
-      <div class="decision-main">
-        <small>TODAY'S DECISION</small>
-        <strong class="wait">WAIT · JPFA</strong>
-        <p>Monitor JPFA. No entry until the status changes to READY.</p>
+
+      <div class="health-row">
+        <span>Fast Engine</span>
+        <strong>60 sec</strong>
       </div>
-      <div class="decision-stat"><small>MARKET POSTURE</small><strong>SELECTIVE</strong></div>
-      <div class="decision-stat"><small>HEALTH</small><strong>91<span>/100</span></strong></div>
-      <div class="decision-stat"><small>MAX EXPOSURE</small><strong>35<span>%</span></strong></div>
-      <div class="decision-stat"><small>TOP QUALITY</small><strong>84<span>/100</span></strong></div>
-    </section>
-      <div class="health-line"><span style="width:91%"></span></div>
-      <p class="health-copy">Some evidence is developing; favor patience and smaller paper positions.</p>
-      
-      <div class="subsection-head"><div><span class="eyebrow">PRIMARY SETUPS</span><h3>Actionable candidates</h3></div><a href="#watchlist">View watchlist ↓</a></div>
-      <div class="candidate-grid">
-    <article class="candidate-card ">
-      <div class="candidate-head">
-        <div>
-          <div class="symbol-row"><div class="symbol">JPFA</div><span class="mini-action wait">WAIT</span></div>
-          <div class="market">BEI · SECONDARY</div>
+
+      <div class="health-row">
+        <span>Trigger</span>
+        <strong>1m</strong>
+      </div>
+
+      <div class="health-row">
+        <span>Confirmation</span>
+        <strong>5m</strong>
+      </div>
+
+      <div class="health-row">
+        <span>Portfolio</span>
+        <strong id="portfolioStatus">0 positions</strong>
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- OPPORTUNITIES -->
+
+<section id="opportunities" class="panel">
+
+  <div class="section-head">
+    <div>
+      <h2>Opportunities</h2>
+      <small>Slow scan → Fast confirmation</small>
+    </div>
+  </div>
+
+  <div class="desktop-opportunities table-wrap">
+
+    <table>
+      <thead>
+      <tr>
+        <th>Ticker</th>
+        <th>Priority</th>
+        <th>Status</th>
+        <th>Entry Zone</th>
+        <th>Confirm</th>
+        <th>Invalidation</th>
+        <th>Source</th>
+      </tr>
+      </thead>
+
+      <tbody id="opportunityRows"></tbody>
+
+    </table>
+
+  </div>
+
+  <div id="opportunityCards" class="cards"></div>
+
+</section>
+
+
+<!-- PORTFOLIO -->
+
+<section id="portfolio" class="panel">
+
+  <div class="section-head">
+    <div>
+      <h2>Portfolio</h2>
+      <small>Positions monitored for SELL signals</small>
+    </div>
+  </div>
+
+  <div id="portfolioBox" class="table-wrap">
+    <div class="empty">
+      <div class="empty-icon">◎</div>
+      No open positions yet.
+    </div>
+  </div>
+
+</section>
+
+
+<!-- ALERTS -->
+
+<section id="alerts" class="panel">
+
+  <div class="section-head">
+    <div>
+      <h2>Trading Alerts</h2>
+      <small>EARLY WATCH · CONFIRMED BUY · SELL</small>
+    </div>
+  </div>
+
+  <div id="alertsBox" class="table-wrap">
+    <div class="empty">
+      <div class="empty-icon">⚡</div>
+      No confirmed alerts yet.
+    </div>
+  </div>
+
+</section>
+
+
+<!-- SYSTEM -->
+
+<section id="system" class="panel">
+
+  <div class="box">
+
+    <h3>System Health</h3>
+
+    <div class="health-row">
+      <span>Main Worker</span>
+      <strong id="sysStatus">—</strong>
+    </div>
+
+    <div class="health-row">
+      <span>Heartbeat</span>
+      <strong id="heartbeat">—</strong>
+    </div>
+
+    <div class="health-row">
+      <span>Last Successful Cycle</span>
+      <strong id="lastSuccess">—</strong>
+    </div>
+
+    <div class="health-row">
+      <span>Consecutive Failures</span>
+      <strong id="failures">—</strong>
+    </div>
+
+    <div class="health-row">
+      <span>Last Error</span>
+      <strong id="lastError">None</strong>
+    </div>
+
+    <div class="health-row">
+      <span>Dashboard Refresh</span>
+      <strong>30 sec</strong>
+    </div>
+
+  </div>
+
+</section>
+
+</div>
+
+
+<!-- MOBILE NAV -->
+
+<div class="bottom-nav">
+  <button class="active" data-panel="overview">
+    <span>⌂</span>Home
+  </button>
+
+  <button data-panel="opportunities">
+    <span>⌁</span>Signals
+  </button>
+
+  <button data-panel="portfolio">
+    <span>◉</span>Portfolio
+  </button>
+
+  <button data-panel="alerts">
+    <span>⚡</span>Alerts
+  </button>
+
+  <button data-panel="system">
+    <span>⚙</span>System
+  </button>
+</div>
+
+
+<script>
+
+/* ==========================================================
+   SUPABASE FRONTEND CONFIG
+   IMPORTANT:
+   Use PUBLISHABLE / ANON key only.
+   NEVER use SUPABASE_SECRET_KEY here.
+========================================================== */
+
+const SUPABASE_URL =
+  "https://fgyfszkadstmdzqwppt.supabase.co";
+
+const SUPABASE_KEY =
+  "sb_publishable_rBY4VJwPS1T5tm0zPw4tbg_BhApWtfM";
+
+const REFRESH_MS = 30000;
+
+
+/* ==========================================================
+   HELPERS
+========================================================== */
+
+function headers(){
+  return {
+    "apikey": SUPABASE_KEY,
+    "Authorization": "Bearer " + SUPABASE_KEY
+  };
+}
+
+async function api(path){
+
+  const response = await fetch(
+    SUPABASE_URL + "/rest/v1/" + path,
+    {
+      headers: headers(),
+      cache: "no-store"
+    }
+  );
+
+  if(!response.ok){
+    const text = await response.text();
+    throw new Error(
+      response.status + " " + text
+    );
+  }
+
+  return response.json();
+}
+
+
+function fmtPrice(value){
+
+  if(
+    value === null ||
+    value === undefined ||
+    value === ""
+  ){
+    return "—";
+  }
+
+  const n = Number(value);
+
+  if(!Number.isFinite(n)){
+    return value;
+  }
+
+  return n.toLocaleString(
+    "en-US",
+    {
+      maximumFractionDigits:2
+    }
+  );
+}
+
+
+function fmtTime(value){
+
+  if(!value){
+    return "—";
+  }
+
+  const date = new Date(value);
+
+  if(Number.isNaN(date.getTime())){
+    return "—";
+  }
+
+  return new Intl.DateTimeFormat(
+    "en-GB",
+    {
+      hour:"2-digit",
+      minute:"2-digit",
+      second:"2-digit"
+    }
+  ).format(date);
+}
+
+
+function fmtDate(value){
+
+  if(!value){
+    return "";
+  }
+
+  const date = new Date(value);
+
+  return new Intl.DateTimeFormat(
+    "en-GB",
+    {
+      day:"2-digit",
+      month:"short"
+    }
+  ).format(date);
+}
+
+
+function escapeHtml(text){
+
+  return String(text ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;");
+}
+
+
+/* ==========================================================
+   NAVIGATION
+========================================================== */
+
+function setPanel(name){
+
+  document
+    .querySelectorAll(".panel")
+    .forEach(el=>{
+      el.classList.toggle(
+        "active",
+        el.id === name
+      );
+    });
+
+  document
+    .querySelectorAll(
+      "[data-panel]"
+    )
+    .forEach(btn=>{
+      btn.classList.toggle(
+        "active",
+        btn.dataset.panel === name
+      );
+    });
+
+  window.scrollTo({
+    top:0,
+    behavior:"smooth"
+  });
+}
+
+
+document
+  .querySelectorAll("[data-panel]")
+  .forEach(btn=>{
+
+    btn.addEventListener(
+      "click",
+      ()=>setPanel(
+        btn.dataset.panel
+      )
+    );
+
+  });
+
+
+/* ==========================================================
+   WATCHLIST
+========================================================== */
+
+async function loadWatchlist(){
+
+  const rows = await api(
+    "hanz_watchlist" +
+    "?select=ticker,source,priority," +
+    "entry_zone_low,entry_zone_high," +
+    "confirmation_price," +
+    "invalidation_price,reason,updated_at" +
+    "&source=eq.AUTO_SLOW_ENGINE" +
+    "&order=priority.desc"
+  );
+
+  document.getElementById(
+    "opportunityCount"
+  ).textContent = rows.length;
+
+  if(rows.length){
+
+    const top = rows[0];
+
+    document.getElementById(
+      "topCandidate"
+    ).textContent = top.ticker;
+
+    document.getElementById(
+      "topCandidateSub"
+    ).textContent =
+      "Priority " + top.priority;
+
+  }else{
+
+    document.getElementById(
+      "topCandidate"
+    ).textContent = "—";
+
+    document.getElementById(
+      "topCandidateSub"
+    ).textContent =
+      "No active setup";
+  }
+
+
+  renderRanking(rows);
+  renderOpportunityTable(rows);
+  renderOpportunityCards(rows);
+
+  if(rows[0]?.updated_at){
+
+    document.getElementById(
+      "lastUpdate"
+    ).textContent =
+      fmtTime(
+        rows[0].updated_at
+      );
+
+    document.getElementById(
+      "lastUpdateDate"
+    ).textContent =
+      fmtDate(
+        rows[0].updated_at
+      ) + " · Supabase";
+  }
+
+}
+
+
+/* ==========================================================
+   RANKING
+========================================================== */
+
+function renderRanking(rows){
+
+  const box =
+    document.getElementById(
+      "ranking"
+    );
+
+  if(!rows.length){
+
+    box.innerHTML =
+      '<div class="empty">' +
+      'No opportunities.' +
+      '</div>';
+
+    return;
+  }
+
+  box.innerHTML =
+    rows.map(
+      (row,index)=>{
+
+        const score =
+          Math.max(
+            0,
+            Math.min(
+              100,
+              Number(row.priority || 0)
+            )
+          );
+
+        return `
+          <div class="rank-item">
+
+            <div class="rank-number">
+              #${index+1}
+            </div>
+
+            <strong>
+              ${escapeHtml(row.ticker)}
+            </strong>
+
+            <div class="rank-bar">
+              <div style="width:${score}%"></div>
+            </div>
+
+            <strong>
+              ${score}
+            </strong>
+
+          </div>
+        `;
+      }
+    ).join("");
+}
+
+
+/* ==========================================================
+   OPPORTUNITY TABLE
+========================================================== */
+
+function renderOpportunityTable(rows){
+
+  const tbody =
+    document.getElementById(
+      "opportunityRows"
+    );
+
+  tbody.innerHTML =
+    rows.map(
+      row=>`
+
+      <tr>
+
+        <td class="ticker">
+          ${escapeHtml(row.ticker)}
+        </td>
+
+        <td class="priority">
+          ${row.priority ?? "—"}
+        </td>
+
+        <td>
+          <span class="badge wait">
+            WAIT CONFIRM
+          </span>
+        </td>
+
+        <td>
+          ${fmtPrice(row.entry_zone_low)}
+          –
+          ${fmtPrice(row.entry_zone_high)}
+        </td>
+
+        <td>
+          ${fmtPrice(
+            row.confirmation_price
+          )}
+        </td>
+
+        <td>
+          ${fmtPrice(
+            row.invalidation_price
+          )}
+        </td>
+
+        <td>
+          <span class="badge auto">
+            AUTO
+          </span>
+        </td>
+
+      </tr>
+
+    `
+    ).join("");
+}
+
+
+/* ==========================================================
+   OPPORTUNITY MOBILE CARDS
+========================================================== */
+
+function renderOpportunityCards(rows){
+
+  const container =
+    document.getElementById(
+      "opportunityCards"
+    );
+
+  container.innerHTML =
+    rows.map(
+      row=>`
+
+      <article class="op-card">
+
+        <div class="op-top">
+
+          <div>
+            <div class="op-symbol">
+              ${escapeHtml(row.ticker)}
+            </div>
+
+            <span class="badge wait">
+              WAIT CONFIRM
+            </span>
+          </div>
+
+          <div class="score-ring">
+            ${row.priority ?? "—"}
+          </div>
+
         </div>
-        <div class="badges"><span class="quality">QUALITY 84/100</span><span class="grade">AA</span><span class="strength developing">DEVELOPING</span><span class="status wait">WAIT</span></div>
-      </div>
-      <div class="quality-meter"><span style="width:84%"></span></div>
-      <div class="instruction"><strong>WHAT TO DO</strong><p>Monitor JPFA. No entry until the status changes to READY.</p></div>
-      <div class="signal-grid"><div class="signal"><span class="signal-icon"></span><small>Trend</small><strong class="good">SUPPORTIVE</strong></div><div class="signal"><span class="signal-icon"></span><small>Volume</small><strong class="neutral">NEUTRAL</strong></div><div class="signal"><span class="signal-icon"></span><small>Resistance</small><strong class="good">SUPPORTIVE</strong></div><div class="signal"><span class="signal-icon"></span><small>Risk / Reward</small><strong class="good">SUPPORTIVE</strong></div><div class="signal"><span class="signal-icon"></span><small>Liquidity</small><strong class="good">SUPPORTIVE</strong></div><div class="signal"><span class="signal-icon"></span><small>Extension</small><strong class="caution">CAUTION</strong></div></div>
-      <div class="plan">
-      <div class="plan-primary"><small>WATCH PLAN</small><strong>2,303.93 – 2,329.64</strong><span>Price zone to monitor</span></div>
-      <div><small>STOP</small><strong>2,223.57</strong><span>Research invalidation</span></div>
-      <div><small>TARGET 1</small><strong>2,532.14</strong><span>R/R 1.9</span></div>
-      <div><small>TARGET 2</small><strong>2,638.21</strong><span>R/R 2.9</span></div>
-    </div><div class="plan-note">Watchlist plan only; wait for READY evidence before considering entry.</div>
-      <details><summary>Why HANZ classified it this way</summary><ul><li>Evidence retained for confirmation</li><li>Positive: data_freshness</li><li>Positive: liquidity</li><li>Positive: price_structure</li><li>Positive: resistance</li><li>Positive: risk_reward</li></ul></details>
-      <div class="technical-values">
-        <span>Close 2,320.00</span><span>RSI 78.38</span>
-        <span>RVOL 0.90</span><span>Resistance 2,290.00</span><span>ATR 64.29</span>
-      </div>
-      <div class="meta">Signal time: 2026-08-14T00:00:00+00:00</div>
-    </article>
-    <article class="candidate-card ">
-      <div class="candidate-head">
-        <div>
-          <div class="symbol-row"><div class="symbol">RAJA</div><span class="mini-action wait">WAIT</span></div>
-          <div class="market">BEI · SECONDARY</div>
+
+        <div class="level-grid">
+
+          <div class="level">
+            <span>ENTRY LOW</span>
+            <strong>
+              ${fmtPrice(
+                row.entry_zone_low
+              )}
+            </strong>
+          </div>
+
+          <div class="level">
+            <span>ENTRY HIGH</span>
+            <strong>
+              ${fmtPrice(
+                row.entry_zone_high
+              )}
+            </strong>
+          </div>
+
+          <div class="level">
+            <span>CONFIRM ABOVE</span>
+            <strong>
+              ${fmtPrice(
+                row.confirmation_price
+              )}
+            </strong>
+          </div>
+
+          <div class="level">
+            <span>INVALIDATION</span>
+            <strong>
+              ${fmtPrice(
+                row.invalidation_price
+              )}
+            </strong>
+          </div>
+
         </div>
-        <div class="badges"><span class="quality">QUALITY 70/100</span><span class="grade">BBB</span><span class="strength developing">DEVELOPING</span><span class="status wait">WAIT</span></div>
-      </div>
-      <div class="quality-meter"><span style="width:70%"></span></div>
-      <div class="instruction"><strong>WHAT TO DO</strong><p>Monitor RAJA. No entry until the status changes to READY.</p></div>
-      <div class="signal-grid"><div class="signal"><span class="signal-icon"></span><small>Trend</small><strong class="caution">CAUTION</strong></div><div class="signal"><span class="signal-icon"></span><small>Volume</small><strong class="neutral">NEUTRAL</strong></div><div class="signal"><span class="signal-icon"></span><small>Resistance</small><strong class="neutral">NEUTRAL</strong></div><div class="signal"><span class="signal-icon"></span><small>Risk / Reward</small><strong class="good">SUPPORTIVE</strong></div><div class="signal"><span class="signal-icon"></span><small>Liquidity</small><strong class="good">SUPPORTIVE</strong></div><div class="signal"><span class="signal-icon"></span><small>Extension</small><strong class="neutral">NEUTRAL</strong></div></div>
-      <div class="plan">
-      <div class="plan-primary"><small>WATCH PLAN</small><strong>825.89 – 840.46</strong><span>Price zone to monitor</span></div>
-      <div><small>STOP</small><strong>789.46</strong><span>Research invalidation</span></div>
-      <div><small>TARGET 1</small><strong>980.00</strong><span>R/R 2.7</span></div>
-      <div><small>TARGET 2</small><strong>1,031.00</strong><span>R/R 3.7</span></div>
-    </div><div class="plan-note">Watchlist plan only; wait for READY evidence before considering entry.</div>
-      <details><summary>Why HANZ classified it this way</summary><ul><li>Evidence retained for confirmation</li><li>Positive: data_freshness</li><li>Positive: liquidity</li><li>Positive: risk_reward</li></ul></details>
-      <div class="technical-values">
-        <span>Close 835.00</span><span>RSI 42.59</span>
-        <span>RVOL 0.86</span><span>Resistance 980.00</span><span>ATR 36.43</span>
-      </div>
-      <div class="meta">Signal time: 2026-08-14T00:00:00+00:00</div>
-    </article>
-    <article class="candidate-card ">
-      <div class="candidate-head">
-        <div>
-          <div class="symbol-row"><div class="symbol">EXCL</div><span class="mini-action wait">WAIT</span></div>
-          <div class="market">BEI · SECONDARY</div>
+
+        <div class="reason">
+          ${escapeHtml(
+            row.reason || ""
+          )}
         </div>
-        <div class="badges"><span class="quality">QUALITY 77/100</span><span class="grade">A</span><span class="strength developing">DEVELOPING</span><span class="status wait">WAIT</span></div>
-      </div>
-      <div class="quality-meter"><span style="width:77%"></span></div>
-      <div class="instruction"><strong>WHAT TO DO</strong><p>Monitor EXCL. No entry until the status changes to READY.</p></div>
-      <div class="signal-grid"><div class="signal"><span class="signal-icon"></span><small>Trend</small><strong class="caution">CAUTION</strong></div><div class="signal"><span class="signal-icon"></span><small>Volume</small><strong class="good">SUPPORTIVE</strong></div><div class="signal"><span class="signal-icon"></span><small>Resistance</small><strong class="good">SUPPORTIVE</strong></div><div class="signal"><span class="signal-icon"></span><small>Risk / Reward</small><strong class="good">SUPPORTIVE</strong></div><div class="signal"><span class="signal-icon"></span><small>Liquidity</small><strong class="good">SUPPORTIVE</strong></div><div class="signal"><span class="signal-icon"></span><small>Extension</small><strong class="caution">CAUTION</strong></div></div>
-      <div class="plan">
-      <div class="plan-primary"><small>WATCH PLAN</small><strong>2,774.29 – 2,815.43</strong><span>Price zone to monitor</span></div>
-      <div><small>STOP</small><strong>2,645.71</strong><span>Research invalidation</span></div>
-      <div><small>TARGET 1</small><strong>3,139.43</strong><span>R/R 1.9</span></div>
-      <div><small>TARGET 2</small><strong>3,309.14</strong><span>R/R 2.9</span></div>
-    </div><div class="plan-note">Watchlist plan only; wait for READY evidence before considering entry.</div>
-      <details><summary>Why HANZ classified it this way</summary><ul><li>Evidence retained for confirmation</li><li>Positive: data_freshness</li><li>Positive: liquidity</li><li>Positive: resistance</li><li>Positive: risk_reward</li><li>Positive: volume_confirmation</li></ul></details>
-      <div class="technical-values">
-        <span>Close 2,800.00</span><span>RSI 72.63</span>
-        <span>RVOL 2.71</span><span>Resistance 2,660.00</span><span>ATR 102.86</span>
-      </div>
-      <div class="meta">Signal time: 2026-08-14T00:00:00+00:00</div>
-    </article>
-    <article class="candidate-card ">
-      <div class="candidate-head">
-        <div>
-          <div class="symbol-row"><div class="symbol">WIFI</div><span class="mini-action wait">WAIT</span></div>
-          <div class="market">BEI · SECONDARY</div>
-        </div>
-        <div class="badges"><span class="quality">QUALITY 66/100</span><span class="grade">BBB</span><span class="strength developing">DEVELOPING</span><span class="status wait">WAIT</span></div>
-      </div>
-      <div class="quality-meter"><span style="width:66%"></span></div>
-      <div class="instruction"><strong>WHAT TO DO</strong><p>Monitor WIFI. No entry until the status changes to READY.</p></div>
-      <div class="signal-grid"><div class="signal"><span class="signal-icon"></span><small>Trend</small><strong class="caution">CAUTION</strong></div><div class="signal"><span class="signal-icon"></span><small>Volume</small><strong class="caution">CAUTION</strong></div><div class="signal"><span class="signal-icon"></span><small>Resistance</small><strong class="neutral">NEUTRAL</strong></div><div class="signal"><span class="signal-icon"></span><small>Risk / Reward</small><strong class="good">SUPPORTIVE</strong></div><div class="signal"><span class="signal-icon"></span><small>Liquidity</small><strong class="good">SUPPORTIVE</strong></div><div class="signal"><span class="signal-icon"></span><small>Extension</small><strong class="neutral">NEUTRAL</strong></div></div>
-      <div class="plan">
-      <div class="plan-primary"><small>WATCH PLAN</small><strong>1,916.34 – 1,946.20</strong><span>Price zone to monitor</span></div>
-      <div><small>STOP</small><strong>1,875.58</strong><span>Research invalidation</span></div>
-      <div><small>TARGET 1</small><strong>2,150.00</strong><span>R/R 2.9</span></div>
-      <div><small>TARGET 2</small><strong>2,220.62</strong><span>R/R 3.9</span></div>
-    </div><div class="plan-note">Watchlist plan only; wait for READY evidence before considering entry.</div>
-      <details><summary>Why HANZ classified it this way</summary><ul><li>Evidence retained for confirmation</li><li>Positive: data_freshness</li><li>Positive: liquidity</li><li>Positive: risk_reward</li></ul></details>
-      <div class="technical-values">
-        <span>Close 1,935.00</span><span>RSI 43.12</span>
-        <span>RVOL 0.73</span><span>Resistance 2,150.00</span><span>ATR 74.64</span>
-      </div>
-      <div class="meta">Signal time: 2026-08-14T00:00:00+00:00</div>
-    </article>
-    <article class="candidate-card ">
-      <div class="candidate-head">
-        <div>
-          <div class="symbol-row"><div class="symbol">AKRA</div><span class="mini-action wait">WAIT</span></div>
-          <div class="market">BEI · SECONDARY</div>
-        </div>
-        <div class="badges"><span class="quality">QUALITY 66/100</span><span class="grade">BBB</span><span class="strength developing">DEVELOPING</span><span class="status wait">WAIT</span></div>
-      </div>
-      <div class="quality-meter"><span style="width:66%"></span></div>
-      <div class="instruction"><strong>WHAT TO DO</strong><p>Monitor AKRA. No entry until the status changes to READY.</p></div>
-      <div class="signal-grid"><div class="signal"><span class="signal-icon"></span><small>Trend</small><strong class="caution">CAUTION</strong></div><div class="signal"><span class="signal-icon"></span><small>Volume</small><strong class="caution">CAUTION</strong></div><div class="signal"><span class="signal-icon"></span><small>Resistance</small><strong class="neutral">NEUTRAL</strong></div><div class="signal"><span class="signal-icon"></span><small>Risk / Reward</small><strong class="good">SUPPORTIVE</strong></div><div class="signal"><span class="signal-icon"></span><small>Liquidity</small><strong class="good">SUPPORTIVE</strong></div><div class="signal"><span class="signal-icon"></span><small>Extension</small><strong class="neutral">NEUTRAL</strong></div></div>
-      <div class="plan">
-      <div class="plan-primary"><small>WATCH PLAN</small><strong>1,392.77 – 1,404.34</strong><span>Price zone to monitor</span></div>
-      <div><small>STOP</small><strong>1,356.61</strong><span>Research invalidation</span></div>
-      <div><small>TARGET 1</small><strong>1,520.00</strong><span>R/R 2.4</span></div>
-      <div><small>TARGET 2</small><strong>1,567.73</strong><span>R/R 3.4</span></div>
-    </div><div class="plan-note">Watchlist plan only; wait for READY evidence before considering entry.</div>
-      <details><summary>Why HANZ classified it this way</summary><ul><li>Evidence retained for confirmation</li><li>Positive: data_freshness</li><li>Positive: liquidity</li><li>Positive: risk_reward</li></ul></details>
-      <div class="technical-values">
-        <span>Close 1,400.00</span><span>RSI 29.63</span>
-        <span>RVOL 0.46</span><span>Resistance 1,520.00</span><span>ATR 28.93</span>
-      </div>
-      <div class="meta">Signal time: 2026-08-14T00:00:00+00:00</div>
-    </article></div>
-      <div class="subsection-head" id="watchlist"><div><span class="eyebrow">EARLY OPPORTUNITIES</span><h3>Top developing watchlist</h3></div><a href="#top">Back to top ↑</a></div>
-      <div class="candidate-grid watch-grid">
-    <article class="candidate-card watch-card">
-      <div class="candidate-head">
-        <div>
-          <div class="symbol-row"><div class="symbol">SMSM</div><span class="mini-action wait">WAIT</span></div>
-          <div class="market">BEI · SECONDARY</div>
-        </div>
-        <div class="badges"><span class="quality">QUALITY 66/100</span><span class="grade">BBB</span><span class="strength developing">DEVELOPING</span><span class="status wait">WATCHLIST</span></div>
-      </div>
-      <div class="quality-meter"><span style="width:66%"></span></div>
-      <div class="instruction"><strong>WHAT TO DO</strong><p>Monitor SMSM. No entry until the status changes to READY.</p></div>
-      <div class="signal-grid"><div class="signal"><span class="signal-icon"></span><small>Trend</small><strong class="caution">CAUTION</strong></div><div class="signal"><span class="signal-icon"></span><small>Volume</small><strong class="caution">CAUTION</strong></div><div class="signal"><span class="signal-icon"></span><small>Resistance</small><strong class="neutral">NEUTRAL</strong></div><div class="signal"><span class="signal-icon"></span><small>Risk / Reward</small><strong class="good">SUPPORTIVE</strong></div><div class="signal"><span class="signal-icon"></span><small>Liquidity</small><strong class="good">SUPPORTIVE</strong></div><div class="signal"><span class="signal-icon"></span><small>Extension</small><strong class="neutral">NEUTRAL</strong></div></div>
-      <div class="plan">
-      <div class="plan-primary"><small>WATCH PLAN</small><strong>1,707.50 – 1,719.50</strong><span>Price zone to monitor</span></div>
-      <div><small>STOP</small><strong>1,686.53</strong><span>Research invalidation</span></div>
-      <div><small>TARGET 1</small><strong>1,830.00</strong><span>R/R 3.4</span></div>
-      <div><small>TARGET 2</small><strong>1,862.97</strong><span>R/R 4.4</span></div>
-    </div><div class="plan-note">Watchlist plan only; wait for READY evidence before considering entry.</div>
-      <details><summary>Why HANZ classified it this way</summary><ul><li>Evidence retained for confirmation</li><li>Positive: data_freshness</li><li>Positive: liquidity</li><li>Positive: risk_reward</li></ul></details>
-      <div class="technical-values">
-        <span>Close 1,715.00</span><span>RSI 48.78</span>
-        <span>RVOL 0.43</span><span>Resistance 1,830.00</span><span>ATR 30.00</span>
-      </div>
-      <div class="meta">Signal time: 2026-08-14T00:00:00+00:00</div>
-    </article>
-    <article class="candidate-card watch-card">
-      <div class="candidate-head">
-        <div>
-          <div class="symbol-row"><div class="symbol">MIKA</div><span class="mini-action wait">WAIT</span></div>
-          <div class="market">BEI · SECONDARY</div>
-        </div>
-        <div class="badges"><span class="quality">QUALITY 66/100</span><span class="grade">BBB</span><span class="strength developing">DEVELOPING</span><span class="status wait">WATCHLIST</span></div>
-      </div>
-      <div class="quality-meter"><span style="width:66%"></span></div>
-      <div class="instruction"><strong>WHAT TO DO</strong><p>Monitor MIKA. No entry until the status changes to READY.</p></div>
-      <div class="signal-grid"><div class="signal"><span class="signal-icon"></span><small>Trend</small><strong class="caution">CAUTION</strong></div><div class="signal"><span class="signal-icon"></span><small>Volume</small><strong class="caution">CAUTION</strong></div><div class="signal"><span class="signal-icon"></span><small>Resistance</small><strong class="neutral">NEUTRAL</strong></div><div class="signal"><span class="signal-icon"></span><small>Risk / Reward</small><strong class="good">SUPPORTIVE</strong></div><div class="signal"><span class="signal-icon"></span><small>Liquidity</small><strong class="good">SUPPORTIVE</strong></div><div class="signal"><span class="signal-icon"></span><small>Extension</small><strong class="neutral">NEUTRAL</strong></div></div>
-      <div class="plan">
-      <div class="plan-primary"><small>WATCH PLAN</small><strong>1,741.96 – 1,770.82</strong><span>Price zone to monitor</span></div>
-      <div><small>STOP</small><strong>1,681.55</strong><span>Research invalidation</span></div>
-      <div><small>TARGET 1</small><strong>1,938.54</strong><span>R/R 1.9</span></div>
-      <div><small>TARGET 2</small><strong>2,027.81</strong><span>R/R 2.9</span></div>
-    </div><div class="plan-note">Watchlist plan only; wait for READY evidence before considering entry.</div>
-      <details><summary>Why HANZ classified it this way</summary><ul><li>Evidence retained for confirmation</li><li>Positive: data_freshness</li><li>Positive: liquidity</li><li>Positive: risk_reward</li></ul></details>
-      <div class="technical-values">
-        <span>Close 1,760.00</span><span>RSI 50.86</span>
-        <span>RVOL 0.33</span><span>Resistance 1,905.00</span><span>ATR 72.14</span>
-      </div>
-      <div class="meta">Signal time: 2026-08-14T00:00:00+00:00</div>
-    </article>
-    <article class="candidate-card watch-card">
-      <div class="candidate-head">
-        <div>
-          <div class="symbol-row"><div class="symbol">MAPI</div><span class="mini-action wait">WAIT</span></div>
-          <div class="market">BEI · SECONDARY</div>
-        </div>
-        <div class="badges"><span class="quality">QUALITY 66/100</span><span class="grade">BBB</span><span class="strength developing">DEVELOPING</span><span class="status wait">WATCHLIST</span></div>
-      </div>
-      <div class="quality-meter"><span style="width:66%"></span></div>
-      <div class="instruction"><strong>WHAT TO DO</strong><p>Monitor MAPI. No entry until the status changes to READY.</p></div>
-      <div class="signal-grid"><div class="signal"><span class="signal-icon"></span><small>Trend</small><strong class="caution">CAUTION</strong></div><div class="signal"><span class="signal-icon"></span><small>Volume</small><strong class="caution">CAUTION</strong></div><div class="signal"><span class="signal-icon"></span><small>Resistance</small><strong class="neutral">NEUTRAL</strong></div><div class="signal"><span class="signal-icon"></span><small>Risk / Reward</small><strong class="good">SUPPORTIVE</strong></div><div class="signal"><span class="signal-icon"></span><small>Liquidity</small><strong class="good">SUPPORTIVE</strong></div><div class="signal"><span class="signal-icon"></span><small>Extension</small><strong class="neutral">NEUTRAL</strong></div></div>
-      <div class="plan">
-      <div class="plan-primary"><small>WATCH PLAN</small><strong>1,466.34 – 1,512.20</strong><span>Price zone to monitor</span></div>
-      <div><small>STOP</small><strong>1,353.20</strong><span>Research invalidation</span></div>
-      <div><small>TARGET 1</small><strong>1,940.00</strong><span>R/R 2.7</span></div>
-      <div><small>TARGET 2</small><strong>2,099.00</strong><span>R/R 3.7</span></div>
-    </div><div class="plan-note">Watchlist plan only; wait for READY evidence before considering entry.</div>
-      <details><summary>Why HANZ classified it this way</summary><ul><li>Evidence retained for confirmation</li><li>Positive: data_freshness</li><li>Positive: liquidity</li><li>Positive: risk_reward</li></ul></details>
-      <div class="technical-values">
-        <span>Close 1,495.00</span><span>RSI 53.65</span>
-        <span>RVOL 0.32</span><span>Resistance 1,940.00</span><span>ATR 114.64</span>
-      </div>
-      <div class="meta">Signal time: 2026-08-14T00:00:00+00:00</div>
-    </article>
-    <article class="candidate-card watch-card">
-      <div class="candidate-head">
-        <div>
-          <div class="symbol-row"><div class="symbol">ARTO</div><span class="mini-action wait">WAIT</span></div>
-          <div class="market">BEI · SECONDARY</div>
-        </div>
-        <div class="badges"><span class="quality">QUALITY 66/100</span><span class="grade">BBB</span><span class="strength developing">DEVELOPING</span><span class="status wait">WATCHLIST</span></div>
-      </div>
-      <div class="quality-meter"><span style="width:66%"></span></div>
-      <div class="instruction"><strong>WHAT TO DO</strong><p>Monitor ARTO. No entry until the status changes to READY.</p></div>
-      <div class="signal-grid"><div class="signal"><span class="signal-icon"></span><small>Trend</small><strong class="caution">CAUTION</strong></div><div class="signal"><span class="signal-icon"></span><small>Volume</small><strong class="caution">CAUTION</strong></div><div class="signal"><span class="signal-icon"></span><small>Resistance</small><strong class="neutral">NEUTRAL</strong></div><div class="signal"><span class="signal-icon"></span><small>Risk / Reward</small><strong class="good">SUPPORTIVE</strong></div><div class="signal"><span class="signal-icon"></span><small>Liquidity</small><strong class="good">SUPPORTIVE</strong></div><div class="signal"><span class="signal-icon"></span><small>Extension</small><strong class="neutral">NEUTRAL</strong></div></div>
-      <div class="plan">
-      <div class="plan-primary"><small>WATCH PLAN</small><strong>1,169.91 – 1,194.05</strong><span>Price zone to monitor</span></div>
-      <div><small>STOP</small><strong>1,134.30</strong><span>Research invalidation</span></div>
-      <div><small>TARGET 1</small><strong>1,435.00</strong><span>R/R 4.0</span></div>
-      <div><small>TARGET 2</small><strong>1,494.75</strong><span>R/R 5.0</span></div>
-    </div><div class="plan-note">Watchlist plan only; wait for READY evidence before considering entry.</div>
-      <details><summary>Why HANZ classified it this way</summary><ul><li>Evidence retained for confirmation</li><li>Positive: data_freshness</li><li>Positive: liquidity</li><li>Positive: risk_reward</li></ul></details>
-      <div class="technical-values">
-        <span>Close 1,185.00</span><span>RSI 48.48</span>
-        <span>RVOL 0.28</span><span>Resistance 1,435.00</span><span>ATR 60.36</span>
-      </div>
-      <div class="meta">Signal time: 2026-08-14T00:00:00+00:00</div>
-    </article>
-    <article class="candidate-card watch-card">
-      <div class="candidate-head">
-        <div>
-          <div class="symbol-row"><div class="symbol">MEDC</div><span class="mini-action wait">WAIT</span></div>
-          <div class="market">BEI · SECONDARY</div>
-        </div>
-        <div class="badges"><span class="quality">QUALITY 65/100</span><span class="grade">BBB</span><span class="strength developing">DEVELOPING</span><span class="status wait">WATCHLIST</span></div>
-      </div>
-      <div class="quality-meter"><span style="width:65%"></span></div>
-      <div class="instruction"><strong>WHAT TO DO</strong><p>Monitor MEDC. No entry until the status changes to READY.</p></div>
-      <div class="signal-grid"><div class="signal"><span class="signal-icon"></span><small>Trend</small><strong class="good">SUPPORTIVE</strong></div><div class="signal"><span class="signal-icon"></span><small>Volume</small><strong class="caution">CAUTION</strong></div><div class="signal"><span class="signal-icon"></span><small>Resistance</small><strong class="neutral">NEUTRAL</strong></div><div class="signal"><span class="signal-icon"></span><small>Risk / Reward</small><strong class="caution">CAUTION</strong></div><div class="signal"><span class="signal-icon"></span><small>Liquidity</small><strong class="good">SUPPORTIVE</strong></div><div class="signal"><span class="signal-icon"></span><small>Extension</small><strong class="neutral">NEUTRAL</strong></div></div>
-      <div class="plan">
-      <div class="plan-primary"><small>WATCH PLAN</small><strong>1,300.71 – 1,323.57</strong><span>Price zone to monitor</span></div>
-      <div><small>STOP</small><strong>1,229.29</strong><span>Research invalidation</span></div>
-      <div><small>TARGET 1</small><strong>1,503.57</strong><span>R/R 1.9</span></div>
-      <div><small>TARGET 2</small><strong>1,597.86</strong><span>R/R 2.9</span></div>
-    </div><div class="plan-note">Watchlist plan only; wait for READY evidence before considering entry.</div>
-      <details><summary>Why HANZ classified it this way</summary><ul><li>Evidence retained for confirmation</li><li>Positive: data_freshness</li><li>Positive: liquidity</li><li>Positive: price_structure</li></ul></details>
-      <div class="technical-values">
-        <span>Close 1,315.00</span><span>RSI 51.69</span>
-        <span>RVOL 0.50</span><span>Resistance 1,425.00</span><span>ATR 57.14</span>
-      </div>
-      <div class="meta">Signal time: 2026-08-14T00:00:00+00:00</div>
-    </article></div>
-      <details class="errors"><summary>Data errors (1)</summary><ul><li><strong>MFIN</strong>: Both Yahoo acquisition paths failed for MFIN.JK. yfinance=yfinance returned no data for MFIN.JK; chart=Yahoo chart request failed for MFIN.JK: HTTP Error 404: Not Found</li></ul></details>
-    </section>
-<footer>Evidence-first output. Quality scores summarize evidence completeness and alignment; they are not win probabilities or guarantees.</footer></main></body></html>
+
+      </article>
+
+    `
+    ).join("");
+}
+
+
+/* ==========================================================
+   MAIN ENGINE HEALTH
+========================================================== */
+
+async function loadHealth(){
+
+  const rows = await api(
+    "hanz_live_state" +
+    "?select=id,status,heartbeat_at," +
+    "last_success_at,last_error," +
+    "consecutive_failures,updated_at" +
+    "&id=eq.bei-main" +
+    "&limit=1"
+  );
+
+  const state = rows[0];
+
+  if(!state){
+    return;
+  }
+
+  const status =
+    String(
+      state.status || ""
+    ).toLowerCase();
+
+  const online =
+    status === "online";
+
+  document.getElementById(
+    "engineState"
+  ).textContent =
+    online
+      ? "ONLINE"
+      : "CHECK";
+
+  document.getElementById(
+    "mainWorkerStatus"
+  ).textContent =
+    online
+      ? "ONLINE"
+      : status.toUpperCase();
+
+  document.getElementById(
+    "sysStatus"
+  ).textContent =
+    status.toUpperCase();
+
+  document.getElementById(
+    "heartbeat"
+  ).textContent =
+    fmtTime(
+      state.heartbeat_at
+    );
+
+  document.getElementById(
+    "lastSuccess"
+  ).textContent =
+    fmtTime(
+      state.last_success_at
+    );
+
+  document.getElementById(
+    "failures"
+  ).textContent =
+    state.consecutive_failures ?? 0;
+
+  document.getElementById(
+    "lastError"
+  ).textContent =
+    state.last_error || "None";
+
+  const dot =
+    document.getElementById(
+      "engineDot"
+    );
+
+  dot.classList.toggle(
+    "online",
+    online
+  );
+
+  document.getElementById(
+    "engineLabel"
+  ).textContent =
+    online
+      ? "HANZ LIVE"
+      : "CHECK ENGINE";
+}
+
+
+/* ==========================================================
+   OPTIONAL PORTFOLIO
+========================================================== */
+
+async function loadPortfolio(){
+
+  try{
+
+    const rows = await api(
+      "hanz_portfolio" +
+      "?select=*" +
+      "&order=updated_at.desc"
+    );
+
+    document.getElementById(
+      "portfolioStatus"
+    ).textContent =
+      rows.length +
+      (
+        rows.length === 1
+          ? " position"
+          : " positions"
+      );
+
+    if(!rows.length){
+      return;
+    }
+
+    const box =
+      document.getElementById(
+        "portfolioBox"
+      );
+
+    box.innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>Ticker</th>
+            <th>Avg Buy</th>
+            <th>Qty</th>
+            <th>Last Price</th>
+            <th>P/L</th>
+            <th>Signal</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map(row=>`
+            <tr>
+              <td class="ticker">
+                ${escapeHtml(
+                  row.ticker
+                )}
+              </td>
+
+              <td>
+                ${fmtPrice(
+                  row.avg_buy
+                )}
+              </td>
+
+              <td>
+                ${
+                  row.quantity ??
+                  row.lots ??
+                  "—"
+                }
+              </td>
+
+              <td>
+                ${fmtPrice(
+                  row.last_price
+                )}
+              </td>
+
+              <td>
+                ${
+                  row.pnl_percent ??
+                  "—"
+                }
+              </td>
+
+              <td>
+                <span class="badge wait">
+                  ${
+                    escapeHtml(
+                      row.signal ||
+                      "MONITOR"
+                    )
+                  }
+                </span>
+              </td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    `;
+
+  }catch(error){
+
+    /*
+      hanz_portfolio may not exist yet.
+      That's OK for now.
+    */
+
+    document.getElementById(
+      "portfolioStatus"
+    ).textContent =
+      "0 positions";
+  }
+}
+
+
+/* ==========================================================
+   OPTIONAL ALERTS
+========================================================== */
+
+async function loadAlerts(){
+
+  try{
+
+    const rows = await api(
+      "hanz_alerts" +
+      "?select=*" +
+      "&order=created_at.desc" +
+      "&limit=30"
+    );
+
+    if(!rows.length){
+      return;
+    }
+
+    const box =
+      document.getElementById(
+        "alertsBox"
+      );
+
+    box.innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Ticker</th>
+            <th>Alert</th>
+            <th>Price</th>
+            <th>Reason</th>
+          </tr>
+        </thead>
+
+        <tbody>
+
+        ${rows.map(row=>{
+
+          const type =
+            String(
+              row.alert_type ||
+              row.type ||
+              ""
+            ).toUpperCase();
+
+          let badgeClass = "wait";
+
+          if(type.includes("BUY")){
+            badgeClass = "buy";
+          }
+
+          if(type.includes("SELL")){
+            badgeClass = "sell";
+          }
+
+          return `
+            <tr>
+
+              <td>
+                ${fmtTime(
+                  row.created_at
+                )}
+              </td>
+
+              <td class="ticker">
+                ${escapeHtml(
+                  row.ticker
+                )}
+              </td>
+
+              <td>
+                <span class="badge ${badgeClass}">
+                  ${escapeHtml(type)}
+                </span>
+              </td>
+
+              <td>
+                ${fmtPrice(
+                  row.price
+                )}
+              </td>
+
+              <td>
+                ${escapeHtml(
+                  row.reason || ""
+                )}
+              </td>
+
+            </tr>
+          `;
+
+        }).join("")}
+
+        </tbody>
+      </table>
+    `;
+
+  }catch(error){
+
+    /*
+      hanz_alerts will be created
+      during notification phase.
+    */
+  }
+}
+
+
+/* ==========================================================
+   LOAD EVERYTHING
+========================================================== */
+
+async function loadAll(){
+
+  const errorBox =
+    document.getElementById(
+      "errorBox"
+    );
+
+  errorBox.style.display =
+    "none";
+
+  try{
+
+    await Promise.all([
+      loadWatchlist(),
+      loadHealth(),
+      loadPortfolio(),
+      loadAlerts()
+    ]);
+
+  }catch(error){
+
+    console.error(error);
+
+    errorBox.textContent =
+      "Live data connection error: " +
+      error.message;
+
+    errorBox.style.display =
+      "block";
+  }
+}
+
+
+/* ==========================================================
+   START
+========================================================== */
+
+loadAll();
+
+setInterval(
+  loadAll,
+  REFRESH_MS
+);
+
+</script>
+
+</body>
+</html>
