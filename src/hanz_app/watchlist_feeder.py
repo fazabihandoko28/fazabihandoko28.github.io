@@ -9,7 +9,8 @@ from pathlib import Path
 
 
 # ============================================================
-# HANZ AUTO WATCHLIST FEEDER v3
+# HANZ AUTO WATCHLIST FEEDER v4
+# Handles markets as LIST or DICT
 # ============================================================
 
 SUPABASE_URL = os.getenv("SUPABASE_URL", "").rstrip("/")
@@ -60,7 +61,7 @@ def clean_ticker(value):
     if ticker.endswith(".JK"):
         ticker = ticker[:-3]
 
-    return ticker.strip() or None
+    return ticker or None
 
 
 def looks_like_idx_ticker(value):
@@ -69,9 +70,6 @@ def looks_like_idx_ticker(value):
     if not ticker:
         return False
 
-    # IDX ticker normally 4 characters.
-    # We allow 3-6 alphanumeric characters
-    # to tolerate special securities.
     if not re.fullmatch(
         r"[A-Z0-9]{3,6}",
         ticker,
@@ -94,6 +92,9 @@ def looks_like_idx_ticker(value):
         "NONE",
         "SIGNAL",
         "RESULT",
+        "RESULTS",
+        "MODE",
+        "SOURCE",
     }
 
     return ticker not in blocked
@@ -174,13 +175,12 @@ def supabase_request(
 
         raise RuntimeError(
             f"Supabase HTTP "
-            f"{exc.code}: "
-            f"{detail}"
+            f"{exc.code}: {detail}"
         ) from exc
 
 
 # ============================================================
-# LOAD PAPER SCAN
+# LOAD SCAN
 # ============================================================
 
 def load_scan():
@@ -199,14 +199,14 @@ def load_scan():
 
 
 # ============================================================
-# TICKER / SCORE DISCOVERY
+# TICKER / SCORE
 # ============================================================
 
 def extract_ticker_from_row(row):
     if not isinstance(row, dict):
         return None
 
-    keys = [
+    ticker_fields = [
         "ticker",
         "symbol",
         "code",
@@ -214,10 +214,11 @@ def extract_ticker_from_row(row):
         "stock_code",
         "security",
         "security_code",
+        "instrument",
     ]
 
-    for key in keys:
-        value = row.get(key)
+    for field in ticker_fields:
+        value = row.get(field)
 
         if looks_like_idx_ticker(value):
             return clean_ticker(value)
@@ -229,7 +230,7 @@ def extract_score(row):
     if not isinstance(row, dict):
         return 50.0
 
-    score_keys = [
+    fields = [
         "score",
         "confidence",
         "rank_score",
@@ -241,16 +242,16 @@ def extract_score(row):
         "probability",
     ]
 
-    for key in score_keys:
+    for field in fields:
         value = safe_float(
-            row.get(key)
+            row.get(field)
         )
 
         if value is None:
             continue
 
         if (
-            key == "probability"
+            field == "probability"
             and 0 <= value <= 1
         ):
             value *= 100
@@ -270,77 +271,16 @@ def extract_score(row):
     return 50.0
 
 
-def row_has_market_context(row):
-    if not isinstance(row, dict):
-        return False
-
-    useful_keys = {
-        "price",
-        "close",
-        "last_price",
-        "current_price",
-        "entry",
-        "entry_price",
-        "entry_low",
-        "entry_high",
-        "entry_zone_low",
-        "entry_zone_high",
-        "breakout_price",
-        "confirmation_price",
-        "trigger_price",
-        "stop",
-        "stop_loss",
-        "invalidation_price",
-        "target",
-        "target_1",
-        "target_2",
-        "score",
-        "confidence",
-        "rank",
-        "signal",
-        "recommendation",
-        "action",
-        "reason",
-        "thesis",
-        "volume",
-        "momentum",
-        "rsi",
-    }
-
-    return bool(
-        useful_keys.intersection(
-            row.keys()
-        )
-    )
-
-
 # ============================================================
 # RECURSIVE DISCOVERY
 # ============================================================
 
-def collect_candidate_rows(
+def collect_candidates(
     node,
     output,
     path="root",
     inherited_ticker=None,
 ):
-    """
-    Supports BOTH:
-
-    1. ticker stored as a field:
-       {"ticker": "BBRI", "score": 80}
-
-    2. ticker stored as dictionary key:
-       {
-           "BBRI": {
-               "score": 80,
-               "price": 4500
-           }
-       }
-
-    and arbitrary nesting under markets/BEI/etc.
-    """
-
     if isinstance(node, dict):
 
         own_ticker = extract_ticker_from_row(
@@ -352,10 +292,13 @@ def collect_candidate_rows(
             or inherited_ticker
         )
 
+        # Any dict with a valid ticker
+        # and useful accompanying fields
+        # can become a candidate.
         if (
             ticker
             and looks_like_idx_ticker(ticker)
-            and row_has_market_context(node)
+            and len(node) > 1
         ):
             output.append(
                 {
@@ -381,7 +324,7 @@ def collect_candidate_rows(
                 or ticker
             )
 
-            collect_candidate_rows(
+            collect_candidates(
                 value,
                 output,
                 path=f"{path}.{key}",
@@ -393,7 +336,7 @@ def collect_candidate_rows(
         for index, value in enumerate(
             node
         ):
-            collect_candidate_rows(
+            collect_candidates(
                 value,
                 output,
                 path=f"{path}[{index}]",
@@ -406,9 +349,23 @@ def collect_candidate_rows(
 def extract_candidates(scan):
     discovered = []
 
-    collect_candidate_rows(
-        scan,
+    # Prefer scanning markets because that is
+    # where paper_scan stores market output.
+    if (
+        isinstance(scan, dict)
+        and "markets" in scan
+    ):
+        scan_root = scan["markets"]
+        root_path = "root.markets"
+
+    else:
+        scan_root = scan
+        root_path = "root"
+
+    collect_candidates(
+        scan_root,
         discovered,
+        path=root_path,
     )
 
     print(
@@ -435,13 +392,13 @@ def extract_candidates(scan):
             "path": item["path"],
         }
 
-        existing = best_by_ticker.get(
+        current = best_by_ticker.get(
             ticker
         )
 
         if (
-            existing is None
-            or score > existing["score"]
+            current is None
+            or score > current["score"]
         ):
             best_by_ticker[
                 ticker
@@ -452,7 +409,7 @@ def extract_candidates(scan):
     )
 
     candidates.sort(
-        key=lambda item: item["score"],
+        key=lambda x: x["score"],
         reverse=True,
     )
 
@@ -465,13 +422,13 @@ def extract_candidates(scan):
 # VALUE EXTRACTION
 # ============================================================
 
-def first_number(row, keys):
+def first_number(row, fields):
     if not isinstance(row, dict):
         return None
 
-    for key in keys:
+    for field in fields:
         value = safe_float(
-            row.get(key)
+            row.get(field)
         )
 
         if value is not None:
@@ -480,12 +437,12 @@ def first_number(row, keys):
     return None
 
 
-def first_text(row, keys):
+def first_text(row, fields):
     if not isinstance(row, dict):
         return None
 
-    for key in keys:
-        value = row.get(key)
+    for field in fields:
+        value = row.get(field)
 
         if value is None:
             continue
@@ -494,9 +451,7 @@ def first_text(row, keys):
             value,
             (str, int, float),
         ):
-            text = str(
-                value
-            ).strip()
+            text = str(value).strip()
 
             if text:
                 return text
@@ -535,14 +490,8 @@ def build_watchlist_row(candidate):
         ],
     )
 
-    # If slow engine has no explicit trigger,
-    # use current reference price.
-    # Fast Engine STILL requires its own
-    # 1m + 5m confirmation before BUY.
     if confirmation_price is None:
-        confirmation_price = (
-            current_price
-        )
+        confirmation_price = current_price
 
     invalidation_price = first_number(
         row,
@@ -580,6 +529,7 @@ def build_watchlist_row(candidate):
             "signal",
             "recommendation",
             "action",
+            "decision",
             "setup",
         ],
     )
@@ -620,7 +570,7 @@ def build_watchlist_row(candidate):
 
 
 # ============================================================
-# SUPABASE UPSERT
+# PUBLISH
 # ============================================================
 
 def upsert_watchlist(rows):
@@ -653,7 +603,7 @@ def upsert_watchlist(rows):
 
 
 # ============================================================
-# DEBUG STRUCTURE
+# STRUCTURE DEBUG
 # ============================================================
 
 def print_scan_structure(scan):
@@ -682,46 +632,54 @@ def print_scan_structure(scan):
         flush=True,
     )
 
-    if isinstance(markets, dict):
+    if isinstance(markets, list):
+
+        print(
+            "MARKETS ITEMS:",
+            len(markets),
+            flush=True,
+        )
+
+        if markets:
+
+            first_item = markets[0]
+
+            print(
+                "MARKETS FIRST ITEM TYPE:",
+                type(first_item).__name__,
+                flush=True,
+            )
+
+            if isinstance(
+                first_item,
+                dict,
+            ):
+                print(
+                    "MARKETS FIRST ITEM KEYS:",
+                    list(
+                        first_item.keys()
+                    )[:30],
+                    flush=True,
+                )
+
+            preview = json.dumps(
+                first_item,
+                default=str,
+            )
+
+            print(
+                "MARKETS FIRST ITEM PREVIEW:",
+                preview[:1500],
+                flush=True,
+            )
+
+    elif isinstance(markets, dict):
 
         print(
             "MARKETS KEYS:",
             list(markets.keys()),
             flush=True,
         )
-
-        for market_name, value in (
-            markets.items()
-        ):
-
-            print(
-                f"MARKET "
-                f"{market_name} TYPE: "
-                f"{type(value).__name__}",
-                flush=True,
-            )
-
-            if isinstance(
-                value,
-                dict,
-            ):
-                print(
-                    f"MARKET "
-                    f"{market_name} KEYS: "
-                    f"{list(value.keys())[:20]}",
-                    flush=True,
-                )
-
-            elif isinstance(
-                value,
-                list,
-            ):
-                print(
-                    f"MARKET "
-                    f"{market_name} ITEMS: "
-                    f"{len(value)}",
-                    flush=True,
-                )
 
 
 # ============================================================
@@ -731,7 +689,7 @@ def print_scan_structure(scan):
 def main():
     print(
         "HANZ Auto Watchlist "
-        "Feeder v3 started.",
+        "Feeder v4 started.",
         flush=True,
     )
 
@@ -741,28 +699,23 @@ def main():
         scan
     )
 
-    candidates = (
-        extract_candidates(
-            scan
-        )
+    candidates = extract_candidates(
+        scan
     )
 
     print(
-        f"Auto-watchlist "
-        f"candidates found: "
+        f"Auto-watchlist candidates found: "
         f"{len(candidates)}",
         flush=True,
     )
 
     if not candidates:
-
         print(
             "No valid candidates "
             "discovered inside "
             "paper scan JSON.",
             flush=True,
         )
-
         return
 
     rows = []
@@ -795,7 +748,7 @@ def main():
 
     print(
         "HANZ Auto Watchlist "
-        "Feeder completed.",
+        "Feeder v4 completed.",
         flush=True,
     )
 
