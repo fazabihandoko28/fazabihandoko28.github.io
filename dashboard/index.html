@@ -590,6 +590,49 @@ th{color:var(--muted)}
   .swing-monitor-grid{grid-template-columns:1fr}
 }
 
+
+/* CSS-ONLY TRADING MODE SWITCH — no JavaScript dependency */
+.mode-radio{
+  position:absolute !important;
+  opacity:0 !important;
+  pointer-events:none !important;
+  width:1px !important;
+  height:1px !important;
+}
+
+#intradayModePanel,
+#swingModePanel{
+  display:none !important;
+}
+
+#modeIntradayRadio:checked ~ #intradayModePanel{
+  display:block !important;
+}
+
+#modeSwingRadio:checked ~ #swingModePanel{
+  display:block !important;
+}
+
+#modeIntradayRadio:checked ~ .trading-mode-wrap label[for="modeIntradayRadio"]{
+  background:var(--green);
+  color:#03130d;
+}
+
+#modeSwingRadio:checked ~ .trading-mode-wrap label[for="modeSwingRadio"]{
+  background:#4da3ff;
+  color:#03111f;
+}
+
+.trading-mode-switch label.mode-btn{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  user-select:none;
+  -webkit-user-select:none;
+  touch-action:manipulation;
+  cursor:pointer;
+}
+
 </style>
 </head>
 
@@ -683,18 +726,21 @@ th{color:var(--muted)}
 </nav>
 
 
+<input class="mode-radio" type="radio" name="hanzTradingMode" id="modeIntradayRadio" checked>
+<input class="mode-radio" type="radio" name="hanzTradingMode" id="modeSwingRadio">
+
 <div class="trading-mode-wrap">
   <div class="trading-mode-title">
     <strong>Trading Mode</strong>
     <span>Intraday = Fast Engine · Swing = Daily + Weekly Engine</span>
   </div>
   <div class="trading-mode-switch">
-    <button id="modeIntradayBtn" class="mode-btn active" type="button">⚡ INTRADAY</button>
-    <button id="modeSwingBtn" class="mode-btn swing" type="button">📈 SWING</button>
+    <label for="modeIntradayRadio" id="modeIntradayBtn" class="mode-btn">⚡ INTRADAY</label>
+    <label for="modeSwingRadio" id="modeSwingBtn" class="mode-btn swing">📈 SWING</label>
   </div>
 </div>
 
-<div id="intradayModePanel" class="mode-panel active">
+<div id="intradayModePanel" class="mode-panel">
 <section id="overview" class="panel active">
   <div class="layout">
     <article class="card">
@@ -958,85 +1004,7 @@ th{color:var(--muted)}
 </div>
 
 
-<script>
-(function(){
-  function byId(id){ return document.getElementById(id); }
 
-  window.HANZ_setTradingMode = function(mode){
-    var isSwing = mode === "swing";
-
-    var intradayPanel = byId("intradayModePanel");
-    var swingPanel = byId("swingModePanel");
-    var intradayBtn = byId("modeIntradayBtn");
-    var swingBtn = byId("modeSwingBtn");
-
-    if(intradayPanel){
-      intradayPanel.classList.toggle("active", !isSwing);
-      intradayPanel.style.display = isSwing ? "none" : "block";
-    }
-
-    if(swingPanel){
-      swingPanel.classList.toggle("active", isSwing);
-      swingPanel.style.display = isSwing ? "block" : "none";
-    }
-
-    if(intradayBtn){
-      intradayBtn.classList.toggle("active", !isSwing);
-      intradayBtn.setAttribute("aria-pressed", String(!isSwing));
-    }
-
-    if(swingBtn){
-      swingBtn.classList.toggle("active", isSwing);
-      swingBtn.setAttribute("aria-pressed", String(isSwing));
-    }
-
-    try{
-      localStorage.setItem("hanzTradingMode", isSwing ? "swing" : "intraday");
-    }catch(e){}
-
-    window.dispatchEvent(new CustomEvent(
-      "hanz-trading-mode-change",
-      { detail: { mode: isSwing ? "swing" : "intraday" } }
-    ));
-  };
-
-  function bind(){
-    var intradayBtn = byId("modeIntradayBtn");
-    var swingBtn = byId("modeSwingBtn");
-
-    if(intradayBtn && !intradayBtn.dataset.hanzModeBound){
-      intradayBtn.dataset.hanzModeBound = "1";
-      intradayBtn.onclick = function(ev){
-        ev.preventDefault();
-        ev.stopPropagation();
-        window.HANZ_setTradingMode("intraday");
-      };
-    }
-
-    if(swingBtn && !swingBtn.dataset.hanzModeBound){
-      swingBtn.dataset.hanzModeBound = "1";
-      swingBtn.onclick = function(ev){
-        ev.preventDefault();
-        ev.stopPropagation();
-        window.HANZ_setTradingMode("swing");
-      };
-    }
-
-    var saved = "intraday";
-    try{
-      saved = localStorage.getItem("hanzTradingMode") || "intraday";
-    }catch(e){}
-
-    window.HANZ_setTradingMode(saved === "swing" ? "swing" : "intraday");
-  }
-
-  if(document.readyState === "loading"){
-    document.addEventListener("DOMContentLoaded", bind, { once:true });
-  }else{
-    bind();
-  }
-})();
-</script>
 
 <script type="module">
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
@@ -1623,26 +1591,7 @@ async function loadLiveSignalMonitor(){
 }
 
 
-/* TRADING MODE */
-function setTradingMode(mode){
-  if(window.HANZ_setTradingMode){
-    window.HANZ_setTradingMode(mode);
-  }
-
-  if(mode === "swing"){
-    loadSwingSignalMonitor();
-  }
-}
-
-function restoreTradingMode(){
-  let mode="intraday";
-  try{
-    mode=localStorage.getItem("hanzTradingMode") || "intraday";
-  }catch(e){}
-
-  setTradingMode(mode);
-}
-
+/* SWING MONITOR */
 function swingStateClass(state){
   const s=String(state || "").toUpperCase();
   if(s==="SWING_BUY") return "buy";
@@ -1740,11 +1689,7 @@ async function loadSwingSignalMonitor(){
 }
 
 
-window.addEventListener("hanz-trading-mode-change",(event)=>{
-  if(event?.detail?.mode === "swing"){
-    loadSwingSignalMonitor();
-  }
-});
+
 
 /* HEALTH */
 async function loadHealth(){
@@ -2120,7 +2065,6 @@ async function loadAll(){
 
 /* EVENTS + START */
 window.addEventListener("DOMContentLoaded",async ()=>{
-  restoreTradingMode();
 
   document.querySelectorAll("[data-panel]").forEach(btn=>{
     btn.addEventListener("click",()=>showPanel(btn.dataset.panel));
