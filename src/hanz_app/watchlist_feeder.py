@@ -9,24 +9,9 @@ from pathlib import Path
 
 
 # ============================================================
-# HANZ AUTO WATCHLIST FEEDER v5
-# Structure-specific for paper_scan output:
-#
-# scan
-# └── markets[]
-#     └── candidates[]
-#         ├── symbol
-#         ├── tier
-#         ├── entry_status
-#         ├── selection_reasons
-#         ├── signal_close
-#         └── technical
-#             ├── resistance20
-#             ├── support20
-#             ├── atr14
-#             └── ...
+# HANZ AUTO WATCHLIST FEEDER v6
+# Structure-specific + BUY/SL sanity guards
 # ============================================================
-
 
 SUPABASE_URL = os.getenv(
     "SUPABASE_URL",
@@ -55,7 +40,6 @@ SOURCE_NAME = "AUTO_SLOW_ENGINE"
 # ============================================================
 # HELPERS
 # ============================================================
-
 
 def now_iso():
     return datetime.now(
@@ -93,10 +77,19 @@ def clean_ticker(value):
     return ticker or None
 
 
+def round_price(value):
+    if value is None:
+        return None
+
+    return round(
+        float(value),
+        4,
+    )
+
+
 # ============================================================
 # SUPABASE
 # ============================================================
-
 
 def supabase_request(
     method,
@@ -180,7 +173,6 @@ def supabase_request(
 # LOAD SCAN
 # ============================================================
 
-
 def load_scan():
     if not SCAN_PATH.exists():
         raise FileNotFoundError(
@@ -198,9 +190,8 @@ def load_scan():
 
 
 # ============================================================
-# EXTRACT REAL PAPER-SCAN CANDIDATES
+# EXTRACT REAL BEI CANDIDATES
 # ============================================================
-
 
 def extract_candidates(scan):
     if not isinstance(scan, dict):
@@ -288,7 +279,6 @@ def extract_candidates(scan):
 # PRIORITY
 # ============================================================
 
-
 def calculate_priority(
     row,
     index,
@@ -335,8 +325,6 @@ def calculate_priority(
     }:
         score += 5
 
-    # Earlier slow-engine candidates
-    # retain slightly higher priority.
     score += max(
         0,
         5 - index,
@@ -354,7 +342,6 @@ def calculate_priority(
 # ============================================================
 # REASON
 # ============================================================
-
 
 def build_reason(row):
     parts = []
@@ -407,15 +394,10 @@ def build_reason(row):
 
 
 # ============================================================
-# BUILD WATCHLIST ROW
+# LEVEL BUILDING WITH SANITY GUARDS
 # ============================================================
 
-
-def build_watchlist_row(
-    candidate,
-):
-    row = candidate["raw"]
-
+def build_levels(row):
     technical = row.get(
         "technical",
         {},
@@ -426,8 +408,6 @@ def build_watchlist_row(
         dict,
     ):
         technical = {}
-
-    ticker = candidate["ticker"]
 
     signal_close = safe_float(
         row.get(
@@ -453,43 +433,166 @@ def build_watchlist_row(
         )
     )
 
-    # BUY confirmation:
-    # Prefer actual 20-bar resistance.
-    # Fast Engine requires price to break
-    # above this level plus 1m/5m confirmation.
-    confirmation_price = (
-        resistance
-        if resistance is not None
-        else signal_close
-    )
+    if signal_close is None:
+        raise RuntimeError(
+            "Candidate missing signal_close"
+        )
 
-    # Risk invalidation:
-    # Prefer technical support.
-    invalidation_price = support
+    # -------------------------
+    # ENTRY ZONE
+    # -------------------------
 
-    entry_low = None
-    entry_high = None
-
-    # Small reference zone around signal close.
     if (
-        signal_close is not None
-        and atr is not None
+        atr is not None
         and atr > 0
     ):
-        entry_low = round(
-            max(
-                0,
-                signal_close
-                - (0.25 * atr),
-            ),
-            4,
+        entry_low = (
+            signal_close
+            - (0.25 * atr)
         )
 
-        entry_high = round(
+        entry_high = (
             signal_close
-            + (0.25 * atr),
-            4,
+            + (0.25 * atr)
         )
+
+    else:
+        # fallback ±0.5%
+        entry_low = (
+            signal_close * 0.995
+        )
+
+        entry_high = (
+            signal_close * 1.005
+        )
+
+    entry_low = max(
+        0,
+        entry_low,
+    )
+
+    # -------------------------
+    # CONFIRMATION
+    # Must be >= entry_high
+    # -------------------------
+
+    possible_confirmation = [
+        value
+        for value in [
+            resistance,
+            signal_close,
+            entry_high,
+        ]
+        if value is not None
+    ]
+
+    confirmation_price = max(
+        possible_confirmation
+    )
+
+    # Small buffer above entry zone
+    # if resistance is too low.
+    minimum_confirmation = (
+        entry_high * 1.001
+    )
+
+    if (
+        confirmation_price
+        < minimum_confirmation
+    ):
+        confirmation_price = (
+            minimum_confirmation
+        )
+
+    # -------------------------
+    # INVALIDATION
+    # Must be < entry_low
+    # -------------------------
+
+    invalidation_price = None
+
+    if (
+        support is not None
+        and support < entry_low
+    ):
+        invalidation_price = support
+
+    elif (
+        atr is not None
+        and atr > 0
+    ):
+        invalidation_price = (
+            entry_low
+            - (1.25 * atr)
+        )
+
+    else:
+        # fallback 3% under entry_low
+        invalidation_price = (
+            entry_low * 0.97
+        )
+
+    invalidation_price = max(
+        0,
+        invalidation_price,
+    )
+
+    # Final hard sanity guard.
+    if invalidation_price >= entry_low:
+
+        if (
+            atr is not None
+            and atr > 0
+        ):
+            invalidation_price = (
+                entry_low
+                - (1.5 * atr)
+            )
+
+        else:
+            invalidation_price = (
+                entry_low * 0.97
+            )
+
+    if confirmation_price <= entry_high:
+        confirmation_price = (
+            entry_high * 1.001
+        )
+
+    return {
+        "signal_close": round_price(
+            signal_close
+        ),
+        "entry_low": round_price(
+            entry_low
+        ),
+        "entry_high": round_price(
+            entry_high
+        ),
+        "confirmation_price": round_price(
+            confirmation_price
+        ),
+        "invalidation_price": round_price(
+            invalidation_price
+        ),
+        "atr": round_price(
+            atr
+        ),
+    }
+
+
+# ============================================================
+# BUILD WATCHLIST ROW
+# ============================================================
+
+def build_watchlist_row(
+    candidate,
+):
+    row = candidate["raw"]
+
+    levels = build_levels(
+        row
+    )
 
     priority = calculate_priority(
         row,
@@ -497,16 +600,24 @@ def build_watchlist_row(
     )
 
     return {
-        "ticker": ticker,
+        "ticker": candidate["ticker"],
         "source": SOURCE_NAME,
         "priority": priority,
-        "entry_zone_low": entry_low,
-        "entry_zone_high": entry_high,
+        "entry_zone_low": (
+            levels["entry_low"]
+        ),
+        "entry_zone_high": (
+            levels["entry_high"]
+        ),
         "confirmation_price": (
-            confirmation_price
+            levels[
+                "confirmation_price"
+            ]
         ),
         "invalidation_price": (
-            invalidation_price
+            levels[
+                "invalidation_price"
+            ]
         ),
         "reason": build_reason(
             row
@@ -516,9 +627,8 @@ def build_watchlist_row(
 
 
 # ============================================================
-# UPSERT CURRENT CANDIDATES
+# UPSERT
 # ============================================================
-
 
 def upsert_watchlist(rows):
     if not rows:
@@ -555,11 +665,12 @@ def upsert_watchlist(rows):
 # REMOVE OLD AUTO CANDIDATES
 # ============================================================
 
-
 def fetch_existing_auto_rows():
     query = urllib.parse.urlencode(
         {
-            "select": "ticker,source",
+            "select": (
+                "ticker,source"
+            ),
             "source": (
                 f"eq.{SOURCE_NAME}"
             ),
@@ -574,9 +685,7 @@ def fetch_existing_auto_rows():
     return rows or []
 
 
-def delete_ticker(
-    ticker,
-):
+def delete_ticker(ticker):
     encoded = urllib.parse.quote(
         str(ticker),
         safe="",
@@ -639,20 +748,17 @@ def remove_stale_auto_rows(
 # MAIN
 # ============================================================
 
-
 def main():
     print(
         "HANZ Auto Watchlist "
-        "Feeder v5 started.",
+        "Feeder v6 started.",
         flush=True,
     )
 
     scan = load_scan()
 
-    candidates = (
-        extract_candidates(
-            scan
-        )
+    candidates = extract_candidates(
+        scan
     )
 
     print(
@@ -675,9 +781,21 @@ def main():
 
     for candidate in candidates:
 
-        row = build_watchlist_row(
-            candidate
-        )
+        try:
+            row = build_watchlist_row(
+                candidate
+            )
+
+        except Exception as exc:
+
+            print(
+                f"Candidate "
+                f"{candidate['ticker']} "
+                f"skipped: {exc}",
+                flush=True,
+            )
+
+            continue
 
         rows.append(
             row
@@ -699,13 +817,20 @@ def main():
             flush=True,
         )
 
-    # First publish current candidates.
+    if not rows:
+
+        print(
+            "No sane candidates "
+            "to publish.",
+            flush=True,
+        )
+
+        return
+
     upsert_watchlist(
         rows
     )
 
-    # Then remove old AUTO candidates
-    # no longer selected by slow engine.
     remove_stale_auto_rows(
         [
             row["ticker"]
@@ -715,7 +840,7 @@ def main():
 
     print(
         "HANZ Auto Watchlist "
-        "Feeder v5 completed.",
+        "Feeder v6 completed.",
         flush=True,
     )
 
