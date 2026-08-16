@@ -227,6 +227,12 @@ def upsert_watchlist(rows):
 def main():
     scan = load_scan()
 
+print(
+    "SCAN TOP LEVEL KEYS:",
+    list(scan.keys()) if isinstance(scan, dict) else type(scan),
+    flush=True,
+)
+    
     candidates = extract_candidates(scan)
 
     print(
