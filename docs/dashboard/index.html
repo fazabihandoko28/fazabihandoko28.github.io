@@ -4,569 +4,703 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#050914">
+
 <title>HANZ — Trading Intelligence</title>
 
-<style>
-:root{
-  --bg:#050914;
-  --surface:#0a1020;
-  --surface2:#0e172a;
-  --glass:rgba(15,24,43,.72);
-  --line:rgba(148,163,184,.14);
+<script type="module">
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
-  --text:#f8fafc;
-  --muted:#8796ad;
+/* =========================================================
+   SUPABASE CONFIG
+   ISI DUA VALUE INI
+========================================================= */
 
-  --green:#28e0a2;
-  --green2:#10b981;
-  --blue:#4da3ff;
-  --cyan:#48d7ff;
-  --purple:#9d7cff;
-  --yellow:#ffc857;
-  --red:#ff6170;
+const SUPABASE_URL =
+  "https://fgyfszkadstmdzqwppt.supabase.co";
 
-  --radius:22px;
-  --shadow:0 20px 60px rgba(0,0,0,.28);
+const SUPABASE_KEY =
+  "sb_publishable_rBY4VJwPS1T5tm0zPw4tbg_BhApWtfM";
+
+const supabase =
+  createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
+
+const REFRESH_MS = 30000;
+
+
+/* =========================================================
+   STATE
+========================================================= */
+
+let currentUser = null;
+let currentSession = null;
+let portfolioRows = [];
+let editPositionId = null;
+
+
+/* =========================================================
+   HELPERS
+========================================================= */
+
+function $(id){
+  return document.getElementById(id);
 }
 
-*{
-  box-sizing:border-box;
+
+function safe(value){
+
+  return String(value ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;");
+
 }
 
-html{
-  background:var(--bg);
+
+function price(value){
+
+  if(
+    value === null ||
+    value === undefined ||
+    value === ""
+  ){
+    return "—";
+  }
+
+  const n = Number(value);
+
+  if(!Number.isFinite(n)){
+    return safe(value);
+  }
+
+  return n.toLocaleString(
+    "en-US",
+    {
+      maximumFractionDigits:2
+    }
+  );
+
 }
 
-body{
-  margin:0;
-  min-height:100vh;
-  color:var(--text);
-  font-family:
-    Inter,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    Roboto,
-    Helvetica,
-    Arial,
-    sans-serif;
 
-  background:
-    radial-gradient(circle at 85% 0%,rgba(77,163,255,.16),transparent 28%),
-    radial-gradient(circle at 15% 18%,rgba(40,224,162,.09),transparent 25%),
-    linear-gradient(180deg,#050914,#070c17 60%,#050914);
+function formatDate(value){
+
+  if(!value){
+    return "—";
+  }
+
+  const d = new Date(value);
+
+  if(Number.isNaN(d.getTime())){
+    return value;
+  }
+
+  return new Intl.DateTimeFormat(
+    "en-GB",
+    {
+      day:"2-digit",
+      month:"short",
+      year:"numeric"
+    }
+  ).format(d);
+
 }
 
-body:before{
-  content:"";
-  position:fixed;
-  inset:0;
-  pointer-events:none;
 
-  background-image:
-    linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);
+function formatTime(value){
 
-  background-size:44px 44px;
-  mask-image:linear-gradient(to bottom,black,transparent 78%);
+  if(!value){
+    return "—";
+  }
+
+  const d = new Date(value);
+
+  if(Number.isNaN(d.getTime())){
+    return "—";
+  }
+
+  return new Intl.DateTimeFormat(
+    "en-GB",
+    {
+      hour:"2-digit",
+      minute:"2-digit",
+      second:"2-digit"
+    }
+  ).format(d);
+
 }
 
-button{
-  font:inherit;
+
+function localDateISO(){
+
+  const now = new Date();
+
+  const y = now.getFullYear();
+  const m = String(now.getMonth()+1).padStart(2,"0");
+  const d = String(now.getDate()).padStart(2,"0");
+
+  return `${y}-${m}-${d}`;
+
 }
 
-.app-shell{
-  max-width:1520px;
-  margin:auto;
-  padding:22px 24px 110px;
+
+function notify(message,type="success"){
+
+  const toast = $("toast");
+
+  toast.textContent = message;
+  toast.className = "toast show " + type;
+
+  clearTimeout(window.toastTimer);
+
+  window.toastTimer =
+    setTimeout(
+      ()=>{
+        toast.className = "toast";
+      },
+      3500
+    );
+
+}
+
+
+function showError(message){
+
+  const box = $("errorBox");
+
+  box.textContent = message;
+  box.style.display = "block";
+
+}
+
+
+function clearError(){
+
+  $("errorBox").style.display = "none";
+
 }
 
 
 /* =========================================================
-   TOP BAR
+   AUTH MODAL
 ========================================================= */
 
-.topbar{
-  height:72px;
+function openAuth(mode="login"){
 
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
+  $("authModal").classList.add("show");
 
-  margin-bottom:22px;
+  setAuthMode(mode);
 
-  padding:0 4px;
 }
 
-.brand{
-  display:flex;
-  align-items:center;
-  gap:13px;
+
+function closeAuth(){
+
+  $("authModal").classList.remove("show");
+
+  $("authMessage").textContent = "";
+
 }
 
-.logo{
-  position:relative;
 
-  width:48px;
-  height:48px;
+function setAuthMode(mode){
 
-  display:grid;
-  place-items:center;
+  const loginMode =
+    mode === "login";
 
-  border-radius:15px;
+  $("loginTab")
+    .classList.toggle(
+      "active",
+      loginMode
+    );
 
-  background:
-    linear-gradient(135deg,#2ae2a7,#43b9ff);
+  $("signupTab")
+    .classList.toggle(
+      "active",
+      !loginMode
+    );
 
-  color:#02130c;
+  $("signupNameWrap")
+    .style.display =
+      loginMode
+      ? "none"
+      : "block";
 
-  font-weight:1000;
-  font-size:20px;
+  $("authSubmit")
+    .textContent =
+      loginMode
+      ? "Login to HANZ"
+      : "Create HANZ Account";
 
-  box-shadow:
-    0 10px 30px rgba(40,224,162,.18),
-    inset 0 1px 0 rgba(255,255,255,.45);
-}
+  $("authForm")
+    .dataset.mode =
+      mode;
 
-.logo:after{
-  content:"";
-  position:absolute;
-  inset:-5px;
+  $("authMessage")
+    .textContent = "";
 
-  border-radius:19px;
-  border:1px solid rgba(40,224,162,.16);
-}
-
-.brand-title{
-  display:flex;
-  flex-direction:column;
-}
-
-.brand-title strong{
-  font-size:19px;
-  letter-spacing:.8px;
-}
-
-.brand-title span{
-  margin-top:3px;
-
-  color:var(--muted);
-  font-size:11px;
-  letter-spacing:.3px;
-}
-
-.top-actions{
-  display:flex;
-  align-items:center;
-  gap:9px;
-}
-
-.engine-pill{
-  height:38px;
-
-  display:flex;
-  align-items:center;
-  gap:8px;
-
-  padding:0 13px;
-
-  border-radius:999px;
-
-  border:1px solid var(--line);
-
-  background:rgba(10,16,32,.68);
-
-  backdrop-filter:blur(12px);
-
-  color:var(--muted);
-
-  font-size:11px;
-  font-weight:700;
-}
-
-.live-dot{
-  width:8px;
-  height:8px;
-
-  border-radius:50%;
-
-  background:var(--yellow);
-}
-
-.live-dot.online{
-  background:var(--green);
-
-  box-shadow:
-    0 0 0 4px rgba(40,224,162,.08),
-    0 0 15px rgba(40,224,162,.75);
-}
-
-.icon-btn{
-  height:38px;
-
-  border:1px solid var(--line);
-
-  border-radius:11px;
-
-  padding:0 13px;
-
-  color:#dbe5f2;
-
-  background:rgba(10,16,32,.68);
-
-  backdrop-filter:blur(12px);
-
-  cursor:pointer;
 }
 
 
 /* =========================================================
-   HERO
+   SIGN UP
 ========================================================= */
 
-.hero{
-  position:relative;
+async function signUp(){
 
-  overflow:hidden;
+  const name =
+    $("authName")
+    .value
+    .trim();
 
-  min-height:210px;
+  const email =
+    $("authEmail")
+    .value
+    .trim();
 
-  display:flex;
-  align-items:center;
+  const password =
+    $("authPassword")
+    .value;
 
-  border:1px solid var(--line);
-  border-radius:28px;
 
-  padding:30px;
+  if(!name){
 
-  margin-bottom:18px;
+    throw new Error(
+      "Please enter your name."
+    );
 
-  background:
-    linear-gradient(120deg,rgba(14,23,42,.96),rgba(8,15,29,.88));
+  }
 
-  box-shadow:var(--shadow);
-}
 
-.hero:before{
-  content:"";
+  if(!email){
 
-  position:absolute;
+    throw new Error(
+      "Please enter your email."
+    );
 
-  width:420px;
-  height:420px;
+  }
 
-  right:-130px;
-  top:-180px;
 
-  border-radius:50%;
+  if(password.length < 6){
 
-  background:
-    radial-gradient(circle,rgba(74,165,255,.26),transparent 68%);
-}
+    throw new Error(
+      "Password must contain at least 6 characters."
+    );
 
-.hero:after{
-  content:"";
+  }
 
-  position:absolute;
 
-  width:300px;
-  height:300px;
+  const redirectUrl =
+    window.location.origin +
+    window.location.pathname;
 
-  left:37%;
-  bottom:-250px;
 
-  border-radius:50%;
+  const {
+    data,
+    error
+  } =
+    await supabase.auth.signUp({
 
-  background:
-    radial-gradient(circle,rgba(40,224,162,.17),transparent 70%);
-}
+      email,
 
-.hero-content{
-  position:relative;
-  z-index:2;
+      password,
 
-  width:100%;
+      options:{
+        emailRedirectTo:
+          redirectUrl,
 
-  display:flex;
-  justify-content:space-between;
-  align-items:flex-end;
+        data:{
+          full_name:name
+        }
+      }
 
-  gap:28px;
-}
+    });
 
-.hero-copy small{
-  color:var(--green);
 
-  font-size:10px;
-  font-weight:900;
+  if(error){
+    throw error;
+  }
 
-  letter-spacing:1.5px;
-}
 
-.hero-copy h1{
-  margin:9px 0 7px;
+  $("authMessage")
+    .innerHTML =
+      `
+      <div class="auth-success">
+        Account created.<br>
+        Please check <strong>${safe(email)}</strong>
+        and confirm your email.
+      </div>
+      `;
 
-  font-size:38px;
-
-  line-height:1.05;
-  letter-spacing:-1.2px;
-}
-
-.hero-copy p{
-  max-width:620px;
-
-  margin:0;
-
-  color:var(--muted);
-
-  font-size:13px;
-  line-height:1.6;
-}
-
-.hero-market{
-  min-width:260px;
-
-  padding:17px;
-
-  border-radius:18px;
-
-  border:1px solid rgba(255,255,255,.08);
-
-  background:rgba(3,9,20,.44);
-
-  backdrop-filter:blur(10px);
-}
-
-.hero-market-label{
-  color:var(--muted);
-  font-size:10px;
-  letter-spacing:.8px;
-}
-
-.hero-market-value{
-  margin-top:7px;
-
-  font-size:26px;
-  font-weight:950;
-}
-
-.hero-market-sub{
-  margin-top:6px;
-
-  color:var(--green);
-
-  font-size:11px;
 }
 
 
 /* =========================================================
-   KPI CARDS
+   LOGIN
 ========================================================= */
 
-.kpis{
-  display:grid;
-  grid-template-columns:repeat(4,minmax(0,1fr));
+async function login(){
 
-  gap:12px;
+  const email =
+    $("authEmail")
+    .value
+    .trim();
 
-  margin-bottom:18px;
-}
+  const password =
+    $("authPassword")
+    .value;
 
-.kpi{
-  position:relative;
-  overflow:hidden;
 
-  min-height:124px;
+  if(!email || !password){
 
-  padding:17px;
+    throw new Error(
+      "Enter email and password."
+    );
 
-  border-radius:20px;
+  }
 
-  border:1px solid var(--line);
 
-  background:
-    linear-gradient(145deg,rgba(14,23,42,.88),rgba(8,15,28,.78));
+  const {
+    data,
+    error
+  } =
+    await supabase.auth
+    .signInWithPassword({
+      email,
+      password
+    });
 
-  backdrop-filter:blur(12px);
 
-  box-shadow:0 12px 35px rgba(0,0,0,.13);
-}
+  if(error){
+    throw error;
+  }
 
-.kpi:after{
-  content:"";
 
-  position:absolute;
+  currentSession =
+    data.session;
 
-  width:90px;
-  height:90px;
+  currentUser =
+    data.user;
 
-  right:-35px;
-  top:-35px;
 
-  border-radius:50%;
+  closeAuth();
 
-  background:radial-gradient(circle,rgba(77,163,255,.15),transparent 70%);
-}
+  notify(
+    "Welcome to HANZ."
+  );
 
-.kpi-label{
-  color:var(--muted);
-
-  font-size:10px;
-
-  text-transform:uppercase;
-  letter-spacing:.8px;
-}
-
-.kpi-value{
-  margin-top:9px;
-
-  font-size:28px;
-  font-weight:950;
-
-  letter-spacing:-.6px;
-}
-
-.kpi-sub{
-  margin-top:7px;
-
-  color:var(--muted);
-  font-size:11px;
-}
-
-.green-text{
-  color:var(--green);
 }
 
 
 /* =========================================================
-   NAV
+   LOGOUT
 ========================================================= */
 
-.desktop-nav{
-  display:flex;
+async function logout(){
 
-  gap:7px;
+  const { error } =
+    await supabase.auth.signOut();
 
-  margin:4px 0 17px;
+  if(error){
 
-  padding:5px;
+    notify(
+      error.message,
+      "error"
+    );
 
-  width:max-content;
+    return;
 
-  border-radius:15px;
+  }
 
-  border:1px solid var(--line);
 
-  background:rgba(9,15,27,.62);
+  currentUser = null;
+  currentSession = null;
+  portfolioRows = [];
 
-  backdrop-filter:blur(12px);
-}
 
-.desktop-nav button{
-  border:0;
+  renderAuthState();
+  renderPortfolio([]);
 
-  padding:9px 14px;
+  notify(
+    "Logged out."
+  );
 
-  border-radius:10px;
-
-  color:var(--muted);
-
-  background:transparent;
-
-  cursor:pointer;
-
-  font-size:12px;
-  font-weight:700;
-}
-
-.desktop-nav button.active{
-  color:#06130e;
-
-  background:
-    linear-gradient(135deg,var(--green),#52d6ff);
-
-  box-shadow:0 8px 22px rgba(40,224,162,.16);
 }
 
 
 /* =========================================================
-   SECTIONS
+   AUTH STATE
 ========================================================= */
 
-.panel{
-  display:none;
+function renderAuthState(){
+
+  if(currentUser){
+
+    const metadata =
+      currentUser.user_metadata || {};
+
+    const displayName =
+      metadata.full_name ||
+      currentUser.email
+        ?.split("@")[0] ||
+      "HANZ User";
+
+
+    $("loginButton")
+      .style.display =
+        "none";
+
+
+    $("userArea")
+      .style.display =
+        "flex";
+
+
+    $("userName")
+      .textContent =
+        displayName;
+
+
+    $("userEmail")
+      .textContent =
+        currentUser.email || "";
+
+
+    $("addPositionButton")
+      .disabled =
+        false;
+
+
+    $("portfolioLocked")
+      .style.display =
+        "none";
+
+
+  }else{
+
+    $("loginButton")
+      .style.display =
+        "inline-flex";
+
+
+    $("userArea")
+      .style.display =
+        "none";
+
+
+    $("addPositionButton")
+      .disabled =
+        true;
+
+
+    $("portfolioLocked")
+      .style.display =
+        "block";
+
+  }
+
 }
 
-.panel.active{
-  display:block;
+
+/* =========================================================
+   AUTH INITIALIZATION
+========================================================= */
+
+async function initAuth(){
+
+  const {
+    data:{
+      session
+    }
+  } =
+    await supabase.auth
+    .getSession();
+
+
+  currentSession =
+    session;
+
+  currentUser =
+    session?.user || null;
+
+
+  renderAuthState();
+
+
+  supabase.auth
+  .onAuthStateChange(
+    async (
+      event,
+      session
+    )=>{
+
+      currentSession =
+        session;
+
+      currentUser =
+        session?.user || null;
+
+
+      renderAuthState();
+
+
+      if(currentUser){
+
+        await loadPortfolio();
+
+      }else{
+
+        renderPortfolio([]);
+
+      }
+
+    }
+  );
+
 }
 
-.layout{
-  display:grid;
-  grid-template-columns:minmax(0,1.6fr) minmax(290px,.7fr);
 
-  gap:14px;
+/* =========================================================
+   NAVIGATION
+========================================================= */
+
+function showPanel(name){
+
+  document
+  .querySelectorAll(".panel")
+  .forEach(
+    panel=>{
+
+      panel.classList.toggle(
+        "active",
+        panel.id === name
+      );
+
+    }
+  );
+
+
+  document
+  .querySelectorAll("[data-panel]")
+  .forEach(
+    button=>{
+
+      button.classList.toggle(
+        "active",
+        button.dataset.panel === name
+      );
+
+    }
+  );
+
+
+  window.scrollTo({
+    top:0,
+    behavior:"smooth"
+  });
+
 }
 
-.glass{
-  border:1px solid var(--line);
 
-  border-radius:var(--radius);
+/* =========================================================
+   WATCHLIST
+========================================================= */
 
-  background:
-    linear-gradient(145deg,rgba(14,23,42,.82),rgba(8,15,28,.72));
+async function loadWatchlist(){
 
-  backdrop-filter:blur(14px);
+  const {
+    data,
+    error
+  } =
+    await supabase
+    .from("hanz_watchlist")
+    .select(
+      `
+      ticker,
+      source,
+      priority,
+      entry_zone_low,
+      entry_zone_high,
+      confirmation_price,
+      invalidation_price,
+      reason,
+      updated_at
+      `
+    )
+    .eq(
+      "source",
+      "AUTO_SLOW_ENGINE"
+    )
+    .order(
+      "priority",
+      {
+        ascending:false
+      }
+    );
 
-  box-shadow:0 20px 50px rgba(0,0,0,.14);
-}
 
-.card{
-  padding:18px;
-}
+  if(error){
+    throw error;
+  }
 
-.section-heading{
-  display:flex;
-  align-items:flex-start;
-  justify-content:space-between;
 
-  gap:12px;
+  const rows =
+    data || [];
 
-  margin-bottom:15px;
-}
 
-.section-heading h2{
-  margin:0;
+  $("opportunityCount")
+    .textContent =
+      rows.length;
 
-  font-size:15px;
-}
 
-.section-heading p{
-  margin:4px 0 0;
+  if(rows.length){
 
-  color:var(--muted);
+    const top =
+      rows[0];
 
-  font-size:10px;
-}
 
-.small-tag{
-  display:inline-flex;
-  align-items:center;
+    $("topCandidate")
+      .textContent =
+        top.ticker;
 
-  min-height:25px;
 
-  padding:0 8px;
+    $("topCandidateSub")
+      .textContent =
+        `Priority ${top.priority}`;
 
-  border-radius:999px;
 
-  background:rgba(40,224,162,.08);
+    $("heroTopCandidate")
+      .textContent =
+        top.ticker;
 
-  color:var(--green);
 
-  border:1px solid rgba(40,224,162,.14);
+    $("heroTopSub")
+      .textContent =
+        `Priority ${top.priority} · Waiting confirmation`;
 
-  font-size:9px;
-  font-weight:800;
+
+    $("lastUpdate")
+      .textContent =
+        formatTime(
+          top.updated_at
+        );
+
+
+    $("lastUpdateDate")
+      .textContent =
+        formatDate(
+          top.updated_at
+        );
+
+  }
+
+
+  renderRanking(rows);
+  renderOpportunities(rows);
+
 }
 
 
@@ -574,110 +708,71 @@ button{
    RANKING
 ========================================================= */
 
-.ranking{
-  display:flex;
-  flex-direction:column;
+function renderRanking(rows){
 
-  gap:8px;
-}
-
-.rank{
-  display:grid;
-
-  grid-template-columns:30px 70px 1fr 44px;
-
-  gap:10px;
-
-  align-items:center;
-
-  min-height:51px;
-
-  padding:8px 10px;
-
-  border-radius:14px;
-
-  border:1px solid rgba(255,255,255,.025);
-
-  background:rgba(6,12,23,.53);
-}
-
-.rank-no{
-  color:#62728a;
-
-  font-size:11px;
-}
-
-.rank-symbol{
-  font-size:13px;
-  font-weight:900;
-}
-
-.rank-track{
-  height:5px;
-
-  border-radius:999px;
-
-  background:#19253a;
-
-  overflow:hidden;
-}
-
-.rank-track > div{
-  height:100%;
-
-  border-radius:inherit;
-
-  background:
-    linear-gradient(90deg,var(--green),var(--blue));
-}
-
-.rank-score{
-  color:#dce9f8;
-
-  text-align:right;
-
-  font-size:12px;
-  font-weight:900;
-}
+  const container =
+    $("ranking");
 
 
-/* =========================================================
-   SYSTEM
-========================================================= */
+  if(!rows.length){
 
-.status-list{
-  display:flex;
-  flex-direction:column;
-}
+    container.innerHTML =
+      `
+      <div class="empty">
+        No active opportunities.
+      </div>
+      `;
 
-.status-row{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
+    return;
 
-  gap:20px;
+  }
 
-  min-height:45px;
 
-  border-bottom:1px solid var(--line);
+  container.innerHTML =
+    rows.map(
+      (row,index)=>{
 
-  font-size:11px;
-}
+        const score =
+          Math.max(
+            0,
+            Math.min(
+              100,
+              Number(
+                row.priority || 0
+              )
+            )
+          );
 
-.status-row:last-child{
-  border-bottom:0;
-}
 
-.status-row span{
-  color:var(--muted);
-}
+        return `
 
-.status-value{
-  font-weight:800;
-}
+          <div class="rank">
 
-.status-good{
-  color:var(--green);
+            <div class="rank-no">
+              #${index+1}
+            </div>
+
+            <div class="rank-symbol">
+              ${safe(row.ticker)}
+            </div>
+
+            <div class="rank-track">
+              <div
+                style="width:${score}%"
+              ></div>
+            </div>
+
+            <div class="rank-score">
+              ${score}
+            </div>
+
+          </div>
+
+        `;
+
+      }
+    ).join("");
+
 }
 
 
@@ -685,322 +780,3261 @@ button{
    OPPORTUNITIES
 ========================================================= */
 
-.opportunity-grid{
-  display:grid;
-  grid-template-columns:repeat(2,minmax(0,1fr));
+function renderOpportunities(rows){
 
-  gap:12px;
-}
+  const container =
+    $("opportunityGrid");
 
-.opportunity{
-  position:relative;
-  overflow:hidden;
 
-  padding:16px;
+  if(!rows.length){
 
-  border-radius:19px;
+    container.innerHTML =
+      `
+      <div class="empty">
+        No active candidates.
+      </div>
+      `;
 
-  border:1px solid var(--line);
+    return;
 
-  background:
-    linear-gradient(145deg,rgba(14,23,42,.88),rgba(8,15,28,.72));
+  }
 
-  box-shadow:0 15px 38px rgba(0,0,0,.13);
-}
 
-.opportunity:before{
-  content:"";
+  container.innerHTML =
+    rows.map(
+      row=>`
 
-  position:absolute;
+        <article class="opportunity">
 
-  height:3px;
+          <div class="op-top">
 
-  top:0;
-  left:0;
-  right:0;
+            <div>
 
-  background:
-    linear-gradient(90deg,var(--green),var(--blue));
-}
+              <div class="op-symbol">
+                ${safe(row.ticker)}
+              </div>
 
-.op-top{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
+              <div class="op-source">
+                HANZ AUTO SLOW ENGINE
+              </div>
 
-  gap:14px;
-}
+            </div>
 
-.op-symbol{
-  font-size:20px;
-  font-weight:950;
-}
 
-.op-source{
-  margin-top:3px;
+            <div class="priority-ring">
+              ${row.priority ?? "—"}
+            </div>
 
-  color:var(--muted);
+          </div>
 
-  font-size:9px;
-}
 
-.priority-ring{
-  width:48px;
-  height:48px;
+          <span class="wait-chip">
+            WAIT CONFIRM
+          </span>
 
-  display:grid;
-  place-items:center;
 
-  border-radius:50%;
+          <div class="levels">
 
-  border:3px solid var(--green);
+            <div class="level">
 
-  background:rgba(40,224,162,.05);
+              <span>
+                ENTRY LOW
+              </span>
 
-  color:#dffdf3;
+              <strong>
+                ${price(row.entry_zone_low)}
+              </strong>
 
-  font-size:13px;
-  font-weight:900;
-}
+            </div>
 
-.wait-chip{
-  display:inline-flex;
 
-  margin-top:10px;
+            <div class="level">
 
-  padding:5px 8px;
+              <span>
+                ENTRY HIGH
+              </span>
 
-  border-radius:999px;
+              <strong>
+                ${price(row.entry_zone_high)}
+              </strong>
 
-  color:var(--yellow);
+            </div>
 
-  background:rgba(255,200,87,.08);
 
-  border:1px solid rgba(255,200,87,.13);
+            <div class="level confirm">
 
-  font-size:9px;
-  font-weight:900;
+              <span>
+                CONFIRM ABOVE
+              </span>
 
-  letter-spacing:.4px;
-}
+              <strong>
+                ${price(row.confirmation_price)}
+              </strong>
 
-.levels{
-  display:grid;
-  grid-template-columns:repeat(2,1fr);
+            </div>
 
-  gap:8px;
 
-  margin-top:13px;
-}
+            <div class="level invalid">
 
-.level{
-  padding:10px;
+              <span>
+                INVALIDATION
+              </span>
 
-  border-radius:12px;
+              <strong>
+                ${price(row.invalidation_price)}
+              </strong>
 
-  background:rgba(3,9,19,.47);
+            </div>
 
-  border:1px solid rgba(255,255,255,.025);
-}
+          </div>
 
-.level span{
-  display:block;
 
-  color:#718197;
+          <div class="reason">
+            ${safe(row.reason || "")}
+          </div>
 
-  font-size:8px;
+        </article>
 
-  text-transform:uppercase;
-  letter-spacing:.6px;
-}
+      `
+    ).join("");
 
-.level strong{
-  display:block;
-
-  margin-top:5px;
-
-  font-size:12px;
-}
-
-.level.confirm strong{
-  color:var(--green);
-}
-
-.level.invalid strong{
-  color:#ff8992;
-}
-
-.reason{
-  margin-top:12px;
-
-  color:#8191a8;
-
-  font-size:9.5px;
-  line-height:1.5;
 }
 
 
 /* =========================================================
-   TABLES
+   HEALTH
 ========================================================= */
 
-.table-shell{
-  overflow:auto;
+async function loadHealth(){
 
-  border-radius:18px;
+  const {
+    data,
+    error
+  } =
+    await supabase
+    .from("hanz_live_state")
+    .select(
+      `
+      id,
+      status,
+      heartbeat_at,
+      last_success_at,
+      last_error,
+      consecutive_failures,
+      updated_at
+      `
+    )
+    .eq(
+      "id",
+      "bei-main"
+    )
+    .limit(1);
 
-  border:1px solid var(--line);
 
-  background:rgba(9,15,28,.65);
+  if(error){
+    throw error;
+  }
+
+
+  const state =
+    data?.[0];
+
+
+  if(!state){
+    return;
+  }
+
+
+  const status =
+    String(
+      state.status || ""
+    ).toLowerCase();
+
+
+  const online =
+    status === "online";
+
+
+  $("engineState")
+    .textContent =
+      online
+      ? "ONLINE"
+      : "CHECK";
+
+
+  $("mainWorkerStatus")
+    .textContent =
+      status.toUpperCase();
+
+
+  $("sysStatus")
+    .textContent =
+      status.toUpperCase();
+
+
+  $("heartbeat")
+    .textContent =
+      formatTime(
+        state.heartbeat_at
+      );
+
+
+  $("lastSuccess")
+    .textContent =
+      formatTime(
+        state.last_success_at
+      );
+
+
+  $("failures")
+    .textContent =
+      state.consecutive_failures ?? 0;
+
+
+  $("lastError")
+    .textContent =
+      state.last_error || "None";
+
+
+  $("engineDot")
+    .classList.toggle(
+      "online",
+      online
+    );
+
+
+  $("engineLabel")
+    .textContent =
+      online
+      ? "HANZ ONLINE"
+      : "CHECK ENGINE";
+
 }
 
-table{
+
+/* =========================================================
+   PORTFOLIO
+========================================================= */
+
+async function loadPortfolio(){
+
+  if(!currentUser){
+
+    portfolioRows = [];
+
+    renderPortfolio([]);
+
+    return;
+
+  }
+
+
+  const {
+    data,
+    error
+  } =
+    await supabase
+    .from("hanz_portfolio")
+    .select("*")
+    .eq(
+      "status",
+      "OPEN"
+    )
+    .order(
+      "opened_at",
+      {
+        ascending:false
+      }
+    );
+
+
+  if(error){
+
+    console.error(error);
+
+    showError(
+      "Portfolio error: " +
+      error.message
+    );
+
+    return;
+
+  }
+
+
+  portfolioRows =
+    data || [];
+
+
+  renderPortfolio(
+    portfolioRows
+  );
+
+}
+
+
+/* =========================================================
+   RENDER PORTFOLIO
+========================================================= */
+
+function renderPortfolio(rows){
+
+  $("portfolioStatus")
+    .textContent =
+      rows.length +
+      (
+        rows.length === 1
+        ? " position"
+        : " positions"
+      );
+
+
+  $("portfolioCount")
+    .textContent =
+      rows.length;
+
+
+  const container =
+    $("portfolioGrid");
+
+
+  if(!currentUser){
+
+    container.innerHTML = "";
+
+    return;
+
+  }
+
+
+  if(!rows.length){
+
+    container.innerHTML =
+      `
+      <div class="empty large-empty">
+
+        <div class="empty-symbol">
+          ◉
+        </div>
+
+        <strong>
+          Portfolio is empty
+        </strong>
+
+        <p>
+          Add your first stock position
+          and HANZ will begin monitoring it.
+        </p>
+
+        <button
+          class="primary-btn"
+          onclick="window.openPositionModal()"
+        >
+          + Add Position
+        </button>
+
+      </div>
+      `;
+
+    return;
+
+  }
+
+
+  container.innerHTML =
+    rows.map(
+      row=>{
+
+        const quantity =
+          row.quantity ??
+          (
+            Number(row.lots || 0) *
+            100
+          );
+
+
+        return `
+
+          <article class="portfolio-card">
+
+            <div class="portfolio-head">
+
+              <div>
+
+                <div class="portfolio-symbol">
+                  ${safe(row.ticker)}
+                </div>
+
+                <div class="portfolio-date">
+                  Bought ${formatDate(
+                    row.buy_date ||
+                    row.opened_at
+                  )}
+                </div>
+
+              </div>
+
+
+              <span class="open-chip">
+                ${safe(
+                  row.status ||
+                  "OPEN"
+                )}
+              </span>
+
+            </div>
+
+
+            <div class="portfolio-main">
+
+              <div>
+
+                <span>
+                  AVG BUY
+                </span>
+
+                <strong>
+                  ${price(row.avg_buy)}
+                </strong>
+
+              </div>
+
+
+              <div>
+
+                <span>
+                  LOTS
+                </span>
+
+                <strong>
+                  ${price(row.lots)}
+                </strong>
+
+              </div>
+
+
+              <div>
+
+                <span>
+                  SHARES
+                </span>
+
+                <strong>
+                  ${price(quantity)}
+                </strong>
+
+              </div>
+
+            </div>
+
+
+            <div class="portfolio-levels">
+
+              <div>
+
+                <span>
+                  STOP LOSS
+                </span>
+
+                <strong class="red-text">
+                  ${price(row.stop_loss)}
+                </strong>
+
+              </div>
+
+
+              <div>
+
+                <span>
+                  TARGET 1
+                </span>
+
+                <strong class="green-text">
+                  ${price(row.target_1)}
+                </strong>
+
+              </div>
+
+
+              <div>
+
+                <span>
+                  TARGET 2
+                </span>
+
+                <strong class="green-text">
+                  ${price(row.target_2)}
+                </strong>
+
+              </div>
+
+
+              <div>
+
+                <span>
+                  TRAILING
+                </span>
+
+                <strong>
+                  ${price(row.trailing_stop)}
+                </strong>
+
+              </div>
+
+            </div>
+
+
+            <div class="signal-row">
+
+              <span>
+                HANZ SIGNAL
+              </span>
+
+              <strong>
+                ${safe(
+                  row.signal ||
+                  "MONITOR"
+                )}
+              </strong>
+
+            </div>
+
+
+            ${
+              row.notes
+              ? `
+                <div class="position-notes">
+                  ${safe(row.notes)}
+                </div>
+                `
+              : ""
+            }
+
+
+            <div class="position-actions">
+
+              <button
+                onclick="window.editPosition(${row.id})"
+              >
+                Edit
+              </button>
+
+              <button
+                class="close-btn"
+                onclick="window.closePosition(${row.id})"
+              >
+                Close
+              </button>
+
+              <button
+                class="delete-btn"
+                onclick="window.deletePosition(${row.id})"
+              >
+                Delete
+              </button>
+
+            </div>
+
+          </article>
+
+        `;
+
+      }
+    ).join("");
+
+}
+
+
+/* =========================================================
+   POSITION MODAL
+========================================================= */
+
+function openPositionModal(){
+
+  if(!currentUser){
+
+    openAuth("login");
+
+    return;
+
+  }
+
+
+  editPositionId =
+    null;
+
+
+  $("positionModalTitle")
+    .textContent =
+      "Add Position";
+
+
+  $("positionSubmit")
+    .textContent =
+      "Save Position";
+
+
+  $("positionTicker")
+    .disabled =
+      false;
+
+
+  $("positionForm")
+    .reset();
+
+
+  $("positionBuyDate")
+    .value =
+      localDateISO();
+
+
+  $("positionModal")
+    .classList.add("show");
+
+}
+
+
+function closePositionModal(){
+
+  $("positionModal")
+    .classList.remove("show");
+
+  editPositionId =
+    null;
+
+}
+
+
+/* =========================================================
+   EDIT POSITION
+========================================================= */
+
+function editPosition(id){
+
+  const row =
+    portfolioRows
+    .find(
+      r=>
+        Number(r.id) ===
+        Number(id)
+    );
+
+
+  if(!row){
+    return;
+  }
+
+
+  editPositionId =
+    row.id;
+
+
+  $("positionModalTitle")
+    .textContent =
+      "Edit Position";
+
+
+  $("positionSubmit")
+    .textContent =
+      "Update Position";
+
+
+  $("positionTicker")
+    .value =
+      row.ticker || "";
+
+
+  $("positionTicker")
+    .disabled =
+      false;
+
+
+  $("positionAvgBuy")
+    .value =
+      row.avg_buy ?? "";
+
+
+  $("positionLots")
+    .value =
+      row.lots ?? "";
+
+
+  $("positionBuyDate")
+    .value =
+      row.buy_date ||
+      localDateISO();
+
+
+  $("positionStopLoss")
+    .value =
+      row.stop_loss ?? "";
+
+
+  $("positionTarget1")
+    .value =
+      row.target_1 ?? "";
+
+
+  $("positionTarget2")
+    .value =
+      row.target_2 ?? "";
+
+
+  $("positionTrailing")
+    .value =
+      row.trailing_stop ?? "";
+
+
+  $("positionNotes")
+    .value =
+      row.notes ?? "";
+
+
+  $("positionModal")
+    .classList.add("show");
+
+}
+
+
+/* =========================================================
+   SAVE POSITION
+========================================================= */
+
+async function savePosition(event){
+
+  event.preventDefault();
+
+
+  if(!currentUser){
+
+    openAuth("login");
+
+    return;
+
+  }
+
+
+  const ticker =
+    $("positionTicker")
+    .value
+    .trim()
+    .toUpperCase()
+    .replace(".JK","");
+
+
+  const avgBuy =
+    Number(
+      $("positionAvgBuy")
+      .value
+    );
+
+
+  const lots =
+    Number(
+      $("positionLots")
+      .value
+    );
+
+
+  const buyDate =
+    $("positionBuyDate")
+    .value;
+
+
+  if(!ticker){
+
+    notify(
+      "Ticker is required.",
+      "error"
+    );
+
+    return;
+
+  }
+
+
+  if(
+    !Number.isFinite(avgBuy) ||
+    avgBuy <= 0
+  ){
+
+    notify(
+      "Buy price is invalid.",
+      "error"
+    );
+
+    return;
+
+  }
+
+
+  if(
+    !Number.isFinite(lots) ||
+    lots <= 0
+  ){
+
+    notify(
+      "Lots must be greater than zero.",
+      "error"
+    );
+
+    return;
+
+  }
+
+
+  const optionalNumber =
+    id=>{
+
+      const raw =
+        $(id)
+        .value
+        .trim();
+
+      if(raw === ""){
+        return null;
+      }
+
+      const n =
+        Number(raw);
+
+      return Number.isFinite(n)
+        ? n
+        : null;
+
+    };
+
+
+  const payload = {
+
+    ticker,
+
+    avg_buy:
+      avgBuy,
+
+    lots,
+
+    quantity:
+      lots * 100,
+
+    buy_date:
+      buyDate ||
+      localDateISO(),
+
+    stop_loss:
+      optionalNumber(
+        "positionStopLoss"
+      ),
+
+    target_1:
+      optionalNumber(
+        "positionTarget1"
+      ),
+
+    target_2:
+      optionalNumber(
+        "positionTarget2"
+      ),
+
+    trailing_stop:
+      optionalNumber(
+        "positionTrailing"
+      ),
+
+    notes:
+      $("positionNotes")
+      .value
+      .trim() || null
+
+  };
+
+
+  try{
+
+    if(editPositionId){
+
+      const {
+        error
+      } =
+        await supabase
+        .from("hanz_portfolio")
+        .update(payload)
+        .eq(
+          "id",
+          editPositionId
+        );
+
+
+      if(error){
+        throw error;
+      }
+
+
+      notify(
+        `${ticker} updated.`
+      );
+
+
+    }else{
+
+      payload.user_id =
+        currentUser.id;
+
+      payload.status =
+        "OPEN";
+
+      payload.signal =
+        "MONITOR";
+
+      payload.opened_at =
+        new Date()
+        .toISOString();
+
+
+      const {
+        error
+      } =
+        await supabase
+        .from("hanz_portfolio")
+        .insert(payload);
+
+
+      if(error){
+        throw error;
+      }
+
+
+      notify(
+        `${ticker} added to portfolio.`
+      );
+
+    }
+
+
+    closePositionModal();
+
+    await loadPortfolio();
+
+
+  }catch(error){
+
+    console.error(error);
+
+    notify(
+      error.message,
+      "error"
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   CLOSE POSITION
+========================================================= */
+
+async function closePosition(id){
+
+  const row =
+    portfolioRows
+    .find(
+      r=>
+        Number(r.id) ===
+        Number(id)
+    );
+
+
+  if(!row){
+    return;
+  }
+
+
+  const confirmed =
+    confirm(
+      `Close ${row.ticker} position?\n\n` +
+      `It will disappear from the active portfolio ` +
+      `but remain in the database as CLOSED.`
+    );
+
+
+  if(!confirmed){
+    return;
+  }
+
+
+  const {
+    error
+  } =
+    await supabase
+    .from("hanz_portfolio")
+    .update({
+      status:"CLOSED",
+      signal:"CLOSED"
+    })
+    .eq(
+      "id",
+      id
+    );
+
+
+  if(error){
+
+    notify(
+      error.message,
+      "error"
+    );
+
+    return;
+
+  }
+
+
+  notify(
+    `${row.ticker} position closed.`
+  );
+
+
+  await loadPortfolio();
+
+}
+
+
+/* =========================================================
+   DELETE POSITION
+========================================================= */
+
+async function deletePosition(id){
+
+  const row =
+    portfolioRows
+    .find(
+      r=>
+        Number(r.id) ===
+        Number(id)
+    );
+
+
+  if(!row){
+    return;
+  }
+
+
+  const confirmed =
+    confirm(
+      `DELETE ${row.ticker} permanently?\n\n` +
+      `Use Close instead if this was a real trade.`
+    );
+
+
+  if(!confirmed){
+    return;
+  }
+
+
+  const {
+    error
+  } =
+    await supabase
+    .from("hanz_portfolio")
+    .delete()
+    .eq(
+      "id",
+      id
+    );
+
+
+  if(error){
+
+    notify(
+      error.message,
+      "error"
+    );
+
+    return;
+
+  }
+
+
+  notify(
+    `${row.ticker} deleted.`
+  );
+
+
+  await loadPortfolio();
+
+}
+
+
+/* =========================================================
+   ALERTS
+========================================================= */
+
+async function loadAlerts(){
+
+  if(!currentUser){
+
+    $("alertsBox")
+      .innerHTML =
+        `
+        <div class="empty">
+          Login to view your personal alerts.
+        </div>
+        `;
+
+    return;
+
+  }
+
+
+  /*
+    hanz_alerts belum wajib tersedia.
+    Untuk saat ini kita pertahankan graceful fallback.
+  */
+
+  const {
+    data,
+    error
+  } =
+    await supabase
+    .from("hanz_alerts")
+    .select("*")
+    .order(
+      "created_at",
+      {
+        ascending:false
+      }
+    )
+    .limit(30);
+
+
+  if(error){
+
+    $("alertsBox")
+      .innerHTML =
+        `
+        <div class="empty">
+
+          <div class="empty-symbol">
+            ⚡
+          </div>
+
+          Personal alerts will appear here
+          when the HANZ alert engine is activated.
+
+        </div>
+        `;
+
+    return;
+
+  }
+
+
+  const rows =
+    data || [];
+
+
+  if(!rows.length){
+
+    $("alertsBox")
+      .innerHTML =
+        `
+        <div class="empty">
+
+          <div class="empty-symbol">
+            ⚡
+          </div>
+
+          No alerts yet.
+
+        </div>
+        `;
+
+    return;
+
+  }
+
+
+  $("alertsBox")
+    .innerHTML =
+      `
+      <div class="table-shell">
+
+        <table>
+
+          <thead>
+
+            <tr>
+              <th>Time</th>
+              <th>Ticker</th>
+              <th>Alert</th>
+              <th>Price</th>
+              <th>Reason</th>
+            </tr>
+
+          </thead>
+
+
+          <tbody>
+
+          ${
+            rows.map(
+              row=>`
+
+                <tr>
+
+                  <td>
+                    ${formatTime(
+                      row.created_at
+                    )}
+                  </td>
+
+                  <td>
+                    <strong>
+                      ${safe(row.ticker)}
+                    </strong>
+                  </td>
+
+                  <td>
+                    ${safe(
+                      row.alert_type ||
+                      row.type ||
+                      ""
+                    )}
+                  </td>
+
+                  <td>
+                    ${price(row.price)}
+                  </td>
+
+                  <td>
+                    ${safe(row.reason || "")}
+                  </td>
+
+                </tr>
+
+              `
+            ).join("")
+          }
+
+          </tbody>
+
+        </table>
+
+      </div>
+      `;
+
+}
+
+
+/* =========================================================
+   LOAD ALL
+========================================================= */
+
+async function loadAll(){
+
+  clearError();
+
+
+  try{
+
+    await Promise.all([
+
+      loadWatchlist(),
+
+      loadHealth()
+
+    ]);
+
+
+    if(currentUser){
+
+      await Promise.all([
+
+        loadPortfolio(),
+
+        loadAlerts()
+
+      ]);
+
+    }
+
+
+  }catch(error){
+
+    console.error(error);
+
+    showError(
+      "Live data connection error: " +
+      error.message
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   GLOBAL FUNCTIONS
+========================================================= */
+
+window.openAuth =
+  openAuth;
+
+window.closeAuth =
+  closeAuth;
+
+window.setAuthMode =
+  setAuthMode;
+
+window.logout =
+  logout;
+
+window.openPositionModal =
+  openPositionModal;
+
+window.closePositionModal =
+  closePositionModal;
+
+window.editPosition =
+  editPosition;
+
+window.closePosition =
+  closePosition;
+
+window.deletePosition =
+  deletePosition;
+
+window.loadAll =
+  loadAll;
+
+
+/* =========================================================
+   START
+========================================================= */
+
+window.addEventListener(
+  "DOMContentLoaded",
+  async ()=>{
+
+    document
+    .querySelectorAll(
+      "[data-panel]"
+    )
+    .forEach(
+      button=>{
+
+        button
+        .addEventListener(
+          "click",
+          ()=>showPanel(
+            button.dataset.panel
+          )
+        );
+
+      }
+    );
+
+
+    $("loginTab")
+      .addEventListener(
+        "click",
+        ()=>setAuthMode(
+          "login"
+        )
+      );
+
+
+    $("signupTab")
+      .addEventListener(
+        "click",
+        ()=>setAuthMode(
+          "signup"
+        )
+      );
+
+
+    $("authForm")
+      .addEventListener(
+        "submit",
+        async event=>{
+
+          event.preventDefault();
+
+
+          const button =
+            $("authSubmit");
+
+
+          button.disabled =
+            true;
+
+
+          $("authMessage")
+            .textContent =
+              "";
+
+
+          try{
+
+            if(
+              event.currentTarget
+              .dataset.mode ===
+              "signup"
+            ){
+
+              await signUp();
+
+            }else{
+
+              await login();
+
+            }
+
+
+          }catch(error){
+
+            $("authMessage")
+              .innerHTML =
+                `
+                <div class="auth-error">
+                  ${safe(error.message)}
+                </div>
+                `;
+
+          }finally{
+
+            button.disabled =
+              false;
+
+          }
+
+        }
+      );
+
+
+    $("positionForm")
+      .addEventListener(
+        "submit",
+        savePosition
+      );
+
+
+    $("authModal")
+      .addEventListener(
+        "click",
+        event=>{
+
+          if(
+            event.target ===
+            $("authModal")
+          ){
+            closeAuth();
+          }
+
+        }
+      );
+
+
+    $("positionModal")
+      .addEventListener(
+        "click",
+        event=>{
+
+          if(
+            event.target ===
+            $("positionModal")
+          ){
+            closePositionModal();
+          }
+
+        }
+      );
+
+
+    await initAuth();
+
+    await loadAll();
+
+
+    setInterval(
+      loadAll,
+      REFRESH_MS
+    );
+
+  }
+);
+
+</script>
+
+
+<style>
+
+:root{
+
+  --bg:#050914;
+  --bg2:#070d18;
+
+  --card:#0d1627;
+  --card2:#101c30;
+
+  --line:rgba(148,163,184,.15);
+
+  --text:#f8fafc;
+  --muted:#8291a8;
+
+  --green:#28e0a2;
+  --blue:#4da3ff;
+  --cyan:#48d7ff;
+
+  --yellow:#ffc857;
+  --red:#ff6572;
+
+  --radius:21px;
+
+}
+
+
+*{
+  box-sizing:border-box;
+}
+
+
+html{
+  background:var(--bg);
+}
+
+
+body{
+
+  margin:0;
+
+  min-height:100vh;
+
+  color:var(--text);
+
+  font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Arial,
+    sans-serif;
+
+  background:
+
+    radial-gradient(
+      circle at 90% 0%,
+      rgba(77,163,255,.17),
+      transparent 27%
+    ),
+
+    radial-gradient(
+      circle at 8% 18%,
+      rgba(40,224,162,.09),
+      transparent 25%
+    ),
+
+    linear-gradient(
+      180deg,
+      #050914,
+      #070d18 60%,
+      #050914
+    );
+
+}
+
+
+button,
+input,
+textarea{
+
+  font:inherit;
+
+}
+
+
+button{
+  cursor:pointer;
+}
+
+
+.app{
+
+  max-width:1500px;
+
+  margin:auto;
+
+  padding:
+    20px 22px 100px;
+
+}
+
+
+/* HEADER */
+
+.header{
+
+  display:flex;
+
+  justify-content:space-between;
+
+  align-items:center;
+
+  gap:15px;
+
+  min-height:65px;
+
+  margin-bottom:18px;
+
+}
+
+
+.brand{
+
+  display:flex;
+
+  align-items:center;
+
+  gap:12px;
+
+}
+
+
+.logo{
+
+  width:46px;
+  height:46px;
+
+  display:grid;
+
+  place-items:center;
+
+  border-radius:14px;
+
+  background:
+    linear-gradient(
+      135deg,
+      var(--green),
+      var(--cyan)
+    );
+
+  color:#02130d;
+
+  font-size:19px;
+
+  font-weight:950;
+
+  box-shadow:
+    0 10px 28px
+    rgba(40,224,162,.18);
+
+}
+
+
+.brand strong{
+
+  display:block;
+
+  font-size:18px;
+
+  letter-spacing:.7px;
+
+}
+
+
+.brand span{
+
+  display:block;
+
+  margin-top:3px;
+
+  color:var(--muted);
+
+  font-size:10px;
+
+}
+
+
+.header-actions{
+
+  display:flex;
+
+  align-items:center;
+
+  gap:8px;
+
+}
+
+
+.engine-pill{
+
+  display:flex;
+
+  align-items:center;
+
+  gap:7px;
+
+  min-height:37px;
+
+  padding:0 12px;
+
+  border-radius:999px;
+
+  border:
+    1px solid var(--line);
+
+  background:
+    rgba(9,16,30,.72);
+
+  color:var(--muted);
+
+  font-size:10px;
+
+  font-weight:800;
+
+}
+
+
+.live-dot{
+
+  width:8px;
+  height:8px;
+
+  border-radius:50%;
+
+  background:var(--yellow);
+
+}
+
+
+.live-dot.online{
+
+  background:var(--green);
+
+  box-shadow:
+    0 0 14px
+    rgba(40,224,162,.9);
+
+}
+
+
+.secondary-btn{
+
+  min-height:37px;
+
+  padding:0 12px;
+
+  border-radius:11px;
+
+  border:
+    1px solid var(--line);
+
+  background:
+    rgba(9,16,30,.72);
+
+  color:#dbe4f0;
+
+}
+
+
+.primary-btn{
+
+  min-height:39px;
+
+  padding:0 14px;
+
+  border:none;
+
+  border-radius:11px;
+
+  background:
+    linear-gradient(
+      135deg,
+      var(--green),
+      #4ec9ff
+    );
+
+  color:#04130e;
+
+  font-size:11px;
+
+  font-weight:900;
+
+}
+
+
+.primary-btn:disabled{
+
+  opacity:.4;
+
+  cursor:not-allowed;
+
+}
+
+
+/* USER */
+
+.user-area{
+
+  display:none;
+
+  align-items:center;
+
+  gap:9px;
+
+}
+
+
+.user-info{
+
+  text-align:right;
+
+}
+
+
+.user-info strong{
+
+  display:block;
+
+  font-size:10px;
+
+}
+
+
+.user-info span{
+
+  display:block;
+
+  margin-top:2px;
+
+  color:var(--muted);
+
+  font-size:8px;
+
+}
+
+
+/* HERO */
+
+.hero{
+
+  position:relative;
+
+  overflow:hidden;
+
+  min-height:195px;
+
+  padding:28px;
+
+  display:flex;
+
+  align-items:center;
+
+  border:
+    1px solid var(--line);
+
+  border-radius:27px;
+
+  background:
+    linear-gradient(
+      120deg,
+      rgba(14,23,42,.96),
+      rgba(7,14,27,.88)
+    );
+
+  margin-bottom:13px;
+
+}
+
+
+.hero:after{
+
+  content:"";
+
+  position:absolute;
+
+  width:420px;
+  height:420px;
+
+  border-radius:50%;
+
+  right:-150px;
+  top:-210px;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(77,163,255,.28),
+      transparent 68%
+    );
+
+}
+
+
+.hero-content{
+
+  position:relative;
+
+  z-index:2;
+
+  display:flex;
+
   width:100%;
 
-  border-collapse:collapse;
+  align-items:flex-end;
 
-  min-width:760px;
+  justify-content:space-between;
+
+  gap:30px;
+
 }
 
-th{
-  padding:13px;
 
-  text-align:left;
+.hero small{
 
-  border-bottom:1px solid var(--line);
-
-  color:#74849b;
+  color:var(--green);
 
   font-size:9px;
 
-  letter-spacing:.6px;
-  text-transform:uppercase;
+  font-weight:900;
+
+  letter-spacing:1.3px;
+
 }
 
-td{
-  padding:13px;
 
-  border-bottom:1px solid rgba(148,163,184,.08);
+.hero h1{
+
+  margin:
+    9px 0 7px;
+
+  max-width:700px;
+
+  font-size:36px;
+
+  line-height:1.07;
+
+  letter-spacing:-1px;
+
+}
+
+
+.hero p{
+
+  max-width:620px;
+
+  margin:0;
+
+  color:var(--muted);
 
   font-size:11px;
+
+  line-height:1.6;
+
 }
 
-tr:last-child td{
+
+.hero-top{
+
+  min-width:245px;
+
+  padding:16px;
+
+  border:
+    1px solid
+    rgba(255,255,255,.07);
+
+  border-radius:17px;
+
+  background:
+    rgba(2,8,18,.42);
+
+}
+
+
+.hero-top span{
+
+  color:var(--muted);
+
+  font-size:8px;
+
+  letter-spacing:.8px;
+
+}
+
+
+.hero-top strong{
+
+  display:block;
+
+  margin-top:7px;
+
+  font-size:25px;
+
+}
+
+
+.hero-top small{
+
+  display:block;
+
+  margin-top:6px;
+
+}
+
+
+/* KPIS */
+
+.kpis{
+
+  display:grid;
+
+  grid-template-columns:
+    repeat(4,1fr);
+
+  gap:10px;
+
+  margin-bottom:14px;
+
+}
+
+
+.kpi{
+
+  min-height:105px;
+
+  padding:15px;
+
+  border:
+    1px solid var(--line);
+
+  border-radius:18px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(14,23,42,.88),
+      rgba(8,15,28,.75)
+    );
+
+}
+
+
+.kpi span{
+
+  color:var(--muted);
+
+  font-size:8px;
+
+  text-transform:uppercase;
+
+  letter-spacing:.7px;
+
+}
+
+
+.kpi strong{
+
+  display:block;
+
+  margin-top:8px;
+
+  font-size:25px;
+
+}
+
+
+.kpi small{
+
+  display:block;
+
+  margin-top:5px;
+
+  color:var(--muted);
+
+  font-size:9px;
+
+}
+
+
+/* NAV */
+
+.desktop-nav{
+
+  display:flex;
+
+  gap:5px;
+
+  width:max-content;
+
+  padding:4px;
+
+  margin:
+    0 0 13px;
+
+  border:
+    1px solid var(--line);
+
+  border-radius:13px;
+
+  background:
+    rgba(8,15,27,.68);
+
+}
+
+
+.desktop-nav button{
+
+  border:none;
+
+  border-radius:9px;
+
+  padding:
+    8px 13px;
+
+  background:transparent;
+
+  color:var(--muted);
+
+  font-size:10px;
+
+  font-weight:700;
+
+}
+
+
+.desktop-nav button.active{
+
+  background:
+    linear-gradient(
+      135deg,
+      var(--green),
+      var(--cyan)
+    );
+
+  color:#04120d;
+
+}
+
+
+/* PANEL */
+
+.panel{
+  display:none;
+}
+
+
+.panel.active{
+  display:block;
+}
+
+
+.layout{
+
+  display:grid;
+
+  grid-template-columns:
+    1.5fr .7fr;
+
+  gap:12px;
+
+}
+
+
+.card{
+
+  padding:17px;
+
+  border:
+    1px solid var(--line);
+
+  border-radius:var(--radius);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(14,23,42,.83),
+      rgba(8,15,28,.74)
+    );
+
+}
+
+
+.section-head{
+
+  display:flex;
+
+  justify-content:space-between;
+
+  align-items:center;
+
+  gap:15px;
+
+  margin-bottom:14px;
+
+}
+
+
+.section-head h2{
+
+  margin:0;
+
+  font-size:14px;
+
+}
+
+
+.section-head p{
+
+  margin:
+    4px 0 0;
+
+  color:var(--muted);
+
+  font-size:9px;
+
+}
+
+
+/* RANKING */
+
+.ranking{
+
+  display:flex;
+
+  flex-direction:column;
+
+  gap:7px;
+
+}
+
+
+.rank{
+
+  display:grid;
+
+  grid-template-columns:
+    28px 65px 1fr 40px;
+
+  gap:9px;
+
+  align-items:center;
+
+  padding:9px;
+
+  border-radius:12px;
+
+  background:
+    rgba(4,10,21,.48);
+
+}
+
+
+.rank-no{
+
+  color:#62728a;
+
+  font-size:9px;
+
+}
+
+
+.rank-symbol{
+
+  font-size:11px;
+
+  font-weight:900;
+
+}
+
+
+.rank-track{
+
+  height:5px;
+
+  background:#18243a;
+
+  border-radius:999px;
+
+  overflow:hidden;
+
+}
+
+
+.rank-track div{
+
+  height:100%;
+
+  background:
+    linear-gradient(
+      90deg,
+      var(--green),
+      var(--blue)
+    );
+
+}
+
+
+.rank-score{
+
+  text-align:right;
+
+  font-size:10px;
+
+  font-weight:900;
+
+}
+
+
+/* STATUS */
+
+.status-row{
+
+  display:flex;
+
+  justify-content:space-between;
+
+  align-items:center;
+
+  min-height:42px;
+
+  border-bottom:
+    1px solid var(--line);
+
+  font-size:10px;
+
+}
+
+
+.status-row:last-child{
   border-bottom:0;
 }
 
-.empty{
-  padding:55px 20px;
+
+.status-row span{
+  color:var(--muted);
+}
+
+
+/* OPPORTUNITIES */
+
+.opportunity-grid{
+
+  display:grid;
+
+  grid-template-columns:
+    repeat(2,1fr);
+
+  gap:10px;
+
+}
+
+
+.opportunity{
+
+  position:relative;
+
+  overflow:hidden;
+
+  padding:15px;
+
+  border:
+    1px solid var(--line);
+
+  border-radius:18px;
+
+  background:
+    rgba(8,15,29,.66);
+
+}
+
+
+.opportunity:before{
+
+  content:"";
+
+  position:absolute;
+
+  left:0;
+  right:0;
+  top:0;
+
+  height:3px;
+
+  background:
+    linear-gradient(
+      90deg,
+      var(--green),
+      var(--blue)
+    );
+
+}
+
+
+.op-top{
+
+  display:flex;
+
+  justify-content:space-between;
+
+  align-items:center;
+
+}
+
+
+.op-symbol{
+
+  font-size:18px;
+
+  font-weight:950;
+
+}
+
+
+.op-source{
+
+  margin-top:3px;
+
+  color:var(--muted);
+
+  font-size:7px;
+
+}
+
+
+.priority-ring{
+
+  width:45px;
+  height:45px;
+
+  display:grid;
+
+  place-items:center;
+
+  border-radius:50%;
+
+  border:
+    3px solid var(--green);
+
+  font-size:11px;
+
+  font-weight:900;
+
+}
+
+
+.wait-chip,
+.open-chip{
+
+  display:inline-flex;
+
+  padding:5px 7px;
+
+  border-radius:999px;
+
+  margin-top:9px;
+
+  font-size:7px;
+
+  font-weight:900;
+
+}
+
+
+.wait-chip{
+
+  color:var(--yellow);
+
+  background:
+    rgba(255,200,87,.09);
+
+}
+
+
+.open-chip{
+
+  color:var(--green);
+
+  background:
+    rgba(40,224,162,.09);
+
+  margin:0;
+
+}
+
+
+.levels{
+
+  display:grid;
+
+  grid-template-columns:
+    1fr 1fr;
+
+  gap:7px;
+
+  margin-top:10px;
+
+}
+
+
+.level{
+
+  padding:9px;
+
+  border-radius:10px;
+
+  background:
+    rgba(2,8,17,.45);
+
+}
+
+
+.level span,
+.portfolio-main span,
+.portfolio-levels span{
+
+  display:block;
+
+  color:var(--muted);
+
+  font-size:7px;
+
+  letter-spacing:.5px;
+
+}
+
+
+.level strong,
+.portfolio-main strong,
+.portfolio-levels strong{
+
+  display:block;
+
+  margin-top:4px;
+
+  font-size:10px;
+
+}
+
+
+.confirm strong,
+.green-text{
+  color:var(--green)!important;
+}
+
+
+.invalid strong,
+.red-text{
+  color:#ff8892!important;
+}
+
+
+.reason{
+
+  margin-top:10px;
+
+  color:#8190a6;
+
+  font-size:8px;
+
+  line-height:1.5;
+
+}
+
+
+/* PORTFOLIO */
+
+.portfolio-lock{
+
+  display:none;
+
+  padding:40px 15px;
 
   text-align:center;
 
   color:var(--muted);
 
-  font-size:11px;
-}
-
-.empty-symbol{
-  font-size:30px;
-
-  margin-bottom:9px;
 }
 
 
-/* =========================================================
-   ALERT
-========================================================= */
+.portfolio-grid{
 
-.badge{
-  display:inline-flex;
+  display:grid;
 
-  padding:5px 8px;
+  grid-template-columns:
+    repeat(2,1fr);
 
-  border-radius:999px;
+  gap:11px;
 
-  font-size:9px;
-  font-weight:900;
 }
 
-.badge.watch{
-  background:rgba(157,124,255,.1);
-  color:var(--purple);
+
+.portfolio-card{
+
+  padding:15px;
+
+  border:
+    1px solid var(--line);
+
+  border-radius:18px;
+
+  background:
+    rgba(7,14,27,.65);
+
 }
 
-.badge.buy{
-  background:rgba(40,224,162,.09);
-  color:var(--green);
+
+.portfolio-head{
+
+  display:flex;
+
+  justify-content:space-between;
+
+  align-items:flex-start;
+
 }
 
-.badge.sell{
-  background:rgba(255,97,112,.09);
+
+.portfolio-symbol{
+
+  font-size:19px;
+
+  font-weight:950;
+
+}
+
+
+.portfolio-date{
+
+  margin-top:3px;
+
+  color:var(--muted);
+
+  font-size:8px;
+
+}
+
+
+.portfolio-main{
+
+  display:grid;
+
+  grid-template-columns:
+    repeat(3,1fr);
+
+  gap:7px;
+
+  margin-top:13px;
+
+}
+
+
+.portfolio-main > div,
+.portfolio-levels > div{
+
+  padding:9px;
+
+  border-radius:10px;
+
+  background:
+    rgba(2,8,17,.43);
+
+}
+
+
+.portfolio-levels{
+
+  display:grid;
+
+  grid-template-columns:
+    repeat(4,1fr);
+
+  gap:6px;
+
+  margin-top:7px;
+
+}
+
+
+.signal-row{
+
+  display:flex;
+
+  justify-content:space-between;
+
+  margin-top:10px;
+
+  padding:
+    9px 10px;
+
+  border-radius:10px;
+
+  background:
+    rgba(40,224,162,.055);
+
+  font-size:8px;
+
+}
+
+
+.signal-row span{
+  color:var(--muted);
+}
+
+
+.position-notes{
+
+  margin-top:9px;
+
+  color:var(--muted);
+
+  font-size:8px;
+
+  line-height:1.5;
+
+}
+
+
+.position-actions{
+
+  display:flex;
+
+  gap:6px;
+
+  margin-top:11px;
+
+}
+
+
+.position-actions button{
+
+  flex:1;
+
+  border:
+    1px solid var(--line);
+
+  border-radius:9px;
+
+  padding:7px;
+
+  background:
+    rgba(10,18,33,.7);
+
+  color:#dce5f0;
+
+  font-size:8px;
+
+}
+
+
+.position-actions .close-btn{
+  color:var(--yellow);
+}
+
+
+.position-actions .delete-btn{
   color:var(--red);
 }
 
 
-/* =========================================================
-   CONNECTION ERROR
-========================================================= */
+/* EMPTY */
 
-.error{
-  display:none;
+.empty{
 
-  margin-bottom:13px;
+  padding:38px 15px;
 
-  padding:12px 14px;
+  color:var(--muted);
 
-  border-radius:14px;
+  text-align:center;
 
-  color:#ffbbc1;
+  font-size:10px;
 
-  border:1px solid rgba(255,97,112,.23);
-
-  background:rgba(255,97,112,.07);
-
-  font-size:11px;
 }
 
 
-/* =========================================================
-   MOBILE NAV
-========================================================= */
+.large-empty{
+
+  grid-column:
+    1 / -1;
+
+}
+
+
+.empty-symbol{
+
+  margin-bottom:7px;
+
+  font-size:27px;
+
+}
+
+
+.empty strong{
+
+  display:block;
+
+  color:var(--text);
+
+  font-size:13px;
+
+}
+
+
+.empty p{
+
+  max-width:370px;
+
+  margin:
+    7px auto 14px;
+
+  line-height:1.5;
+
+}
+
+
+/* TABLE */
+
+.table-shell{
+
+  overflow:auto;
+
+  border:
+    1px solid var(--line);
+
+  border-radius:15px;
+
+}
+
+
+table{
+
+  min-width:650px;
+
+  width:100%;
+
+  border-collapse:collapse;
+
+}
+
+
+th,
+td{
+
+  padding:11px;
+
+  border-bottom:
+    1px solid var(--line);
+
+  text-align:left;
+
+  font-size:9px;
+
+}
+
+
+th{
+  color:var(--muted);
+}
+
+
+/* MODAL */
+
+.modal{
+
+  position:fixed;
+
+  inset:0;
+
+  z-index:500;
+
+  display:none;
+
+  align-items:center;
+
+  justify-content:center;
+
+  padding:15px;
+
+  background:
+    rgba(1,5,12,.78);
+
+  backdrop-filter:
+    blur(9px);
+
+}
+
+
+.modal.show{
+  display:flex;
+}
+
+
+.modal-box{
+
+  width:min(
+    460px,
+    100%
+  );
+
+  max-height:
+    calc(100vh - 30px);
+
+  overflow:auto;
+
+  padding:20px;
+
+  border:
+    1px solid var(--line);
+
+  border-radius:22px;
+
+  background:
+    linear-gradient(
+      160deg,
+      #101b2f,
+      #080f1c
+    );
+
+  box-shadow:
+    0 30px 90px
+    rgba(0,0,0,.55);
+
+}
+
+
+.modal-wide{
+
+  width:min(
+    620px,
+    100%
+  );
+
+}
+
+
+.modal-head{
+
+  display:flex;
+
+  justify-content:space-between;
+
+  align-items:center;
+
+  margin-bottom:16px;
+
+}
+
+
+.modal-head h3{
+
+  margin:0;
+
+  font-size:16px;
+
+}
+
+
+.x-btn{
+
+  width:31px;
+  height:31px;
+
+  border:
+    1px solid var(--line);
+
+  border-radius:9px;
+
+  background:
+    rgba(4,10,20,.5);
+
+  color:var(--muted);
+
+}
+
+
+/* AUTH */
+
+.auth-tabs{
+
+  display:grid;
+
+  grid-template-columns:
+    1fr 1fr;
+
+  gap:5px;
+
+  padding:4px;
+
+  margin-bottom:14px;
+
+  border-radius:11px;
+
+  background:
+    rgba(2,8,17,.5);
+
+}
+
+
+.auth-tabs button{
+
+  border:none;
+
+  border-radius:8px;
+
+  padding:8px;
+
+  background:transparent;
+
+  color:var(--muted);
+
+  font-size:9px;
+
+}
+
+
+.auth-tabs button.active{
+
+  background:
+    rgba(40,224,162,.1);
+
+  color:var(--green);
+
+}
+
+
+.field{
+
+  margin-bottom:11px;
+
+}
+
+
+.field label{
+
+  display:block;
+
+  margin-bottom:5px;
+
+  color:var(--muted);
+
+  font-size:8px;
+
+  letter-spacing:.4px;
+
+}
+
+
+.field input,
+.field textarea{
+
+  width:100%;
+
+  border:
+    1px solid var(--line);
+
+  outline:none;
+
+  border-radius:10px;
+
+  padding:
+    10px 11px;
+
+  background:
+    rgba(2,8,17,.52);
+
+  color:white;
+
+  font-size:10px;
+
+}
+
+
+.field textarea{
+
+  min-height:70px;
+
+  resize:vertical;
+
+}
+
+
+.field input:focus,
+.field textarea:focus{
+
+  border-color:
+    rgba(40,224,162,.55);
+
+}
+
+
+.form-grid{
+
+  display:grid;
+
+  grid-template-columns:
+    1fr 1fr;
+
+  gap:10px;
+
+}
+
+
+.full-width{
+  grid-column:1 / -1;
+}
+
+
+.auth-submit,
+.position-submit{
+
+  width:100%;
+
+  border:none;
+
+  border-radius:11px;
+
+  min-height:40px;
+
+  background:
+    linear-gradient(
+      135deg,
+      var(--green),
+      var(--cyan)
+    );
+
+  color:#04120d;
+
+  font-size:10px;
+
+  font-weight:950;
+
+}
+
+
+.auth-message{
+
+  margin-top:10px;
+
+  font-size:9px;
+
+  line-height:1.5;
+
+}
+
+
+.auth-error{
+  color:#ff8993;
+}
+
+
+.auth-success{
+  color:var(--green);
+}
+
+
+/* ERROR */
+
+.error-box{
+
+  display:none;
+
+  padding:10px 12px;
+
+  margin-bottom:10px;
+
+  border:
+    1px solid
+    rgba(255,101,114,.25);
+
+  border-radius:11px;
+
+  background:
+    rgba(255,101,114,.07);
+
+  color:#ffabb2;
+
+  font-size:9px;
+
+}
+
+
+/* TOAST */
+
+.toast{
+
+  position:fixed;
+
+  z-index:999;
+
+  right:18px;
+  bottom:20px;
+
+  max-width:330px;
+
+  padding:
+    11px 14px;
+
+  border-radius:12px;
+
+  background:#111d31;
+
+  color:#eaf1f9;
+
+  border:
+    1px solid var(--line);
+
+  box-shadow:
+    0 20px 50px
+    rgba(0,0,0,.4);
+
+  opacity:0;
+
+  pointer-events:none;
+
+  transform:
+    translateY(12px);
+
+  transition:.2s;
+
+  font-size:9px;
+
+}
+
+
+.toast.show{
+
+  opacity:1;
+
+  transform:
+    translateY(0);
+
+}
+
+
+.toast.error{
+  color:#ffabb2;
+}
+
+
+/* MOBILE NAV */
 
 .mobile-nav{
   display:none;
 }
 
 
-/* =========================================================
-   RESPONSIVE
-========================================================= */
+/* RESPONSIVE */
 
-@media(max-width:980px){
-
-  .app-shell{
-    padding:14px 14px 100px;
-  }
-
-  .hero{
-    min-height:auto;
-    padding:22px;
-  }
-
-  .hero-content{
-    align-items:flex-start;
-  }
-
-  .hero-copy h1{
-    font-size:31px;
-  }
-
-  .hero-market{
-    min-width:220px;
-  }
-
-  .kpis{
-    grid-template-columns:repeat(2,1fr);
-  }
+@media(max-width:900px){
 
   .layout{
+    grid-template-columns:1fr;
+  }
+
+  .opportunity-grid,
+  .portfolio-grid{
     grid-template-columns:1fr;
   }
 
@@ -1009,99 +4043,107 @@ tr:last-child td{
 
 @media(max-width:700px){
 
-  body{
-    background:
-      radial-gradient(circle at 90% 0%,rgba(77,163,255,.14),transparent 30%),
-      #050914;
+  .app{
+
+    padding:
+      10px 10px 90px;
+
   }
 
-  .app-shell{
-    padding:10px 10px 94px;
-  }
-
-  .topbar{
-    height:64px;
-    margin-bottom:10px;
-  }
-
-  .logo{
-    width:42px;
-    height:42px;
-
-    font-size:18px;
-  }
-
-  .brand-title strong{
-    font-size:16px;
-  }
-
-  .brand-title span{
-    font-size:9px;
-  }
 
   .engine-pill{
     display:none;
   }
 
-  .hero{
-    padding:20px;
 
-    border-radius:22px;
+  .header{
 
-    margin-bottom:10px;
+    min-height:58px;
+
+    margin-bottom:9px;
+
   }
+
+
+  .logo{
+
+    width:41px;
+    height:41px;
+
+  }
+
+
+  .brand strong{
+    font-size:15px;
+  }
+
+
+  .user-info{
+    display:none;
+  }
+
+
+  .hero{
+
+    padding:19px;
+
+    border-radius:21px;
+
+  }
+
 
   .hero-content{
     display:block;
   }
 
-  .hero-copy h1{
-    font-size:29px;
+
+  .hero h1{
+    font-size:28px;
   }
 
-  .hero-copy p{
-    font-size:11px;
-  }
 
-  .hero-market{
-    margin-top:19px;
+  .hero-top{
+
+    width:100%;
 
     min-width:0;
 
-    width:100%;
+    margin-top:17px;
+
   }
 
-  .hero-market-value{
-    font-size:23px;
-  }
 
   .kpis{
-    gap:8px;
 
-    margin-bottom:10px;
+    grid-template-columns:
+      1fr 1fr;
+
+    gap:7px;
+
   }
+
 
   .kpi{
-    min-height:104px;
 
-    padding:13px;
+    min-height:94px;
 
-    border-radius:17px;
+    padding:12px;
+
   }
 
-  .kpi-value{
-    font-size:21px;
+
+  .kpi strong{
+    font-size:20px;
   }
+
 
   .desktop-nav{
     display:none;
   }
 
-  .opportunity-grid{
-    grid-template-columns:1fr;
-  }
 
   .mobile-nav{
+
     position:fixed;
 
     left:0;
@@ -1111,46 +4153,86 @@ tr:last-child td{
     z-index:200;
 
     display:grid;
-    grid-template-columns:repeat(5,1fr);
+
+    grid-template-columns:
+      repeat(5,1fr);
 
     padding:
       7px
-      max(7px,env(safe-area-inset-right))
-      calc(7px + env(safe-area-inset-bottom))
-      max(7px,env(safe-area-inset-left));
+      max(6px,env(safe-area-inset-right))
+      calc(
+        7px +
+        env(safe-area-inset-bottom)
+      )
+      max(6px,env(safe-area-inset-left));
 
-    border-top:1px solid var(--line);
+    border-top:
+      1px solid var(--line);
 
-    background:rgba(5,9,20,.93);
+    background:
+      rgba(5,9,20,.94);
 
-    backdrop-filter:blur(18px);
+    backdrop-filter:
+      blur(18px);
+
   }
 
+
   .mobile-nav button{
-    border:0;
+
+    border:none;
+
+    padding:5px 1px;
 
     background:transparent;
 
-    color:#64748b;
+    color:#66768c;
 
-    padding:6px 1px;
+    font-size:8px;
 
-    font-size:9px;
-
-    cursor:pointer;
   }
+
 
   .mobile-nav button.active{
     color:var(--green);
   }
 
-  .mobile-nav button b{
+
+  .mobile-nav b{
+
     display:block;
 
     margin-bottom:3px;
 
-    font-size:17px;
-    line-height:1;
+    font-size:16px;
+
+  }
+
+
+  .portfolio-levels{
+    grid-template-columns:1fr 1fr;
+  }
+
+
+  .form-grid{
+    grid-template-columns:1fr;
+  }
+
+
+  .full-width{
+    grid-column:auto;
+  }
+
+
+  .toast{
+
+    left:10px;
+    right:10px;
+
+    bottom:82px;
+
+    max-width:none;
+
   }
 
 }
@@ -1161,12 +4243,10 @@ tr:last-child td{
 
 <body>
 
-<div class="app-shell">
+<div class="app">
 
 
-<!-- TOP BAR -->
-
-<header class="topbar">
+<header class="header">
 
   <div class="brand">
 
@@ -1174,78 +4254,130 @@ tr:last-child td{
       H
     </div>
 
-    <div class="brand-title">
-      <strong>HANZ</strong>
-      <span>Trading Intelligence System</span>
+    <div>
+
+      <strong>
+        HANZ
+      </strong>
+
+      <span>
+        Trading Intelligence System
+      </span>
+
     </div>
 
   </div>
 
 
-  <div class="top-actions">
+  <div class="header-actions">
+
 
     <div class="engine-pill">
-      <span id="engineDot" class="live-dot"></span>
+
+      <span
+        id="engineDot"
+        class="live-dot"
+      ></span>
+
       <span id="engineLabel">
         CONNECTING
       </span>
+
     </div>
 
-    <button class="icon-btn" onclick="loadAll()">
-      ↻ Refresh
+
+    <button
+      class="secondary-btn"
+      onclick="window.loadAll()"
+    >
+      ↻
     </button>
+
+
+    <button
+      id="loginButton"
+      class="primary-btn"
+      onclick="window.openAuth('login')"
+    >
+      Login
+    </button>
+
+
+    <div
+      id="userArea"
+      class="user-area"
+    >
+
+      <div class="user-info">
+
+        <strong id="userName">
+          User
+        </strong>
+
+        <span id="userEmail"></span>
+
+      </div>
+
+
+      <button
+        class="secondary-btn"
+        onclick="window.logout()"
+      >
+        Logout
+      </button>
+
+    </div>
+
 
   </div>
 
 </header>
 
 
-<div id="errorBox" class="error"></div>
+<div
+  id="errorBox"
+  class="error-box"
+></div>
 
-
-<!-- HERO -->
 
 <section class="hero">
 
   <div class="hero-content">
 
-    <div class="hero-copy">
+    <div>
 
-      <small>HANZ INTELLIGENCE NETWORK</small>
+      <small>
+        HANZ INTELLIGENCE NETWORK
+      </small>
 
       <h1>
         Market opportunities.<br>
-        Confirmed by intelligence.
+        Personal portfolio intelligence.
       </h1>
 
       <p>
-        Autonomous BEI market scanning,
-        opportunity ranking, intraday confirmation
-        and portfolio risk monitoring.
+        Shared market scanning.
+        Personal entry price, risk,
+        targets and portfolio monitoring
+        for every HANZ user.
       </p>
 
     </div>
 
 
-    <div class="hero-market">
+    <div class="hero-top">
 
-      <div class="hero-market-label">
+      <span>
         CURRENT TOP OPPORTUNITY
-      </div>
+      </span>
 
-      <div
-        class="hero-market-value"
-        id="heroTopCandidate"
-      >
+      <strong id="heroTopCandidate">
         —
-      </div>
+      </strong>
 
-      <div
-        class="hero-market-sub"
-        id="heroTopSub"
-      >
+      <small id="heroTopSub">
         Waiting for HANZ scan
-      </div>
+      </small>
 
     </div>
 
@@ -1254,99 +4386,80 @@ tr:last-child td{
 </section>
 
 
-<!-- KPI -->
-
 <section class="kpis">
 
   <article class="kpi">
 
-    <div class="kpi-label">
+    <span>
       Opportunities
-    </div>
+    </span>
 
-    <div
-      id="opportunityCount"
-      class="kpi-value"
-    >
+    <strong id="opportunityCount">
       —
-    </div>
+    </strong>
 
-    <div class="kpi-sub">
-      Active slow-engine shortlist
-    </div>
+    <small>
+      Shared HANZ shortlist
+    </small>
 
   </article>
 
 
   <article class="kpi">
 
-    <div class="kpi-label">
+    <span>
       Top Candidate
-    </div>
+    </span>
 
-    <div
+    <strong
       id="topCandidate"
-      class="kpi-value green-text"
+      class="green-text"
     >
       —
-    </div>
+    </strong>
 
-    <div
-      id="topCandidateSub"
-      class="kpi-sub"
-    >
+    <small id="topCandidateSub">
       Priority —
-    </div>
+    </small>
 
   </article>
 
 
   <article class="kpi">
 
-    <div class="kpi-label">
+    <span>
+      My Portfolio
+    </span>
+
+    <strong id="portfolioCount">
+      0
+    </strong>
+
+    <small>
+      Personal positions
+    </small>
+
+  </article>
+
+
+  <article class="kpi">
+
+    <span>
       HANZ Engine
-    </div>
+    </span>
 
-    <div
-      id="engineState"
-      class="kpi-value"
-    >
+    <strong id="engineState">
       —
-    </div>
+    </strong>
 
-    <div class="kpi-sub">
-      Slow + Fast intelligence
-    </div>
-
-  </article>
-
-
-  <article class="kpi">
-
-    <div class="kpi-label">
-      Last Update
-    </div>
-
-    <div
-      id="lastUpdate"
-      class="kpi-value"
-    >
-      —
-    </div>
-
-    <div
-      id="lastUpdateDate"
-      class="kpi-sub"
-    >
+    <small id="lastUpdateDate">
       Supabase Live
-    </div>
+    </small>
 
   </article>
 
 </section>
 
-
-<!-- DESKTOP NAV -->
 
 <nav class="desktop-nav">
 
@@ -1357,26 +4470,32 @@ tr:last-child td{
     Overview
   </button>
 
-  <button data-panel="opportunities">
+  <button
+    data-panel="opportunities"
+  >
     Opportunities
   </button>
 
-  <button data-panel="portfolio">
+  <button
+    data-panel="portfolio"
+  >
     Portfolio
   </button>
 
-  <button data-panel="alerts">
+  <button
+    data-panel="alerts"
+  >
     Alerts
   </button>
 
-  <button data-panel="system">
+  <button
+    data-panel="system"
+  >
     System
   </button>
 
 </nav>
 
-
-<!-- OVERVIEW -->
 
 <section
   id="overview"
@@ -1386,23 +4505,21 @@ tr:last-child td{
   <div class="layout">
 
 
-    <article class="glass card">
+    <article class="card">
 
-      <div class="section-heading">
+      <div class="section-head">
 
         <div>
+
           <h2>
             Opportunity Ranking
           </h2>
 
           <p>
-            Slow Engine candidate priority
+            Shared HANZ market intelligence
           </p>
-        </div>
 
-        <span class="small-tag">
-          BEI LIVE
-        </span>
+        </div>
 
       </div>
 
@@ -1415,18 +4532,18 @@ tr:last-child td{
     </article>
 
 
-    <article class="glass card">
+    <article class="card">
 
-      <div class="section-heading">
+      <div class="section-head">
 
         <div>
 
           <h2>
-            Engine Status
+            HANZ Status
           </h2>
 
           <p>
-            Autonomous market intelligence
+            Trading intelligence infrastructure
           </p>
 
         </div>
@@ -1434,74 +4551,67 @@ tr:last-child td{
       </div>
 
 
-      <div class="status-list">
+      <div class="status-row">
 
-        <div class="status-row">
+        <span>
+          Main Worker
+        </span>
 
-          <span>
-            Main Worker
-          </span>
+        <strong id="mainWorkerStatus">
+          —
+        </strong>
 
-          <strong
-            id="mainWorkerStatus"
-            class="status-value"
-          >
-            —
-          </strong>
-
-        </div>
+      </div>
 
 
-        <div class="status-row">
+      <div class="status-row">
 
-          <span>
-            Fast Engine
-          </span>
+        <span>
+          Fast Engine
+        </span>
 
-          <strong>
-            60 sec
-          </strong>
+        <strong>
+          60 sec
+        </strong>
 
-        </div>
-
-
-        <div class="status-row">
-
-          <span>
-            Trigger
-          </span>
-
-          <strong>
-            1 minute
-          </strong>
-
-        </div>
+      </div>
 
 
-        <div class="status-row">
+      <div class="status-row">
 
-          <span>
-            Confirmation
-          </span>
+        <span>
+          Trigger
+        </span>
 
-          <strong>
-            5 minutes
-          </strong>
+        <strong>
+          1m
+        </strong>
 
-        </div>
+      </div>
 
 
-        <div class="status-row">
+      <div class="status-row">
 
-          <span>
-            Portfolio
-          </span>
+        <span>
+          Confirmation
+        </span>
 
-          <strong id="portfolioStatus">
-            0 positions
-          </strong>
+        <strong>
+          5m
+        </strong>
 
-        </div>
+      </div>
+
+
+      <div class="status-row">
+
+        <span>
+          My Portfolio
+        </span>
+
+        <strong id="portfolioStatus">
+          0 positions
+        </strong>
 
       </div>
 
@@ -1513,16 +4623,14 @@ tr:last-child td{
 </section>
 
 
-<!-- OPPORTUNITIES -->
-
 <section
   id="opportunities"
   class="panel"
 >
 
-  <article class="glass card">
+  <article class="card">
 
-    <div class="section-heading">
+    <div class="section-head">
 
       <div>
 
@@ -1531,14 +4639,11 @@ tr:last-child td{
         </h2>
 
         <p>
-          Candidates waiting for fast-engine confirmation
+          Shared candidates waiting
+          for fast confirmation
         </p>
 
       </div>
-
-      <span class="small-tag">
-        AUTO SCAN
-      </span>
 
     </div>
 
@@ -1553,70 +4658,88 @@ tr:last-child td{
 </section>
 
 
-<!-- PORTFOLIO -->
-
 <section
   id="portfolio"
   class="panel"
 >
 
-  <article class="glass card">
+  <article class="card">
 
-    <div class="section-heading">
+    <div class="section-head">
 
       <div>
 
         <h2>
-          Portfolio
+          My Portfolio
         </h2>
 
         <p>
-          Open positions monitored by HANZ
+          Private positions visible only
+          to this account
         </p>
 
       </div>
 
+
+      <button
+        id="addPositionButton"
+        class="primary-btn"
+        disabled
+        onclick="window.openPositionModal()"
+      >
+        + Add Position
+      </button>
+
+    </div>
+
+
+    <div
+      id="portfolioLocked"
+      class="portfolio-lock"
+    >
+
+      Login first to access
+      your private portfolio.
+
+      <br><br>
+
+      <button
+        class="primary-btn"
+        onclick="window.openAuth('login')"
+      >
+        Login / Sign Up
+      </button>
+
     </div>
 
 
-    <div id="portfolioBox">
-
-      <div class="empty">
-
-        <div class="empty-symbol">
-          ◉
-        </div>
-
-        No open positions yet.
-
-      </div>
-
-    </div>
+    <div
+      id="portfolioGrid"
+      class="portfolio-grid"
+    ></div>
 
   </article>
 
 </section>
 
 
-<!-- ALERTS -->
-
 <section
   id="alerts"
   class="panel"
 >
 
-  <article class="glass card">
+  <article class="card">
 
-    <div class="section-heading">
+    <div class="section-head">
 
       <div>
 
         <h2>
-          Trading Alerts
+          My Alerts
         </h2>
 
         <p>
-          Early Watch · Confirmed Buy · Sell
+          Personal HANZ portfolio alerts
         </p>
 
       </div>
@@ -1632,7 +4755,7 @@ tr:last-child td{
           ⚡
         </div>
 
-        No alerts yet.
+        Login to view personal alerts.
 
       </div>
 
@@ -1643,25 +4766,23 @@ tr:last-child td{
 </section>
 
 
-<!-- SYSTEM -->
-
 <section
   id="system"
   class="panel"
 >
 
-  <article class="glass card">
+  <article class="card">
 
-    <div class="section-heading">
+    <div class="section-head">
 
       <div>
 
         <h2>
-          HANZ System Health
+          System Health
         </h2>
 
         <p>
-          Infrastructure and worker telemetry
+          HANZ infrastructure telemetry
         </p>
 
       </div>
@@ -1669,86 +4790,80 @@ tr:last-child td{
     </div>
 
 
-    <div class="status-list">
+    <div class="status-row">
+
+      <span>
+        Main Worker
+      </span>
+
+      <strong id="sysStatus">
+        —
+      </strong>
+
+    </div>
 
 
-      <div class="status-row">
+    <div class="status-row">
 
-        <span>
-          Main Worker
-        </span>
+      <span>
+        Heartbeat
+      </span>
 
-        <strong id="sysStatus">
-          —
-        </strong>
+      <strong id="heartbeat">
+        —
+      </strong>
 
-      </div>
-
-
-      <div class="status-row">
-
-        <span>
-          Heartbeat
-        </span>
-
-        <strong id="heartbeat">
-          —
-        </strong>
-
-      </div>
+    </div>
 
 
-      <div class="status-row">
+    <div class="status-row">
 
-        <span>
-          Last Successful Cycle
-        </span>
+      <span>
+        Last Successful Cycle
+      </span>
 
-        <strong id="lastSuccess">
-          —
-        </strong>
+      <strong id="lastSuccess">
+        —
+      </strong>
 
-      </div>
-
-
-      <div class="status-row">
-
-        <span>
-          Consecutive Failures
-        </span>
-
-        <strong id="failures">
-          —
-        </strong>
-
-      </div>
+    </div>
 
 
-      <div class="status-row">
+    <div class="status-row">
 
-        <span>
-          Last Error
-        </span>
+      <span>
+        Failures
+      </span>
 
-        <strong id="lastError">
-          None
-        </strong>
+      <strong id="failures">
+        —
+      </strong>
 
-      </div>
+    </div>
 
 
-      <div class="status-row">
+    <div class="status-row">
 
-        <span>
-          Dashboard Refresh
-        </span>
+      <span>
+        Last Error
+      </span>
 
-        <strong>
-          30 sec
-        </strong>
+      <strong id="lastError">
+        None
+      </strong>
 
-      </div>
+    </div>
 
+
+    <div class="status-row">
+
+      <span>
+        Last Market Update
+      </span>
+
+      <strong id="lastUpdate">
+        —
+      </strong>
 
     </div>
 
@@ -1756,11 +4871,8 @@ tr:last-child td{
 
 </section>
 
-
 </div>
 
-
-<!-- MOBILE NAV -->
 
 <nav class="mobile-nav">
 
@@ -1807,1049 +4919,323 @@ tr:last-child td{
 </nav>
 
 
-<script>
+<!-- AUTH MODAL -->
 
-/* =========================================================
-   SUPABASE CONFIG
+<div
+  id="authModal"
+  class="modal"
+>
 
-   MASUKKAN VALUE YANG SEKARANG SUDAH BERHASIL.
-   JANGAN gunakan SUPABASE_SECRET_KEY.
-========================================================= */
+  <div class="modal-box">
 
-const SUPABASE_URL =
-  "https://fgyfszkadstmdzqwppt.supabase.co";
 
-const SUPABASE_KEY =
-  "sb_publishable_rBY4VJwPS1T5tm0zPw4tbg_BhApWtfM";
+    <div class="modal-head">
 
-const REFRESH_MS = 30000;
+      <h3>
+        HANZ Account
+      </h3>
 
+      <button
+        class="x-btn"
+        onclick="window.closeAuth()"
+      >
+        ×
+      </button>
 
-/* =========================================================
-   API
-========================================================= */
+    </div>
 
-function apiHeaders(){
 
-  return {
-    "apikey": SUPABASE_KEY,
-    "Authorization":
-      "Bearer " + SUPABASE_KEY
-  };
+    <div class="auth-tabs">
 
-}
+      <button
+        id="loginTab"
+        class="active"
+      >
+        Login
+      </button>
 
+      <button id="signupTab">
+        Sign Up
+      </button>
 
-async function api(path){
+    </div>
 
-  const response =
-    await fetch(
-      SUPABASE_URL +
-      "/rest/v1/" +
-      path,
-      {
-        headers:apiHeaders(),
-        cache:"no-store"
-      }
-    );
 
+    <form id="authForm">
 
-  if(!response.ok){
+      <div
+        id="signupNameWrap"
+        class="field"
+        style="display:none"
+      >
 
-    const text =
-      await response.text();
+        <label>
+          NAME
+        </label>
 
-    throw new Error(
-      response.status +
-      " " +
-      text
-    );
-
-  }
-
-
-  return response.json();
-
-}
-
-
-/* =========================================================
-   HELPERS
-========================================================= */
-
-function formatPrice(value){
-
-  if(
-    value === null ||
-    value === undefined ||
-    value === ""
-  ){
-    return "—";
-  }
-
-
-  const n =
-    Number(value);
-
-
-  if(!Number.isFinite(n)){
-    return value;
-  }
-
-
-  return n.toLocaleString(
-    "en-US",
-    {
-      maximumFractionDigits:2
-    }
-  );
-
-}
-
-
-function formatTime(value){
-
-  if(!value){
-    return "—";
-  }
-
-
-  const d =
-    new Date(value);
-
-
-  if(
-    Number.isNaN(
-      d.getTime()
-    )
-  ){
-    return "—";
-  }
-
-
-  return new Intl.DateTimeFormat(
-    "en-GB",
-    {
-      hour:"2-digit",
-      minute:"2-digit",
-      second:"2-digit"
-    }
-  ).format(d);
-
-}
-
-
-function formatDate(value){
-
-  if(!value){
-    return "";
-  }
-
-
-  return new Intl.DateTimeFormat(
-    "en-GB",
-    {
-      day:"2-digit",
-      month:"short"
-    }
-  ).format(
-    new Date(value)
-  );
-
-}
-
-
-function safe(value){
-
-  return String(
-    value ?? ""
-  )
-  .replaceAll("&","&amp;")
-  .replaceAll("<","&lt;")
-  .replaceAll(">","&gt;")
-  .replaceAll('"',"&quot;");
-
-}
-
-
-/* =========================================================
-   NAVIGATION
-========================================================= */
-
-function showPanel(name){
-
-  document
-  .querySelectorAll(
-    ".panel"
-  )
-  .forEach(
-    panel=>{
-
-      panel.classList.toggle(
-        "active",
-        panel.id === name
-      );
-
-    }
-  );
-
-
-  document
-  .querySelectorAll(
-    "[data-panel]"
-  )
-  .forEach(
-    button=>{
-
-      button.classList.toggle(
-        "active",
-        button.dataset.panel === name
-      );
-
-    }
-  );
-
-
-  window.scrollTo({
-    top:0,
-    behavior:"smooth"
-  });
-
-}
-
-
-document
-.querySelectorAll(
-  "[data-panel]"
-)
-.forEach(
-  button=>{
-
-    button.addEventListener(
-      "click",
-      ()=>showPanel(
-        button.dataset.panel
-      )
-    );
-
-  }
-);
-
-
-/* =========================================================
-   WATCHLIST
-========================================================= */
-
-async function loadWatchlist(){
-
-  const rows =
-    await api(
-
-      "hanz_watchlist" +
-
-      "?select=" +
-      "ticker," +
-      "source," +
-      "priority," +
-      "entry_zone_low," +
-      "entry_zone_high," +
-      "confirmation_price," +
-      "invalidation_price," +
-      "reason," +
-      "updated_at" +
-
-      "&source=eq.AUTO_SLOW_ENGINE" +
-
-      "&order=priority.desc"
-
-    );
-
-
-  document
-  .getElementById(
-    "opportunityCount"
-  )
-  .textContent =
-    rows.length;
-
-
-  if(rows.length){
-
-    const top =
-      rows[0];
-
-
-    document
-    .getElementById(
-      "topCandidate"
-    )
-    .textContent =
-      top.ticker;
-
-
-    document
-    .getElementById(
-      "topCandidateSub"
-    )
-    .textContent =
-      "Priority " +
-      top.priority;
-
-
-    document
-    .getElementById(
-      "heroTopCandidate"
-    )
-    .textContent =
-      top.ticker;
-
-
-    document
-    .getElementById(
-      "heroTopSub"
-    )
-    .textContent =
-      "Priority " +
-      top.priority +
-      " · Waiting confirmation";
-
-
-    if(top.updated_at){
-
-      document
-      .getElementById(
-        "lastUpdate"
-      )
-      .textContent =
-        formatTime(
-          top.updated_at
-        );
-
-
-      document
-      .getElementById(
-        "lastUpdateDate"
-      )
-      .textContent =
-        formatDate(
-          top.updated_at
-        ) +
-        " · Supabase Live";
-
-    }
-
-  }
-
-
-  renderRanking(rows);
-
-  renderOpportunities(rows);
-
-}
-
-
-/* =========================================================
-   RANKING
-========================================================= */
-
-function renderRanking(rows){
-
-  const container =
-    document.getElementById(
-      "ranking"
-    );
-
-
-  if(!rows.length){
-
-    container.innerHTML =
-      '<div class="empty">' +
-      'No opportunities.' +
-      '</div>';
-
-    return;
-
-  }
-
-
-  container.innerHTML =
-    rows.map(
-      (row,index)=>{
-
-        const score =
-          Math.max(
-            0,
-            Math.min(
-              100,
-              Number(
-                row.priority || 0
-              )
-            )
-          );
-
-
-        return `
-
-          <div class="rank">
-
-            <div class="rank-no">
-              #${index + 1}
-            </div>
-
-            <div class="rank-symbol">
-              ${safe(row.ticker)}
-            </div>
-
-            <div class="rank-track">
-              <div
-                style="width:${score}%"
-              ></div>
-            </div>
-
-            <div class="rank-score">
-              ${score}
-            </div>
-
-          </div>
-
-        `;
-
-      }
-    )
-    .join("");
-
-}
-
-
-/* =========================================================
-   OPPORTUNITY CARDS
-========================================================= */
-
-function renderOpportunities(rows){
-
-  const container =
-    document.getElementById(
-      "opportunityGrid"
-    );
-
-
-  if(!rows.length){
-
-    container.innerHTML =
-      '<div class="empty">' +
-      'No candidates.' +
-      '</div>';
-
-    return;
-
-  }
-
-
-  container.innerHTML =
-    rows.map(
-      row=>`
-
-      <article class="opportunity">
-
-        <div class="op-top">
-
-          <div>
-
-            <div class="op-symbol">
-              ${safe(row.ticker)}
-            </div>
-
-            <div class="op-source">
-              HANZ AUTO SLOW ENGINE
-            </div>
-
-          </div>
-
-
-          <div class="priority-ring">
-            ${row.priority ?? "—"}
-          </div>
-
-        </div>
-
-
-        <span class="wait-chip">
-          WAIT CONFIRM
-        </span>
-
-
-        <div class="levels">
-
-          <div class="level">
-
-            <span>
-              Entry Low
-            </span>
-
-            <strong>
-              ${formatPrice(
-                row.entry_zone_low
-              )}
-            </strong>
-
-          </div>
-
-
-          <div class="level">
-
-            <span>
-              Entry High
-            </span>
-
-            <strong>
-              ${formatPrice(
-                row.entry_zone_high
-              )}
-            </strong>
-
-          </div>
-
-
-          <div class="level confirm">
-
-            <span>
-              Confirm Above
-            </span>
-
-            <strong>
-              ${formatPrice(
-                row.confirmation_price
-              )}
-            </strong>
-
-          </div>
-
-
-          <div class="level invalid">
-
-            <span>
-              Invalidation
-            </span>
-
-            <strong>
-              ${formatPrice(
-                row.invalidation_price
-              )}
-            </strong>
-
-          </div>
-
-        </div>
-
-
-        <div class="reason">
-          ${safe(
-            row.reason || ""
-          )}
-        </div>
-
-      </article>
-
-    `
-    )
-    .join("");
-
-}
-
-
-/* =========================================================
-   HEALTH
-========================================================= */
-
-async function loadHealth(){
-
-  const rows =
-    await api(
-
-      "hanz_live_state" +
-
-      "?select=" +
-      "id," +
-      "status," +
-      "heartbeat_at," +
-      "last_success_at," +
-      "last_error," +
-      "consecutive_failures," +
-      "updated_at" +
-
-      "&id=eq.bei-main" +
-
-      "&limit=1"
-
-    );
-
-
-  const state =
-    rows[0];
-
-
-  if(!state){
-    return;
-  }
-
-
-  const status =
-    String(
-      state.status || ""
-    )
-    .toLowerCase();
-
-
-  const online =
-    status === "online";
-
-
-  document
-  .getElementById(
-    "engineState"
-  )
-  .textContent =
-    online
-      ? "ONLINE"
-      : "CHECK";
-
-
-  document
-  .getElementById(
-    "mainWorkerStatus"
-  )
-  .textContent =
-    online
-      ? "ONLINE"
-      : status.toUpperCase();
-
-
-  document
-  .getElementById(
-    "mainWorkerStatus"
-  )
-  .classList.toggle(
-    "status-good",
-    online
-  );
-
-
-  document
-  .getElementById(
-    "sysStatus"
-  )
-  .textContent =
-    status.toUpperCase();
-
-
-  document
-  .getElementById(
-    "heartbeat"
-  )
-  .textContent =
-    formatTime(
-      state.heartbeat_at
-    );
-
-
-  document
-  .getElementById(
-    "lastSuccess"
-  )
-  .textContent =
-    formatTime(
-      state.last_success_at
-    );
-
-
-  document
-  .getElementById(
-    "failures"
-  )
-  .textContent =
-    state.consecutive_failures ?? 0;
-
-
-  document
-  .getElementById(
-    "lastError"
-  )
-  .textContent =
-    state.last_error || "None";
-
-
-  document
-  .getElementById(
-    "engineDot"
-  )
-  .classList.toggle(
-    "online",
-    online
-  );
-
-
-  document
-  .getElementById(
-    "engineLabel"
-  )
-  .textContent =
-    online
-      ? "HANZ ONLINE"
-      : "CHECK ENGINE";
-
-}
-
-
-/* =========================================================
-   PORTFOLIO
-========================================================= */
-
-async function loadPortfolio(){
-
-  try{
-
-    const rows =
-      await api(
-
-        "hanz_portfolio" +
-
-        "?select=*" +
-
-        "&order=updated_at.desc"
-
-      );
-
-
-    document
-    .getElementById(
-      "portfolioStatus"
-    )
-    .textContent =
-      rows.length +
-      (
-        rows.length === 1
-        ? " position"
-        : " positions"
-      );
-
-
-    if(!rows.length){
-      return;
-    }
-
-
-    document
-    .getElementById(
-      "portfolioBox"
-    )
-    .innerHTML = `
-
-      <div class="table-shell">
-
-        <table>
-
-          <thead>
-
-            <tr>
-              <th>Ticker</th>
-              <th>Avg Buy</th>
-              <th>Qty</th>
-              <th>Last Price</th>
-              <th>P/L</th>
-              <th>Signal</th>
-            </tr>
-
-          </thead>
-
-
-          <tbody>
-
-            ${rows.map(
-              row=>`
-
-              <tr>
-
-                <td>
-                  <strong>
-                    ${safe(row.ticker)}
-                  </strong>
-                </td>
-
-                <td>
-                  ${formatPrice(
-                    row.avg_buy
-                  )}
-                </td>
-
-                <td>
-                  ${
-                    row.quantity ??
-                    row.lots ??
-                    "—"
-                  }
-                </td>
-
-                <td>
-                  ${formatPrice(
-                    row.last_price
-                  )}
-                </td>
-
-                <td>
-                  ${
-                    row.pnl_percent ??
-                    "—"
-                  }
-                </td>
-
-                <td>
-                  ${
-                    safe(
-                      row.signal ||
-                      "MONITOR"
-                    )
-                  }
-                </td>
-
-              </tr>
-
-              `
-            ).join("")}
-
-          </tbody>
-
-        </table>
+        <input
+          id="authName"
+          type="text"
+          placeholder="Your name"
+        >
 
       </div>
 
-    `;
 
-  }
-  catch(error){
+      <div class="field">
 
-    document
-    .getElementById(
-      "portfolioStatus"
-    )
-    .textContent =
-      "0 positions";
+        <label>
+          EMAIL
+        </label>
 
-  }
-
-}
-
-
-/* =========================================================
-   ALERTS
-========================================================= */
-
-async function loadAlerts(){
-
-  try{
-
-    const rows =
-      await api(
-
-        "hanz_alerts" +
-
-        "?select=*" +
-
-        "&order=created_at.desc" +
-
-        "&limit=30"
-
-      );
-
-
-    if(!rows.length){
-      return;
-    }
-
-
-    document
-    .getElementById(
-      "alertsBox"
-    )
-    .innerHTML = `
-
-      <div class="table-shell">
-
-        <table>
-
-          <thead>
-
-            <tr>
-              <th>Time</th>
-              <th>Ticker</th>
-              <th>Alert</th>
-              <th>Price</th>
-              <th>Reason</th>
-            </tr>
-
-          </thead>
-
-
-          <tbody>
-
-            ${rows.map(
-              row=>{
-
-                const type =
-                  String(
-                    row.alert_type ||
-                    row.type ||
-                    ""
-                  )
-                  .toUpperCase();
-
-
-                let badge =
-                  "watch";
-
-
-                if(
-                  type.includes("BUY")
-                ){
-                  badge =
-                    "buy";
-                }
-
-
-                if(
-                  type.includes("SELL")
-                ){
-                  badge =
-                    "sell";
-                }
-
-
-                return `
-
-                  <tr>
-
-                    <td>
-                      ${formatTime(
-                        row.created_at
-                      )}
-                    </td>
-
-                    <td>
-                      <strong>
-                        ${safe(
-                          row.ticker
-                        )}
-                      </strong>
-                    </td>
-
-                    <td>
-                      <span
-                        class="badge ${badge}"
-                      >
-                        ${safe(type)}
-                      </span>
-                    </td>
-
-                    <td>
-                      ${formatPrice(
-                        row.price
-                      )}
-                    </td>
-
-                    <td>
-                      ${safe(
-                        row.reason || ""
-                      )}
-                    </td>
-
-                  </tr>
-
-                `;
-
-              }
-            ).join("")}
-
-          </tbody>
-
-        </table>
+        <input
+          id="authEmail"
+          type="email"
+          autocomplete="email"
+          required
+          placeholder="name@email.com"
+        >
 
       </div>
 
-    `;
 
-  }
-  catch(error){
+      <div class="field">
 
-    /*
-      hanz_alerts belum wajib
-      ada pada fase ini.
-    */
+        <label>
+          PASSWORD
+        </label>
 
-  }
+        <input
+          id="authPassword"
+          type="password"
+          autocomplete="current-password"
+          required
+          minlength="6"
+          placeholder="Minimum 6 characters"
+        >
 
-}
-
-
-/* =========================================================
-   LOAD ALL
-========================================================= */
-
-async function loadAll(){
-
-  const errorBox =
-    document.getElementById(
-      "errorBox"
-    );
+      </div>
 
 
-  errorBox.style.display =
-    "none";
+      <button
+        id="authSubmit"
+        type="submit"
+        class="auth-submit"
+      >
+        Login to HANZ
+      </button>
 
 
-  try{
+      <div
+        id="authMessage"
+        class="auth-message"
+      ></div>
 
-    await Promise.all([
+    </form>
 
-      loadWatchlist(),
+  </div>
 
-      loadHealth(),
-
-      loadPortfolio(),
-
-      loadAlerts()
-
-    ]);
-
-  }
-  catch(error){
-
-    console.error(error);
+</div>
 
 
-    errorBox.textContent =
-      "Live data connection error: " +
-      error.message;
+<!-- POSITION MODAL -->
+
+<div
+  id="positionModal"
+  class="modal"
+>
+
+  <div class="modal-box modal-wide">
 
 
-    errorBox.style.display =
-      "block";
+    <div class="modal-head">
 
-  }
+      <h3 id="positionModalTitle">
+        Add Position
+      </h3>
 
-}
+      <button
+        class="x-btn"
+        onclick="window.closePositionModal()"
+      >
+        ×
+      </button>
+
+    </div>
 
 
-/* =========================================================
-   START
-========================================================= */
+    <form id="positionForm">
 
-loadAll();
+      <div class="form-grid">
 
-setInterval(
-  loadAll,
-  REFRESH_MS
-);
 
-</script>
+        <div class="field">
+
+          <label>
+            TICKER
+          </label>
+
+          <input
+            id="positionTicker"
+            required
+            placeholder="AALI"
+            maxlength="12"
+          >
+
+        </div>
+
+
+        <div class="field">
+
+          <label>
+            BUY DATE
+          </label>
+
+          <input
+            id="positionBuyDate"
+            type="date"
+            required
+          >
+
+        </div>
+
+
+        <div class="field">
+
+          <label>
+            BUY PRICE
+          </label>
+
+          <input
+            id="positionAvgBuy"
+            type="number"
+            step="any"
+            min="0"
+            required
+            placeholder="7500"
+          >
+
+        </div>
+
+
+        <div class="field">
+
+          <label>
+            LOTS
+          </label>
+
+          <input
+            id="positionLots"
+            type="number"
+            step="any"
+            min="0"
+            required
+            placeholder="2"
+          >
+
+        </div>
+
+
+        <div class="field">
+
+          <label>
+            STOP LOSS
+          </label>
+
+          <input
+            id="positionStopLoss"
+            type="number"
+            step="any"
+            placeholder="Optional"
+          >
+
+        </div>
+
+
+        <div class="field">
+
+          <label>
+            TRAILING STOP
+          </label>
+
+          <input
+            id="positionTrailing"
+            type="number"
+            step="any"
+            placeholder="Optional"
+          >
+
+        </div>
+
+
+        <div class="field">
+
+          <label>
+            TARGET 1
+          </label>
+
+          <input
+            id="positionTarget1"
+            type="number"
+            step="any"
+            placeholder="Optional"
+          >
+
+        </div>
+
+
+        <div class="field">
+
+          <label>
+            TARGET 2
+          </label>
+
+          <input
+            id="positionTarget2"
+            type="number"
+            step="any"
+            placeholder="Optional"
+          >
+
+        </div>
+
+
+        <div class="field full-width">
+
+          <label>
+            NOTES
+          </label>
+
+          <textarea
+            id="positionNotes"
+            placeholder="Optional notes..."
+          ></textarea>
+
+        </div>
+
+      </div>
+
+
+      <button
+        id="positionSubmit"
+        type="submit"
+        class="position-submit"
+      >
+        Save Position
+      </button>
+
+    </form>
+
+  </div>
+
+</div>
+
+
+<div
+  id="toast"
+  class="toast"
+></div>
+
 
 </body>
 </html>
