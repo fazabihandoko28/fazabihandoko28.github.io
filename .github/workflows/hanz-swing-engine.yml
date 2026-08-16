@@ -18,14 +18,14 @@ concurrency:
 jobs:
   swing-scan:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
 
     env:
       PYTHONPATH: src
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
       HANZ_SWING_RUN_ONCE: "1"
-      HANZ_SWING_MAX_SYMBOLS_PER_CYCLE: "60"
+      HANZ_SWING_MAX_SYMBOLS_PER_CYCLE: "220"
 
     steps:
       - name: Checkout HANZ repository
