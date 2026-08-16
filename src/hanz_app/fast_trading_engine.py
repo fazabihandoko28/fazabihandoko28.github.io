@@ -5,24 +5,9 @@ import time
 import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
 
 import pandas as pd
 import yfinance as yf
-
-
-# ============================================================
-# HANZ FAST TRADING ENGINE v1
-# ------------------------------------------------------------
-# PURPOSE:
-# - Monitor USER PORTFOLIO every fast cycle
-# - Monitor ACTIVE WATCHLIST / BUY candidates
-# - EARLY detection first
-# - CONFIRMED BUY / SELL only with multiple confirmations
-# - NO actionable alert when market data is stale
-# - Store signals + alert history in Supabase
-# - NO broker execution
-# ============================================================
 
 
 SUPABASE_URL = os.getenv("SUPABASE_URL", "").rstrip("/")
@@ -30,53 +15,22 @@ SUPABASE_SECRET_KEY = os.getenv("SUPABASE_SECRET_KEY", "")
 
 FAST_STATE_ID = "bei-fast"
 
-FAST_INTERVAL = int(
-    os.getenv("HANZ_FAST_INTERVAL", "60")
-)
+FAST_INTERVAL = int(os.getenv("HANZ_FAST_INTERVAL", "60"))
+RUN_ONCE = os.getenv("HANZ_FAST_RUN_ONCE", "0") == "1"
 
-INTRADAY_INTERVAL = os.getenv(
-    "HANZ_FAST_TIMEFRAME",
-    "1m",
-)
+INTRADAY_INTERVAL = os.getenv("HANZ_FAST_TIMEFRAME", "1m")
+INTRADAY_PERIOD = os.getenv("HANZ_FAST_PERIOD", "1d")
 
-INTRADAY_PERIOD = os.getenv(
-    "HANZ_FAST_PERIOD",
-    "1d",
-)
+CONFIRM_INTERVAL = os.getenv("HANZ_CONFIRM_TIMEFRAME", "5m")
+CONFIRM_PERIOD = os.getenv("HANZ_CONFIRM_PERIOD", "5d")
 
-CONFIRM_INTERVAL = os.getenv(
-    "HANZ_CONFIRM_TIMEFRAME",
-    "5m",
-)
-
-CONFIRM_PERIOD = os.getenv(
-    "HANZ_CONFIRM_PERIOD",
-    "5d",
-)
-
-
-# Data freshness guard.
-#
-# This is deliberately generous for initial testing.
-# We tighten it after validating live BEI behaviour.
 MAX_DATA_AGE_SECONDS = int(
-    os.getenv(
-        "HANZ_MAX_DATA_AGE_SECONDS",
-        "600",
-    )
+    os.getenv("HANZ_MAX_DATA_AGE_SECONDS", "600")
 )
 
 ALERT_COOLDOWN_SECONDS = int(
-    os.getenv(
-        "HANZ_ALERT_COOLDOWN_SECONDS",
-        "900",
-    )
+    os.getenv("HANZ_ALERT_COOLDOWN_SECONDS", "900")
 )
-
-
-# ============================================================
-# HELPERS
-# ============================================================
 
 
 def utc_now():
@@ -100,10 +54,7 @@ def normalize_ticker(ticker):
 
 
 def clean_ticker(ticker):
-    return str(ticker).upper().replace(
-        ".JK",
-        "",
-    )
+    return str(ticker).upper().replace(".JK", "")
 
 
 def safe_float(value):
@@ -122,11 +73,6 @@ def safe_float(value):
         return None
 
 
-# ============================================================
-# SUPABASE
-# ============================================================
-
-
 def supabase_request(
     method,
     endpoint,
@@ -134,20 +80,12 @@ def supabase_request(
     prefer=None,
 ):
     if not SUPABASE_URL:
-        raise RuntimeError(
-            "SUPABASE_URL is missing"
-        )
+        raise RuntimeError("SUPABASE_URL is missing")
 
     if not SUPABASE_SECRET_KEY:
-        raise RuntimeError(
-            "SUPABASE_SECRET_KEY is missing"
-        )
+        raise RuntimeError("SUPABASE_SECRET_KEY is missing")
 
-    url = (
-        f"{SUPABASE_URL}"
-        f"/rest/v1/"
-        f"{endpoint}"
-    )
+    url = f"{SUPABASE_URL}/rest/v1/{endpoint}"
 
     headers = {
         "apikey": SUPABASE_SECRET_KEY,
@@ -182,9 +120,7 @@ def supabase_request(
         if not raw:
             return None
 
-        return json.loads(
-            raw.decode("utf-8")
-        )
+        return json.loads(raw.decode("utf-8"))
 
 
 def fetch_portfolio():
@@ -216,24 +152,15 @@ def fetch_watchlist():
     )
 
     now = utc_now()
-
     active = []
 
     for row in rows or []:
-
-        expires_at = row.get(
-            "expires_at"
-        )
+        expires_at = row.get("expires_at")
 
         if expires_at:
-
             try:
-
                 expiry = datetime.fromisoformat(
-                    expires_at.replace(
-                        "Z",
-                        "+00:00",
-                    )
+                    expires_at.replace("Z", "+00:00")
                 )
 
                 if expiry < now:
@@ -247,19 +174,12 @@ def fetch_watchlist():
     return active
 
 
-# ============================================================
-# MARKET DATA
-# ============================================================
-
-
 def download_data(
     ticker,
     interval,
     period,
 ):
-    symbol = normalize_ticker(
-        ticker
-    )
+    symbol = normalize_ticker(ticker)
 
     started = time.time()
 
@@ -282,7 +202,6 @@ def download_data(
             f"No market data for {symbol}"
         )
 
-    # yfinance may return MultiIndex columns.
     if isinstance(
         frame.columns,
         pd.MultiIndex,
@@ -301,54 +220,29 @@ def download_data(
             f"Empty close data for {symbol}"
         )
 
-    return (
-        symbol,
-        frame,
-        latency,
-    )
+    return symbol, frame, latency
 
 
 def last_timestamp_utc(frame):
     ts = frame.index[-1]
 
-    if getattr(
-        ts,
-        "tzinfo",
-        None,
-    ) is None:
-
-        ts = ts.tz_localize(
-            "UTC"
-        )
-
+    if getattr(ts, "tzinfo", None) is None:
+        ts = ts.tz_localize("UTC")
     else:
-
-        ts = ts.tz_convert(
-            "UTC"
-        )
+        ts = ts.tz_convert("UTC")
 
     return ts
 
 
 def data_age_seconds(frame):
-    ts = last_timestamp_utc(
-        frame
-    )
+    ts = last_timestamp_utc(frame)
 
     age = (
         utc_now()
         - ts.to_pydatetime()
     ).total_seconds()
 
-    return max(
-        0,
-        int(age),
-    )
-
-
-# ============================================================
-# INDICATORS
-# ============================================================
+    return max(0, int(age))
 
 
 def ema(series, length):
@@ -359,45 +253,23 @@ def ema(series, length):
 
 
 def rsi(series, length=14):
-
     delta = series.diff()
 
-    gain = delta.clip(
-        lower=0
-    )
+    gain = delta.clip(lower=0)
+    loss = -delta.clip(upper=0)
 
-    loss = (
-        -delta.clip(
-            upper=0
-        )
-    )
-
-    avg_gain = gain.rolling(
-        length
-    ).mean()
-
-    avg_loss = loss.rolling(
-        length
-    ).mean()
+    avg_gain = gain.rolling(length).mean()
+    avg_loss = loss.rolling(length).mean()
 
     rs = avg_gain / avg_loss.replace(
         0,
         float("nan"),
     )
 
-    result = (
-        100
-        - (
-            100
-            / (1 + rs)
-        )
-    )
-
-    return result
+    return 100 - (100 / (1 + rs))
 
 
 def atr(frame, length=14):
-
     high = frame["High"]
     low = frame["Low"]
     close = frame["Close"]
@@ -413,13 +285,10 @@ def atr(frame, length=14):
         axis=1,
     ).max(axis=1)
 
-    return tr.rolling(
-        length
-    ).mean()
+    return tr.rolling(length).mean()
 
 
 def calculate_metrics(frame):
-
     if len(frame) < 25:
         raise RuntimeError(
             "Not enough intraday bars"
@@ -458,10 +327,6 @@ def calculate_metrics(frame):
         / df["avg_volume20"]
     )
 
-    # Previous levels.
-    # shift(1) prevents current bar from
-    # defining its own breakout level.
-
     df["prior_high20"] = (
         df["High"]
         .rolling(20)
@@ -478,36 +343,16 @@ def calculate_metrics(frame):
 
     row = df.iloc[-1]
 
-    price = safe_float(
-        row["Close"]
-    )
-
-    result = {
-        "price": price,
-        "open": safe_float(
-            row["Open"]
-        ),
-        "high": safe_float(
-            row["High"]
-        ),
-        "low": safe_float(
-            row["Low"]
-        ),
-        "volume": safe_float(
-            row["Volume"]
-        ),
-        "ema9": safe_float(
-            row["ema9"]
-        ),
-        "ema21": safe_float(
-            row["ema21"]
-        ),
-        "rsi": safe_float(
-            row["rsi14"]
-        ),
-        "atr": safe_float(
-            row["atr14"]
-        ),
+    return {
+        "price": safe_float(row["Close"]),
+        "open": safe_float(row["Open"]),
+        "high": safe_float(row["High"]),
+        "low": safe_float(row["Low"]),
+        "volume": safe_float(row["Volume"]),
+        "ema9": safe_float(row["ema9"]),
+        "ema21": safe_float(row["ema21"]),
+        "rsi": safe_float(row["rsi14"]),
+        "atr": safe_float(row["atr14"]),
         "relative_volume": safe_float(
             row["relative_volume"]
         ),
@@ -519,20 +364,12 @@ def calculate_metrics(frame):
         ),
     }
 
-    return result
-
-
-# ============================================================
-# CONFIRMATION MODEL
-# ============================================================
-
 
 def buy_confirmation(
     fast,
     confirm,
     watch,
 ):
-
     price = fast["price"]
 
     if price is None:
@@ -542,38 +379,24 @@ def buy_confirmation(
     evidence = []
 
     confirmation_price = safe_float(
-        watch.get(
-            "confirmation_price"
-        )
+        watch.get("confirmation_price")
     )
 
     entry_low = safe_float(
-        watch.get(
-            "entry_zone_low"
-        )
+        watch.get("entry_zone_low")
     )
 
     entry_high = safe_float(
-        watch.get(
-            "entry_zone_high"
-        )
+        watch.get("entry_zone_high")
     )
 
     invalidation = safe_float(
-        watch.get(
-            "invalidation_price"
-        )
+        watch.get("invalidation_price")
     )
-
-    # --------------------------------
-    # PRICE STRUCTURE
-    # --------------------------------
 
     breakout_level = (
         confirmation_price
-        or fast.get(
-            "prior_high20"
-        )
+        or fast.get("prior_high20")
     )
 
     breakout = (
@@ -583,13 +406,7 @@ def buy_confirmation(
 
     if breakout:
         score += 2
-        evidence.append(
-            "price breakout"
-        )
-
-    # --------------------------------
-    # FAST TREND
-    # --------------------------------
+        evidence.append("price breakout")
 
     if (
         fast.get("ema9") is not None
@@ -597,33 +414,18 @@ def buy_confirmation(
         and fast["ema9"] > fast["ema21"]
     ):
         score += 1
-        evidence.append(
-            "1m trend positive"
-        )
-
-    # --------------------------------
-    # 5M CONFIRMATION
-    # --------------------------------
+        evidence.append("1m trend positive")
 
     if (
         confirm.get("ema9") is not None
         and confirm.get("ema21") is not None
-        and confirm["ema9"]
-        > confirm["ema21"]
+        and confirm["ema9"] > confirm["ema21"]
     ):
         score += 2
-        evidence.append(
-            "5m trend confirmed"
-        )
-
-    # --------------------------------
-    # VOLUME CONFIRMATION
-    # --------------------------------
+        evidence.append("5m trend confirmed")
 
     rvol = (
-        fast.get(
-            "relative_volume"
-        )
+        fast.get("relative_volume")
         or 0
     )
 
@@ -639,17 +441,8 @@ def buy_confirmation(
             f"volume improving {rvol:.2f}x"
         )
 
-    # --------------------------------
-    # MOMENTUM
-    # --------------------------------
-
-    fast_rsi = fast.get(
-        "rsi"
-    )
-
-    confirm_rsi = confirm.get(
-        "rsi"
-    )
+    fast_rsi = fast.get("rsi")
+    confirm_rsi = confirm.get("rsi")
 
     if (
         fast_rsi is not None
@@ -669,14 +462,9 @@ def buy_confirmation(
             f"5m RSI {confirm_rsi:.1f}"
         )
 
-    # --------------------------------
-    # EARLY WATCH
-    # --------------------------------
-
     early_watch = False
 
     if breakout_level:
-
         distance_pct = (
             (
                 breakout_level
@@ -693,22 +481,12 @@ def buy_confirmation(
         ):
             early_watch = True
 
-    # --------------------------------
-    # CONFIRMED BUY
-    #
-    # Require several independent
-    # confirmations.
-    # --------------------------------
-
     confirmed = (
         breakout
         and score >= 7
     )
 
-    atr_value = fast.get(
-        "atr"
-    )
-
+    atr_value = fast.get("atr")
     stop_loss = invalidation
 
     if (
@@ -725,14 +503,9 @@ def buy_confirmation(
     risk_reward = None
 
     if stop_loss is not None:
-
-        risk = (
-            price
-            - stop_loss
-        )
+        risk = price - stop_loss
 
         if risk > 0:
-
             target_1 = (
                 price
                 + 2 * risk
@@ -765,37 +538,28 @@ def portfolio_signal(
     confirm,
     position,
 ):
-
     price = fast["price"]
 
     if price is None:
         return None
 
     avg_buy = safe_float(
-        position.get(
-            "avg_buy"
-        )
+        position.get("avg_buy")
     )
 
     stop_loss = safe_float(
-        position.get(
-            "stop_loss"
-        )
+        position.get("stop_loss")
     )
 
     trailing_stop = safe_float(
-        position.get(
-            "trailing_stop"
-        )
+        position.get("trailing_stop")
     )
 
     pnl_pct = None
 
     if avg_buy and avg_buy > 0:
         pnl_pct = (
-            price
-            / avg_buy
-            - 1
+            price / avg_buy - 1
         ) * 100
 
     evidence = []
@@ -803,90 +567,56 @@ def portfolio_signal(
     signal_type = None
     confirmed = False
 
-    # ========================================================
-    # HARD STOP
-    # ========================================================
-
     if (
         stop_loss is not None
         and price <= stop_loss
     ):
-
-        signal_type = (
-            "STOP_LOSS"
-        )
-
+        signal_type = "STOP_LOSS"
         severity = 100
         confirmed = True
-
         evidence.append(
             "hard stop-loss breached"
         )
-
-    # ========================================================
-    # TRAILING STOP
-    # ========================================================
 
     elif (
         trailing_stop is not None
         and price <= trailing_stop
     ):
-
-        signal_type = (
-            "CONFIRMED_SELL"
-        )
-
+        signal_type = "CONFIRMED_SELL"
         severity = 90
         confirmed = True
-
         evidence.append(
             "trailing stop breached"
         )
 
     else:
-
         fast_negative = (
-            fast.get("ema9")
-            is not None
-            and fast.get("ema21")
-            is not None
-            and fast["ema9"]
-            < fast["ema21"]
+            fast.get("ema9") is not None
+            and fast.get("ema21") is not None
+            and fast["ema9"] < fast["ema21"]
         )
 
         confirm_negative = (
-            confirm.get("ema9")
-            is not None
-            and confirm.get("ema21")
-            is not None
-            and confirm["ema9"]
-            < confirm["ema21"]
+            confirm.get("ema9") is not None
+            and confirm.get("ema21") is not None
+            and confirm["ema9"] < confirm["ema21"]
         )
 
         breakdown = (
-            fast.get(
-                "prior_low20"
-            )
-            is not None
-            and price
-            < fast[
-                "prior_low20"
-            ]
+            fast.get("prior_low20") is not None
+            and price < fast["prior_low20"]
         )
 
         volume_confirm = (
             (
-                fast.get(
-                    "relative_volume"
-                )
+                fast.get("relative_volume")
                 or 0
             )
             >= 1.3
         )
 
         rsi_weak = (
-            fast.get("rsi")
-            is not None
+            fast.get("rsi") is not None
             and fast["rsi"] < 45
         )
 
@@ -922,29 +652,17 @@ def portfolio_signal(
                 "momentum weak"
             )
 
-        # CONFIRMED SELL requires
-        # actual deterioration,
-        # not a single indicator.
-
         if (
             breakdown
             and confirm_negative
             and negative_score >= 5
         ):
-
-            signal_type = (
-                "CONFIRMED_SELL"
-            )
-
+            signal_type = "CONFIRMED_SELL"
             severity = 85
             confirmed = True
 
         elif negative_score >= 3:
-
-            signal_type = (
-                "EARLY_WARNING"
-            )
-
+            signal_type = "EARLY_WARNING"
             severity = 55
             confirmed = False
 
@@ -953,16 +671,11 @@ def portfolio_signal(
             and pnl_pct >= 4
             and fast_negative
         ):
-
-            signal_type = (
-                "PROTECT_PROFIT"
-            )
-
+            signal_type = "PROTECT_PROFIT"
             severity = 65
             confirmed = False
 
     if signal_type is None:
-
         signal_type = "HOLD"
         severity = 10
         confirmed = False
@@ -975,11 +688,6 @@ def portfolio_signal(
         "pnl_pct": pnl_pct,
         "evidence": evidence,
     }
-
-
-# ============================================================
-# SIGNAL / ALERT STORAGE
-# ============================================================
 
 
 def insert_signal(
@@ -998,11 +706,8 @@ def insert_signal(
     confidence=None,
     expires_at=None,
 ):
-
     payload = {
-        "ticker": clean_ticker(
-            ticker
-        ),
+        "ticker": clean_ticker(ticker),
         "signal_type": signal_type,
         "severity": severity,
         "price": price,
@@ -1033,64 +738,20 @@ def insert_signal(
     return None
 
 
-def alert_recently_sent(
-    dedupe_key,
+def make_dedupe_key(
+    ticker,
+    alert_type,
 ):
-
-    threshold = (
+    bucket = int(
         utc_now().timestamp()
-        - ALERT_COOLDOWN_SECONDS
+        // ALERT_COOLDOWN_SECONDS
     )
 
-    query = urllib.parse.urlencode(
-        {
-            "select": (
-                "id,"
-                "created_at,"
-                "status"
-            ),
-            "dedupe_key": (
-                f"eq.{dedupe_key}"
-            ),
-            "order": (
-                "created_at.desc"
-            ),
-            "limit": "1",
-        }
+    return (
+        f"{clean_ticker(ticker)}:"
+        f"{alert_type}:"
+        f"{bucket}"
     )
-
-    rows = supabase_request(
-        "GET",
-        f"hanz_alerts?{query}",
-    )
-
-    if not rows:
-        return False
-
-    created_at = rows[0].get(
-        "created_at"
-    )
-
-    if not created_at:
-        return False
-
-    try:
-
-        dt = datetime.fromisoformat(
-            created_at.replace(
-                "Z",
-                "+00:00",
-            )
-        )
-
-        return (
-            dt.timestamp()
-            >= threshold
-        )
-
-    except Exception:
-
-        return False
 
 
 def queue_alert(
@@ -1101,34 +762,13 @@ def queue_alert(
     message,
     signal_id=None,
 ):
-
-    ticker_clean = clean_ticker(
-        ticker
+    dedupe_key = make_dedupe_key(
+        ticker,
+        alert_type,
     )
-
-    # Same ticker + same alert type
-    # within cooldown = no spam.
-
-    dedupe_key = (
-        f"{ticker_clean}:"
-        f"{alert_type}"
-    )
-
-    if alert_recently_sent(
-        dedupe_key
-    ):
-
-        print(
-            f"Alert suppressed "
-            f"(duplicate): "
-            f"{dedupe_key}",
-            flush=True,
-        )
-
-        return
 
     payload = {
-        "ticker": ticker_clean,
+        "ticker": clean_ticker(ticker),
         "alert_type": alert_type,
         "priority": priority,
         "title": title,
@@ -1139,23 +779,28 @@ def queue_alert(
         "created_at": now_iso(),
     }
 
-    supabase_request(
-        "POST",
-        "hanz_alerts",
-        payload,
-        prefer="return=minimal",
-    )
+    try:
+        supabase_request(
+            "POST",
+            "hanz_alerts",
+            payload,
+            prefer="return=minimal",
+        )
 
-    print(
-        f"ALERT QUEUED: "
-        f"{title}",
-        flush=True,
-    )
+        print(
+            f"ALERT QUEUED: {title}",
+            flush=True,
+        )
 
-
-# ============================================================
-# HEALTH
-# ============================================================
+    except Exception as exc:
+        if "409" in str(exc):
+            print(
+                f"Alert suppressed duplicate: "
+                f"{dedupe_key}",
+                flush=True,
+            )
+        else:
+            raise
 
 
 def update_fast_health(
@@ -1166,28 +811,20 @@ def update_fast_health(
     symbols_monitored=0,
     error=None,
 ):
-
     payload = {
         "id": FAST_STATE_ID,
         "last_scan_at": now_iso(),
-        "last_market_bar_at": (
-            last_market_bar_at
-        ),
-        "data_age_seconds": (
-            data_age_seconds_value
-        ),
+        "last_market_bar_at": last_market_bar_at,
+        "data_age_seconds": data_age_seconds_value,
         "data_status": data_status,
-        "symbols_monitored": (
-            symbols_monitored
-        ),
+        "symbols_monitored": symbols_monitored,
         "last_error": error,
         "updated_at": now_iso(),
     }
 
     supabase_request(
         "POST",
-        "hanz_fast_health"
-        "?on_conflict=id",
+        "hanz_fast_health?on_conflict=id",
         payload,
         prefer=(
             "resolution=merge-duplicates,"
@@ -1196,15 +833,7 @@ def update_fast_health(
     )
 
 
-# ============================================================
-# MONITOR ONE SYMBOL
-# ============================================================
-
-
-def get_symbol_context(
-    ticker,
-):
-
+def get_symbol_context(ticker):
     symbol, fast_df, fast_latency = (
         download_data(
             ticker,
@@ -1221,24 +850,18 @@ def get_symbol_context(
         )
     )
 
-    age = data_age_seconds(
-        fast_df
-    )
+    age = data_age_seconds(fast_df)
 
     last_bar = last_timestamp_utc(
         fast_df
     ).isoformat()
 
-    fast_metrics = (
-        calculate_metrics(
-            fast_df
-        )
+    fast_metrics = calculate_metrics(
+        fast_df
     )
 
-    confirm_metrics = (
-        calculate_metrics(
-            confirm_df
-        )
+    confirm_metrics = calculate_metrics(
+        confirm_df
     )
 
     return {
@@ -1248,53 +871,32 @@ def get_symbol_context(
         "age_seconds": age,
         "last_bar": last_bar,
         "latency": round(
-            fast_latency
-            + confirm_latency,
+            fast_latency + confirm_latency,
             3,
         ),
     }
 
 
-# ============================================================
-# PORTFOLIO MONITOR
-# ============================================================
-
-
-def monitor_portfolio(
-    positions,
-):
-
+def monitor_portfolio(positions):
     monitored = 0
 
     for position in positions:
-
-        ticker = position.get(
-            "ticker"
-        )
+        ticker = position.get("ticker")
 
         if not ticker:
             continue
 
         try:
-
-            ctx = get_symbol_context(
-                ticker
-            )
+            ctx = get_symbol_context(ticker)
 
             monitored += 1
-
-            # IMPORTANT:
-            # No actionable BUY/SELL
-            # from stale data.
 
             if (
                 ctx["age_seconds"]
                 > MAX_DATA_AGE_SECONDS
             ):
-
                 print(
-                    f"{ticker}: "
-                    f"STALE DATA "
+                    f"{ticker}: STALE DATA "
                     f"{ctx['age_seconds']} sec",
                     flush=True,
                 )
@@ -1323,9 +925,7 @@ def monitor_portfolio(
 
             reason = (
                 "; ".join(
-                    result[
-                        "evidence"
-                    ]
+                    result["evidence"]
                 )
                 or signal_type
             )
@@ -1333,16 +933,10 @@ def monitor_portfolio(
             signal = insert_signal(
                 ticker=ticker,
                 signal_type=signal_type,
-                severity=result[
-                    "severity"
-                ],
-                price=result[
-                    "price"
-                ],
+                severity=result["severity"],
+                price=result["price"],
                 reason=reason,
-                confirmed=result[
-                    "confirmed"
-                ],
+                confirmed=result["confirmed"],
             )
 
             signal_id = (
@@ -1351,21 +945,12 @@ def monitor_portfolio(
                 else None
             )
 
-            priority = (
-                result[
-                    "severity"
-                ]
-            )
-
             pnl_text = ""
 
             if (
-                result[
-                    "pnl_pct"
-                ]
+                result["pnl_pct"]
                 is not None
             ):
-
                 pnl_text = (
                     f" | P/L "
                     f"{result['pnl_pct']:.2f}%"
@@ -1383,55 +968,36 @@ def monitor_portfolio(
                 f"{reason}"
             )
 
-            # Portfolio alerts always
-            # get queued before BUY scanning.
-
             queue_alert(
                 ticker=ticker,
                 alert_type=signal_type,
-                priority=priority,
+                priority=result["severity"],
                 title=title,
                 message=message,
                 signal_id=signal_id,
             )
 
         except Exception as exc:
-
             print(
                 f"Portfolio monitor "
-                f"{ticker} failed: "
-                f"{exc}",
+                f"{ticker} failed: {exc}",
                 flush=True,
             )
 
     return monitored
 
 
-# ============================================================
-# WATCHLIST / BUY MONITOR
-# ============================================================
-
-
-def monitor_watchlist(
-    watchlist,
-):
-
+def monitor_watchlist(watchlist):
     monitored = 0
 
     for watch in watchlist:
-
-        ticker = watch.get(
-            "ticker"
-        )
+        ticker = watch.get("ticker")
 
         if not ticker:
             continue
 
         try:
-
-            ctx = get_symbol_context(
-                ticker
-            )
+            ctx = get_symbol_context(ticker)
 
             monitored += 1
 
@@ -1439,10 +1005,8 @@ def monitor_watchlist(
                 ctx["age_seconds"]
                 > MAX_DATA_AGE_SECONDS
             ):
-
                 print(
-                    f"{ticker}: "
-                    f"BUY scan blocked "
+                    f"{ticker}: BUY scan blocked "
                     f"— stale data "
                     f"{ctx['age_seconds']} sec",
                     flush=True,
@@ -1460,33 +1024,20 @@ def monitor_watchlist(
                 continue
 
             if result["confirmed"]:
-
-                signal_type = (
-                    "CONFIRMED_BUY"
-                )
-
+                signal_type = "CONFIRMED_BUY"
                 severity = 70
                 confirmed = True
 
-            elif result[
-                "early_watch"
-            ]:
-
-                signal_type = (
-                    "EARLY_WATCH"
-                )
-
+            elif result["early_watch"]:
+                signal_type = "EARLY_WATCH"
                 severity = 35
                 confirmed = False
 
             else:
-
                 print(
-                    f"{ticker}: "
-                    f"no actionable setup",
+                    f"{ticker}: no actionable setup",
                     flush=True,
                 )
-
                 continue
 
             evidence = "; ".join(
@@ -1507,24 +1058,12 @@ def monitor_watchlist(
                 price=result["price"],
                 reason=evidence,
                 confirmed=confirmed,
-                entry_low=result[
-                    "entry_low"
-                ],
-                entry_high=result[
-                    "entry_high"
-                ],
-                stop_loss=result[
-                    "stop_loss"
-                ],
-                target_1=result[
-                    "target_1"
-                ],
-                target_2=result[
-                    "target_2"
-                ],
-                risk_reward=result[
-                    "risk_reward"
-                ],
+                entry_low=result["entry_low"],
+                entry_high=result["entry_high"],
+                stop_loss=result["stop_loss"],
+                target_1=result["target_1"],
+                target_2=result["target_2"],
+                risk_reward=result["risk_reward"],
                 confidence=round(
                     confidence,
                     1,
@@ -1546,7 +1085,6 @@ def monitor_watchlist(
             )
 
             if confirmed:
-
                 message = (
                     f"Price "
                     f"{result['price']:.2f}. "
@@ -1558,7 +1096,6 @@ def monitor_watchlist(
                 )
 
             else:
-
                 confirmation_price = (
                     watch.get(
                         "confirmation_price"
@@ -1584,32 +1121,22 @@ def monitor_watchlist(
             )
 
         except Exception as exc:
-
             print(
                 f"Watchlist monitor "
-                f"{ticker} failed: "
-                f"{exc}",
+                f"{ticker} failed: {exc}",
                 flush=True,
             )
 
     return monitored
 
 
-# ============================================================
-# ONE FAST CYCLE
-# ============================================================
-
-
 def run_fast_cycle():
-
     print(
-        "\n"
-        "========== HANZ FAST CYCLE ==========",
+        "\n========== HANZ FAST CYCLE ==========",
         flush=True,
     )
 
     portfolio = fetch_portfolio()
-
     watchlist = fetch_watchlist()
 
     print(
@@ -1624,26 +1151,12 @@ def run_fast_cycle():
         flush=True,
     )
 
-    # ========================================================
-    # PRIORITY #1:
-    # PROTECT EXISTING CAPITAL
-    # ========================================================
-
-    portfolio_count = (
-        monitor_portfolio(
-            portfolio
-        )
+    portfolio_count = monitor_portfolio(
+        portfolio
     )
 
-    # ========================================================
-    # PRIORITY #2:
-    # NEW BUY OPPORTUNITIES
-    # ========================================================
-
-    watch_count = (
-        monitor_watchlist(
-            watchlist
-        )
+    watch_count = monitor_watchlist(
+        watchlist
     )
 
     total = (
@@ -1659,21 +1172,19 @@ def run_fast_cycle():
 
     print(
         f"FAST cycle complete. "
-        f"Symbols monitored: "
-        f"{total}",
+        f"Symbols monitored: {total}",
         flush=True,
     )
 
 
-# ============================================================
-# MAIN
-# ============================================================
-
-
 def main():
-
     print(
         "HANZ FAST Trading Engine started.",
+        flush=True,
+    )
+
+    print(
+        f"Run once mode: {RUN_ONCE}",
         flush=True,
     )
 
@@ -1696,13 +1207,10 @@ def main():
     )
 
     while True:
-
         try:
-
             run_fast_cycle()
 
         except Exception as exc:
-
             print(
                 f"HANZ FAST cycle failed: "
                 f"{exc}",
@@ -1710,7 +1218,6 @@ def main():
             )
 
             try:
-
                 update_fast_health(
                     data_status="DEGRADED",
                     symbols_monitored=0,
@@ -1718,13 +1225,20 @@ def main():
                 )
 
             except Exception as health_exc:
-
                 print(
-                    f"FAST health update "
-                    f"failed: "
+                    f"FAST health update failed: "
                     f"{health_exc}",
                     flush=True,
                 )
+
+        if RUN_ONCE:
+            print(
+                "HANZ FAST controlled test "
+                "completed. Exiting.",
+                flush=True,
+            )
+
+            break
 
         print(
             f"FAST engine sleeping "
