@@ -363,6 +363,8 @@ th{color:var(--muted)}
   content:"";position:absolute;left:0;right:0;top:0;height:3px;background:#53627a
 }
 .signal-card.early:before{background:var(--yellow)}
+.signal-card.surprise:before{background:#b77cff}
+.signal-card.confirming:before{background:#4da3ff}
 .signal-card.buy:before{background:var(--green)}
 .signal-card.stale:before{background:#718096}
 .signal-card.error:before{background:var(--red)}
@@ -374,7 +376,15 @@ th{color:var(--muted)}
   background:rgba(130,145,168,.11);color:#aab7c8
 }
 .signal-state.early{color:var(--yellow);background:rgba(255,200,87,.11)}
+.signal-state.surprise{color:#d8baff;background:rgba(183,124,255,.13)}
+.signal-state.confirming{color:#9dccff;background:rgba(77,163,255,.13)}
 .signal-state.buy{color:#03130d;background:var(--green)}
+.signal-source{
+  display:inline-block;margin-top:5px;padding:4px 6px;border-radius:999px;
+  font-size:6px;font-weight:900;letter-spacing:.25px;
+  color:#9dccff;background:rgba(77,163,255,.10)
+}
+.signal-source.scout{color:#d8baff;background:rgba(183,124,255,.13)}
 .signal-state.stale{color:#b5c0cf;background:rgba(130,145,168,.12)}
 .signal-state.error{color:#ffc1c5;background:rgba(255,101,114,.12)}
 .sig-score{display:flex;align-items:center;justify-content:space-between;margin-top:10px;color:var(--muted);font-size:8px}
@@ -528,8 +538,9 @@ th{color:var(--muted)}
     </div>
 
     <div class="monitor-note">
-      WAIT CONFIRM = belum actionable · EARLY WATCH = setup mulai dekat ·
-      CONFIRMED BUY = konfirmasi 1m/5m lolos · STALE DATA = tidak ada action.
+      WAIT CONFIRM = jalur Slow Engine · SURPRISE WATCH = anomali kuat ditemukan Fast Scout ·
+      FAST CONFIRMING = sedang diverifikasi 1m/5m · CONFIRMED BUY = actionable ·
+      STALE DATA = tidak ada action.
     </div>
   </article>
 
@@ -1211,6 +1222,8 @@ function renderOpportunities(rows){
 function signalStateClass(state){
   const s=String(state || "").toUpperCase();
   if(s==="CONFIRMED_BUY") return "buy";
+  if(s==="SURPRISE_WATCH") return "surprise";
+  if(s==="FAST_CONFIRMING") return "confirming";
   if(s==="EARLY_WATCH") return "early";
   if(s==="STALE_DATA") return "stale";
   if(s==="ERROR") return "error";
@@ -1261,6 +1274,9 @@ async function loadLiveSignalMonitor(){
           <div>
             <div class="sig-ticker">${safe(row.ticker)}</div>
             <div class="sig-price">Price ${price(row.price)} · ${safe(row.data_status || "—")}</div>
+            <span class="signal-source ${row.source==="FAST_SCOUT" ? "scout" : ""}">
+              ${row.source==="FAST_SCOUT" ? "⚡ FAST SCOUT" : "SLOW WATCHLIST"}
+            </span>
           </div>
           <span class="signal-state ${cls}">
             ${safe(String(row.state || "WAIT_CONFIRM").replaceAll("_"," "))}
@@ -1289,6 +1305,7 @@ async function loadLiveSignalMonitor(){
           <div><span>RSI 5M</span><strong>${row.rsi_5m == null ? "—" : Number(row.rsi_5m).toFixed(1)}</strong></div>
           <div><span>RVOL</span><strong>${row.relative_volume == null ? "—" : `${Number(row.relative_volume).toFixed(2)}×`}</strong></div>
           <div><span>TO CONFIRM</span><strong>${distText}</strong></div>
+          <div><span>SCOUT SCORE</span><strong>${row.scout_score == null ? "—" : `${row.scout_score}/9`}</strong></div>
         </div>
 
         <div class="sig-evidence">${safe(row.evidence || "Waiting for Fast Engine evaluation")}</div>
