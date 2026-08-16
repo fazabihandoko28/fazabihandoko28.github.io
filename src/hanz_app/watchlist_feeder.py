@@ -674,7 +674,48 @@ def main():
             len(scan),
             flush=True,
         )
+markets = scan.get("markets")
 
+print(
+    "MARKETS TYPE:",
+    type(markets).__name__,
+    flush=True,
+)
+
+if isinstance(markets, dict):
+    print(
+        "MARKETS KEYS:",
+        list(markets.keys()),
+        flush=True,
+    )
+
+    for key, value in markets.items():
+        print(
+            f"MARKET {key} TYPE: "
+            f"{type(value).__name__}",
+            flush=True,
+        )
+
+        if isinstance(value, dict):
+            print(
+                f"MARKET {key} KEYS:",
+                list(value.keys())[:30],
+                flush=True,
+            )
+
+        elif isinstance(value, list):
+            print(
+                f"MARKET {key} ITEMS:",
+                len(value),
+                flush=True,
+            )
+
+            if value:
+                print(
+                    f"MARKET {key} FIRST ITEM:",
+                    value[0],
+                    flush=True,
+                )
     candidates = extract_candidates(
         scan
     )
