@@ -1,22 +1,46 @@
 import json
 import math
 import os
-import re
 import urllib.error
+import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
 
 # ============================================================
-# HANZ AUTO WATCHLIST FEEDER v4
-# Handles markets as LIST or DICT
+# HANZ AUTO WATCHLIST FEEDER v5
+# Structure-specific for paper_scan output:
+#
+# scan
+# └── markets[]
+#     └── candidates[]
+#         ├── symbol
+#         ├── tier
+#         ├── entry_status
+#         ├── selection_reasons
+#         ├── signal_close
+#         └── technical
+#             ├── resistance20
+#             ├── support20
+#             ├── atr14
+#             └── ...
 # ============================================================
 
-SUPABASE_URL = os.getenv("SUPABASE_URL", "").rstrip("/")
-SUPABASE_SECRET_KEY = os.getenv("SUPABASE_SECRET_KEY", "")
 
-SCAN_PATH = Path("artifacts/paper_scans/latest.json")
+SUPABASE_URL = os.getenv(
+    "SUPABASE_URL",
+    "",
+).rstrip("/")
+
+SUPABASE_SECRET_KEY = os.getenv(
+    "SUPABASE_SECRET_KEY",
+    "",
+)
+
+SCAN_PATH = Path(
+    "artifacts/paper_scans/latest.json"
+)
 
 MAX_CANDIDATES = int(
     os.getenv(
@@ -29,11 +53,14 @@ SOURCE_NAME = "AUTO_SLOW_ENGINE"
 
 
 # ============================================================
-# BASIC HELPERS
+# HELPERS
 # ============================================================
 
+
 def now_iso():
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(
+        timezone.utc
+    ).isoformat()
 
 
 def safe_float(value):
@@ -56,7 +83,9 @@ def clean_ticker(value):
     if value is None:
         return None
 
-    ticker = str(value).strip().upper()
+    ticker = str(
+        value
+    ).strip().upper()
 
     if ticker.endswith(".JK"):
         ticker = ticker[:-3]
@@ -64,45 +93,10 @@ def clean_ticker(value):
     return ticker or None
 
 
-def looks_like_idx_ticker(value):
-    ticker = clean_ticker(value)
-
-    if not ticker:
-        return False
-
-    if not re.fullmatch(
-        r"[A-Z0-9]{3,6}",
-        ticker,
-    ):
-        return False
-
-    blocked = {
-        "BEI",
-        "IDX",
-        "MARKET",
-        "MARKETS",
-        "BUY",
-        "SELL",
-        "HOLD",
-        "OPEN",
-        "CLOSE",
-        "TRUE",
-        "FALSE",
-        "NULL",
-        "NONE",
-        "SIGNAL",
-        "RESULT",
-        "RESULTS",
-        "MODE",
-        "SOURCE",
-    }
-
-    return ticker not in blocked
-
-
 # ============================================================
 # SUPABASE
 # ============================================================
+
 
 def supabase_request(
     method,
@@ -129,7 +123,8 @@ def supabase_request(
     headers = {
         "apikey": SUPABASE_SECRET_KEY,
         "Authorization": (
-            f"Bearer {SUPABASE_SECRET_KEY}"
+            f"Bearer "
+            f"{SUPABASE_SECRET_KEY}"
         ),
         "Content-Type": "application/json",
     }
@@ -168,6 +163,7 @@ def supabase_request(
             )
 
     except urllib.error.HTTPError as exc:
+
         detail = exc.read().decode(
             "utf-8",
             errors="replace",
@@ -175,13 +171,15 @@ def supabase_request(
 
         raise RuntimeError(
             f"Supabase HTTP "
-            f"{exc.code}: {detail}"
+            f"{exc.code}: "
+            f"{detail}"
         ) from exc
 
 
 # ============================================================
 # LOAD SCAN
 # ============================================================
+
 
 def load_scan():
     if not SCAN_PATH.exists():
@@ -195,361 +193,307 @@ def load_scan():
         "r",
         encoding="utf-8",
     ) as f:
+
         return json.load(f)
 
 
 # ============================================================
-# TICKER / SCORE
+# EXTRACT REAL PAPER-SCAN CANDIDATES
 # ============================================================
-
-def extract_ticker_from_row(row):
-    if not isinstance(row, dict):
-        return None
-
-    ticker_fields = [
-        "ticker",
-        "symbol",
-        "code",
-        "stock",
-        "stock_code",
-        "security",
-        "security_code",
-        "instrument",
-    ]
-
-    for field in ticker_fields:
-        value = row.get(field)
-
-        if looks_like_idx_ticker(value):
-            return clean_ticker(value)
-
-    return None
-
-
-def extract_score(row):
-    if not isinstance(row, dict):
-        return 50.0
-
-    fields = [
-        "score",
-        "confidence",
-        "rank_score",
-        "total_score",
-        "signal_score",
-        "opportunity_score",
-        "alpha_score",
-        "strength",
-        "probability",
-    ]
-
-    for field in fields:
-        value = safe_float(
-            row.get(field)
-        )
-
-        if value is None:
-            continue
-
-        if (
-            field == "probability"
-            and 0 <= value <= 1
-        ):
-            value *= 100
-
-        return value
-
-    rank = safe_float(
-        row.get("rank")
-    )
-
-    if rank is not None and rank > 0:
-        return max(
-            0,
-            101 - rank,
-        )
-
-    return 50.0
-
-
-# ============================================================
-# RECURSIVE DISCOVERY
-# ============================================================
-
-def collect_candidates(
-    node,
-    output,
-    path="root",
-    inherited_ticker=None,
-):
-    if isinstance(node, dict):
-
-        own_ticker = extract_ticker_from_row(
-            node
-        )
-
-        ticker = (
-            own_ticker
-            or inherited_ticker
-        )
-
-        # Any dict with a valid ticker
-        # and useful accompanying fields
-        # can become a candidate.
-        if (
-            ticker
-            and looks_like_idx_ticker(ticker)
-            and len(node) > 1
-        ):
-            output.append(
-                {
-                    "ticker": clean_ticker(
-                        ticker
-                    ),
-                    "raw": node,
-                    "path": path,
-                }
-            )
-
-        for key, value in node.items():
-
-            key_ticker = None
-
-            if looks_like_idx_ticker(key):
-                key_ticker = clean_ticker(
-                    key
-                )
-
-            next_ticker = (
-                key_ticker
-                or ticker
-            )
-
-            collect_candidates(
-                value,
-                output,
-                path=f"{path}.{key}",
-                inherited_ticker=next_ticker,
-            )
-
-    elif isinstance(node, list):
-
-        for index, value in enumerate(
-            node
-        ):
-            collect_candidates(
-                value,
-                output,
-                path=f"{path}[{index}]",
-                inherited_ticker=(
-                    inherited_ticker
-                ),
-            )
 
 
 def extract_candidates(scan):
-    discovered = []
-
-    # Prefer scanning markets because that is
-    # where paper_scan stores market output.
-    if (
-        isinstance(scan, dict)
-        and "markets" in scan
-    ):
-        scan_root = scan["markets"]
-        root_path = "root.markets"
-
-    else:
-        scan_root = scan
-        root_path = "root"
-
-    collect_candidates(
-        scan_root,
-        discovered,
-        path=root_path,
-    )
-
-    print(
-        f"Raw stock-like objects found: "
-        f"{len(discovered)}",
-        flush=True,
-    )
-
-    best_by_ticker = {}
-
-    for item in discovered:
-
-        ticker = item["ticker"]
-        row = item["raw"]
-
-        score = extract_score(
-            row
+    if not isinstance(scan, dict):
+        raise RuntimeError(
+            "paper_scan root is not a dict"
         )
 
-        candidate = {
-            "ticker": ticker,
-            "score": score,
-            "raw": row,
-            "path": item["path"],
-        }
+    markets = scan.get(
+        "markets"
+    )
 
-        current = best_by_ticker.get(
-            ticker
+    if not isinstance(markets, list):
+        raise RuntimeError(
+            "paper_scan markets is not a list"
         )
 
-        if (
-            current is None
-            or score > current["score"]
+    found = []
+
+    for market_block in markets:
+
+        if not isinstance(
+            market_block,
+            dict,
         ):
-            best_by_ticker[
-                ticker
-            ] = candidate
+            continue
 
-    candidates = list(
-        best_by_ticker.values()
-    )
+        market_name = str(
+            market_block.get(
+                "market",
+                "",
+            )
+        ).upper()
 
-    candidates.sort(
-        key=lambda x: x["score"],
-        reverse=True,
-    )
+        if market_name != "BEI":
+            continue
 
-    return candidates[
+        rows = market_block.get(
+            "candidates",
+            [],
+        )
+
+        if not isinstance(
+            rows,
+            list,
+        ):
+            continue
+
+        print(
+            f"BEI paper candidates: "
+            f"{len(rows)}",
+            flush=True,
+        )
+
+        for index, row in enumerate(
+            rows
+        ):
+
+            if not isinstance(
+                row,
+                dict,
+            ):
+                continue
+
+            symbol = clean_ticker(
+                row.get("symbol")
+            )
+
+            if not symbol:
+                continue
+
+            found.append(
+                {
+                    "ticker": symbol,
+                    "raw": row,
+                    "index": index,
+                }
+            )
+
+    return found[
         :MAX_CANDIDATES
     ]
 
 
 # ============================================================
-# VALUE EXTRACTION
+# PRIORITY
 # ============================================================
 
-def first_number(row, fields):
-    if not isinstance(row, dict):
-        return None
 
-    for field in fields:
-        value = safe_float(
-            row.get(field)
+def calculate_priority(
+    row,
+    index,
+):
+    score = 50
+
+    reasons = row.get(
+        "selection_reasons",
+        [],
+    )
+
+    if isinstance(
+        reasons,
+        list,
+    ):
+        score += min(
+            len(reasons) * 5,
+            25,
         )
 
-        if value is not None:
-            return value
+    tier = str(
+        row.get(
+            "tier",
+            "",
+        )
+    ).upper()
 
-    return None
+    if tier == "PRIMARY":
+        score += 15
+
+    elif tier == "SECONDARY":
+        score += 8
+
+    status = str(
+        row.get(
+            "entry_status",
+            "",
+        )
+    ).upper()
+
+    if status in {
+        "READY",
+        "WATCH",
+    }:
+        score += 5
+
+    # Earlier slow-engine candidates
+    # retain slightly higher priority.
+    score += max(
+        0,
+        5 - index,
+    )
+
+    return max(
+        0,
+        min(
+            100,
+            int(score),
+        ),
+    )
 
 
-def first_text(row, fields):
-    if not isinstance(row, dict):
-        return None
+# ============================================================
+# REASON
+# ============================================================
 
-    for field in fields:
-        value = row.get(field)
 
-        if value is None:
-            continue
+def build_reason(row):
+    parts = []
 
-        if isinstance(
-            value,
-            (str, int, float),
-        ):
-            text = str(value).strip()
+    tier = row.get("tier")
 
-            if text:
-                return text
+    if tier:
+        parts.append(
+            f"Tier: {tier}"
+        )
 
-    return None
+    status = row.get(
+        "entry_status"
+    )
+
+    if status:
+        parts.append(
+            f"Entry: {status}"
+        )
+
+    reasons = row.get(
+        "selection_reasons",
+        [],
+    )
+
+    if isinstance(
+        reasons,
+        list,
+    ):
+        clean_reasons = [
+            str(reason).strip()
+            for reason in reasons
+            if str(reason).strip()
+        ]
+
+        if clean_reasons:
+            parts.append(
+                " | ".join(
+                    clean_reasons[:6]
+                )
+            )
+
+    if not parts:
+        return (
+            "Auto-selected by "
+            "HANZ slow engine"
+        )
+
+    return " | ".join(parts)
 
 
 # ============================================================
 # BUILD WATCHLIST ROW
 # ============================================================
 
-def build_watchlist_row(candidate):
+
+def build_watchlist_row(
+    candidate,
+):
     row = candidate["raw"]
+
+    technical = row.get(
+        "technical",
+        {},
+    )
+
+    if not isinstance(
+        technical,
+        dict,
+    ):
+        technical = {}
 
     ticker = candidate["ticker"]
 
-    current_price = first_number(
-        row,
-        [
-            "price",
-            "last_price",
-            "current_price",
-            "close",
-        ],
-    )
-
-    confirmation_price = first_number(
-        row,
-        [
-            "confirmation_price",
-            "breakout_price",
-            "trigger_price",
-            "entry_trigger",
-            "buy_above",
-            "entry_price",
-        ],
-    )
-
-    if confirmation_price is None:
-        confirmation_price = current_price
-
-    invalidation_price = first_number(
-        row,
-        [
-            "invalidation_price",
-            "stop_loss",
-            "stop",
-            "risk_price",
-        ],
-    )
-
-    entry_low = first_number(
-        row,
-        [
-            "entry_zone_low",
-            "entry_low",
-            "buy_zone_low",
-        ],
-    )
-
-    entry_high = first_number(
-        row,
-        [
-            "entry_zone_high",
-            "entry_high",
-            "buy_zone_high",
-        ],
-    )
-
-    reason = first_text(
-        row,
-        [
-            "reason",
-            "thesis",
-            "signal",
-            "recommendation",
-            "action",
-            "decision",
-            "setup",
-        ],
-    )
-
-    if not reason:
-        reason = (
-            "Auto-selected by "
-            "HANZ slow engine"
+    signal_close = safe_float(
+        row.get(
+            "signal_close"
         )
+    )
 
-    priority = int(
-        max(
-            0,
-            min(
-                100,
-                round(
-                    candidate["score"]
-                ),
+    resistance = safe_float(
+        technical.get(
+            "resistance20"
+        )
+    )
+
+    support = safe_float(
+        technical.get(
+            "support20"
+        )
+    )
+
+    atr = safe_float(
+        technical.get(
+            "atr14"
+        )
+    )
+
+    # BUY confirmation:
+    # Prefer actual 20-bar resistance.
+    # Fast Engine requires price to break
+    # above this level plus 1m/5m confirmation.
+    confirmation_price = (
+        resistance
+        if resistance is not None
+        else signal_close
+    )
+
+    # Risk invalidation:
+    # Prefer technical support.
+    invalidation_price = support
+
+    entry_low = None
+    entry_high = None
+
+    # Small reference zone around signal close.
+    if (
+        signal_close is not None
+        and atr is not None
+        and atr > 0
+    ):
+        entry_low = round(
+            max(
+                0,
+                signal_close
+                - (0.25 * atr),
             ),
+            4,
         )
+
+        entry_high = round(
+            signal_close
+            + (0.25 * atr),
+            4,
+        )
+
+    priority = calculate_priority(
+        row,
+        candidate["index"],
     )
 
     return {
@@ -564,21 +508,26 @@ def build_watchlist_row(candidate):
         "invalidation_price": (
             invalidation_price
         ),
-        "reason": reason,
+        "reason": build_reason(
+            row
+        ),
         "updated_at": now_iso(),
     }
 
 
 # ============================================================
-# PUBLISH
+# UPSERT CURRENT CANDIDATES
 # ============================================================
+
 
 def upsert_watchlist(rows):
     if not rows:
+
         print(
             "No candidates to publish.",
             flush=True,
         )
+
         return
 
     supabase_request(
@@ -603,81 +552,85 @@ def upsert_watchlist(rows):
 
 
 # ============================================================
-# STRUCTURE DEBUG
+# REMOVE OLD AUTO CANDIDATES
 # ============================================================
 
-def print_scan_structure(scan):
-    print(
-        "SCAN ROOT TYPE:",
-        type(scan).__name__,
-        flush=True,
+
+def fetch_existing_auto_rows():
+    query = urllib.parse.urlencode(
+        {
+            "select": "ticker,source",
+            "source": (
+                f"eq.{SOURCE_NAME}"
+            ),
+        }
     )
 
-    if not isinstance(scan, dict):
-        return
-
-    print(
-        "SCAN TOP LEVEL KEYS:",
-        list(scan.keys()),
-        flush=True,
+    rows = supabase_request(
+        "GET",
+        f"hanz_watchlist?{query}",
     )
 
-    markets = scan.get(
-        "markets"
+    return rows or []
+
+
+def delete_ticker(
+    ticker,
+):
+    encoded = urllib.parse.quote(
+        str(ticker),
+        safe="",
     )
 
-    print(
-        "MARKETS TYPE:",
-        type(markets).__name__,
-        flush=True,
+    supabase_request(
+        "DELETE",
+        (
+            "hanz_watchlist"
+            f"?ticker=eq.{encoded}"
+            f"&source=eq.{SOURCE_NAME}"
+        ),
+        prefer="return=minimal",
     )
 
-    if isinstance(markets, list):
 
-        print(
-            "MARKETS ITEMS:",
-            len(markets),
-            flush=True,
+def remove_stale_auto_rows(
+    current_tickers,
+):
+    existing = (
+        fetch_existing_auto_rows()
+    )
+
+    current = {
+        clean_ticker(ticker)
+        for ticker in current_tickers
+    }
+
+    removed = []
+
+    for row in existing:
+
+        ticker = clean_ticker(
+            row.get("ticker")
         )
 
-        if markets:
+        if not ticker:
+            continue
 
-            first_item = markets[0]
+        if ticker not in current:
 
-            print(
-                "MARKETS FIRST ITEM TYPE:",
-                type(first_item).__name__,
-                flush=True,
+            delete_ticker(
+                ticker
             )
 
-            if isinstance(
-                first_item,
-                dict,
-            ):
-                print(
-                    "MARKETS FIRST ITEM KEYS:",
-                    list(
-                        first_item.keys()
-                    )[:30],
-                    flush=True,
-                )
-
-            preview = json.dumps(
-                first_item,
-                default=str,
+            removed.append(
+                ticker
             )
 
-            print(
-                "MARKETS FIRST ITEM PREVIEW:",
-                preview[:1500],
-                flush=True,
-            )
-
-    elif isinstance(markets, dict):
-
+    if removed:
         print(
-            "MARKETS KEYS:",
-            list(markets.keys()),
+            "Removed stale AUTO "
+            "watchlist rows: "
+            + ", ".join(removed),
             flush=True,
         )
 
@@ -686,36 +639,36 @@ def print_scan_structure(scan):
 # MAIN
 # ============================================================
 
+
 def main():
     print(
         "HANZ Auto Watchlist "
-        "Feeder v4 started.",
+        "Feeder v5 started.",
         flush=True,
     )
 
     scan = load_scan()
 
-    print_scan_structure(
-        scan
-    )
-
-    candidates = extract_candidates(
-        scan
+    candidates = (
+        extract_candidates(
+            scan
+        )
     )
 
     print(
-        f"Auto-watchlist candidates found: "
+        f"Valid BEI candidates found: "
         f"{len(candidates)}",
         flush=True,
     )
 
     if not candidates:
+
         print(
-            "No valid candidates "
-            "discovered inside "
-            "paper scan JSON.",
+            "No valid BEI candidates "
+            "to publish.",
             flush=True,
         )
+
         return
 
     rows = []
@@ -726,29 +679,43 @@ def main():
             candidate
         )
 
-        rows.append(row)
+        rows.append(
+            row
+        )
 
         print(
             f"Candidate: "
             f"{row['ticker']} | "
-            f"score="
-            f"{candidate['score']:.1f} | "
             f"priority="
             f"{row['priority']} | "
-            f"confirmation="
+            f"entry="
+            f"{row['entry_zone_low']}"
+            f"-"
+            f"{row['entry_zone_high']} | "
+            f"confirm="
             f"{row['confirmation_price']} | "
-            f"path="
-            f"{candidate['path']}",
+            f"invalid="
+            f"{row['invalidation_price']}",
             flush=True,
         )
 
+    # First publish current candidates.
     upsert_watchlist(
         rows
     )
 
+    # Then remove old AUTO candidates
+    # no longer selected by slow engine.
+    remove_stale_auto_rows(
+        [
+            row["ticker"]
+            for row in rows
+        ]
+    )
+
     print(
         "HANZ Auto Watchlist "
-        "Feeder v4 completed.",
+        "Feeder v5 completed.",
         flush=True,
     )
 
