@@ -32,6 +32,14 @@ ALERT_COOLDOWN_SECONDS = int(
     os.getenv("HANZ_ALERT_COOLDOWN_SECONDS", "900")
 )
 
+TRAILING_ATR_MULTIPLIER_T1 = float(
+    os.getenv("HANZ_TRAILING_ATR_MULTIPLIER_T1", "1.5")
+)
+
+TRAILING_ATR_MULTIPLIER_T2 = float(
+    os.getenv("HANZ_TRAILING_ATR_MULTIPLIER_T2", "1.0")
+)
+
 
 def utc_now():
     return datetime.now(timezone.utc)
@@ -71,6 +79,37 @@ def safe_float(value):
 
     except Exception:
         return None
+
+
+def safe_bool(value, default=False):
+    if value is None:
+        return default
+
+    if isinstance(value, bool):
+        return value
+
+    text = str(value).strip().lower()
+
+    if text in {"1", "true", "yes", "on"}:
+        return True
+
+    if text in {"0", "false", "no", "off"}:
+        return False
+
+    return default
+
+
+def values_different(a, b, tolerance=1e-9):
+    if a is None and b is None:
+        return False
+
+    if a is None or b is None:
+        return True
+
+    try:
+        return abs(float(a) - float(b)) > tolerance
+    except Exception:
+        return a != b
 
 
 def supabase_request(
@@ -137,6 +176,20 @@ def fetch_portfolio():
     )
 
     return rows or []
+
+
+def update_portfolio_row(portfolio_id, payload):
+    if portfolio_id is None or not payload:
+        return
+
+    encoded_id = urllib.parse.quote(str(portfolio_id), safe="")
+
+    supabase_request(
+        "PATCH",
+        f"hanz_portfolio?id=eq.{encoded_id}",
+        payload,
+        prefer="return=minimal",
+    )
 
 
 def fetch_watchlist():
@@ -533,6 +586,106 @@ def buy_confirmation(
     }
 
 
+def apply_auto_trailing(position, fast):
+    """Update peak/trailing state for one personal portfolio row.
+
+    Rules:
+    - Auto trailing is enabled by default.
+    - Peak price can only rise.
+    - Trailing activates at Target 1.
+    - T1 uses 1.5 ATR by default.
+    - T2 tightens to 1.0 ATR by default.
+    - Once active, trailing stop can only rise.
+    - After activation, trailing stop will not be below average buy.
+    """
+    if not safe_bool(position.get("auto_trailing"), True):
+        return position
+
+    price = safe_float(fast.get("price"))
+    atr_value = safe_float(fast.get("atr"))
+
+    if price is None:
+        return position
+
+    portfolio_id = position.get("id")
+    avg_buy = safe_float(position.get("avg_buy"))
+    target_1 = safe_float(position.get("target_1"))
+    target_2 = safe_float(position.get("target_2"))
+    current_peak = safe_float(position.get("peak_price"))
+    current_trailing = safe_float(position.get("trailing_stop"))
+    trailing_active = safe_bool(position.get("trailing_active"), False)
+
+    peak_price = max(
+        value for value in [current_peak, price] if value is not None
+    )
+
+    reached_t1 = target_1 is not None and price >= target_1
+    reached_t2 = target_2 is not None and price >= target_2
+
+    should_activate = trailing_active or reached_t1
+
+    if reached_t2:
+        multiplier = TRAILING_ATR_MULTIPLIER_T2
+    else:
+        multiplier = safe_float(
+            position.get("trailing_atr_multiplier")
+        )
+        if multiplier is None or multiplier <= 0:
+            multiplier = TRAILING_ATR_MULTIPLIER_T1
+
+    new_trailing = current_trailing
+
+    if should_activate and atr_value is not None and atr_value > 0:
+        candidate = peak_price - multiplier * atr_value
+
+        if avg_buy is not None and avg_buy > 0:
+            candidate = max(candidate, avg_buy)
+
+        if current_trailing is None:
+            new_trailing = candidate
+        else:
+            new_trailing = max(current_trailing, candidate)
+
+    updates = {}
+
+    if values_different(current_peak, peak_price):
+        updates["peak_price"] = peak_price
+
+    if should_activate != trailing_active:
+        updates["trailing_active"] = should_activate
+
+        if should_activate and not position.get("trailing_activated_at"):
+            updates["trailing_activated_at"] = now_iso()
+
+    current_multiplier = safe_float(
+        position.get("trailing_atr_multiplier")
+    )
+
+    if should_activate and values_different(current_multiplier, multiplier):
+        updates["trailing_atr_multiplier"] = multiplier
+
+    if should_activate and values_different(current_trailing, new_trailing):
+        updates["trailing_stop"] = new_trailing
+        updates["last_trailing_update_at"] = now_iso()
+
+    if updates and portfolio_id is not None:
+        update_portfolio_row(portfolio_id, updates)
+        position.update(updates)
+
+        print(
+            f"{position.get('ticker')}: trailing update "
+            f"user={position.get('user_id')} "
+            f"portfolio_id={portfolio_id} "
+            f"peak={peak_price:.2f} "
+            f"active={should_activate} "
+            f"trail={new_trailing if new_trailing is not None else 'N/A'} "
+            f"ATRx={multiplier:.2f}",
+            flush=True,
+        )
+
+    return position
+
+
 def portfolio_signal(
     fast,
     confirm,
@@ -554,6 +707,21 @@ def portfolio_signal(
     trailing_stop = safe_float(
         position.get("trailing_stop")
     )
+
+    auto_trailing = safe_bool(
+        position.get("auto_trailing"),
+        True,
+    )
+
+    trailing_active = safe_bool(
+        position.get("trailing_active"),
+        False,
+    )
+
+    effective_trailing_stop = trailing_stop
+
+    if auto_trailing and not trailing_active:
+        effective_trailing_stop = None
 
     pnl_pct = None
 
@@ -579,8 +747,8 @@ def portfolio_signal(
         )
 
     elif (
-        trailing_stop is not None
-        and price <= trailing_stop
+        effective_trailing_stop is not None
+        and price <= effective_trailing_stop
     ):
         signal_type = "CONFIRMED_SELL"
         severity = 90
@@ -705,6 +873,8 @@ def insert_signal(
     risk_reward=None,
     confidence=None,
     expires_at=None,
+    user_id=None,
+    portfolio_id=None,
 ):
     payload = {
         "ticker": clean_ticker(ticker),
@@ -725,6 +895,12 @@ def insert_signal(
         "active": True,
     }
 
+    if user_id is not None:
+        payload["user_id"] = user_id
+
+    if portfolio_id is not None:
+        payload["portfolio_id"] = portfolio_id
+
     rows = supabase_request(
         "POST",
         "hanz_signals",
@@ -741,13 +917,20 @@ def insert_signal(
 def make_dedupe_key(
     ticker,
     alert_type,
+    user_id=None,
+    portfolio_id=None,
 ):
     bucket = int(
         utc_now().timestamp()
         // ALERT_COOLDOWN_SECONDS
     )
 
+    owner = user_id or "SHARED"
+    position = portfolio_id if portfolio_id is not None else "MARKET"
+
     return (
+        f"{owner}:"
+        f"{position}:"
         f"{clean_ticker(ticker)}:"
         f"{alert_type}:"
         f"{bucket}"
@@ -761,10 +944,14 @@ def queue_alert(
     title,
     message,
     signal_id=None,
+    user_id=None,
+    portfolio_id=None,
 ):
     dedupe_key = make_dedupe_key(
         ticker,
         alert_type,
+        user_id=user_id,
+        portfolio_id=portfolio_id,
     )
 
     payload = {
@@ -779,6 +966,12 @@ def queue_alert(
         "created_at": now_iso(),
     }
 
+    if user_id is not None:
+        payload["user_id"] = user_id
+
+    if portfolio_id is not None:
+        payload["portfolio_id"] = portfolio_id
+
     try:
         supabase_request(
             "POST",
@@ -788,7 +981,9 @@ def queue_alert(
         )
 
         print(
-            f"ALERT QUEUED: {title}",
+            f"ALERT QUEUED: {title} "
+            f"user={user_id or 'SHARED'} "
+            f"portfolio_id={portfolio_id or 'MARKET'}",
             flush=True,
         )
 
@@ -877,31 +1072,40 @@ def get_symbol_context(ticker):
     }
 
 
-def monitor_portfolio(positions):
+def monitor_portfolio(positions, context_cache=None):
     monitored = 0
+    context_cache = context_cache if context_cache is not None else {}
 
     for position in positions:
         ticker = position.get("ticker")
+        user_id = position.get("user_id")
+        portfolio_id = position.get("id")
 
         if not ticker:
             continue
 
         try:
-            ctx = get_symbol_context(ticker)
+            cache_key = clean_ticker(ticker)
 
+            if cache_key not in context_cache:
+                context_cache[cache_key] = get_symbol_context(ticker)
+
+            ctx = context_cache[cache_key]
             monitored += 1
 
-            if (
-                ctx["age_seconds"]
-                > MAX_DATA_AGE_SECONDS
-            ):
+            if ctx["age_seconds"] > MAX_DATA_AGE_SECONDS:
                 print(
-                    f"{ticker}: STALE DATA "
-                    f"{ctx['age_seconds']} sec",
+                    f"{ticker}: portfolio scan blocked — stale data "
+                    f"{ctx['age_seconds']} sec "
+                    f"user={user_id} portfolio_id={portfolio_id}",
                     flush=True,
                 )
-
                 continue
+
+            position = apply_auto_trailing(
+                position,
+                ctx["fast"],
+            )
 
             result = portfolio_signal(
                 ctx["fast"],
@@ -912,23 +1116,28 @@ def monitor_portfolio(positions):
             if not result:
                 continue
 
-            signal_type = result[
-                "signal_type"
-            ]
+            signal_type = result["signal_type"]
+
+            # Persist latest per-position engine state without auto-closing
+            # the trade. The user closes the position after actual execution.
+            if portfolio_id is not None:
+                current_signal = str(position.get("signal") or "")
+                if current_signal != signal_type:
+                    update_portfolio_row(
+                        portfolio_id,
+                        {"signal": signal_type},
+                    )
+                    position["signal"] = signal_type
 
             if signal_type == "HOLD":
                 print(
-                    f"{ticker}: HOLD",
+                    f"{ticker}: HOLD "
+                    f"user={user_id} portfolio_id={portfolio_id}",
                     flush=True,
                 )
                 continue
 
-            reason = (
-                "; ".join(
-                    result["evidence"]
-                )
-                or signal_type
-            )
+            reason = "; ".join(result["evidence"]) or signal_type
 
             signal = insert_signal(
                 ticker=ticker,
@@ -937,34 +1146,29 @@ def monitor_portfolio(positions):
                 price=result["price"],
                 reason=reason,
                 confirmed=result["confirmed"],
+                stop_loss=safe_float(position.get("stop_loss")),
+                target_1=safe_float(position.get("target_1")),
+                target_2=safe_float(position.get("target_2")),
+                user_id=user_id,
+                portfolio_id=portfolio_id,
             )
 
-            signal_id = (
-                signal.get("id")
-                if signal
-                else None
-            )
+            signal_id = signal.get("id") if signal else None
 
             pnl_text = ""
+            if result["pnl_pct"] is not None:
+                pnl_text = f" | P/L {result['pnl_pct']:.2f}%"
 
-            if (
-                result["pnl_pct"]
-                is not None
-            ):
-                pnl_text = (
-                    f" | P/L "
-                    f"{result['pnl_pct']:.2f}%"
-                )
+            trailing_text = ""
+            trailing_stop = safe_float(position.get("trailing_stop"))
+            if trailing_stop is not None:
+                trailing_text = f" | Trail {trailing_stop:.2f}"
 
-            title = (
-                f"{clean_ticker(ticker)} "
-                f"— {signal_type}"
-            )
+            title = f"{clean_ticker(ticker)} — {signal_type}"
 
             message = (
-                f"Price "
-                f"{result['price']:.2f}"
-                f"{pnl_text}. "
+                f"Price {result['price']:.2f}"
+                f"{pnl_text}{trailing_text}. "
                 f"{reason}"
             )
 
@@ -975,20 +1179,23 @@ def monitor_portfolio(positions):
                 title=title,
                 message=message,
                 signal_id=signal_id,
+                user_id=user_id,
+                portfolio_id=portfolio_id,
             )
 
         except Exception as exc:
             print(
-                f"Portfolio monitor "
-                f"{ticker} failed: {exc}",
+                f"Portfolio monitor {ticker} failed: {exc} "
+                f"user={user_id} portfolio_id={portfolio_id}",
                 flush=True,
             )
 
     return monitored
 
 
-def monitor_watchlist(watchlist):
+def monitor_watchlist(watchlist, context_cache=None):
     monitored = 0
+    context_cache = context_cache if context_cache is not None else {}
 
     for watch in watchlist:
         ticker = watch.get("ticker")
@@ -997,7 +1204,12 @@ def monitor_watchlist(watchlist):
             continue
 
         try:
-            ctx = get_symbol_context(ticker)
+            cache_key = clean_ticker(ticker)
+
+            if cache_key not in context_cache:
+                context_cache[cache_key] = get_symbol_context(ticker)
+
+            ctx = context_cache[cache_key]
 
             monitored += 1
 
@@ -1151,12 +1363,16 @@ def run_fast_cycle():
         flush=True,
     )
 
+    context_cache = {}
+
     portfolio_count = monitor_portfolio(
-        portfolio
+        portfolio,
+        context_cache=context_cache,
     )
 
     watch_count = monitor_watchlist(
-        watchlist
+        watchlist,
+        context_cache=context_cache,
     )
 
     total = (
