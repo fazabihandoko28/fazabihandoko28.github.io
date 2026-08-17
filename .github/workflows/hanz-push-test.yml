@@ -1,0 +1,83 @@
+name: HANZ Push Test
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  send-test-push:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    env:
+      FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+      HANZ_TEST_FCM_TOKEN: ${{ secrets.HANZ_TEST_FCM_TOKEN }}
+
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Firebase Admin SDK
+        run: |
+          python -m pip install --upgrade pip
+          pip install firebase-admin
+
+      - name: Send HANZ data-only test push
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import sys
+
+          import firebase_admin
+          from firebase_admin import credentials, messaging
+
+          service_account_raw = os.getenv("FIREBASE_SERVICE_ACCOUNT_JSON", "").strip()
+          token = os.getenv("HANZ_TEST_FCM_TOKEN", "").strip()
+
+          if not service_account_raw:
+              print("ERROR: FIREBASE_SERVICE_ACCOUNT_JSON secret is missing.")
+              sys.exit(1)
+
+          if not token:
+              print("ERROR: HANZ_TEST_FCM_TOKEN secret is missing.")
+              sys.exit(1)
+
+          try:
+              service_account = json.loads(service_account_raw)
+          except Exception as exc:
+              print(f"ERROR: FIREBASE_SERVICE_ACCOUNT_JSON is not valid JSON: {exc}")
+              sys.exit(1)
+
+          if not firebase_admin._apps:
+              firebase_admin.initialize_app(
+                  credentials.Certificate(service_account)
+              )
+
+          message = messaging.Message(
+              token=token,
+              data={
+                  "title": "HANZ PUSH TEST",
+                  "body": "Backend → Firebase → Service Worker → HP is working.",
+                  "message": "Backend → Firebase → Service Worker → HP is working.",
+                  "ticker": "TEST",
+                  "alert_type": "TEST_PUSH",
+                  "dedupe_key": "hanz-manual-push-test",
+                  "url": "/dashboard/swing/"
+              }
+          )
+
+          try:
+              response = messaging.send(message)
+              print("HANZ PUSH TEST SENT SUCCESSFULLY")
+              print("Firebase message id:", response)
+          except Exception as exc:
+              print("HANZ PUSH TEST FAILED")
+              print(type(exc).__name__ + ":", exc)
+              sys.exit(1)
+          PY
