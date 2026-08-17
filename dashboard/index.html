@@ -336,7 +336,7 @@ th{color:var(--muted)}
   .desktop-nav{display:none}
   .mobile-nav{
     position:fixed;left:0;right:0;bottom:0;z-index:200;display:grid;
-    grid-template-columns:repeat(5,1fr);
+    grid-template-columns:repeat(6,1fr);
     padding:7px max(6px,env(safe-area-inset-right)) calc(7px + env(safe-area-inset-bottom)) max(6px,env(safe-area-inset-left));
     border-top:1px solid var(--line);background:rgba(5,9,20,.94);backdrop-filter:blur(18px)
   }
@@ -404,205 +404,6 @@ th{color:var(--muted)}
 @media(max-width:1100px){.live-monitor-grid{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:700px){.live-monitor-grid{grid-template-columns:1fr}}
 
-
-/* TRADING MODE SWITCH */
-.trading-mode-wrap{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:10px;
-  margin:0 0 12px 0;
-  padding:10px 12px;
-  border:1px solid var(--line);
-  border-radius:16px;
-  background:rgba(5,12,24,.76);
-}
-.trading-mode-title{
-  display:flex;
-  flex-direction:column;
-  gap:2px;
-}
-.trading-mode-title strong{
-  font-size:12px;
-}
-.trading-mode-title span{
-  color:var(--muted);
-  font-size:8px;
-}
-.trading-mode-switch{
-  display:flex;
-  gap:6px;
-  padding:4px;
-  border-radius:12px;
-  background:rgba(255,255,255,.035);
-  border:1px solid var(--line);
-}
-.mode-btn{
-  border:0;
-  cursor:pointer;
-  padding:8px 12px;
-  border-radius:9px;
-  font-size:8px;
-  font-weight:950;
-  letter-spacing:.2px;
-  background:transparent;
-  color:var(--muted);
-}
-.mode-btn.active{
-  background:var(--green);
-  color:#03130d;
-}
-.mode-btn.swing.active{
-  background:#4da3ff;
-  color:#03111f;
-}
-.mode-panel{display:none}
-.mode-panel.active{display:block}
-.swing-monitor-grid{
-  display:grid;
-  grid-template-columns:repeat(4,minmax(0,1fr));
-  gap:8px;
-}
-.swing-card{
-  position:relative;
-  padding:13px;
-  border-radius:16px;
-  border:1px solid var(--line);
-  background:rgba(5,12,24,.72);
-  overflow:hidden;
-}
-.swing-card:before{
-  content:"";
-  position:absolute;
-  left:0;right:0;top:0;height:3px;
-  background:#53627a;
-}
-.swing-card.watch:before{background:#b77cff}
-.swing-card.confirming:before{background:#4da3ff}
-.swing-card.buy:before{background:var(--green)}
-.swing-head{
-  display:flex;
-  justify-content:space-between;
-  gap:8px;
-  align-items:flex-start;
-}
-.swing-ticker{
-  font-size:16px;
-  font-weight:950;
-}
-.swing-price{
-  margin-top:3px;
-  color:var(--muted);
-  font-size:8px;
-}
-.swing-state{
-  padding:5px 7px;
-  border-radius:999px;
-  font-size:7px;
-  font-weight:950;
-  white-space:nowrap;
-  background:rgba(130,145,168,.11);
-  color:#aab7c8;
-}
-.swing-state.watch{
-  color:#d8baff;
-  background:rgba(183,124,255,.13);
-}
-.swing-state.confirming{
-  color:#9dccff;
-  background:rgba(77,163,255,.13);
-}
-.swing-state.buy{
-  color:#03130d;
-  background:var(--green);
-}
-.swing-badge{
-  display:inline-block;
-  margin-top:5px;
-  padding:4px 6px;
-  border-radius:999px;
-  font-size:6px;
-  font-weight:900;
-  color:#9dccff;
-  background:rgba(77,163,255,.10);
-}
-.swing-score{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  margin-top:10px;
-  color:var(--muted);
-  font-size:8px;
-}
-.swing-score strong{
-  color:var(--text);
-  font-size:10px;
-}
-.swing-bar{
-  height:5px;
-  margin-top:5px;
-  border-radius:999px;
-  overflow:hidden;
-  background:#172338;
-}
-.swing-bar div{
-  height:100%;
-  background:linear-gradient(90deg,#b77cff,#4da3ff,var(--green));
-}
-.swing-trends,.swing-meta{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:6px;
-  margin-top:9px;
-}
-.swing-trends div,.swing-meta div{
-  padding:7px;
-  border-radius:9px;
-  background:rgba(255,255,255,.025);
-}
-.swing-trends span,.swing-meta span{
-  display:block;
-  color:var(--muted);
-  font-size:7px;
-}
-.swing-trends strong,.swing-meta strong{
-  display:block;
-  margin-top:3px;
-  font-size:8px;
-}
-.swing-evidence{
-  margin-top:8px;
-  color:var(--muted);
-  font-size:7px;
-  line-height:1.45;
-  min-height:20px;
-}
-@media(max-width:1000px){
-  .swing-monitor-grid{grid-template-columns:repeat(2,1fr)}
-}
-@media(max-width:700px){
-  .trading-mode-wrap{
-    align-items:stretch;
-    flex-direction:column;
-  }
-  .trading-mode-switch{width:100%}
-  .mode-btn{flex:1}
-  .swing-monitor-grid{grid-template-columns:1fr}
-}
-
-
-
-/* FINAL MODE SWITCH — independent from Firebase/Supabase */
-#intradayModePanel{display:block}
-#swingModePanel{display:none}
-.trading-mode-switch .mode-btn.active{
-  background:var(--green);
-  color:#03130d;
-}
-.trading-mode-switch .mode-btn.swing.active{
-  background:#4da3ff;
-  color:#03111f;
-}
 
 </style>
 </head>
@@ -694,21 +495,10 @@ th{color:var(--muted)}
   <button data-panel="portfolio">Portfolio</button>
   <button data-panel="alerts">Alerts</button>
   <button data-panel="system">System</button>
+  <a href="./swing/" class="secondary-btn" style="display:inline-flex;align-items:center;text-decoration:none">📈 Swing</a>
 </nav>
 
 
-<div class="trading-mode-wrap">
-  <div class="trading-mode-title">
-    <strong>Trading Mode</strong>
-    <span>Intraday = Fast Engine · Swing = Daily + Weekly Engine</span>
-  </div>
-  <div class="trading-mode-switch">
-    <button type="button" id="modeIntradayBtn" class="mode-btn active">⚡ INTRADAY</button>
-    <button type="button" id="modeSwingBtn" class="mode-btn swing">📈 SWING</button>
-  </div>
-</div>
-
-<div id="intradayModePanel" class="mode-panel active">
 <section id="overview" class="panel active">
   <div class="layout">
     <article class="card">
@@ -822,7 +612,6 @@ th{color:var(--muted)}
     <div class="status-row"><span>Last Market Update</span><strong id="lastUpdate">—</strong></div>
   </article>
 </section>
-</div>
 
 <nav class="mobile-nav">
   <button class="active" data-panel="overview"><b>⌂</b>Home</button>
@@ -830,6 +619,7 @@ th{color:var(--muted)}
   <button data-panel="portfolio"><b>◉</b>Portfolio</button>
   <button data-panel="alerts"><b>⚡</b>Alerts</button>
   <button data-panel="system"><b>⚙</b>System</button>
+  <a href="./swing/" style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-decoration:none;color:#4da3ff;font-size:8px"><b style="display:block;margin-bottom:3px;font-size:16px">📈</b>Swing</a>
 </nav>
 
 <!-- AUTH MODAL -->
@@ -944,96 +734,6 @@ th{color:var(--muted)}
 </div>
 
 <div id="toast" class="toast"></div>
-
-
-<div id="swingModePanel" class="mode-panel">
-  <section>
-    <article class="card">
-      <div class="section-head">
-        <div>
-          <h2>Swing / Weekly Signal Monitor</h2>
-          <p>Daily setup · Weekly confirmation · intended holding period: several days to weeks</p>
-        </div>
-        <span class="small-tag">📈 SWING ENGINE</span>
-      </div>
-
-      <div id="swingSignalMonitor" class="swing-monitor-grid">
-        <div class="empty large-empty">Waiting for Swing Engine data...</div>
-      </div>
-
-      <div class="monitor-note">
-        SWING WATCH = setup mulai menarik · SWING CONFIRMING = daily/weekly alignment makin kuat ·
-        SWING BUY = score tinggi + breakout harian + weekly trend bullish.
-      </div>
-    </article>
-  </section>
-</div>
-
-
-</div>
-
-
-<script>
-(function(){
-  function setMode(mode){
-    var intradayPanel = document.getElementById("intradayModePanel");
-    var swingPanel = document.getElementById("swingModePanel");
-    var intradayBtn = document.getElementById("modeIntradayBtn");
-    var swingBtn = document.getElementById("modeSwingBtn");
-    var isSwing = mode === "swing";
-
-    if(!intradayPanel || !swingPanel || !intradayBtn || !swingBtn){
-      return;
-    }
-
-    intradayPanel.style.display = isSwing ? "none" : "block";
-    swingPanel.style.display = isSwing ? "block" : "none";
-
-    intradayPanel.classList.toggle("active", !isSwing);
-    swingPanel.classList.toggle("active", isSwing);
-    intradayBtn.classList.toggle("active", !isSwing);
-    swingBtn.classList.toggle("active", isSwing);
-
-    try{
-      localStorage.setItem("hanzTradingMode", isSwing ? "swing" : "intraday");
-    }catch(e){}
-
-    if(isSwing && typeof window.HANZ_loadSwingSignalMonitor === "function"){
-      window.HANZ_loadSwingSignalMonitor();
-    }
-  }
-
-  function bindModeSwitch(){
-    var intradayBtn = document.getElementById("modeIntradayBtn");
-    var swingBtn = document.getElementById("modeSwingBtn");
-
-    if(!intradayBtn || !swingBtn) return;
-
-    intradayBtn.addEventListener("click", function(){
-      setMode("intraday");
-    });
-
-    swingBtn.addEventListener("click", function(){
-      setMode("swing");
-    });
-
-    var saved = "intraday";
-    try{
-      saved = localStorage.getItem("hanzTradingMode") || "intraday";
-    }catch(e){}
-
-    setMode(saved === "swing" ? "swing" : "intraday");
-  }
-
-  window.HANZ_setTradingMode = setMode;
-
-  if(document.readyState === "loading"){
-    document.addEventListener("DOMContentLoaded", bindModeSwitch, {once:true});
-  }else{
-    bindModeSwitch();
-  }
-})();
-</script>
 
 <script type="module">
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
@@ -1620,108 +1320,6 @@ async function loadLiveSignalMonitor(){
 }
 
 
-/* SWING MONITOR */
-function swingStateClass(state){
-  const s=String(state || "").toUpperCase();
-  if(s==="SWING_BUY") return "buy";
-  if(s==="SWING_CONFIRMING") return "confirming";
-  if(s==="SWING_WATCH") return "watch";
-  return "";
-}
-
-async function loadSwingSignalMonitor(){
-  const el=$("swingSignalMonitor");
-  if(!el) return;
-
-  const {data,error}=await supabase
-    .from("hanz_swing_signal_monitor")
-    .select("*")
-    .order("score",{ascending:false})
-    .order("updated_at",{ascending:false});
-
-  if(error){
-    console.warn("Swing monitor unavailable:",error);
-    el.innerHTML=
-      '<div class="empty large-empty">Swing monitor table is not ready yet.</div>';
-    return;
-  }
-
-  const rows=(data || []).filter(row =>
-    String(row.state || "").toUpperCase() !== "NO_SETUP"
-  );
-
-  if(!rows.length){
-    el.innerHTML=
-      '<div class="empty large-empty">No active swing setup right now.</div>';
-    return;
-  }
-
-  el.innerHTML=rows.map(row=>{
-    const cls=swingStateClass(row.state);
-    const score=Math.max(0,Math.min(10,Number(row.score || 0)));
-    const scorePct=score*10;
-
-    return `
-      <article class="swing-card ${cls}">
-        <div class="swing-head">
-          <div>
-            <div class="swing-ticker">${safe(row.ticker)}</div>
-            <div class="swing-price">Price ${price(row.price)}</div>
-            <span class="swing-badge">📈 SWING</span>
-          </div>
-          <span class="swing-state ${cls}">
-            ${safe(String(row.state || "NO_SETUP").replaceAll("_"," "))}
-          </span>
-        </div>
-
-        <div class="swing-score">
-          <span>Swing score</span>
-          <strong>${row.score ?? "—"}/10</strong>
-        </div>
-        <div class="swing-bar"><div style="width:${scorePct}%"></div></div>
-
-        <div class="swing-trends">
-          <div>
-            <span>DAILY TREND</span>
-            <strong class="${String(row.daily_trend || "").includes("BULLISH") ? "bull" : "neutral"}">
-              ${safe(row.daily_trend || "—")}
-            </strong>
-          </div>
-          <div>
-            <span>WEEKLY TREND</span>
-            <strong class="${String(row.weekly_trend || "").includes("BULLISH") ? "bull" : "neutral"}">
-              ${safe(row.weekly_trend || "—")}
-            </strong>
-          </div>
-        </div>
-
-        <div class="swing-meta">
-          <div><span>DAILY RSI</span><strong>${row.daily_rsi == null ? "—" : Number(row.daily_rsi).toFixed(1)}</strong></div>
-          <div><span>WEEKLY RSI</span><strong>${row.weekly_rsi == null ? "—" : Number(row.weekly_rsi).toFixed(1)}</strong></div>
-          <div><span>DAILY RVOL</span><strong>${row.daily_rvol == null ? "—" : `${Number(row.daily_rvol).toFixed(2)}×`}</strong></div>
-          <div><span>BREAKOUT 20D</span><strong>${row.breakout ? "YES" : "NO"}</strong></div>
-          <div><span>STOP LOSS</span><strong>${price(row.stop_loss)}</strong></div>
-          <div><span>TARGET 1</span><strong>${price(row.target_1)}</strong></div>
-          <div><span>TARGET 2</span><strong>${price(row.target_2)}</strong></div>
-          <div><span>BREAKOUT LEVEL</span><strong>${price(row.breakout_level)}</strong></div>
-        </div>
-
-        <div class="swing-evidence">
-          ${safe(row.evidence || "Waiting for daily/weekly confirmation")}
-        </div>
-
-        <div class="swing-price" style="margin-top:7px">
-          Daily ${formatTime(row.daily_bar_at)} · Weekly ${formatTime(row.weekly_bar_at)} · Engine ${formatTime(row.updated_at)}
-        </div>
-      </article>`;
-  }).join("");
-}
-
-
-
-
-window.HANZ_loadSwingSignalMonitor = loadSwingSignalMonitor;
-
 /* HEALTH */
 async function loadHealth(){
   const {data,error} = await supabase
@@ -2083,7 +1681,7 @@ async function loadAll(){
   clearError();
 
   try{
-    await Promise.all([loadWatchlist(),loadHealth(),loadLiveSignalMonitor(),loadSwingSignalMonitor()]);
+    await Promise.all([loadWatchlist(),loadHealth(),loadLiveSignalMonitor()]);
 
     if(currentUser){
       await Promise.all([loadPortfolio(),loadAlerts()]);
