@@ -665,7 +665,7 @@ body{padding-bottom:20px}
     <div>
       <small>HANZ SWING ENGINE</small>
       <h1>Multi-day opportunities.<br>Daily setup, weekly confirmation.</h1>
-      <p>Dedicated Swing Engine page. No mode switch.</p>
+      <p>Dedicated Swing Engine page showing only confirmed SWING BUY candidates.</p>
     </div>
     <div class="hero-top">
       <span>ACTIVE SWING SETUPS</span>
@@ -679,7 +679,7 @@ body{padding-bottom:20px}
   <div class="section-head">
     <div>
       <h2>Swing / Weekly Signal Monitor</h2>
-      <p>SWING WATCH · SWING CONFIRMING · SWING BUY</p>
+      <p>SWING BUY ONLY</p>
     </div>
     <span class="small-tag">📈 SWING</span>
   </div>
@@ -689,8 +689,7 @@ body{padding-bottom:20px}
   </div>
 
   <div class="monitor-note">
-    SWING WATCH = setup mulai menarik · SWING CONFIRMING = daily/weekly alignment makin kuat ·
-    SWING BUY = score tinggi + breakout harian + weekly trend bullish.
+    Only SWING BUY is displayed here. WATCH and CONFIRMING remain in the engine for internal monitoring but are hidden from the dashboard.
   </div>
 </article>
 </div>
@@ -729,7 +728,7 @@ async function loadSwing(){
   const {data,error} = await supabase
     .from("hanz_swing_signal_monitor")
     .select("*")
-    .neq("state","NO_SETUP")
+    .eq("state","SWING_BUY")
     .order("score",{ascending:false})
     .order("updated_at",{ascending:false});
 
