@@ -598,6 +598,53 @@ th{color:var(--muted)}
 </section>
 
 <section id="system" class="panel">
+
+<section class="card" id="pushDiagnosticCard">
+  <div class="section-title">
+    <div>
+      <small>PUSH DIAGNOSTIC</small>
+      <h2>Firebase delivery status</h2>
+    </div>
+  </div>
+
+  <div class="metric-grid">
+    <div class="metric-card">
+      <span>FOREGROUND FCM</span>
+      <strong id="diagForegroundState">NEVER</strong>
+      <small id="diagForegroundTime">No message received</small>
+    </div>
+
+    <div class="metric-card">
+      <span>BACKGROUND FCM</span>
+      <strong id="diagBackgroundState">NEVER</strong>
+      <small id="diagBackgroundTime">No message received</small>
+    </div>
+
+    <div class="metric-card">
+      <span>SERVICE WORKER</span>
+      <strong id="diagSwState">CHECKING</strong>
+      <small id="diagSwScope">—</small>
+    </div>
+
+    <div class="metric-card">
+      <span>NOTIFICATION PERMISSION</span>
+      <strong id="diagPermission">—</strong>
+      <small>Browser permission</small>
+    </div>
+  </div>
+
+  <div class="reason" style="margin-top:12px">
+    <strong>Last FCM payload</strong>
+    <pre id="diagPayload" style="white-space:pre-wrap;word-break:break-word;margin:8px 0 0;font-size:11px;line-height:1.45;max-height:220px;overflow:auto">No FCM message received yet.</pre>
+  </div>
+
+  <div class="reason" style="margin-top:10px">
+    <strong>How to read this</strong><br>
+    FOREGROUND = message reached the page while HANZ was open.<br>
+    BACKGROUND = service worker received the message while HANZ was in background.
+  </div>
+</section>
+
   <article class="card">
     <div class="section-head">
       <div>
@@ -845,6 +892,98 @@ function clearError(){
 }
 
 
+
+/* PUSH DIAGNOSTICS */
+const PUSH_DIAG_STORAGE_KEY="hanz_push_diagnostic_v11";
+
+function readPushDiagnostic(){
+  try{
+    return JSON.parse(localStorage.getItem(PUSH_DIAG_STORAGE_KEY) || "{}");
+  }catch(_){
+    return {};
+  }
+}
+
+function writePushDiagnostic(update){
+  const current=readPushDiagnostic();
+  const next={...current,...update};
+  try{
+    localStorage.setItem(PUSH_DIAG_STORAGE_KEY,JSON.stringify(next));
+  }catch(_){}
+  renderPushDiagnostic();
+}
+
+function formatDiagTime(value){
+  if(!value) return "No message received";
+  try{
+    return new Date(value).toLocaleString();
+  }catch(_){
+    return String(value);
+  }
+}
+
+async function renderPushDiagnostic(){
+  const state=readPushDiagnostic();
+
+  const fgState=$("diagForegroundState");
+  const fgTime=$("diagForegroundTime");
+  const bgState=$("diagBackgroundState");
+  const bgTime=$("diagBackgroundTime");
+  const swState=$("diagSwState");
+  const swScope=$("diagSwScope");
+  const perm=$("diagPermission");
+  const payload=$("diagPayload");
+
+  if(fgState) fgState.textContent=state.foreground_at ? "RECEIVED" : "NEVER";
+  if(fgTime) fgTime.textContent=formatDiagTime(state.foreground_at);
+
+  if(bgState) bgState.textContent=state.background_at ? "RECEIVED" : "NEVER";
+  if(bgTime) bgTime.textContent=formatDiagTime(state.background_at);
+
+  if(perm){
+    perm.textContent=("Notification" in window)
+      ? String(Notification.permission || "default").toUpperCase()
+      : "UNSUPPORTED";
+  }
+
+  if(payload){
+    const latest=state.last_payload || null;
+    payload.textContent=latest
+      ? JSON.stringify(latest,null,2)
+      : "No FCM message received yet.";
+  }
+
+  if(swState && swScope){
+    try{
+      const reg=await navigator.serviceWorker.getRegistration("/dashboard/");
+      if(reg){
+        swState.textContent=reg.active ? "ACTIVE" : "REGISTERED";
+        swScope.textContent=reg.scope || "/dashboard/";
+      }else{
+        swState.textContent="NOT FOUND";
+        swScope.textContent="No /dashboard/ service worker registration";
+      }
+    }catch(error){
+      swState.textContent="ERROR";
+      swScope.textContent=error.message || String(error);
+    }
+  }
+}
+
+if("serviceWorker" in navigator){
+  navigator.serviceWorker.addEventListener("message",(event)=>{
+    const msg=event?.data || {};
+    if(msg.type!=="HANZ_FCM_BACKGROUND") return;
+
+    writePushDiagnostic({
+      background_at:new Date().toISOString(),
+      last_payload:msg.payload || null,
+      last_channel:"BACKGROUND"
+    });
+  });
+}
+
+
 /* PUSH NOTIFICATIONS */
 function pushPreferenceKey(){
   return currentUser ? `hanz_push_disabled_${currentUser.id}` : "hanz_push_disabled";
@@ -1028,8 +1167,14 @@ async function initPushMessaging(){
     });
 
     onMessage(firebaseMessaging, payload=>{
+      writePushDiagnostic({
+        foreground_at:new Date().toISOString(),
+        last_payload:payload || null,
+        last_channel:"FOREGROUND"
+      });
+
       const data = payload?.data || {};
-      const title = data.title || "HANZ Alert";
+      const title = data.title || payload?.notification?.title || "HANZ Alert";
       const body = data.body || data.message || "New HANZ trading alert.";
 
       if(
@@ -1988,6 +2133,7 @@ async function loadAll(){
 /* EVENTS + START */
 window.addEventListener("DOMContentLoaded",async ()=>{
   renderIdxMarketClock();
+  renderPushDiagnostic();
   setInterval(renderIdxMarketClock,60000);
 
   document.querySelectorAll("[data-panel]").forEach(btn=>{
