@@ -3048,30 +3048,17 @@ def run_cycle():
 
     if not market["is_trading_day"]:
         print(
-            "SWING cycle skipped: IDX is not a trading day. "
-            "No new signal, portfolio trigger, alert or push.",
+            "SWING SCANNER skipped: IDX is not a trading day.",
             flush=True,
         )
         return
 
-    # During active sessions / lunch, only monitor portfolio risk.
-    # Universe SWING_BUY generation waits for the completed daily bar.
-    if not market["allow_final_scan"]:
-        if market["allow_portfolio_monitor"]:
-            portfolio_summary = monitor_swing_portfolio(
-                allow_structural_exit=False
-            )
-            print(
-                "SWING intraday portfolio monitor complete: "
-                + json.dumps(portfolio_summary)
-                + " | structural exits=DEFERRED_TO_POST_CLOSE",
-                flush=True,
-            )
-        else:
-            print(
-                "SWING cycle skipped outside IDX operating window.",
-                flush=True,
-            )
+    if market["state"] != "POST_CLOSE":
+        print(
+            "SWING SCANNER skipped: full 200-stock scan runs "
+            "only during IDX POST_CLOSE window.",
+            flush=True,
+        )
         return
 
     universe = fetch_universe()
@@ -3102,15 +3089,9 @@ def run_cycle():
                 flush=True,
             )
 
-    portfolio_summary = monitor_swing_portfolio(
-        allow_structural_exit=True
-    )
-
     print(
         "SWING FINAL cycle complete: "
-        + json.dumps(counts)
-        + " | portfolio="
-        + json.dumps(portfolio_summary),
+        + json.dumps(counts),
         flush=True,
     )
 
@@ -3125,7 +3106,7 @@ def main():
         f"Daily={DAILY_INTERVAL}/{DAILY_PERIOD} | "
         f"Weekly={WEEKLY_INTERVAL}/{WEEKLY_PERIOD} | "
         f"Cycle={SWING_INTERVAL}s | "
-        f"Portfolio monitor=ON | "
+        f"Portfolio monitor=SEPARATE | "
         f"IDX calendar gate=ON (Asia/Jakarta) | "
         f"Trailing={TRAILING_ATR_MULTIPLIER_T1:.1f}x/"
         f"{TRAILING_ATR_MULTIPLIER_T2:.1f}x ATR",
