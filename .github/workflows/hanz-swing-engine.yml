@@ -4,9 +4,12 @@ on:
   workflow_dispatch:
 
   schedule:
-    # Every hour, Monday-Friday.
-    # GitHub Actions cron uses UTC.
-    - cron: "10 * * * 1-5"
+    # IDX / WIB schedule (GitHub cron is UTC)
+    # 09:10 WIB = Session I portfolio/risk monitor
+    # 12:10 WIB = Midday portfolio/risk monitor
+    # 16:10 WIB = Post-close FINAL Swing scan
+    # Calendar gate inside Python blocks weekends and IDX holidays.
+    - cron: "10 2,5,9 * * 1-5"
 
 permissions:
   contents: read
