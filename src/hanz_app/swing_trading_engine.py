@@ -11,6 +11,8 @@ from zoneinfo import ZoneInfo
 import pandas as pd
 import yfinance as yf
 
+from .hanz_push_sender_self_healing import disable_fid
+
 # Firebase Admin is optional. Alerts continue writing to Supabase even
 # when the GitHub Actions Firebase secret is not configured.
 try:
@@ -1344,15 +1346,68 @@ def send_selective_push(
             app=app,
         )
 
-        finish_push_event(
-            event_key,
-            "SENT",
-        )
+        stale_fids = []
+
+        for fid, send_result in zip(
+            installation_ids,
+            response.responses,
+        ):
+            if send_result.success:
+                continue
+
+            exc = send_result.exception
+
+            if (
+                messaging is not None
+                and isinstance(
+                    exc,
+                    messaging.UnregisteredError,
+                )
+            ):
+                stale_fids.append(fid)
+
+                try:
+                    disable_fid(fid)
+                    print(
+                        "SWING PUSH SELF-HEAL: "
+                        f"disabled stale FID {fid}",
+                        flush=True,
+                    )
+                except Exception as cleanup_exc:
+                    print(
+                        "SWING PUSH SELF-HEAL WARNING: "
+                        f"could not disable stale FID: "
+                        f"{cleanup_exc}",
+                        flush=True,
+                    )
+            else:
+                print(
+                    "SWING PUSH DEVICE FAILURE: "
+                    f"{type(exc).__name__}: {exc}",
+                    flush=True,
+                )
+
+        if response.success_count > 0:
+            finish_push_event(
+                event_key,
+                "SENT",
+            )
+        elif stale_fids and (
+            len(stale_fids)
+            == len(installation_ids)
+        ):
+            finish_push_event(
+                event_key,
+                "NO_DEVICE",
+            )
+        else:
+            release_failed_push_event(event_key)
 
         print(
-            f"SWING PUSH SENT: {event_key} "
+            f"SWING PUSH RESULT: {event_key} "
             f"success={response.success_count} "
-            f"failed={response.failure_count}",
+            f"failed={response.failure_count} "
+            f"stale_cleaned={len(stale_fids)}",
             flush=True,
         )
 
