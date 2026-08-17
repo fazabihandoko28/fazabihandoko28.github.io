@@ -587,7 +587,7 @@ th{color:var(--muted)}
       </div>
     </div>
     <div class="monitor-note" style="margin-bottom:12px">
-      Swing triggers: STOP LOSS · TARGET 1 · TARGET 2 · TRAILING ACTIVATED · PROTECT PROFIT · CONFIRMED SELL.
+      Swing triggers: STOP LOSS · DYNAMIC T1 · DYNAMIC T2 · TRAILING ACTIVATED · PROTECT PROFIT · CONFIRMED SELL.
     </div>
     <div id="alertsBox">
       <div class="empty"><div class="empty-symbol">⚡</div>Login to view personal alerts.</div>
@@ -695,12 +695,12 @@ th{color:var(--muted)}
         </div>
 
         <div class="field">
-          <label>TARGET 1</label>
+          <label>DYNAMIC T1</label>
           <input id="positionTarget1" type="number" step="any" placeholder="Optional">
         </div>
 
         <div class="field">
-          <label>TARGET 2</label>
+          <label>DYNAMIC T2</label>
           <input id="positionTarget2" type="number" step="any" placeholder="Optional">
         </div>
 
@@ -1209,6 +1209,9 @@ function renderOpportunities(rows){
       <span class="active-chip">${safe((row.discount_label || "DISCOUNT N/A").replaceAll("_"," "))}</span>
       <div class="levels">
         <div class="level"><span>PRICE</span><strong>${price(row.price)}</strong></div>
+        <div class="level confirm"><span>IDEAL ENTRY</span><strong>${price(row.entry_price)}</strong></div>
+        <div class="level confirm"><span>ENTRY ZONE</span><strong>${price(row.entry_low)} – ${price(row.entry_high)}</strong></div>
+        <div class="level"><span>ENTRY STATUS</span><strong>${safe((row.entry_status || "—").replaceAll("_"," "))}</strong></div>
         <div class="level confirm"><span>DISCOUNT SCORE</span><strong>${row.discount_score==null?"—":Number(row.discount_score).toFixed(0)+"/100"}</strong></div>
         <div class="level confirm"><span>FUNDAMENTAL</span><strong>${row.fundamental_score==null?"—":Number(row.fundamental_score).toFixed(0)+"/100"} · ${safe(row.fundamental_label || "N/A")}</strong></div>
         <div class="level"><span>REVENUE GROWTH</span><strong>${row.revenue_growth_pct==null?"—":Number(row.revenue_growth_pct).toFixed(1)+"%"}</strong></div>
@@ -1223,9 +1226,10 @@ function renderOpportunities(rows){
         <div class="level"><span>BELOW 52W HIGH</span><strong>${row.week52_discount_pct==null?"—":Number(row.week52_discount_pct).toFixed(1)+"%"}</strong></div>
         <div class="level confirm"><span>BREAKOUT</span><strong>${price(row.breakout_level)}</strong></div>
         <div class="level invalid"><span>STOP LOSS</span><strong>${price(row.stop_loss)}</strong></div>
-        <div class="level confirm"><span>TARGET 1</span><strong>${price(row.target_1)}</strong></div>
-        <div class="level confirm"><span>TARGET 2</span><strong>${price(row.target_2)}</strong></div>
+        <div class="level confirm"><span>DYNAMIC T1</span><strong>${price(row.target_1)}</strong></div>
+        <div class="level confirm"><span>DYNAMIC T2</span><strong>${price(row.target_2)}</strong></div>
       </div>
+      <div class="reason"><strong>Entry:</strong> ${safe(row.entry_note || "")}</div>
       <div class="reason"><strong>Fundamental:</strong> ${safe(row.fundamental_reason || "Fundamental data unavailable")}</div>
       <div class="reason"><strong>Discount:</strong> ${safe(row.discount_reason || "")}</div>
       <div class="reason">${safe(row.evidence || "Confirmed daily breakout + weekly bullish trend")}</div>
@@ -1264,6 +1268,9 @@ function renderLiveSignalMonitor(rows){
         <div><span>WEEKLY RSI</span><strong>${row.weekly_rsi==null?"—":Number(row.weekly_rsi).toFixed(1)}</strong></div>
         <div><span>DAILY RVOL</span><strong>${row.daily_rvol==null?"—":Number(row.daily_rvol).toFixed(2)+"×"}</strong></div>
         <div><span>BREAKOUT 20D</span><strong>${row.breakout ? "YES" : "NO"}</strong></div>
+        <div><span>IDEAL ENTRY</span><strong>${price(row.entry_price)}</strong></div>
+        <div><span>ENTRY ZONE</span><strong>${price(row.entry_low)} – ${price(row.entry_high)}</strong></div>
+        <div><span>ENTRY STATUS</span><strong>${safe((row.entry_status || "—").replaceAll("_"," "))}</strong></div>
         <div><span>ANALYST TARGET</span><strong>${price(row.analyst_target_mean)}</strong></div>
         <div><span>ANALYST UPSIDE</span><strong>${row.analyst_upside_pct==null?"—":Number(row.analyst_upside_pct).toFixed(1)+"%"}</strong></div>
         <div><span>52W HIGH</span><strong>${price(row.week52_high)}</strong></div>
@@ -1275,8 +1282,8 @@ function renderLiveSignalMonitor(rows){
         <div><span>NET MARGIN</span><strong>${row.net_margin_pct==null?"—":Number(row.net_margin_pct).toFixed(1)+"%"}</strong></div>
         <div><span>SECTOR</span><strong>${safe(row.sector || "—")}</strong></div>
         <div><span>STOP LOSS</span><strong>${price(row.stop_loss)}</strong></div>
-        <div><span>TARGET 1</span><strong>${price(row.target_1)}</strong></div>
-        <div><span>TARGET 2</span><strong>${price(row.target_2)}</strong></div>
+        <div><span>DYNAMIC T1</span><strong>${price(row.target_1)}</strong></div>
+        <div><span>DYNAMIC T2</span><strong>${price(row.target_2)}</strong></div>
         <div><span>BREAKOUT</span><strong>${price(row.breakout_level)}</strong></div>
       </div>
       <div class="sig-evidence"><strong>Fundamental:</strong> ${safe(row.fundamental_reason || "Fundamental data unavailable")}</div>
@@ -1520,8 +1527,8 @@ function renderPortfolio(rows){
 
         <div class="portfolio-levels">
           <div><span>STOP LOSS</span><strong class="red-text">${price(row.stop_loss)}</strong></div>
-          <div><span>TARGET 1</span><strong class="green-text">${price(row.target_1)}</strong></div>
-          <div><span>TARGET 2</span><strong class="green-text">${price(row.target_2)}</strong></div>
+          <div><span>DYNAMIC T1</span><strong class="green-text">${price(row.target_1)}</strong></div>
+          <div><span>DYNAMIC T2</span><strong class="green-text">${price(row.target_2)}</strong></div>
         </div>
 
         <div class="trailing-box">
