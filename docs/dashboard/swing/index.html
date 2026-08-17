@@ -608,6 +608,10 @@ th{color:var(--muted)}
     <div class="status-row"><span>Last Successful Cycle</span><strong id="lastSuccess">—</strong></div>
     <div class="status-row"><span>Consecutive Failures</span><strong id="failures">—</strong></div>
     <div class="status-row"><span>Last Error</span><strong id="lastError">None</strong></div>
+    <div class="status-row"><span>IDX Market</span><strong id="idxMarketState">—</strong></div>
+    <div class="status-row"><span>Indonesia Time</span><strong id="idxMarketTime">—</strong></div>
+    <div class="status-row"><span>Last Trading Day</span><strong id="idxLastTradingDay">—</strong></div>
+    <div class="status-row"><span>Next Trading Day</span><strong id="idxNextTradingDay">—</strong></div>
     <div class="status-row"><span>Last Market Update</span><strong id="lastUpdate">—</strong></div>
   </article>
 </section>
@@ -1158,7 +1162,7 @@ async function loadWatchlist(){
     $("heroTopCandidate").textContent=top.ticker;
     $("heroTopSub").textContent=`SWING BUY · Score ${top.score ?? "—"}/10`;
     $("lastUpdate").textContent=formatTime(top.updated_at);
-    $("lastUpdateDate").textContent=`${formatDate(top.updated_at)} · Swing Live`;
+    $("lastUpdateDate").textContent=`${formatDate(top.updated_at)} · Last completed Swing scan`;
   }else{
     $("topCandidate").textContent="—";
     $("topCandidateSub").textContent="No SWING BUY";
@@ -1250,6 +1254,133 @@ function renderLiveSignalMonitor(rows){
   }).join("");
 }
 
+
+/* IDX / BEI CALENDAR — WIB */
+const IDX_HOLIDAYS_2026 = {
+  "2026-01-01":"New Year 2026",
+  "2026-01-16":"Isra Mikraj",
+  "2026-02-16":"Chinese New Year Collective Leave",
+  "2026-02-17":"Chinese New Year",
+  "2026-03-18":"Nyepi Collective Leave",
+  "2026-03-19":"Nyepi",
+  "2026-03-20":"Eid al-Fitr Collective Leave",
+  "2026-03-23":"Eid al-Fitr Collective Leave",
+  "2026-03-24":"Eid al-Fitr Collective Leave",
+  "2026-04-03":"Good Friday",
+  "2026-05-01":"Labour Day",
+  "2026-05-14":"Ascension Day",
+  "2026-05-15":"Ascension Day Collective Leave",
+  "2026-05-27":"Eid al-Adha",
+  "2026-05-28":"Eid al-Adha Collective Leave",
+  "2026-06-01":"Pancasila Day",
+  "2026-06-16":"Islamic New Year",
+  "2026-08-17":"Independence Day",
+  "2026-08-25":"Prophet Muhammad's Birthday",
+  "2026-12-24":"Christmas Collective Leave",
+  "2026-12-25":"Christmas Day",
+  "2026-12-31":"IDX Trading Holiday"
+};
+
+function jakartaParts(date=new Date()){
+  const parts=new Intl.DateTimeFormat("en-CA",{
+    timeZone:"Asia/Jakarta",
+    year:"numeric",month:"2-digit",day:"2-digit",
+    weekday:"short",hour:"2-digit",minute:"2-digit",
+    hourCycle:"h23"
+  }).formatToParts(date);
+  const o={};
+  parts.forEach(p=>{ if(p.type!=="literal") o[p.type]=p.value; });
+  o.iso=`${o.year}-${o.month}-${o.day}`;
+  o.minutes=Number(o.hour)*60+Number(o.minute);
+  return o;
+}
+
+function idxTradingDayFromParts(p){
+  const day=p.weekday;
+  if(day==="Sat" || day==="Sun") return {open:false,reason:"Weekend"};
+  if(Number(p.year)!==2026) return {open:false,reason:"Calendar year unverified"};
+  if(IDX_HOLIDAYS_2026[p.iso]) return {open:false,reason:IDX_HOLIDAYS_2026[p.iso]};
+  return {open:true,reason:"Trading Day"};
+}
+
+function idxStatusNow(){
+  const p=jakartaParts();
+  const td=idxTradingDayFromParts(p);
+  if(!td.open){
+    return {
+      state:td.reason==="Weekend"?"CLOSED · WEEKEND":
+            td.reason==="Calendar year unverified"?"CALENDAR UNVERIFIED":"CLOSED · HOLIDAY",
+      reason:td.reason, parts:p
+    };
+  }
+
+  const fri=p.weekday==="Fri";
+  const s1end=fri ? 11*60+30 : 12*60;
+  const s2start=fri ? 14*60 : 13*60+30;
+  let state="CLOSED";
+
+  if(p.minutes<8*60+45) state="CLOSED · BEFORE HOURS";
+  else if(p.minutes<9*60) state="PRE-OPEN";
+  else if(p.minutes<s1end) state="SESSION 1";
+  else if(p.minutes<s2start) state="LUNCH BREAK";
+  else if(p.minutes<15*60+50) state="SESSION 2";
+  else if(p.minutes<=16*60+15) state="POST-CLOSE";
+  else state="CLOSED · AFTER HOURS";
+
+  return {state,reason:"Trading Day",parts:p};
+}
+
+function addJakartaDays(iso,delta){
+  const [y,m,d]=iso.split("-").map(Number);
+  const base=new Date(Date.UTC(y,m-1,d,12,0,0));
+  base.setUTCDate(base.getUTCDate()+delta);
+  return `${base.getUTCFullYear()}-${String(base.getUTCMonth()+1).padStart(2,"0")}-${String(base.getUTCDate()).padStart(2,"0")}`;
+}
+
+function weekdayForIso(iso){
+  const [y,m,d]=iso.split("-").map(Number);
+  return new Intl.DateTimeFormat("en-US",{weekday:"short",timeZone:"UTC"}).format(new Date(Date.UTC(y,m-1,d,12)));
+}
+
+function isIdxTradingIso(iso){
+  const y=Number(iso.slice(0,4));
+  if(y!==2026) return false;
+  const wd=weekdayForIso(iso);
+  return wd!=="Sat" && wd!=="Sun" && !IDX_HOLIDAYS_2026[iso];
+}
+
+function nearestTradingDay(iso,direction){
+  let x=iso;
+  for(let i=0;i<370;i++){
+    x=addJakartaDays(x,direction);
+    if(isIdxTradingIso(x)) return x;
+  }
+  return "—";
+}
+
+function renderIdxMarketClock(){
+  const m=idxStatusNow();
+  const p=m.parts;
+  const marketText=m.reason==="Trading Day" ? m.state : `${m.state} · ${m.reason}`;
+
+  if($("idxMarketState")) $("idxMarketState").textContent=marketText;
+  if($("idxMarketTime")) $("idxMarketTime").textContent=`${p.iso} ${p.hour}:${p.minute} WIB`;
+  if($("idxLastTradingDay")) $("idxLastTradingDay").textContent=nearestTradingDay(p.iso,-1);
+  if($("idxNextTradingDay")) $("idxNextTradingDay").textContent=nearestTradingDay(p.iso,1);
+
+  // Do not describe stale holiday/weekend data as "Swing Live".
+  if($("lastUpdateDate")){
+    if(m.reason==="Trading Day" && ["SESSION 1","LUNCH BREAK","SESSION 2","POST-CLOSE"].includes(m.state)){
+      $("lastUpdateDate").textContent=`IDX ${m.state} · WIB`;
+    }else{
+      $("lastUpdateDate").textContent=`IDX ${marketText}`;
+    }
+  }
+
+  return m;
+}
+
+
 /* HEALTH */
 async function loadHealth(){
   const {data,error} = await supabase
@@ -1274,7 +1405,13 @@ async function loadHealth(){
   $("failures").textContent=state.consecutive_failures ?? 0;
   $("lastError").textContent=state.last_error || "None";
   $("engineDot").classList.toggle("online",online);
-  $("engineLabel").textContent=online ? "HANZ ONLINE" : "CHECK ENGINE";
+
+  const market=renderIdxMarketClock();
+  const marketClosed=market.state.startsWith("CLOSED") || market.state==="CALENDAR UNVERIFIED";
+  $("engineLabel").textContent=
+    online
+      ? (marketClosed ? "MARKET CLOSED" : "HANZ ONLINE")
+      : "CHECK ENGINE";
 }
 
 /* PORTFOLIO */
@@ -1630,6 +1767,8 @@ async function loadAll(){
 
 /* EVENTS + START */
 window.addEventListener("DOMContentLoaded",async ()=>{
+  renderIdxMarketClock();
+  setInterval(renderIdxMarketClock,60000);
 
   document.querySelectorAll("[data-panel]").forEach(btn=>{
     btn.addEventListener("click",()=>showPanel(btn.dataset.panel));
