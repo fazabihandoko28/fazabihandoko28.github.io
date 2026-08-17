@@ -5,6 +5,7 @@ import time
 import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
+from pathlib import Path
 from zoneinfo import ZoneInfo
 
 import pandas as pd
@@ -26,6 +27,65 @@ SUPABASE_URL = os.getenv("SUPABASE_URL", "").rstrip("/")
 SUPABASE_SECRET_KEY = os.getenv("SUPABASE_SECRET_KEY", "")
 
 FAST_STATE_ID = "bei-fast"
+
+# =========================
+# MARKET DATA RESILIENCE
+# =========================
+# Goal:
+# - reduce Yahoo/yfinance request pressure with batching
+# - reuse last valid frames when the provider is temporarily unavailable
+# - keep 5m data cached longer than 1m data
+# - stop hammering Yahoo while a circuit breaker is open
+# - report provider failures as STALE_DATA rather than trading-signal ERROR
+
+MARKET_BATCH_SIZE = int(
+    os.getenv("HANZ_MARKET_BATCH_SIZE", "10")
+)
+
+MARKET_FETCH_RETRIES = int(
+    os.getenv("HANZ_MARKET_FETCH_RETRIES", "2")
+)
+
+MARKET_RETRY_BASE_SECONDS = float(
+    os.getenv("HANZ_MARKET_RETRY_BASE_SECONDS", "5")
+)
+
+MARKET_REQUEST_TIMEOUT = float(
+    os.getenv("HANZ_MARKET_REQUEST_TIMEOUT", "15")
+)
+
+MARKET_CIRCUIT_FAILURE_RATIO = float(
+    os.getenv("HANZ_MARKET_CIRCUIT_FAILURE_RATIO", "0.40")
+)
+
+MARKET_CIRCUIT_COOLDOWN_SECONDS = int(
+    os.getenv("HANZ_MARKET_CIRCUIT_COOLDOWN_SECONDS", "300")
+)
+
+MARKET_SINGLE_FAILURE_LIMIT = int(
+    os.getenv("HANZ_MARKET_SINGLE_FAILURE_LIMIT", "5")
+)
+
+FAST_CACHE_TTL_SECONDS = int(
+    os.getenv("HANZ_FAST_CACHE_TTL_SECONDS", "45")
+)
+
+CONFIRM_CACHE_TTL_SECONDS = int(
+    os.getenv("HANZ_CONFIRM_CACHE_TTL_SECONDS", "240")
+)
+
+# In-memory cache survives normal Railway cycles for as long as the process
+# stays alive. A process restart simply starts with an empty cache.
+_MARKET_DATA_CACHE = {}
+_MARKET_CIRCUIT_OPEN_UNTIL = 0.0
+_PROVIDER_CONSECUTIVE_FAILURES = 0
+_CYCLE_PROVIDER_SUCCESSES = 0
+_CYCLE_PROVIDER_FAILURES = 0
+
+
+class MarketDataUnavailable(RuntimeError):
+    """Temporary provider/data-fetch failure, not a trading-logic error."""
+
 
 FAST_INTERVAL = int(os.getenv("HANZ_FAST_INTERVAL", "60"))
 RUN_ONCE = os.getenv("HANZ_FAST_RUN_ONCE", "0") == "1"
@@ -296,53 +356,490 @@ def fetch_watchlist():
     return active
 
 
-def download_data(
-    ticker,
-    interval,
-    period,
-):
-    symbol = normalize_ticker(ticker)
-
-    started = time.time()
-
-    frame = yf.download(
-        symbol,
-        interval=interval,
-        period=period,
-        auto_adjust=False,
-        progress=False,
-        threads=False,
+def _cache_key(ticker, interval, period):
+    return (
+        normalize_ticker(ticker),
+        str(interval),
+        str(period),
     )
 
-    latency = round(
-        time.time() - started,
-        3,
-    )
+
+def _cache_ttl(interval):
+    if str(interval) == str(CONFIRM_INTERVAL):
+        return max(1, CONFIRM_CACHE_TTL_SECONDS)
+
+    return max(1, FAST_CACHE_TTL_SECONDS)
+
+
+def _cached_market_frame(ticker, interval, period):
+    key = _cache_key(ticker, interval, period)
+    item = _MARKET_DATA_CACHE.get(key)
+
+    if not item:
+        return None
+
+    return item
+
+
+def _store_market_frame(ticker, interval, period, frame, latency):
+    key = _cache_key(ticker, interval, period)
+
+    _MARKET_DATA_CACHE[key] = {
+        "frame": frame.copy(),
+        "fetched_at": time.time(),
+        "latency": safe_float(latency) or 0.0,
+    }
+
+
+def _frame_from_batch(raw_frame, symbol):
+    """Extract one ticker frame from any common yf.download() column layout."""
+    if raw_frame is None or raw_frame.empty:
+        return None
+
+    frame = None
+
+    if isinstance(raw_frame.columns, pd.MultiIndex):
+        level0 = {
+            str(value)
+            for value in raw_frame.columns.get_level_values(0)
+        }
+
+        level1 = {
+            str(value)
+            for value in raw_frame.columns.get_level_values(1)
+        }
+
+        if symbol in level0:
+            frame = raw_frame[symbol].copy()
+
+        elif symbol in level1:
+            frame = raw_frame.xs(
+                symbol,
+                axis=1,
+                level=1,
+            ).copy()
+
+        elif "Close" in level0:
+            # Defensive fallback for column-first layouts.
+            try:
+                frame = raw_frame.xs(
+                    symbol,
+                    axis=1,
+                    level=1,
+                ).copy()
+            except Exception:
+                frame = None
+
+    else:
+        frame = raw_frame.copy()
 
     if frame is None or frame.empty:
-        raise RuntimeError(
-            f"No market data for {symbol}"
-        )
+        return None
 
-    if isinstance(
-        frame.columns,
-        pd.MultiIndex,
-    ):
+    if isinstance(frame.columns, pd.MultiIndex):
         frame.columns = [
             col[0]
             for col in frame.columns
         ]
+
+    if "Close" not in frame.columns:
+        return None
 
     frame = frame.dropna(
         subset=["Close"]
     )
 
     if frame.empty:
-        raise RuntimeError(
-            f"Empty close data for {symbol}"
+        return None
+
+    return frame
+
+
+def _circuit_is_open():
+    return time.time() < _MARKET_CIRCUIT_OPEN_UNTIL
+
+
+def _open_market_circuit(reason):
+    global _MARKET_CIRCUIT_OPEN_UNTIL
+
+    until = time.time() + max(
+        1,
+        MARKET_CIRCUIT_COOLDOWN_SECONDS,
+    )
+
+    if until > _MARKET_CIRCUIT_OPEN_UNTIL:
+        _MARKET_CIRCUIT_OPEN_UNTIL = until
+
+    print(
+        "MARKET DATA CIRCUIT OPEN "
+        f"for {MARKET_CIRCUIT_COOLDOWN_SECONDS}s — {reason}",
+        flush=True,
+    )
+
+
+def _record_provider_result(success):
+    global _PROVIDER_CONSECUTIVE_FAILURES
+    global _CYCLE_PROVIDER_SUCCESSES
+    global _CYCLE_PROVIDER_FAILURES
+
+    if success:
+        _PROVIDER_CONSECUTIVE_FAILURES = 0
+        _CYCLE_PROVIDER_SUCCESSES += 1
+        return
+
+    _PROVIDER_CONSECUTIVE_FAILURES += 1
+    _CYCLE_PROVIDER_FAILURES += 1
+
+    if (
+        _PROVIDER_CONSECUTIVE_FAILURES
+        >= MARKET_SINGLE_FAILURE_LIMIT
+    ):
+        _open_market_circuit(
+            f"{_PROVIDER_CONSECUTIVE_FAILURES} consecutive provider failures"
         )
 
-    return symbol, frame, latency
+
+def _provider_cycle_status():
+    total = (
+        _CYCLE_PROVIDER_SUCCESSES
+        + _CYCLE_PROVIDER_FAILURES
+    )
+
+    if _circuit_is_open():
+        return "DEGRADED"
+
+    if total <= 0:
+        return "FRESH"
+
+    failure_ratio = (
+        _CYCLE_PROVIDER_FAILURES
+        / total
+    )
+
+    if failure_ratio > MARKET_CIRCUIT_FAILURE_RATIO:
+        return "DEGRADED"
+
+    return "FRESH"
+
+
+def _provider_cycle_error():
+    total = (
+        _CYCLE_PROVIDER_SUCCESSES
+        + _CYCLE_PROVIDER_FAILURES
+    )
+
+    if total <= 0:
+        return None
+
+    if _CYCLE_PROVIDER_FAILURES <= 0:
+        return None
+
+    return (
+        "market provider failures "
+        f"{_CYCLE_PROVIDER_FAILURES}/{total}"
+    )
+
+
+def _symbols_needing_refresh(tickers, interval, period):
+    now = time.time()
+    ttl = _cache_ttl(interval)
+    needed = []
+
+    for ticker in tickers:
+        symbol = normalize_ticker(ticker)
+
+        if not symbol:
+            continue
+
+        item = _cached_market_frame(
+            symbol,
+            interval,
+            period,
+        )
+
+        if not item:
+            needed.append(symbol)
+            continue
+
+        fetched_at = safe_float(
+            item.get("fetched_at")
+        ) or 0
+
+        if now - fetched_at >= ttl:
+            needed.append(symbol)
+
+    return needed
+
+
+def prefetch_market_data(
+    tickers,
+    interval,
+    period,
+):
+    """Batch Yahoo requests and populate the last-valid in-memory cache."""
+    global _PROVIDER_CONSECUTIVE_FAILURES
+
+    symbols = sorted({
+        normalize_ticker(ticker)
+        for ticker in tickers
+        if ticker
+    })
+
+    symbols = [
+        symbol
+        for symbol in symbols
+        if symbol
+    ]
+
+    symbols = _symbols_needing_refresh(
+        symbols,
+        interval,
+        period,
+    )
+
+    if not symbols:
+        return {
+            "requested": 0,
+            "success": 0,
+            "failed": 0,
+        }
+
+    if _circuit_is_open():
+        remaining = max(
+            0,
+            int(
+                _MARKET_CIRCUIT_OPEN_UNTIL
+                - time.time()
+            ),
+        )
+
+        print(
+            "MARKET DATA prefetch skipped "
+            f"— circuit open {remaining}s",
+            flush=True,
+        )
+
+        return {
+            "requested": len(symbols),
+            "success": 0,
+            "failed": len(symbols),
+        }
+
+    total_success = 0
+    total_failed = 0
+    batch_size = max(
+        1,
+        MARKET_BATCH_SIZE,
+    )
+
+    for start in range(
+        0,
+        len(symbols),
+        batch_size,
+    ):
+        batch = symbols[
+            start:start + batch_size
+        ]
+
+        batch_success = set()
+        last_error = None
+        raw_frame = None
+        latency = 0.0
+
+        for attempt in range(
+            MARKET_FETCH_RETRIES + 1
+        ):
+            started = time.time()
+
+            try:
+                raw_frame = yf.download(
+                    tickers=batch,
+                    interval=interval,
+                    period=period,
+                    auto_adjust=False,
+                    progress=False,
+                    threads=False,
+                    group_by="ticker",
+                    timeout=MARKET_REQUEST_TIMEOUT,
+                )
+
+                latency = round(
+                    time.time() - started,
+                    3,
+                )
+
+                if (
+                    raw_frame is None
+                    or raw_frame.empty
+                ):
+                    raise MarketDataUnavailable(
+                        "Yahoo returned an empty batch"
+                    )
+
+                last_error = None
+                break
+
+            except Exception as exc:
+                last_error = exc
+
+                if attempt < MARKET_FETCH_RETRIES:
+                    delay = (
+                        MARKET_RETRY_BASE_SECONDS
+                        * (3 ** attempt)
+                    )
+
+                    print(
+                        "MARKET DATA retry "
+                        f"{attempt + 1}/"
+                        f"{MARKET_FETCH_RETRIES} "
+                        f"for {interval} batch "
+                        f"after {delay:.0f}s — {exc}",
+                        flush=True,
+                    )
+
+                    time.sleep(delay)
+
+        if last_error is not None:
+            for _ in batch:
+                _record_provider_result(False)
+
+            total_failed += len(batch)
+
+            print(
+                "MARKET DATA batch failed "
+                f"{interval}: "
+                + ", ".join(batch)
+                + f" — {last_error}",
+                flush=True,
+            )
+
+            continue
+
+        for symbol in batch:
+            frame = _frame_from_batch(
+                raw_frame,
+                symbol,
+            )
+
+            if frame is None or frame.empty:
+                _record_provider_result(False)
+                total_failed += 1
+                continue
+
+            _store_market_frame(
+                symbol,
+                interval,
+                period,
+                frame,
+                latency,
+            )
+
+            batch_success.add(symbol)
+            _record_provider_result(True)
+            total_success += 1
+
+        missing = len(batch) - len(batch_success)
+
+        if missing:
+            print(
+                "MARKET DATA batch partial "
+                f"{interval}: "
+                f"{len(batch_success)}/{len(batch)} symbols",
+                flush=True,
+            )
+
+    attempted = total_success + total_failed
+
+    if attempted > 0:
+        failure_ratio = (
+            total_failed
+            / attempted
+        )
+
+        if (
+            failure_ratio
+            > MARKET_CIRCUIT_FAILURE_RATIO
+        ):
+            _open_market_circuit(
+                "batch failure ratio "
+                f"{failure_ratio:.0%}"
+            )
+
+    return {
+        "requested": len(symbols),
+        "success": total_success,
+        "failed": total_failed,
+    }
+
+
+def download_data(
+    ticker,
+    interval,
+    period,
+):
+    """Return fresh data when available, otherwise last valid cached data."""
+    symbol = normalize_ticker(ticker)
+
+    if not symbol:
+        raise MarketDataUnavailable(
+            "Ticker is missing"
+        )
+
+    cached = _cached_market_frame(
+        symbol,
+        interval,
+        period,
+    )
+
+    now = time.time()
+    ttl = _cache_ttl(interval)
+
+    if cached:
+        fetched_at = safe_float(
+            cached.get("fetched_at")
+        ) or 0
+
+        if now - fetched_at < ttl:
+            return (
+                symbol,
+                cached["frame"].copy(),
+                safe_float(
+                    cached.get("latency")
+                ) or 0.0,
+            )
+
+    # One-symbol prefetch uses the same retry/backoff/circuit logic.
+    prefetch_market_data(
+        [symbol],
+        interval,
+        period,
+    )
+
+    cached = _cached_market_frame(
+        symbol,
+        interval,
+        period,
+    )
+
+    if cached:
+        # This may be an older last-valid frame when Yahoo is currently down.
+        return (
+            symbol,
+            cached["frame"].copy(),
+            safe_float(
+                cached.get("latency")
+            ) or 0.0,
+        )
+
+    if _circuit_is_open():
+        raise MarketDataUnavailable(
+            f"Market provider degraded for {symbol}; no cached data available"
+        )
+
+    raise MarketDataUnavailable(
+        f"No market data for {symbol}"
+    )
+
 
 
 def last_timestamp_utc(frame):
@@ -1425,6 +1922,22 @@ def update_fast_health(
         "updated_at": now_iso(),
     }
 
+    if preserve_existing:
+        payload = {
+            key: value
+            for key, value in payload.items()
+            if (
+                value is not None
+                or key in {
+                    "ticker",
+                    "state",
+                    "data_status",
+                    "evidence",
+                    "updated_at",
+                }
+            )
+        }
+
     supabase_request(
         "POST",
         "hanz_fast_health?on_conflict=id",
@@ -1521,6 +2034,7 @@ def upsert_signal_monitor(
     source="SLOW_WATCHLIST",
     scout_score=None,
     expires_at=None,
+    preserve_existing=False,
 ):
     payload = {
         "ticker": clean_ticker(ticker),
@@ -2052,6 +2566,12 @@ def discover_fast_scout_candidates(
         flush=True,
     )
 
+    prefetch_market_data(
+        batch,
+        INTRADAY_INTERVAL,
+        INTRADAY_PERIOD,
+    )
+
     discovered = 0
 
     for ticker in batch:
@@ -2168,6 +2688,25 @@ def confirm_fast_scout_candidates(
     candidates = (
         fetch_active_scout_candidates()
     )
+
+    candidate_tickers = {
+        clean_ticker(row.get("ticker"))
+        for row in candidates
+        if row.get("ticker")
+    }
+
+    if candidate_tickers:
+        prefetch_market_data(
+            candidate_tickers,
+            INTRADAY_INTERVAL,
+            INTRADAY_PERIOD,
+        )
+
+        prefetch_market_data(
+            candidate_tickers,
+            CONFIRM_INTERVAL,
+            CONFIRM_PERIOD,
+        )
 
     confirmed_count = 0
 
@@ -2659,11 +3198,31 @@ def monitor_watchlist(watchlist, context_cache=None):
             )
 
             try:
+                provider_failure = isinstance(
+                    exc,
+                    MarketDataUnavailable,
+                )
+
                 upsert_signal_monitor(
                     ticker=ticker,
-                    state="ERROR",
-                    data_status="ERROR",
-                    evidence=str(exc),
+                    state=(
+                        "STALE_DATA"
+                        if provider_failure
+                        else "ERROR"
+                    ),
+                    data_status=(
+                        "PROVIDER_DEGRADED"
+                        if provider_failure
+                        else "ERROR"
+                    ),
+                    evidence=(
+                        "Market data temporarily unavailable; "
+                        "last valid signal metrics preserved. "
+                        + str(exc)
+                        if provider_failure
+                        else str(exc)
+                    ),
+                    preserve_existing=provider_failure,
                 )
             except Exception:
                 pass
@@ -2675,6 +3234,12 @@ def monitor_watchlist(watchlist, context_cache=None):
 
 
 def run_fast_cycle():
+    global _CYCLE_PROVIDER_SUCCESSES
+    global _CYCLE_PROVIDER_FAILURES
+
+    _CYCLE_PROVIDER_SUCCESSES = 0
+    _CYCLE_PROVIDER_FAILURES = 0
+
     print(
         "\n========== HANZ FAST CYCLE ==========",
         flush=True,
@@ -2716,6 +3281,35 @@ def run_fast_cycle():
 
     context_cache = {}
 
+    primary_tickers = {
+        clean_ticker(row.get("ticker"))
+        for row in (
+            list(portfolio)
+            + list(watchlist)
+        )
+        if row.get("ticker")
+    }
+
+    if primary_tickers:
+        fast_batch = prefetch_market_data(
+            primary_tickers,
+            INTRADAY_INTERVAL,
+            INTRADAY_PERIOD,
+        )
+
+        confirm_batch = prefetch_market_data(
+            primary_tickers,
+            CONFIRM_INTERVAL,
+            CONFIRM_PERIOD,
+        )
+
+        print(
+            "MARKET DATA primary prefetch "
+            f"1m={fast_batch} "
+            f"5m={confirm_batch}",
+            flush=True,
+        )
+
     portfolio_count = monitor_portfolio(
         portfolio,
         context_cache=context_cache,
@@ -2753,10 +3347,21 @@ def run_fast_cycle():
         + scout_confirmed
     )
 
+    provider_status = _provider_cycle_status()
+    provider_error = _provider_cycle_error()
+
     update_fast_health(
-        data_status="FRESH",
+        data_status=provider_status,
         symbols_monitored=total,
-        error=None,
+        error=provider_error,
+    )
+
+    print(
+        "MARKET DATA cycle health: "
+        f"{provider_status} | "
+        f"success={_CYCLE_PROVIDER_SUCCESSES} "
+        f"failed={_CYCLE_PROVIDER_FAILURES}",
+        flush=True,
     )
 
     print(
@@ -2788,6 +3393,16 @@ def main():
     print(
         f"Fast interval: "
         f"{FAST_INTERVAL} seconds",
+        flush=True,
+    )
+
+    print(
+        "Market resilience: "
+        f"batch={MARKET_BATCH_SIZE} | "
+        f"retries={MARKET_FETCH_RETRIES} | "
+        f"1m cache={FAST_CACHE_TTL_SECONDS}s | "
+        f"5m cache={CONFIRM_CACHE_TTL_SECONDS}s | "
+        f"circuit={MARKET_CIRCUIT_COOLDOWN_SECONDS}s",
         flush=True,
     )
 
