@@ -97,6 +97,170 @@ PUSH_ALERT_TYPES = {
 _FIREBASE_APP = None
 
 
+
+# ============================================================
+# IDX / BEI TRADING CALENDAR GATE
+# Time zone: Asia/Jakarta (WIB)
+#
+# 2026 holidays follow the published IDX 2026 trading-holiday
+# calendar (Peng-00171/BEI.POP/09-2025). The environment variable
+# HANZ_IDX_HOLIDAYS_JSON can override/extend this map without code
+# changes, e.g. {"2026-12-31":"Trading Holiday"}.
+# ============================================================
+
+IDX_HOLIDAYS_2026 = {
+    "2026-01-01": "New Year 2026",
+    "2026-01-16": "Isra Mikraj",
+    "2026-02-16": "Chinese New Year Collective Leave",
+    "2026-02-17": "Chinese New Year",
+    "2026-03-18": "Nyepi Collective Leave",
+    "2026-03-19": "Nyepi",
+    "2026-03-20": "Eid al-Fitr Collective Leave",
+    "2026-03-23": "Eid al-Fitr Collective Leave",
+    "2026-03-24": "Eid al-Fitr Collective Leave",
+    "2026-04-03": "Good Friday",
+    "2026-05-01": "Labour Day",
+    "2026-05-14": "Ascension Day",
+    "2026-05-15": "Ascension Day Collective Leave",
+    "2026-05-27": "Eid al-Adha",
+    "2026-05-28": "Eid al-Adha Collective Leave",
+    "2026-06-01": "Pancasila Day",
+    "2026-06-16": "Islamic New Year",
+    "2026-08-17": "Independence Day",
+    "2026-08-25": "Prophet Muhammad's Birthday",
+    "2026-12-24": "Christmas Collective Leave",
+    "2026-12-25": "Christmas Day",
+    "2026-12-31": "IDX Trading Holiday",
+}
+
+IDX_HOLIDAYS = dict(IDX_HOLIDAYS_2026)
+
+try:
+    extra_holidays = json.loads(
+        os.getenv("HANZ_IDX_HOLIDAYS_JSON", "{}")
+    )
+    if isinstance(extra_holidays, dict):
+        IDX_HOLIDAYS.update(
+            {
+                str(k): str(v)
+                for k, v in extra_holidays.items()
+            }
+        )
+except Exception as exc:
+    print(
+        f"IDX calendar override ignored: {exc}",
+        flush=True,
+    )
+
+
+def jakarta_now():
+    return utc_now().astimezone(JAKARTA_TZ)
+
+
+def idx_trading_day(date_obj):
+    if date_obj.weekday() >= 5:
+        return False, "Weekend"
+
+    key = date_obj.isoformat()
+    if key in IDX_HOLIDAYS:
+        return False, IDX_HOLIDAYS[key]
+
+    # Fail-safe: the embedded official calendar is verified for 2026.
+    # For another year, require explicit holiday data rather than
+    # pretending every weekday is a trading day.
+    if date_obj.year != 2026:
+        return False, "IDX calendar year not verified"
+
+    return True, "Trading Day"
+
+
+def idx_market_session(now=None):
+    now = now or jakarta_now()
+    trading_day, reason = idx_trading_day(now.date())
+
+    if not trading_day:
+        state = (
+            "CLOSED_WEEKEND"
+            if now.weekday() >= 5
+            else "CLOSED_HOLIDAY"
+        )
+        if reason == "IDX calendar year not verified":
+            state = "CALENDAR_UNVERIFIED"
+
+        return {
+            "state": state,
+            "reason": reason,
+            "is_trading_day": False,
+            "allow_portfolio_monitor": False,
+            "allow_final_scan": False,
+            "now_wib": now.isoformat(),
+        }
+
+    minutes = now.hour * 60 + now.minute
+    friday = now.weekday() == 4
+
+    session_1_end = 11 * 60 + 30 if friday else 12 * 60
+    session_2_start = 14 * 60 if friday else 13 * 60 + 30
+
+    if minutes < 8 * 60 + 45:
+        state = "CLOSED_BEFORE_HOURS"
+    elif minutes < 9 * 60:
+        state = "PRE_OPEN"
+    elif minutes < session_1_end:
+        state = "SESSION_1"
+    elif minutes < session_2_start:
+        state = "LUNCH_BREAK"
+    elif minutes < 15 * 60 + 50:
+        state = "SESSION_2"
+    elif minutes <= 16 * 60 + 15:
+        state = "POST_CLOSE"
+    else:
+        state = "CLOSED_AFTER_HOURS"
+
+    # Portfolio monitoring is useful during active trading and lunch.
+    allow_portfolio_monitor = state in {
+        "SESSION_1",
+        "LUNCH_BREAK",
+        "SESSION_2",
+        "POST_CLOSE",
+    }
+
+    # Swing candidate generation only uses the completed daily bar.
+    allow_final_scan = state == "POST_CLOSE"
+
+    return {
+        "state": state,
+        "reason": "Trading Day",
+        "is_trading_day": True,
+        "allow_portfolio_monitor": allow_portfolio_monitor,
+        "allow_final_scan": allow_final_scan,
+        "now_wib": now.isoformat(),
+    }
+
+
+def previous_idx_trading_day(date_obj):
+    candidate = date_obj
+    for _ in range(370):
+        candidate = candidate.fromordinal(
+            candidate.toordinal() - 1
+        )
+        ok, _ = idx_trading_day(candidate)
+        if ok:
+            return candidate
+    return None
+
+
+def next_idx_trading_day(date_obj):
+    candidate = date_obj
+    for _ in range(370):
+        candidate = candidate.fromordinal(
+            candidate.toordinal() + 1
+        )
+        ok, _ = idx_trading_day(candidate)
+        if ok:
+            return candidate
+    return None
+
 def utc_now():
     return datetime.now(timezone.utc)
 
@@ -1135,6 +1299,7 @@ def swing_portfolio_signal(
     weekly,
     *,
     trailing_just_activated=False,
+    allow_structural_exit=True,
 ):
     close = safe_float(daily.get("price"))
     low = safe_float(daily.get("low"))
@@ -1229,7 +1394,8 @@ def swing_portfolio_signal(
     )
 
     if (
-        daily_breakdown
+        allow_structural_exit
+        and daily_breakdown
         and daily_bearish
         and weekly_bearish
     ):
@@ -1250,7 +1416,8 @@ def swing_portfolio_signal(
     )
 
     if (
-        reached_t1
+        allow_structural_exit
+        and reached_t1
         and pnl_pct is not None
         and pnl_pct > 0
         and (
@@ -1299,7 +1466,7 @@ def swing_portfolio_signal(
     }
 
 
-def monitor_swing_portfolio():
+def monitor_swing_portfolio(*, allow_structural_exit=True):
     positions = fetch_swing_portfolio()
     monitored = 0
     errors = 0
@@ -1348,6 +1515,7 @@ def monitor_swing_portfolio():
                 daily,
                 weekly,
                 trailing_just_activated=just_activated,
+                allow_structural_exit=allow_structural_exit,
             )
 
             signal = result["signal"]
@@ -1584,10 +1752,58 @@ def scan_symbol(ticker):
 
 
 def run_cycle():
+    market = idx_market_session()
+    now_wib = jakarta_now()
+
+    previous_day = previous_idx_trading_day(
+        now_wib.date()
+    )
+    next_day = next_idx_trading_day(
+        now_wib.date()
+    )
+
+    print(
+        "IDX MARKET GATE: "
+        f"{market['state']} | "
+        f"reason={market['reason']} | "
+        f"WIB={now_wib.strftime('%Y-%m-%d %H:%M')} | "
+        f"previous={previous_day} | "
+        f"next={next_day}",
+        flush=True,
+    )
+
+    if not market["is_trading_day"]:
+        print(
+            "SWING cycle skipped: IDX is not a trading day. "
+            "No new signal, portfolio trigger, alert or push.",
+            flush=True,
+        )
+        return
+
+    # During active sessions / lunch, only monitor portfolio risk.
+    # Universe SWING_BUY generation waits for the completed daily bar.
+    if not market["allow_final_scan"]:
+        if market["allow_portfolio_monitor"]:
+            portfolio_summary = monitor_swing_portfolio(
+                allow_structural_exit=False
+            )
+            print(
+                "SWING intraday portfolio monitor complete: "
+                + json.dumps(portfolio_summary)
+                + " | structural exits=DEFERRED_TO_POST_CLOSE",
+                flush=True,
+            )
+        else:
+            print(
+                "SWING cycle skipped outside IDX operating window.",
+                flush=True,
+            )
+        return
+
     universe = fetch_universe()
 
     print(
-        f"SWING universe: {len(universe)}",
+        f"SWING FINAL SCAN universe: {len(universe)}",
         flush=True,
     )
 
@@ -1612,10 +1828,12 @@ def run_cycle():
                 flush=True,
             )
 
-    portfolio_summary = monitor_swing_portfolio()
+    portfolio_summary = monitor_swing_portfolio(
+        allow_structural_exit=True
+    )
 
     print(
-        "SWING cycle complete: "
+        "SWING FINAL cycle complete: "
         + json.dumps(counts)
         + " | portfolio="
         + json.dumps(portfolio_summary),
@@ -1634,6 +1852,7 @@ def main():
         f"Weekly={WEEKLY_INTERVAL}/{WEEKLY_PERIOD} | "
         f"Cycle={SWING_INTERVAL}s | "
         f"Portfolio monitor=ON | "
+        f"IDX calendar gate=ON (Asia/Jakarta) | "
         f"Trailing={TRAILING_ATR_MULTIPLIER_T1:.1f}x/"
         f"{TRAILING_ATR_MULTIPLIER_T2:.1f}x ATR",
         flush=True,
