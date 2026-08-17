@@ -1,7 +1,6 @@
-/* HANZ Firebase Messaging Service Worker
-   Force-show background notifications for both:
-   - notification payloads
-   - data-only payloads
+/* HANZ Firebase Messaging Service Worker — Diagnostic V4
+   Reports every background FCM payload back to controlled HANZ pages
+   and force-shows a notification.
 */
 
 self.addEventListener("notificationclick", (event) => {
@@ -53,11 +52,35 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-messaging.onBackgroundMessage((payload) => {
+async function reportBackgroundPayload(payload) {
+  try {
+    const clientList = await clients.matchAll({
+      type: "window",
+      includeUncontrolled: true
+    });
+
+    for (const client of clientList) {
+      client.postMessage({
+        type: "HANZ_FCM_BACKGROUND",
+        received_at: new Date().toISOString(),
+        payload: payload || null
+      });
+    }
+  } catch (error) {
+    console.warn(
+      "[HANZ SW] Diagnostic postMessage failed:",
+      error
+    );
+  }
+}
+
+messaging.onBackgroundMessage(async (payload) => {
   console.log(
     "[HANZ SW] Background message received:",
     payload
   );
+
+  await reportBackgroundPayload(payload);
 
   const notification =
     payload?.notification || {};
