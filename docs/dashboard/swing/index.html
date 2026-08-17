@@ -124,48 +124,6 @@ button{cursor:pointer}
 .kpi small{display:block;margin-top:5px;color:var(--muted);font-size:9px}
 .green-text{color:var(--green)!important}.red-text{color:#ff8992!important}.yellow-text{color:var(--yellow)!important}
 
-async function copyFcmTestToken(){
-  if(!currentUser){
-    openAuth("login");
-    return;
-  }
-
-  try{
-    if(Notification.permission !== "granted"){
-      notify("Enable Push first so browser notification permission is granted.","error");
-      return;
-    }
-
-    const okay=await initPushMessaging();
-    if(!okay){
-      notify("Push messaging is not supported on this browser.","error");
-      return;
-    }
-
-    const token=await getToken(firebaseMessaging,{
-      vapidKey:FIREBASE_VAPID_KEY,
-      serviceWorkerRegistration:pushServiceWorkerRegistration
-    });
-
-    if(!token){
-      notify("FCM token is not available yet. Toggle Push OFF then ON and try again.","error");
-      return;
-    }
-
-    try{
-      await navigator.clipboard.writeText(token);
-      notify("FCM test token copied to clipboard.");
-    }catch(_){
-      window.prompt("Copy this FCM registration token:",token);
-    }
-
-    console.log("HANZ FCM TEST TOKEN:",token);
-  }catch(error){
-    console.error(error);
-    notify("Failed to get FCM token: " + error.message,"error");
-  }
-}
-
 
 /* NAV */
 .desktop-nav{
@@ -785,6 +743,7 @@ import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
 import {
   getMessaging,
+  getToken,
   isSupported as isMessagingSupported,
   onMessage,
   onRegistered,
@@ -1157,6 +1116,46 @@ async function syncPushIfAlreadyGranted(){
   }
 }
 
+
+async function copyFcmTestToken(){
+  if(!currentUser){
+    openAuth("login");
+    return;
+  }
+
+  try{
+    if(Notification.permission !== "granted"){
+      notify("Enable Push first, then try Copy FCM Token again.","error");
+      return;
+    }
+
+    const okay=await initPushMessaging();
+    if(!okay){
+      notify("Push messaging is not supported on this browser.","error");
+      return;
+    }
+
+    const token=await getToken(firebaseMessaging,{
+      vapidKey:FIREBASE_VAPID_KEY,
+      serviceWorkerRegistration:pushServiceWorkerRegistration
+    });
+
+    if(!token){
+      notify("FCM token is not available yet. Turn Push OFF, then ON, and try again.","error");
+      return;
+    }
+
+    try{
+      await navigator.clipboard.writeText(token);
+      notify("FCM registration token copied.");
+    }catch(_){
+      window.prompt("Copy this FCM registration token:",token);
+    }
+  }catch(error){
+    console.error(error);
+    notify("Failed to get FCM token: " + error.message,"error");
+  }
+}
 
 /* NAV */
 function showPanel(name){
