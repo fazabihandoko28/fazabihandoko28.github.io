@@ -591,46 +591,17 @@ th{color:var(--muted)}
 }
 
 
-/* CSS-ONLY TRADING MODE SWITCH — no JavaScript dependency */
-.mode-radio{
-  position:absolute !important;
-  opacity:0 !important;
-  pointer-events:none !important;
-  width:1px !important;
-  height:1px !important;
-}
 
-#intradayModePanel,
-#swingModePanel{
-  display:none !important;
-}
-
-#modeIntradayRadio:checked ~ #intradayModePanel{
-  display:block !important;
-}
-
-#modeSwingRadio:checked ~ #swingModePanel{
-  display:block !important;
-}
-
-#modeIntradayRadio:checked ~ .trading-mode-wrap label[for="modeIntradayRadio"]{
+/* FINAL MODE SWITCH — independent from Firebase/Supabase */
+#intradayModePanel{display:block}
+#swingModePanel{display:none}
+.trading-mode-switch .mode-btn.active{
   background:var(--green);
   color:#03130d;
 }
-
-#modeSwingRadio:checked ~ .trading-mode-wrap label[for="modeSwingRadio"]{
+.trading-mode-switch .mode-btn.swing.active{
   background:#4da3ff;
   color:#03111f;
-}
-
-.trading-mode-switch label.mode-btn{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  user-select:none;
-  -webkit-user-select:none;
-  touch-action:manipulation;
-  cursor:pointer;
 }
 
 </style>
@@ -726,21 +697,18 @@ th{color:var(--muted)}
 </nav>
 
 
-<input class="mode-radio" type="radio" name="hanzTradingMode" id="modeIntradayRadio" checked>
-<input class="mode-radio" type="radio" name="hanzTradingMode" id="modeSwingRadio">
-
 <div class="trading-mode-wrap">
   <div class="trading-mode-title">
     <strong>Trading Mode</strong>
     <span>Intraday = Fast Engine · Swing = Daily + Weekly Engine</span>
   </div>
   <div class="trading-mode-switch">
-    <label for="modeIntradayRadio" id="modeIntradayBtn" class="mode-btn">⚡ INTRADAY</label>
-    <label for="modeSwingRadio" id="modeSwingBtn" class="mode-btn swing">📈 SWING</label>
+    <button type="button" id="modeIntradayBtn" class="mode-btn active">⚡ INTRADAY</button>
+    <button type="button" id="modeSwingBtn" class="mode-btn swing">📈 SWING</button>
   </div>
 </div>
 
-<div id="intradayModePanel" class="mode-panel">
+<div id="intradayModePanel" class="mode-panel active">
 <section id="overview" class="panel active">
   <div class="layout">
     <article class="card">
@@ -1003,6 +971,69 @@ th{color:var(--muted)}
 
 
 </div>
+
+
+<script>
+(function(){
+  function setMode(mode){
+    var intradayPanel = document.getElementById("intradayModePanel");
+    var swingPanel = document.getElementById("swingModePanel");
+    var intradayBtn = document.getElementById("modeIntradayBtn");
+    var swingBtn = document.getElementById("modeSwingBtn");
+    var isSwing = mode === "swing";
+
+    if(!intradayPanel || !swingPanel || !intradayBtn || !swingBtn){
+      return;
+    }
+
+    intradayPanel.style.display = isSwing ? "none" : "block";
+    swingPanel.style.display = isSwing ? "block" : "none";
+
+    intradayPanel.classList.toggle("active", !isSwing);
+    swingPanel.classList.toggle("active", isSwing);
+    intradayBtn.classList.toggle("active", !isSwing);
+    swingBtn.classList.toggle("active", isSwing);
+
+    try{
+      localStorage.setItem("hanzTradingMode", isSwing ? "swing" : "intraday");
+    }catch(e){}
+
+    if(isSwing && typeof window.HANZ_loadSwingSignalMonitor === "function"){
+      window.HANZ_loadSwingSignalMonitor();
+    }
+  }
+
+  function bindModeSwitch(){
+    var intradayBtn = document.getElementById("modeIntradayBtn");
+    var swingBtn = document.getElementById("modeSwingBtn");
+
+    if(!intradayBtn || !swingBtn) return;
+
+    intradayBtn.addEventListener("click", function(){
+      setMode("intraday");
+    });
+
+    swingBtn.addEventListener("click", function(){
+      setMode("swing");
+    });
+
+    var saved = "intraday";
+    try{
+      saved = localStorage.getItem("hanzTradingMode") || "intraday";
+    }catch(e){}
+
+    setMode(saved === "swing" ? "swing" : "intraday");
+  }
+
+  window.HANZ_setTradingMode = setMode;
+
+  if(document.readyState === "loading"){
+    document.addEventListener("DOMContentLoaded", bindModeSwitch, {once:true});
+  }else{
+    bindModeSwitch();
+  }
+})();
+</script>
 
 <script type="module">
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
@@ -1688,6 +1719,8 @@ async function loadSwingSignalMonitor(){
 
 
 
+
+window.HANZ_loadSwingSignalMonitor = loadSwingSignalMonitor;
 
 /* HEALTH */
 async function loadHealth(){
