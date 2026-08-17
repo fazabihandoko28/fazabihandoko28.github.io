@@ -1611,10 +1611,16 @@ async function loadAll(){
   clearError();
 
   try{
-    await Promise.all([loadWatchlist(),loadHealth(),loadLiveSignalMonitor()]);
+    await Promise.all([
+      loadWatchlist(),
+      loadHealth()
+    ]);
 
     if(currentUser){
-      await Promise.all([loadPortfolio(),loadAlerts()]);
+      await Promise.all([
+        loadPortfolio(),
+        loadAlerts()
+      ]);
     }
   }catch(error){
     console.error(error);
