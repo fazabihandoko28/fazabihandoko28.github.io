@@ -6,9 +6,21 @@ import time
 import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 
 import pandas as pd
 import yfinance as yf
+
+# Firebase Admin is optional. Alerts continue writing to Supabase even
+# when the GitHub Actions Firebase secret is not configured.
+try:
+    import firebase_admin
+    from firebase_admin import credentials, messaging
+except Exception:
+    firebase_admin = None
+    credentials = None
+    messaging = None
+
 
 
 # ============================================================
@@ -55,6 +67,36 @@ MAX_SYMBOLS_PER_CYCLE = int(
 )
 
 
+JAKARTA_TZ = ZoneInfo("Asia/Jakarta")
+
+TRAILING_ATR_MULTIPLIER_T1 = float(
+    os.getenv("HANZ_SWING_TRAILING_ATR_T1", "1.5")
+)
+TRAILING_ATR_MULTIPLIER_T2 = float(
+    os.getenv("HANZ_SWING_TRAILING_ATR_T2", "1.0")
+)
+
+FIREBASE_SERVICE_ACCOUNT_JSON = os.getenv(
+    "FIREBASE_SERVICE_ACCOUNT_JSON", ""
+).strip()
+
+PUSH_DASHBOARD_URL = os.getenv(
+    "HANZ_SWING_DASHBOARD_URL",
+    "https://fazabihandoko28.github.io/dashboard/swing/",
+)
+
+# Push remains intentionally quiet. TARGET_1/TARGET_2 are stored as
+# dashboard alerts but do not create push notifications.
+PUSH_ALERT_TYPES = {
+    "STOP_LOSS",
+    "TRAILING_ACTIVATED",
+    "PROTECT_PROFIT",
+    "CONFIRMED_SELL",
+}
+
+_FIREBASE_APP = None
+
+
 def utc_now():
     return datetime.now(timezone.utc)
 
@@ -86,6 +128,30 @@ def safe_float(value):
         return x
     except Exception:
         return None
+
+
+def safe_bool(value, default=False):
+    if value is None:
+        return default
+    if isinstance(value, bool):
+        return value
+    text = str(value).strip().lower()
+    if text in {"1", "true", "yes", "on"}:
+        return True
+    if text in {"0", "false", "no", "off"}:
+        return False
+    return default
+
+
+def values_different(a, b, tolerance=1e-9):
+    if a is None and b is None:
+        return False
+    if a is None or b is None:
+        return True
+    try:
+        return abs(float(a) - float(b)) > tolerance
+    except Exception:
+        return a != b
 
 
 def supabase_request(method, path, payload=None, prefer=None):
@@ -260,6 +326,9 @@ def daily_metrics(df):
 
     return {
         "price": price,
+        "open": safe_float(df["Open"].iloc[-1]),
+        "high": safe_float(df["High"].iloc[-1]),
+        "low": safe_float(df["Low"].iloc[-1]),
         "ema20": safe_float(ema20.iloc[-1]),
         "ema50": safe_float(ema50.iloc[-1]),
         "rsi14": safe_float(rsi14.iloc[-1]),
@@ -458,6 +527,898 @@ def risk_levels(daily):
     }
 
 
+
+# ============================================================
+# SWING PORTFOLIO / ALERTS
+# ============================================================
+
+def fetch_swing_portfolio():
+    return supabase_request(
+        "GET",
+        "hanz_swing_portfolio"
+        "?status=eq.OPEN"
+        "&select=*"
+        "&order=opened_at.asc",
+    ) or []
+
+
+def update_swing_portfolio(portfolio_id, payload):
+    if portfolio_id is None or not payload:
+        return
+
+    encoded = urllib.parse.quote(
+        str(portfolio_id),
+        safe="",
+    )
+
+    payload = dict(payload)
+    payload["updated_at"] = now_iso()
+
+    supabase_request(
+        "PATCH",
+        f"hanz_swing_portfolio?id=eq.{encoded}",
+        payload,
+        prefer="return=minimal",
+    )
+
+
+def swing_alert_dedupe_key(
+    portfolio_id,
+    ticker,
+    alert_type,
+    *,
+    daily=False,
+):
+    base = (
+        f"{portfolio_id}:"
+        f"{clean_ticker(ticker)}:"
+        f"{alert_type}"
+    )
+
+    if daily:
+        return (
+            base
+            + ":"
+            + utc_now()
+            .astimezone(JAKARTA_TZ)
+            .date()
+            .isoformat()
+        )
+
+    return base
+
+
+def insert_swing_alert(
+    *,
+    position,
+    alert_type,
+    priority,
+    message,
+    reason=None,
+    daily_dedupe=False,
+):
+    user_id = position.get("user_id")
+    portfolio_id = position.get("id")
+    ticker = position.get("ticker")
+
+    if not user_id or portfolio_id is None or not ticker:
+        return False
+
+    dedupe_key = swing_alert_dedupe_key(
+        portfolio_id,
+        ticker,
+        alert_type,
+        daily=daily_dedupe,
+    )
+
+    payload = {
+        "user_id": user_id,
+        "portfolio_id": portfolio_id,
+        "ticker": clean_ticker(ticker),
+        "alert_type": alert_type,
+        "priority": priority,
+        "message": message,
+        "reason": reason,
+        "dedupe_key": dedupe_key,
+        "created_at": now_iso(),
+    }
+
+    try:
+        supabase_request(
+            "POST",
+            "hanz_swing_alerts",
+            payload,
+            prefer="return=minimal",
+        )
+
+        print(
+            f"SWING ALERT: {clean_ticker(ticker)} "
+            f"{alert_type} portfolio={portfolio_id}",
+            flush=True,
+        )
+
+        send_selective_push(
+            ticker=ticker,
+            alert_type=alert_type,
+            title=(
+                f"{clean_ticker(ticker)} — "
+                f"{alert_type.replace('_', ' ')}"
+            ),
+            message=message,
+            user_id=user_id,
+            portfolio_id=portfolio_id,
+        )
+
+        return True
+
+    except Exception as exc:
+        # Unique dedupe_key suppresses repeat trigger spam.
+        if "409" in str(exc):
+            return False
+        raise
+
+
+def jakarta_date_string():
+    return (
+        utc_now()
+        .astimezone(JAKARTA_TZ)
+        .date()
+        .isoformat()
+    )
+
+
+def firebase_app():
+    global _FIREBASE_APP
+
+    if _FIREBASE_APP is not None:
+        return _FIREBASE_APP
+
+    if firebase_admin is None or credentials is None:
+        return None
+
+    if not FIREBASE_SERVICE_ACCOUNT_JSON:
+        return None
+
+    try:
+        info = json.loads(FIREBASE_SERVICE_ACCOUNT_JSON)
+        cred = credentials.Certificate(info)
+
+        try:
+            _FIREBASE_APP = firebase_admin.get_app()
+        except ValueError:
+            _FIREBASE_APP = firebase_admin.initialize_app(cred)
+
+        return _FIREBASE_APP
+
+    except Exception as exc:
+        print(
+            f"SWING FCM init unavailable: {exc}",
+            flush=True,
+        )
+        return None
+
+
+def push_event_key(
+    *,
+    ticker,
+    alert_type,
+    user_id,
+    portfolio_id,
+):
+    if alert_type == "PROTECT_PROFIT":
+        return (
+            f"SWING:{user_id}:{portfolio_id}:"
+            f"{alert_type}:{jakarta_date_string()}"
+        )
+
+    return (
+        f"SWING:{user_id}:{portfolio_id}:"
+        f"{alert_type}"
+    )
+
+
+def reserve_push_event(
+    *,
+    event_key,
+    ticker,
+    alert_type,
+    user_id,
+    portfolio_id,
+):
+    payload = {
+        "event_key": event_key,
+        "user_id": user_id,
+        "portfolio_id": portfolio_id,
+        "ticker": clean_ticker(ticker),
+        "alert_type": alert_type,
+        "status": "PENDING",
+        "created_at": now_iso(),
+    }
+
+    try:
+        supabase_request(
+            "POST",
+            "hanz_push_log",
+            payload,
+            prefer="return=minimal",
+        )
+        return True
+    except Exception as exc:
+        if "409" in str(exc):
+            return False
+        raise
+
+
+def finish_push_event(event_key, status, error=None):
+    encoded = urllib.parse.quote(
+        str(event_key),
+        safe="",
+    )
+
+    payload = {
+        "status": status,
+        "updated_at": now_iso(),
+    }
+
+    if status == "SENT":
+        payload["sent_at"] = now_iso()
+
+    if error:
+        payload["last_error"] = str(error)[:1000]
+
+    try:
+        supabase_request(
+            "PATCH",
+            f"hanz_push_log?event_key=eq.{encoded}",
+            payload,
+            prefer="return=minimal",
+        )
+    except Exception:
+        pass
+
+
+def release_failed_push_event(event_key):
+    encoded = urllib.parse.quote(
+        str(event_key),
+        safe="",
+    )
+
+    try:
+        supabase_request(
+            "DELETE",
+            f"hanz_push_log?event_key=eq.{encoded}",
+            prefer="return=minimal",
+        )
+    except Exception:
+        pass
+
+
+def get_push_installation_ids(user_id):
+    encoded_user = urllib.parse.quote(
+        str(user_id),
+        safe="",
+    )
+
+    rows = supabase_request(
+        "GET",
+        "hanz_push_devices"
+        "?enabled=eq.true"
+        f"&user_id=eq.{encoded_user}"
+        "&select=installation_id",
+    ) or []
+
+    ids = []
+    seen = set()
+
+    for row in rows:
+        installation_id = str(
+            row.get("installation_id")
+            or ""
+        ).strip()
+
+        if (
+            installation_id
+            and installation_id not in seen
+        ):
+            seen.add(installation_id)
+            ids.append(installation_id)
+
+    return ids
+
+
+def send_selective_push(
+    *,
+    ticker,
+    alert_type,
+    title,
+    message,
+    user_id,
+    portfolio_id,
+):
+    if alert_type not in PUSH_ALERT_TYPES:
+        return
+
+    app = firebase_app()
+
+    if app is None or messaging is None:
+        print(
+            f"SWING PUSH SKIPPED: Firebase not configured "
+            f"({alert_type} {clean_ticker(ticker)})",
+            flush=True,
+        )
+        return
+
+    event_key = push_event_key(
+        ticker=ticker,
+        alert_type=alert_type,
+        user_id=user_id,
+        portfolio_id=portfolio_id,
+    )
+
+    if not reserve_push_event(
+        event_key=event_key,
+        ticker=ticker,
+        alert_type=alert_type,
+        user_id=user_id,
+        portfolio_id=portfolio_id,
+    ):
+        print(
+            f"SWING PUSH SUPPRESSED duplicate: {event_key}",
+            flush=True,
+        )
+        return
+
+    try:
+        installation_ids = get_push_installation_ids(
+            user_id
+        )
+
+        if not installation_ids:
+            finish_push_event(
+                event_key,
+                "NO_DEVICE",
+            )
+            return
+
+        messages = []
+
+        for fid in installation_ids:
+            messages.append(
+                messaging.Message(
+                    data={
+                        "title": str(title),
+                        "body": str(message),
+                        "message": str(message),
+                        "ticker": clean_ticker(ticker),
+                        "alert_type": str(alert_type),
+                        "url": PUSH_DASHBOARD_URL,
+                        "portfolio_id": str(portfolio_id),
+                        "dedupe_key": event_key,
+                    },
+                    fid=fid,
+                )
+            )
+
+        response = messaging.send_each(
+            messages,
+            app=app,
+        )
+
+        finish_push_event(
+            event_key,
+            "SENT",
+        )
+
+        print(
+            f"SWING PUSH SENT: {event_key} "
+            f"success={response.success_count} "
+            f"failed={response.failure_count}",
+            flush=True,
+        )
+
+    except Exception as exc:
+        release_failed_push_event(event_key)
+
+        print(
+            f"SWING PUSH FAILED: {event_key} — {exc}",
+            flush=True,
+        )
+
+
+def apply_swing_auto_trailing(
+    position,
+    daily,
+):
+    """Manage peak/trailing from daily bars.
+
+    Important:
+    - Target reach uses today's HIGH.
+    - Peak uses today's HIGH.
+    - A newly activated trailing stop is NOT allowed to trigger a
+      same-day CONFIRMED_SELL because daily OHLC cannot tell whether
+      the day's low happened before or after the day's high.
+    """
+    if not safe_bool(
+        position.get("auto_trailing"),
+        True,
+    ):
+        return position, False
+
+    portfolio_id = position.get("id")
+    high = safe_float(daily.get("high"))
+    atr14 = safe_float(daily.get("atr14"))
+    avg_buy = safe_float(position.get("avg_buy"))
+    target_1 = safe_float(position.get("target_1"))
+    target_2 = safe_float(position.get("target_2"))
+    current_peak = safe_float(position.get("peak_price"))
+    current_trail = safe_float(position.get("trailing_stop"))
+    was_active = safe_bool(
+        position.get("trailing_active"),
+        False,
+    )
+
+    if high is None:
+        return position, False
+
+    peak = max(
+        value
+        for value in [current_peak, high]
+        if value is not None
+    )
+
+    reached_t1 = (
+        target_1 is not None
+        and high >= target_1
+    )
+
+    reached_t2 = (
+        target_2 is not None
+        and high >= target_2
+    )
+
+    active = was_active or reached_t1
+
+    multiplier = (
+        TRAILING_ATR_MULTIPLIER_T2
+        if reached_t2
+        else TRAILING_ATR_MULTIPLIER_T1
+    )
+
+    new_trail = current_trail
+
+    if (
+        active
+        and atr14 is not None
+        and atr14 > 0
+    ):
+        candidate = peak - multiplier * atr14
+
+        if avg_buy is not None:
+            candidate = max(
+                candidate,
+                avg_buy,
+            )
+
+        if current_trail is None:
+            new_trail = candidate
+        else:
+            new_trail = max(
+                current_trail,
+                candidate,
+            )
+
+    updates = {
+        "last_price": daily.get("price"),
+        "last_monitor_at": now_iso(),
+        "last_daily_bar_at": daily.get("bar_at"),
+    }
+
+    if values_different(current_peak, peak):
+        updates["peak_price"] = peak
+
+    if active != was_active:
+        updates["trailing_active"] = active
+
+        if active and not position.get(
+            "trailing_activated_at"
+        ):
+            updates[
+                "trailing_activated_at"
+            ] = now_iso()
+
+    if (
+        active
+        and values_different(
+            safe_float(
+                position.get(
+                    "trailing_atr_multiplier"
+                )
+            ),
+            multiplier,
+        )
+    ):
+        updates[
+            "trailing_atr_multiplier"
+        ] = multiplier
+
+    if (
+        active
+        and values_different(
+            current_trail,
+            new_trail,
+        )
+    ):
+        updates["trailing_stop"] = new_trail
+        updates[
+            "last_trailing_update_at"
+        ] = now_iso()
+
+    if reached_t1 and not position.get(
+        "target_1_reached_at"
+    ):
+        updates["target_1_reached_at"] = now_iso()
+
+    if reached_t2 and not position.get(
+        "target_2_reached_at"
+    ):
+        updates["target_2_reached_at"] = now_iso()
+
+    if updates and portfolio_id is not None:
+        update_swing_portfolio(
+            portfolio_id,
+            updates,
+        )
+        position.update(updates)
+
+    just_activated = (
+        active
+        and not was_active
+    )
+
+    if just_activated:
+        insert_swing_alert(
+            position=position,
+            alert_type="TRAILING_ACTIVATED",
+            priority=75,
+            message=(
+                f"Target 1 reached. "
+                f"High {high:.2f}. "
+                f"Swing trailing activated at "
+                f"{new_trail:.2f} "
+                f"({multiplier:.1f}× ATR)."
+            ),
+            reason="Target 1 activated swing trailing protection.",
+        )
+
+    if (
+        reached_t1
+        and not position.get(
+            "_t1_alert_processed"
+        )
+    ):
+        insert_swing_alert(
+            position=position,
+            alert_type="TARGET_1_REACHED",
+            priority=60,
+            message=(
+                f"Target 1 reached. "
+                f"Daily high {high:.2f}."
+            ),
+            reason="First swing target reached.",
+        )
+        position["_t1_alert_processed"] = True
+
+    if (
+        reached_t2
+        and not position.get(
+            "_t2_alert_processed"
+        )
+    ):
+        insert_swing_alert(
+            position=position,
+            alert_type="TARGET_2_REACHED",
+            priority=70,
+            message=(
+                f"Target 2 reached. "
+                f"Daily high {high:.2f}."
+            ),
+            reason="Second swing target reached.",
+        )
+        position["_t2_alert_processed"] = True
+
+    return position, just_activated
+
+
+def swing_portfolio_signal(
+    position,
+    daily,
+    weekly,
+    *,
+    trailing_just_activated=False,
+):
+    close = safe_float(daily.get("price"))
+    low = safe_float(daily.get("low"))
+    high = safe_float(daily.get("high"))
+
+    avg_buy = safe_float(
+        position.get("avg_buy")
+    )
+    stop_loss = safe_float(
+        position.get("stop_loss")
+    )
+    trailing_stop = safe_float(
+        position.get("trailing_stop")
+    )
+    target_1 = safe_float(
+        position.get("target_1")
+    )
+    target_2 = safe_float(
+        position.get("target_2")
+    )
+
+    trailing_active = safe_bool(
+        position.get("trailing_active"),
+        False,
+    )
+
+    if close is None:
+        return {
+            "signal": "NO_DATA",
+            "priority": 0,
+            "reason": "No daily close.",
+            "pnl_pct": None,
+        }
+
+    pnl_pct = None
+
+    if avg_buy not in (None, 0):
+        pnl_pct = (
+            close / avg_buy - 1
+        ) * 100
+
+    # Highest priority: hard stop breach.
+    if (
+        stop_loss is not None
+        and low is not None
+        and low <= stop_loss
+    ):
+        return {
+            "signal": "STOP_LOSS",
+            "priority": 100,
+            "reason": (
+                f"Daily low {low:.2f} "
+                f"breached hard stop {stop_loss:.2f}."
+            ),
+            "pnl_pct": pnl_pct,
+        }
+
+    # Trailing breach is actionable only if trailing existed before
+    # this daily bar. This avoids false same-day OHLC sequencing.
+    if (
+        trailing_active
+        and not trailing_just_activated
+        and trailing_stop is not None
+        and low is not None
+        and low <= trailing_stop
+    ):
+        return {
+            "signal": "CONFIRMED_SELL",
+            "priority": 95,
+            "reason": (
+                f"Daily low {low:.2f} "
+                f"breached swing trailing stop "
+                f"{trailing_stop:.2f}."
+            ),
+            "pnl_pct": pnl_pct,
+        }
+
+    daily_breakdown = (
+        daily.get("prior_low20") is not None
+        and close < daily["prior_low20"]
+    )
+
+    daily_bearish = (
+        daily.get("ema20") is not None
+        and close < daily["ema20"]
+    )
+
+    weekly_bearish = (
+        weekly.get("ema10") is not None
+        and weekly.get("ema20") is not None
+        and weekly["ema10"] < weekly["ema20"]
+    )
+
+    if (
+        daily_breakdown
+        and daily_bearish
+        and weekly_bearish
+    ):
+        return {
+            "signal": "CONFIRMED_SELL",
+            "priority": 90,
+            "reason": (
+                "Daily 20-day breakdown + close below "
+                "daily EMA20 + weekly EMA10 below EMA20."
+            ),
+            "pnl_pct": pnl_pct,
+        }
+
+    reached_t1 = (
+        target_1 is not None
+        and high is not None
+        and high >= target_1
+    )
+
+    if (
+        reached_t1
+        and pnl_pct is not None
+        and pnl_pct > 0
+        and (
+            daily_bearish
+            or (
+                daily.get("rsi14") is not None
+                and daily["rsi14"] < 50
+            )
+        )
+    ):
+        return {
+            "signal": "PROTECT_PROFIT",
+            "priority": 65,
+            "reason": (
+                "Position has reached Target 1 but "
+                "daily momentum is weakening."
+            ),
+            "pnl_pct": pnl_pct,
+        }
+
+    if (
+        target_2 is not None
+        and high is not None
+        and high >= target_2
+    ):
+        return {
+            "signal": "TARGET_2_REACHED",
+            "priority": 50,
+            "reason": "Target 2 reached; trailing remains active.",
+            "pnl_pct": pnl_pct,
+        }
+
+    if reached_t1:
+        return {
+            "signal": "TARGET_1_REACHED",
+            "priority": 40,
+            "reason": "Target 1 reached; trailing protection active.",
+            "pnl_pct": pnl_pct,
+        }
+
+    return {
+        "signal": "HOLD",
+        "priority": 10,
+        "reason": "Swing structure remains valid.",
+        "pnl_pct": pnl_pct,
+    }
+
+
+def monitor_swing_portfolio():
+    positions = fetch_swing_portfolio()
+    monitored = 0
+    errors = 0
+    frame_cache = {}
+
+    for position in positions:
+        ticker = position.get("ticker")
+        portfolio_id = position.get("id")
+
+        if not ticker:
+            continue
+
+        try:
+            cache_key = clean_ticker(ticker)
+
+            if cache_key not in frame_cache:
+                daily_df = download_frame(
+                    ticker,
+                    DAILY_INTERVAL,
+                    DAILY_PERIOD,
+                )
+
+                weekly_df = download_frame(
+                    ticker,
+                    WEEKLY_INTERVAL,
+                    WEEKLY_PERIOD,
+                )
+
+                frame_cache[cache_key] = (
+                    daily_metrics(daily_df),
+                    weekly_metrics(weekly_df),
+                )
+
+            daily, weekly = frame_cache[cache_key]
+            monitored += 1
+
+            position, just_activated = (
+                apply_swing_auto_trailing(
+                    position,
+                    daily,
+                )
+            )
+
+            result = swing_portfolio_signal(
+                position,
+                daily,
+                weekly,
+                trailing_just_activated=just_activated,
+            )
+
+            signal = result["signal"]
+
+            updates = {
+                "signal": signal,
+                "last_price": daily.get("price"),
+                "last_pnl_pct": result.get("pnl_pct"),
+                "last_monitor_at": now_iso(),
+                "last_daily_bar_at": daily.get("bar_at"),
+                "last_weekly_bar_at": weekly.get("bar_at"),
+                "last_signal_reason": result.get("reason"),
+            }
+
+            update_swing_portfolio(
+                portfolio_id,
+                updates,
+            )
+            position.update(updates)
+
+            if signal in {
+                "STOP_LOSS",
+                "CONFIRMED_SELL",
+            }:
+                insert_swing_alert(
+                    position=position,
+                    alert_type=signal,
+                    priority=result["priority"],
+                    message=(
+                        f"Price {daily['price']:.2f}. "
+                        f"{result['reason']}"
+                    ),
+                    reason=result["reason"],
+                )
+
+            elif signal == "PROTECT_PROFIT":
+                insert_swing_alert(
+                    position=position,
+                    alert_type=signal,
+                    priority=result["priority"],
+                    message=(
+                        f"Price {daily['price']:.2f}. "
+                        f"{result['reason']}"
+                    ),
+                    reason=result["reason"],
+                    daily_dedupe=True,
+                )
+
+            print(
+                f"SWING PORTFOLIO {clean_ticker(ticker)} "
+                f"portfolio={portfolio_id} "
+                f"signal={signal} "
+                f"pnl={result.get('pnl_pct')}",
+                flush=True,
+            )
+
+        except Exception as exc:
+            errors += 1
+            print(
+                f"SWING PORTFOLIO {ticker} failed: {exc}",
+                flush=True,
+            )
+
+    return {
+        "positions": len(positions),
+        "monitored": monitored,
+        "errors": errors,
+    }
+
+
+
 def fetch_universe():
     rows = supabase_request(
         "GET",
@@ -651,9 +1612,13 @@ def run_cycle():
                 flush=True,
             )
 
+    portfolio_summary = monitor_swing_portfolio()
+
     print(
         "SWING cycle complete: "
-        + json.dumps(counts),
+        + json.dumps(counts)
+        + " | portfolio="
+        + json.dumps(portfolio_summary),
         flush=True,
     )
 
@@ -667,7 +1632,10 @@ def main():
     print(
         f"Daily={DAILY_INTERVAL}/{DAILY_PERIOD} | "
         f"Weekly={WEEKLY_INTERVAL}/{WEEKLY_PERIOD} | "
-        f"Cycle={SWING_INTERVAL}s",
+        f"Cycle={SWING_INTERVAL}s | "
+        f"Portfolio monitor=ON | "
+        f"Trailing={TRAILING_ATR_MULTIPLIER_T1:.1f}x/"
+        f"{TRAILING_ATR_MULTIPLIER_T2:.1f}x ATR",
         flush=True,
     )
 
