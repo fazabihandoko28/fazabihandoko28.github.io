@@ -477,13 +477,13 @@ th{color:var(--muted)}
   </article>
 
   <article class="kpi">
-    <span>Swing Portfolio</span>
+    <span>My Portfolio</span>
     <strong id="portfolioCount">0</strong>
     <small id="portfolioStatus">0 positions</small>
   </article>
 
   <article class="kpi">
-    <span>Swing Engine</span>
+    <span>HANZ Engine</span>
     <strong id="engineState">—</strong>
     <small id="lastUpdateDate">Supabase Live</small>
   </article>
@@ -513,14 +513,14 @@ th{color:var(--muted)}
     <article class="card">
       <div class="section-head">
         <div>
-          <h2>Swing Engine Status</h2>
-          <p>Daily setup · Weekly confirmation</p>
+          <h2>HANZ Status</h2>
+          <p>Trading intelligence infrastructure</p>
         </div>
       </div>
-      <div class="status-row"><span>Swing Engine</span><strong id="mainWorkerStatus">—</strong></div>
-      <div class="status-row"><span>Main Timeframe</span><strong>1D</strong></div>
-      <div class="status-row"><span>Confirmation</span><strong>1W</strong></div>
-      <div class="status-row"><span>Holding Horizon</span><strong>Days–Weeks</strong></div>
+      <div class="status-row"><span>Main Worker</span><strong id="mainWorkerStatus">—</strong></div>
+      <div class="status-row"><span>Fast Engine</span><strong>60 sec</strong></div>
+      <div class="status-row"><span>Trigger</span><strong>1m</strong></div>
+      <div class="status-row"><span>Confirmation</span><strong>5m</strong></div>
       <div class="status-row"><span>Auto Trailing</span><strong>Per Position</strong></div>
     </article>
   </div>
@@ -539,9 +539,7 @@ th{color:var(--muted)}
     </div>
 
     <div class="monitor-note">
-      WAIT CONFIRM = jalur Slow Engine · SURPRISE WATCH = anomali kuat ditemukan Fast Scout ·
-      FAST CONFIRMING = sedang diverifikasi 1m/5m · CONFIRMED BUY = actionable ·
-      STALE DATA = tidak ada action.
+      Only SWING BUY is displayed. WATCH and CONFIRMING stay internal to the engine.
     </div>
   </article>
 
@@ -571,7 +569,7 @@ th{color:var(--muted)}
     </div>
 
     <div id="portfolioLocked" class="portfolio-lock">
-      Login first to access your private swing portfolio.
+      Login first to access your private portfolio.
       <br><br>
       <button id="portfolioLoginButton" class="primary-btn">Login / Sign Up</button>
     </div>
@@ -585,12 +583,11 @@ th{color:var(--muted)}
     <div class="section-head">
       <div>
         <h2>My Alerts</h2>
-        <p>Personal HANZ swing alerts and trigger events</p>
+        <p>Personal HANZ swing alerts</p>
       </div>
     </div>
     <div class="monitor-note" style="margin-bottom:12px">
-      Swing trigger examples: STOP LOSS · TARGET 1 · TARGET 2 · TRAILING ACTIVATED · PROTECT PROFIT · CONFIRMED SELL.
-      These alerts are read from <strong>hanz_swing_alerts</strong>.
+      Swing triggers: STOP LOSS · TARGET 1 · TARGET 2 · TRAILING ACTIVATED · PROTECT PROFIT · CONFIRMED SELL.
     </div>
     <div id="alertsBox">
       <div class="empty"><div class="empty-symbol">⚡</div>Login to view personal alerts.</div>
@@ -603,7 +600,7 @@ th{color:var(--muted)}
     <div class="section-head">
       <div>
         <h2>System Health</h2>
-        <p>Swing engine telemetry</p>
+        <p>HANZ infrastructure telemetry</p>
       </div>
     </div>
     <div class="status-row"><span>Main Worker</span><strong id="sysStatus">—</strong></div>
@@ -1141,22 +1138,14 @@ async function initAuth(){
   });
 }
 
-/* SWING BUY DATA */
-function swingTrendClass(value){
-  const s=String(value || "").toUpperCase();
-  if(s==="BULLISH") return "bull";
-  if(s==="BEARISH") return "bear";
-  return "neutral";
-}
-
-async function loadSwingBuy(){
+/* SHARED SWING BUY */
+async function loadWatchlist(){
   const {data,error}=await supabase
     .from("hanz_swing_signal_monitor")
     .select("*")
     .eq("state","SWING_BUY")
     .order("score",{ascending:false})
     .order("updated_at",{ascending:false});
-
   if(error) throw error;
 
   const rows=data || [];
@@ -1177,35 +1166,32 @@ async function loadSwingBuy(){
     $("heroTopSub").textContent="No confirmed SWING BUY";
   }
 
-  renderSwingRanking(rows);
-  renderSwingOpportunities(rows);
-  renderSwingMonitor(rows);
+  renderRanking(rows);
+  renderOpportunities(rows);
+  renderLiveSignalMonitor(rows);
 }
 
-function renderSwingRanking(rows){
+function renderRanking(rows){
   if(!rows.length){
     $("ranking").innerHTML='<div class="empty">No confirmed SWING BUY.</div>';
     return;
   }
-
   $("ranking").innerHTML=rows.map((row,index)=>{
     const score=Math.max(0,Math.min(10,Number(row.score || 0)));
-    return `
-      <div class="rank">
-        <div class="rank-no">#${index+1}</div>
-        <div class="rank-symbol">${safe(row.ticker)}</div>
-        <div class="rank-track"><div style="width:${score*10}%"></div></div>
-        <div class="rank-score">${score}/10</div>
-      </div>`;
+    return `<div class="rank">
+      <div class="rank-no">#${index+1}</div>
+      <div class="rank-symbol">${safe(row.ticker)}</div>
+      <div class="rank-track"><div style="width:${score*10}%"></div></div>
+      <div class="rank-score">${score}/10</div>
+    </div>`;
   }).join("");
 }
 
-function renderSwingOpportunities(rows){
+function renderOpportunities(rows){
   if(!rows.length){
     $("opportunityGrid").innerHTML='<div class="empty">No SWING BUY candidates right now.</div>';
     return;
   }
-
   $("opportunityGrid").innerHTML=rows.map(row=>`
     <article class="opportunity">
       <div class="op-top">
@@ -1215,9 +1201,7 @@ function renderSwingOpportunities(rows){
         </div>
         <div class="priority-ring">${row.score ?? "—"}</div>
       </div>
-
       <span class="active-chip">SWING BUY</span>
-
       <div class="levels">
         <div class="level"><span>PRICE</span><strong>${price(row.price)}</strong></div>
         <div class="level confirm"><span>BREAKOUT</span><strong>${price(row.breakout_level)}</strong></div>
@@ -1225,1164 +1209,44 @@ function renderSwingOpportunities(rows){
         <div class="level confirm"><span>TARGET 1</span><strong>${price(row.target_1)}</strong></div>
         <div class="level confirm"><span>TARGET 2</span><strong>${price(row.target_2)}</strong></div>
       </div>
-
       <div class="reason">${safe(row.evidence || "Confirmed daily breakout + weekly bullish trend")}</div>
     </article>`).join("");
 }
 
-function renderSwingMonitor(rows){
+function renderLiveSignalMonitor(rows){
   if(!rows.length){
-    $("liveSignalMonitor").innerHTML=
-      '<div class="empty large-empty">No confirmed SWING BUY right now.</div>';
+    $("liveSignalMonitor").innerHTML='<div class="empty large-empty">No confirmed SWING BUY right now.</div>';
     return;
   }
-
   $("liveSignalMonitor").innerHTML=rows.map(row=>{
     const score=Math.max(0,Math.min(10,Number(row.score || 0)));
-
-    return `
-      <article class="signal-card buy">
-        <div class="sig-head">
-          <div>
-            <div class="sig-ticker">${safe(row.ticker)}</div>
-            <div class="sig-price">Price ${price(row.price)}</div>
-            <span class="signal-source">📈 DAILY + WEEKLY</span>
-          </div>
-          <span class="signal-state buy">SWING BUY</span>
-        </div>
-
-        <div class="sig-score">
-          <span>Swing score</span>
-          <strong>${row.score ?? "—"}/10</strong>
-        </div>
-        <div class="sig-bar"><div style="width:${score*10}%"></div></div>
-
-        <div class="sig-trends">
-          <div class="sig-trend">
-            <span>DAILY TREND</span>
-            <strong class="${swingTrendClass(row.daily_trend)}">${safe(row.daily_trend || "UNKNOWN")}</strong>
-          </div>
-          <div class="sig-trend">
-            <span>WEEKLY TREND</span>
-            <strong class="${swingTrendClass(row.weekly_trend)}">${safe(row.weekly_trend || "UNKNOWN")}</strong>
-          </div>
-        </div>
-
-        <div class="sig-meta">
-          <div><span>DAILY RSI</span><strong>${row.daily_rsi == null ? "—" : Number(row.daily_rsi).toFixed(1)}</strong></div>
-          <div><span>WEEKLY RSI</span><strong>${row.weekly_rsi == null ? "—" : Number(row.weekly_rsi).toFixed(1)}</strong></div>
-          <div><span>DAILY RVOL</span><strong>${row.daily_rvol == null ? "—" : `${Number(row.daily_rvol).toFixed(2)}×`}</strong></div>
-          <div><span>BREAKOUT 20D</span><strong>${row.breakout ? "YES" : "NO"}</strong></div>
-          <div><span>STOP LOSS</span><strong>${price(row.stop_loss)}</strong></div>
-          <div><span>TARGET 1</span><strong>${price(row.target_1)}</strong></div>
-          <div><span>TARGET 2</span><strong>${price(row.target_2)}</strong></div>
-          <div><span>BREAKOUT</span><strong>${price(row.breakout_level)}</strong></div>
-        </div>
-
-        <div class="sig-evidence">${safe(row.evidence || "Confirmed daily breakout + weekly bullish trend")}</div>
-        <div class="sig-price" style="margin-top:7px">Engine ${formatTime(row.updated_at)}</div>
-      </article>`;
-  }).join("");
-}
-
-/* HEALTH */
-async function loadHealth(){
-  const {data,error}=await supabase
-    .from("hanz_swing_signal_monitor")
-    .select("updated_at")
-    .order("updated_at",{ascending:false})
-    .limit(1);
-
-  if(error) throw error;
-
-  const latest=data?.[0]?.updated_at || null;
-  const ageMs=latest ? Date.now()-new Date(latest).getTime() : Infinity;
-  const online=Number.isFinite(ageMs) && ageMs < 3*60*60*1000;
-
-  $("engineState").textContent=online ? "ONLINE" : "CHECK";
-  $("mainWorkerStatus").textContent=online ? "ONLINE" : "CHECK";
-  $("sysStatus").textContent=online ? "ONLINE" : "CHECK";
-  $("heartbeat").textContent=formatTime(latest);
-  $("lastSuccess").textContent=formatTime(latest);
-  $("failures").textContent="—";
-  $("lastError").textContent="See GitHub Actions if stale";
-  $("engineDot").classList.toggle("online",online);
-  $("engineLabel").textContent=online ? "SWING ONLINE" : "CHECK SWING";
-}
-
-/* PORTFOLIO */
-.portfolio-lock{display:none;padding:40px 15px;text-align:center;color:var(--muted)}
-.portfolio-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:11px}
-.portfolio-card{
-  padding:15px;border:1px solid var(--line);border-radius:18px;background:rgba(7,14,27,.65)
-}
-.portfolio-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
-.portfolio-symbol{font-size:19px;font-weight:950}.portfolio-date{margin-top:3px;color:var(--muted);font-size:8px}
-.portfolio-main{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:13px}
-.portfolio-main>div,.portfolio-levels>div,.trail-grid>div{
-  padding:9px;border-radius:10px;background:rgba(2,8,17,.43)
-}
-.portfolio-levels{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:7px}
-.trailing-box{
-  margin-top:9px;padding:11px;border-radius:13px;border:1px solid rgba(77,163,255,.16);
-  background:linear-gradient(145deg,rgba(77,163,255,.07),rgba(40,224,162,.045))
-}
-.trailing-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
-.trailing-head strong{font-size:9px;letter-spacing:.5px}
-.trailing-sub{color:var(--muted);font-size:8px}
-.trail-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
-.signal-row{
-  display:flex;justify-content:space-between;margin-top:10px;padding:9px 10px;
-  border-radius:10px;background:rgba(40,224,162,.055);font-size:8px
-}
-.signal-row span{color:var(--muted)}
-.position-notes{margin-top:9px;color:var(--muted);font-size:8px;line-height:1.5}
-.position-actions{display:flex;gap:6px;margin-top:11px}
-.position-actions button{
-  flex:1;border:1px solid var(--line);border-radius:9px;padding:7px;
-  background:rgba(10,18,33,.7);color:#dce5f0;font-size:8px
-}
-.position-actions .close-btn{color:var(--yellow)}.position-actions .delete-btn{color:var(--red)}
-
-/* TABLE / EMPTY */
-.table-shell{overflow:auto;border:1px solid var(--line);border-radius:15px}
-table{min-width:650px;width:100%;border-collapse:collapse}
-th,td{padding:11px;border-bottom:1px solid var(--line);text-align:left;font-size:9px}
-th{color:var(--muted)}
-.empty{padding:38px 15px;color:var(--muted);text-align:center;font-size:10px}
-.large-empty{grid-column:1/-1}.empty-symbol{margin-bottom:7px;font-size:27px}
-.empty strong{display:block;color:var(--text);font-size:13px}
-.empty p{max-width:390px;margin:7px auto 14px;line-height:1.5}
-
-/* MODAL */
-.modal{
-  position:fixed;inset:0;z-index:500;display:none;align-items:center;justify-content:center;
-  padding:15px;background:rgba(1,5,12,.78);backdrop-filter:blur(9px)
-}
-.modal.show{display:flex}
-.modal-box{
-  width:min(460px,100%);max-height:calc(100vh - 30px);overflow:auto;padding:20px;
-  border:1px solid var(--line);border-radius:22px;
-  background:linear-gradient(160deg,#101b2f,#080f1c);box-shadow:0 30px 90px rgba(0,0,0,.55)
-}
-.modal-wide{width:min(660px,100%)}
-.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
-.modal-head h3{margin:0;font-size:16px}
-.x-btn{
-  width:31px;height:31px;border:1px solid var(--line);border-radius:9px;
-  background:rgba(4,10,20,.5);color:var(--muted)
-}
-.auth-tabs{
-  display:grid;grid-template-columns:1fr 1fr;gap:5px;padding:4px;margin-bottom:14px;
-  border-radius:11px;background:rgba(2,8,17,.5)
-}
-.auth-tabs button{
-  border:none;border-radius:8px;padding:8px;background:transparent;color:var(--muted);font-size:9px
-}
-.auth-tabs button.active{background:rgba(40,224,162,.1);color:var(--green)}
-.field{margin-bottom:11px}
-.field label{display:block;margin-bottom:5px;color:var(--muted);font-size:8px;letter-spacing:.4px}
-.field input,.field textarea{
-  width:100%;border:1px solid var(--line);outline:none;border-radius:10px;padding:10px 11px;
-  background:rgba(2,8,17,.52);color:white;font-size:10px
-}
-.field textarea{min-height:70px;resize:vertical}
-.field input:focus,.field textarea:focus{border-color:rgba(40,224,162,.55)}
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.full-width{grid-column:1/-1}
-.auth-submit,.position-submit{
-  width:100%;border:none;border-radius:11px;min-height:40px;
-  background:linear-gradient(135deg,var(--green),var(--cyan));color:#04120d;font-size:10px;font-weight:950
-}
-.auth-message{margin-top:10px;font-size:9px;line-height:1.5}.auth-error{color:#ff8993}.auth-success{color:var(--green)}
-
-/* AUTO TRAILING TOGGLE */
-.toggle-row{
-  display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 12px;
-  margin-bottom:11px;border-radius:12px;border:1px solid var(--line);background:rgba(2,8,17,.38)
-}
-.toggle-copy strong{display:block;font-size:9px}.toggle-copy span{display:block;color:var(--muted);font-size:8px;margin-top:3px;line-height:1.4}
-.switch{position:relative;width:44px;height:24px;flex:none}
-.switch input{opacity:0;width:0;height:0}
-.slider{
-  position:absolute;cursor:pointer;inset:0;border-radius:999px;background:#263349;transition:.2s
-}
-.slider:before{
-  content:"";position:absolute;width:18px;height:18px;left:3px;top:3px;border-radius:50%;
-  background:white;transition:.2s
-}
-.switch input:checked + .slider{background:var(--green)}
-.switch input:checked + .slider:before{transform:translateX(20px)}
-.disabled-field{opacity:.42;pointer-events:none}
-
-/* ERROR / TOAST */
-.error-box{
-  display:none;padding:10px 12px;margin-bottom:10px;border:1px solid rgba(255,101,114,.25);
-  border-radius:11px;background:rgba(255,101,114,.07);color:#ffabb2;font-size:9px
-}
-.toast{
-  position:fixed;z-index:999;right:18px;bottom:20px;max-width:330px;padding:11px 14px;
-  border-radius:12px;background:#111d31;color:#eaf1f9;border:1px solid var(--line);
-  box-shadow:0 20px 50px rgba(0,0,0,.4);opacity:0;pointer-events:none;
-  transform:translateY(12px);transition:.2s;font-size:9px
-}
-.toast.show{opacity:1;transform:translateY(0)}.toast.error{color:#ffabb2}
-
-@media(max-width:900px){
-  .layout{grid-template-columns:1fr}
-  .opportunity-grid,.portfolio-grid{grid-template-columns:1fr}
-}
-@media(max-width:700px){
-  .app{padding:10px 10px 90px}
-  .engine-pill{display:none}.header{min-height:58px;margin-bottom:9px}
-  .logo{width:41px;height:41px}.brand strong{font-size:15px}.user-info{display:none}
-  .hero{padding:19px;border-radius:21px}.hero-content{display:block}.hero h1{font-size:28px}
-  .hero-top{width:100%;min-width:0;margin-top:17px}
-  .kpis{grid-template-columns:1fr 1fr;gap:7px}.kpi{min-height:94px;padding:12px}.kpi strong{font-size:20px}
-  .desktop-nav{display:none}
-  .mobile-nav{
-    position:fixed;left:0;right:0;bottom:0;z-index:200;display:grid;
-    grid-template-columns:repeat(5,1fr);
-    padding:7px max(6px,env(safe-area-inset-right)) calc(7px + env(safe-area-inset-bottom)) max(6px,env(safe-area-inset-left));
-    border-top:1px solid var(--line);background:rgba(5,9,20,.94);backdrop-filter:blur(18px)
-  }
-  .mobile-nav button{border:none;padding:5px 1px;background:transparent;color:#66768c;font-size:8px}
-  .mobile-nav button.active{color:var(--green)}
-  .mobile-nav b{display:block;margin-bottom:3px;font-size:16px}
-  .portfolio-levels{grid-template-columns:1fr 1fr}
-  .trail-grid{grid-template-columns:1fr 1fr}
-  .form-grid{grid-template-columns:1fr}.full-width{grid-column:auto}
-  .toast{left:10px;right:10px;bottom:82px;max-width:none}
-}
-
-/* LIVE SIGNAL MONITOR */
-.live-monitor-grid{
-  display:grid;
-  grid-template-columns:repeat(5,minmax(0,1fr));
-  gap:8px
-}
-.signal-card{
-  position:relative;padding:13px;border-radius:16px;
-  border:1px solid var(--line);background:rgba(5,12,24,.72);overflow:hidden
-}
-.signal-card:before{
-  content:"";position:absolute;left:0;right:0;top:0;height:3px;background:#53627a
-}
-.signal-card.early:before{background:var(--yellow)}
-.signal-card.surprise:before{background:#b77cff}
-.signal-card.confirming:before{background:#4da3ff}
-.signal-card.buy:before{background:var(--green)}
-.signal-card.stale:before{background:#718096}
-.signal-card.error:before{background:var(--red)}
-.sig-head{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
-.sig-ticker{font-size:16px;font-weight:950}
-.sig-price{margin-top:3px;color:var(--muted);font-size:8px}
-.signal-state{
-  padding:5px 7px;border-radius:999px;font-size:7px;font-weight:950;white-space:nowrap;
-  background:rgba(130,145,168,.11);color:#aab7c8
-}
-.signal-state.early{color:var(--yellow);background:rgba(255,200,87,.11)}
-.signal-state.surprise{color:#d8baff;background:rgba(183,124,255,.13)}
-.signal-state.confirming{color:#9dccff;background:rgba(77,163,255,.13)}
-.signal-state.buy{color:#03130d;background:var(--green)}
-.signal-source{
-  display:inline-block;margin-top:5px;padding:4px 6px;border-radius:999px;
-  font-size:6px;font-weight:900;letter-spacing:.25px;
-  color:#9dccff;background:rgba(77,163,255,.10)
-}
-.signal-source.scout{color:#d8baff;background:rgba(183,124,255,.13)}
-.signal-state.stale{color:#b5c0cf;background:rgba(130,145,168,.12)}
-.signal-state.error{color:#ffc1c5;background:rgba(255,101,114,.12)}
-.sig-score{display:flex;align-items:center;justify-content:space-between;margin-top:10px;color:var(--muted);font-size:8px}
-.sig-score strong{color:var(--text);font-size:10px}
-.sig-bar{height:5px;margin-top:5px;border-radius:999px;overflow:hidden;background:#172338}
-.sig-bar div{height:100%;background:linear-gradient(90deg,var(--yellow),var(--green))}
-.sig-trends,.sig-meta{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:9px}
-.sig-trend,.sig-meta div{padding:7px;border-radius:9px;background:rgba(255,255,255,.025)}
-.sig-trend span,.sig-meta span{display:block;color:var(--muted);font-size:7px}
-.sig-trend strong,.sig-meta strong{display:block;margin-top:3px;font-size:8px}
-.bull{color:var(--green)!important}.bear{color:var(--red)!important}.neutral{color:#aab7c8!important}
-.sig-evidence{margin-top:8px;color:var(--muted);font-size:7px;line-height:1.45;min-height:20px}
-.monitor-note{
-  margin-top:10px;padding:9px 10px;border-radius:10px;background:rgba(77,163,255,.055);
-  color:var(--muted);font-size:8px;line-height:1.5
-}
-@media(max-width:1100px){.live-monitor-grid{grid-template-columns:repeat(3,1fr)}}
-@media(max-width:700px){.live-monitor-grid{grid-template-columns:1fr}}
-
-
-</style>
-</head>
-
-<body>
-<div class="app">
-
-<header class="header">
-  <div class="brand">
-    <div class="logo">H</div>
-    <div>
-      <strong>HANZ</strong>
-      <span>Swing / Weekly Intelligence</span>
-    </div>
-  </div>
-
-  <div class="header-actions">
-    <div class="live-pill">
-      <span id="engineDot" class="dot"></span>
-      <span id="engineLabel">CONNECTING</span>
-    </div>
-
-    <button class="secondary-btn" id="refreshButton">↻</button>
-
-    <button id="pushButton" class="secondary-btn" style="display:none">🔔 Push OFF</button>
-
-    <button id="loginButton" class="primary-btn">Login</button>
-
-    <div id="userArea" class="user-area">
-      <div class="user-info">
-        <strong id="userName">User</strong>
-        <span id="userEmail"></span>
-      </div>
-      <button id="logoutButton" class="secondary-btn">Logout</button>
-    </div>
-  </div>
-</header>
-
-<div id="errorBox" class="error-box"></div>
-
-<section class="hero">
-  <div class="hero-content">
-    <div>
-      <small>HANZ INTELLIGENCE NETWORK</small>
-      <h1>Swing opportunities.<br>Personal portfolio intelligence.</h1>
-      <p>
-        Confirmed SWING BUY scanning with private per-user swing portfolio monitoring,
-        risk levels, targets, alerts and automatic trailing-stop management.
-      </p>
-    </div>
-
-    <div class="hero-top">
-      <span>CURRENT TOP SWING BUY</span>
-      <strong id="heroTopCandidate">—</strong>
-      <small id="heroTopSub">Waiting for HANZ scan</small>
-    </div>
-  </div>
-</section>
-
-<section class="kpis">
-  <article class="kpi">
-    <span>SWING BUY</span>
-    <strong id="opportunityCount">—</strong>
-    <small>Confirmed swing candidates</small>
-  </article>
-
-  <article class="kpi">
-    <span>Top Swing</span>
-    <strong id="topCandidate" class="green-text">—</strong>
-    <small id="topCandidateSub">Priority —</small>
-  </article>
-
-  <article class="kpi">
-    <span>Swing Portfolio</span>
-    <strong id="portfolioCount">0</strong>
-    <small id="portfolioStatus">0 positions</small>
-  </article>
-
-  <article class="kpi">
-    <span>Swing Engine</span>
-    <strong id="engineState">—</strong>
-    <small id="lastUpdateDate">Supabase Live</small>
-  </article>
-</section>
-
-<nav class="desktop-nav">
-  <button class="active" data-panel="overview">Overview</button>
-  <button data-panel="opportunities">Opportunities</button>
-  <button data-panel="portfolio">Portfolio</button>
-  <button data-panel="alerts">Alerts</button>
-  <button data-panel="system">System</button>
-  <a href="../" class="secondary-btn" style="display:inline-flex;align-items:center;text-decoration:none">⚡ Intraday</a>
-</nav>
-<section id="overview" class="panel active">
-  <div class="layout">
-    <article class="card">
-      <div class="section-head">
+    return `<article class="signal-card buy">
+      <div class="sig-head">
         <div>
-          <h2>SWING BUY Ranking</h2>
-          <p>Confirmed Daily + Weekly setups</p>
+          <div class="sig-ticker">${safe(row.ticker)}</div>
+          <div class="sig-price">Price ${price(row.price)}</div>
+          <span class="signal-source">📈 DAILY + WEEKLY</span>
         </div>
-        <span class="small-tag">SWING LIVE</span>
+        <span class="signal-state buy">SWING BUY</span>
       </div>
-      <div id="ranking" class="ranking"></div>
-    </article>
-
-    <article class="card">
-      <div class="section-head">
-        <div>
-          <h2>Swing Engine Status</h2>
-          <p>Daily setup · Weekly confirmation</p>
-        </div>
+      <div class="sig-score"><span>Swing score</span><strong>${row.score ?? "—"}/10</strong></div>
+      <div class="sig-bar"><div style="width:${score*10}%"></div></div>
+      <div class="sig-trends">
+        <div class="sig-trend"><span>DAILY TREND</span><strong>${safe(row.daily_trend || "—")}</strong></div>
+        <div class="sig-trend"><span>WEEKLY TREND</span><strong>${safe(row.weekly_trend || "—")}</strong></div>
       </div>
-      <div class="status-row"><span>Swing Engine</span><strong id="mainWorkerStatus">—</strong></div>
-      <div class="status-row"><span>Main Timeframe</span><strong>1D</strong></div>
-      <div class="status-row"><span>Confirmation</span><strong>1W</strong></div>
-      <div class="status-row"><span>Holding Horizon</span><strong>Days–Weeks</strong></div>
-      <div class="status-row"><span>Auto Trailing</span><strong>Per Position</strong></div>
-    </article>
-  </div>
-
-  <article class="card" style="margin-top:12px">
-    <div class="section-head">
-      <div>
-        <h2>SWING BUY Monitor</h2>
-        <p>Only confirmed SWING BUY · Daily setup + Weekly confirmation</p>
+      <div class="sig-meta">
+        <div><span>DAILY RSI</span><strong>${row.daily_rsi==null?"—":Number(row.daily_rsi).toFixed(1)}</strong></div>
+        <div><span>WEEKLY RSI</span><strong>${row.weekly_rsi==null?"—":Number(row.weekly_rsi).toFixed(1)}</strong></div>
+        <div><span>DAILY RVOL</span><strong>${row.daily_rvol==null?"—":Number(row.daily_rvol).toFixed(2)+"×"}</strong></div>
+        <div><span>BREAKOUT 20D</span><strong>${row.breakout ? "YES" : "NO"}</strong></div>
+        <div><span>STOP LOSS</span><strong>${price(row.stop_loss)}</strong></div>
+        <div><span>TARGET 1</span><strong>${price(row.target_1)}</strong></div>
+        <div><span>TARGET 2</span><strong>${price(row.target_2)}</strong></div>
+        <div><span>BREAKOUT</span><strong>${price(row.breakout_level)}</strong></div>
       </div>
-      <span class="small-tag">BUY ONLY</span>
-    </div>
-
-    <div id="liveSignalMonitor" class="live-monitor-grid">
-      <div class="empty large-empty">Waiting for confirmed SWING BUY data...</div>
-    </div>
-
-    <div class="monitor-note">
-      WAIT CONFIRM = jalur Slow Engine · SURPRISE WATCH = anomali kuat ditemukan Fast Scout ·
-      FAST CONFIRMING = sedang diverifikasi 1m/5m · CONFIRMED BUY = actionable ·
-      STALE DATA = tidak ada action.
-    </div>
-  </article>
-
-</section>
-
-<section id="opportunities" class="panel">
-  <article class="card">
-    <div class="section-head">
-      <div>
-        <h2>Confirmed SWING BUY Candidates</h2>
-        <p>Daily breakout + weekly bullish confirmation</p>
-      </div>
-      <span class="small-tag">SWING ENGINE</span>
-    </div>
-    <div id="opportunityGrid" class="opportunity-grid"></div>
-  </article>
-</section>
-
-<section id="portfolio" class="panel">
-  <article class="card">
-    <div class="section-head">
-      <div>
-        <h2>My Swing Portfolio</h2>
-        <p>Private swing positions, targets, alerts and automatic trailing per account</p>
-      </div>
-      <button id="addPositionButton" class="primary-btn" disabled>+ Add Position</button>
-    </div>
-
-    <div id="portfolioLocked" class="portfolio-lock">
-      Login first to access your private swing portfolio.
-      <br><br>
-      <button id="portfolioLoginButton" class="primary-btn">Login / Sign Up</button>
-    </div>
-
-    <div id="portfolioGrid" class="portfolio-grid"></div>
-  </article>
-</section>
-
-<section id="alerts" class="panel">
-  <article class="card">
-    <div class="section-head">
-      <div>
-        <h2>My Alerts</h2>
-        <p>Personal HANZ swing alerts and trigger events</p>
-      </div>
-    </div>
-    <div id="alertsBox">
-      <div class="empty"><div class="empty-symbol">⚡</div>Login to view personal alerts.</div>
-    </div>
-  </article>
-</section>
-
-<section id="system" class="panel">
-  <article class="card">
-    <div class="section-head">
-      <div>
-        <h2>System Health</h2>
-        <p>Swing engine telemetry</p>
-      </div>
-    </div>
-    <div class="status-row"><span>Main Worker</span><strong id="sysStatus">—</strong></div>
-    <div class="status-row"><span>Heartbeat</span><strong id="heartbeat">—</strong></div>
-    <div class="status-row"><span>Last Successful Cycle</span><strong id="lastSuccess">—</strong></div>
-    <div class="status-row"><span>Consecutive Failures</span><strong id="failures">—</strong></div>
-    <div class="status-row"><span>Last Error</span><strong id="lastError">None</strong></div>
-    <div class="status-row"><span>Last Market Update</span><strong id="lastUpdate">—</strong></div>
-  </article>
-</section>
-
-<nav class="mobile-nav">
-  <button class="active" data-panel="overview"><b>⌂</b>Home</button>
-  <button data-panel="opportunities"><b>⌁</b>Signals</button>
-  <button data-panel="portfolio"><b>◉</b>Portfolio</button>
-  <button data-panel="alerts"><b>⚡</b>Alerts</button>
-  <button data-panel="system"><b>⚙</b>System</button>
-</nav>
-
-<!-- AUTH MODAL -->
-<div id="authModal" class="modal">
-  <div class="modal-box">
-    <div class="modal-head">
-      <h3>HANZ Account</h3>
-      <button id="closeAuthButton" class="x-btn">×</button>
-    </div>
-
-    <div class="auth-tabs">
-      <button id="loginTab" class="active">Login</button>
-      <button id="signupTab">Sign Up</button>
-    </div>
-
-    <form id="authForm">
-      <div id="signupNameWrap" class="field" style="display:none">
-        <label>NAME</label>
-        <input id="authName" type="text" placeholder="Your name">
-      </div>
-
-      <div class="field">
-        <label>EMAIL</label>
-        <input id="authEmail" type="email" autocomplete="email" required placeholder="name@email.com">
-      </div>
-
-      <div class="field">
-        <label>PASSWORD</label>
-        <input id="authPassword" type="password" autocomplete="current-password" required minlength="6" placeholder="Minimum 6 characters">
-      </div>
-
-      <button id="authSubmit" type="submit" class="auth-submit">Login to HANZ</button>
-      <div id="authMessage" class="auth-message"></div>
-    </form>
-  </div>
-</div>
-
-<!-- POSITION MODAL -->
-<div id="positionModal" class="modal">
-  <div class="modal-box modal-wide">
-    <div class="modal-head">
-      <h3 id="positionModalTitle">Add Position</h3>
-      <button id="closePositionModalButton" class="x-btn">×</button>
-    </div>
-
-    <form id="positionForm">
-      <div class="form-grid">
-        <div class="field">
-          <label>TICKER</label>
-          <input id="positionTicker" required placeholder="BBRI" maxlength="12">
-        </div>
-
-        <div class="field">
-          <label>BUY DATE</label>
-          <input id="positionBuyDate" type="date" required>
-        </div>
-
-        <div class="field">
-          <label>BUY PRICE</label>
-          <input id="positionAvgBuy" type="number" step="any" min="0" required placeholder="3050">
-        </div>
-
-        <div class="field">
-          <label>LOTS</label>
-          <input id="positionLots" type="number" step="any" min="0" required placeholder="1">
-        </div>
-
-        <div class="field">
-          <label>STOP LOSS</label>
-          <input id="positionStopLoss" type="number" step="any" placeholder="Optional">
-        </div>
-
-        <div class="field">
-          <label>TARGET 1</label>
-          <input id="positionTarget1" type="number" step="any" placeholder="Optional">
-        </div>
-
-        <div class="field">
-          <label>TARGET 2</label>
-          <input id="positionTarget2" type="number" step="any" placeholder="Optional">
-        </div>
-
-        <div class="field" id="manualTrailingField">
-          <label>MANUAL TRAILING STOP</label>
-          <input id="positionTrailing" type="number" step="any" placeholder="Used only when Auto Trailing is OFF">
-        </div>
-
-        <div class="full-width">
-          <div class="toggle-row">
-            <div class="toggle-copy">
-              <strong>AUTO TRAILING STOP</strong>
-              <span>
-                HANZ activates trailing after Target 1. It tightens from 1.5× ATR to 1.0× ATR after Target 2.
-              </span>
-            </div>
-            <label class="switch">
-              <input id="positionAutoTrailing" type="checkbox" checked>
-              <span class="slider"></span>
-            </label>
-          </div>
-        </div>
-
-        <div class="field full-width">
-          <label>NOTES</label>
-          <textarea id="positionNotes" placeholder="Optional notes..."></textarea>
-        </div>
-      </div>
-
-      <button id="positionSubmit" type="submit" class="position-submit">Save Position</button>
-    </form>
-  </div>
-</div>
-
-<div id="toast" class="toast"></div>
-<script type="module">
-import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
-import {
-  getMessaging,
-  isSupported as isMessagingSupported,
-  onMessage,
-  onRegistered,
-  register as registerMessaging
-} from "https://www.gstatic.com/firebasejs/12.17.1/firebase-messaging.js";
-
-/* =========================================================
-   SUPABASE CONFIG — browser uses Publishable Key only
-========================================================= */
-const SUPABASE_URL = "https://fgyfszkadstmdzqvwppt.supabase.co";
-const SUPABASE_KEY = "sb_publishable_rBY4VJwPS1T5tm0zPw4tbg_BhApWtfM";
-const REFRESH_MS = 30000;
-
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-
-/* =========================================================
-   FIREBASE CLOUD MESSAGING
-========================================================= */
-const FIREBASE_CONFIG = {
-  apiKey: "AIzaSyAqNOI43fKCFSsJFmSM1VDu1QHYOfBQ5yw",
-  authDomain: "hanz-trading-intelligenc-c8f4d.firebaseapp.com",
-  projectId: "hanz-trading-intelligenc-c8f4d",
-  storageBucket: "hanz-trading-intelligenc-c8f4d.firebasestorage.app",
-  messagingSenderId: "313426947063",
-  appId: "1:313426947063:web:39450e958b473d8e089cf2"
-};
-
-const FIREBASE_VAPID_KEY =
-  "BNkFe2_5sroVo6CgrCpO-U1g95Tdyov7oJ7yufwwLW9TywsrH4nBCYAU3lNH40yPlYl5rVO6Vr5JQtJ0yq0JPTc";
-
-const firebaseApp = initializeApp(FIREBASE_CONFIG);
-
-let currentUser = null;
-let currentSession = null;
-let portfolioRows = [];
-let editPositionId = null;
-
-let firebaseMessaging = null;
-let pushServiceWorkerRegistration = null;
-let currentInstallationId = null;
-let pushReady = false;
-
-/* HELPERS */
-const $ = id => document.getElementById(id);
-
-function safe(value){
-  return String(value ?? "")
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;");
-}
-
-function price(value){
-  if(value === null || value === undefined || value === "") return "—";
-  const n = Number(value);
-  if(!Number.isFinite(n)) return safe(value);
-  return n.toLocaleString("en-US",{maximumFractionDigits:2});
-}
-
-function formatDate(value){
-  if(!value) return "—";
-  const d = new Date(value);
-  if(Number.isNaN(d.getTime())) return safe(value);
-  return new Intl.DateTimeFormat("en-GB",{day:"2-digit",month:"short",year:"numeric"}).format(d);
-}
-
-function formatTime(value){
-  if(!value) return "—";
-  const d = new Date(value);
-  if(Number.isNaN(d.getTime())) return "—";
-  return new Intl.DateTimeFormat("en-GB",{hour:"2-digit",minute:"2-digit",second:"2-digit"}).format(d);
-}
-
-function localDateISO(){
-  const now = new Date();
-  const y = now.getFullYear();
-  const m = String(now.getMonth()+1).padStart(2,"0");
-  const d = String(now.getDate()).padStart(2,"0");
-  return `${y}-${m}-${d}`;
-}
-
-function notify(message,type="success"){
-  const toast = $("toast");
-  toast.textContent = message;
-  toast.className = "toast show " + type;
-  clearTimeout(window.toastTimer);
-  window.toastTimer = setTimeout(()=>{toast.className="toast";},3500);
-}
-
-function showError(message){
-  $("errorBox").textContent = message;
-  $("errorBox").style.display = "block";
-}
-
-function clearError(){
-  $("errorBox").style.display = "none";
-}
-
-
-/* PUSH NOTIFICATIONS */
-function renderPushState(){
-  const btn = $("pushButton");
-  if(!btn) return;
-
-  btn.classList.remove("push-on","push-denied");
-
-  if(!currentUser){
-    btn.style.display="none";
-    return;
-  }
-
-  btn.style.display="inline-flex";
-
-  if(!("Notification" in window)){
-    btn.textContent="🔕 Unsupported";
-    btn.disabled=true;
-    return;
-  }
-
-  btn.disabled=false;
-
-  if(Notification.permission === "denied"){
-    btn.textContent="🔕 Push Blocked";
-    btn.classList.add("push-denied");
-    return;
-  }
-
-  if(pushReady && currentInstallationId){
-    btn.textContent="🔔 Push ON";
-    btn.classList.add("push-on");
-  }else{
-    btn.textContent="🔔 Enable Push";
-  }
-}
-
-async function upsertPushDevice(installationId){
-  if(!currentUser || !installationId) return;
-
-  const payload = {
-    user_id: currentUser.id,
-    installation_id: installationId,
-    platform: navigator.platform || null,
-    user_agent: navigator.userAgent || null,
-    enabled: true,
-    last_seen_at: new Date().toISOString()
-  };
-
-  const {error} = await supabase
-    .from("hanz_push_devices")
-    .upsert(payload,{onConflict:"user_id,installation_id"});
-
-  if(error) throw error;
-}
-
-async function initPushMessaging(){
-  if(!currentUser) return false;
-
-  if(!("Notification" in window) || !("serviceWorker" in navigator)){
-    renderPushState();
-    return false;
-  }
-
-  const supported = await isMessagingSupported();
-  if(!supported){
-    renderPushState();
-    return false;
-  }
-
-  if(!pushServiceWorkerRegistration){
-    pushServiceWorkerRegistration = await navigator.serviceWorker.register(
-      "./firebase-messaging-sw.js",
-      {scope:"./"}
-    );
-  }
-
-  if(!firebaseMessaging){
-    firebaseMessaging = getMessaging(firebaseApp);
-
-    onRegistered(firebaseMessaging, async installationId=>{
-      try{
-        currentInstallationId = installationId;
-        await upsertPushDevice(installationId);
-        pushReady = true;
-        renderPushState();
-        console.log("HANZ push registered:", installationId);
-      }catch(error){
-        console.error("Push registration save failed:",error);
-        notify("Push registration failed: " + error.message,"error");
-      }
-    });
-
-    onMessage(firebaseMessaging, payload=>{
-      const data = payload?.data || {};
-      const title = data.title || "HANZ Alert";
-      const body = data.body || data.message || "New HANZ trading alert.";
-
-      if(Notification.permission === "granted" && pushServiceWorkerRegistration){
-        pushServiceWorkerRegistration.showNotification(title,{
-          body,
-          tag:data.dedupe_key || data.alert_id || undefined,
-          data:{
-            url:data.url || "./",
-            ticker:data.ticker || null,
-            alert_type:data.alert_type || null
-          }
-        });
-      }
-    });
-  }
-
-  return true;
-}
-
-async function enablePush(){
-  if(!currentUser){
-    openAuth("login");
-    return;
-  }
-
-  try{
-    const okay = await initPushMessaging();
-    if(!okay){
-      notify("Push notification is not supported on this browser.","error");
-      return;
-    }
-
-    const permission = await Notification.requestPermission();
-    renderPushState();
-
-    if(permission !== "granted"){
-      notify("Notification permission was not granted.","error");
-      return;
-    }
-
-    await registerMessaging(firebaseMessaging,{
-      vapidKey:FIREBASE_VAPID_KEY,
-      serviceWorkerRegistration:pushServiceWorkerRegistration
-    });
-
-    notify("HANZ push notifications enabled.");
-  }catch(error){
-    console.error(error);
-    notify("Push setup failed: " + error.message,"error");
-  }
-}
-
-async function syncPushIfAlreadyGranted(){
-  if(!currentUser || Notification.permission !== "granted") return;
-
-  try{
-    const okay = await initPushMessaging();
-    if(!okay) return;
-
-    await registerMessaging(firebaseMessaging,{
-      vapidKey:FIREBASE_VAPID_KEY,
-      serviceWorkerRegistration:pushServiceWorkerRegistration
-    });
-  }catch(error){
-    console.warn("Background push sync failed:",error);
-  }
-}
-
-
-/* NAV */
-function showPanel(name){
-  document.querySelectorAll(".panel").forEach(panel=>{
-    panel.classList.toggle("active",panel.id===name);
-  });
-  document.querySelectorAll("[data-panel]").forEach(btn=>{
-    btn.classList.toggle("active",btn.dataset.panel===name);
-  });
-  window.scrollTo({top:0,behavior:"smooth"});
-}
-
-/* AUTH */
-function openAuth(mode="login"){
-  $("authModal").classList.add("show");
-  setAuthMode(mode);
-}
-
-function closeAuth(){
-  $("authModal").classList.remove("show");
-  $("authMessage").textContent = "";
-}
-
-function setAuthMode(mode){
-  const loginMode = mode === "login";
-  $("loginTab").classList.toggle("active",loginMode);
-  $("signupTab").classList.toggle("active",!loginMode);
-  $("signupNameWrap").style.display = loginMode ? "none" : "block";
-  $("authSubmit").textContent = loginMode ? "Login to HANZ" : "Create HANZ Account";
-  $("authForm").dataset.mode = mode;
-  $("authMessage").textContent = "";
-}
-
-async function signUp(){
-  const name = $("authName").value.trim();
-  const email = $("authEmail").value.trim();
-  const password = $("authPassword").value;
-
-  if(!name) throw new Error("Please enter your name.");
-  if(!email) throw new Error("Please enter your email.");
-  if(password.length < 6) throw new Error("Password must contain at least 6 characters.");
-
-  const redirectUrl = window.location.origin + window.location.pathname;
-
-  const {error} = await supabase.auth.signUp({
-    email,
-    password,
-    options:{
-      emailRedirectTo:redirectUrl,
-      data:{full_name:name}
-    }
-  });
-
-  if(error) throw error;
-
-  $("authMessage").innerHTML =
-    `<div class="auth-success">Account created. Check <strong>${safe(email)}</strong> and confirm your email.</div>`;
-}
-
-async function login(){
-  const email = $("authEmail").value.trim();
-  const password = $("authPassword").value;
-
-  if(!email || !password) throw new Error("Enter email and password.");
-
-  const {data,error} = await supabase.auth.signInWithPassword({email,password});
-  if(error) throw error;
-
-  currentSession = data.session;
-  currentUser = data.user;
-  closeAuth();
-  renderAuthState();
-  await loadPortfolio();
-  await loadAlerts();
-  notify("Welcome to HANZ.");
-}
-
-async function logout(){
-  const {error} = await supabase.auth.signOut();
-  if(error){notify(error.message,"error");return;}
-  currentUser=null;
-  currentSession=null;
-  portfolioRows=[];
-  renderAuthState();
-  renderPortfolio([]);
-  renderAlertsLocked();
-  notify("Logged out.");
-}
-
-function renderAuthState(){
-  if(currentUser){
-    const metadata = currentUser.user_metadata || {};
-    const displayName = metadata.full_name || currentUser.email?.split("@")[0] || "HANZ User";
-
-    $("loginButton").style.display="none";
-    $("userArea").style.display="flex";
-    $("userName").textContent=displayName;
-    $("userEmail").textContent=currentUser.email || "";
-    $("addPositionButton").disabled=false;
-    $("portfolioLocked").style.display="none";
-    renderPushState();
-    setTimeout(syncPushIfAlreadyGranted,0);
-  }else{
-    $("loginButton").style.display="inline-flex";
-    $("userArea").style.display="none";
-    $("addPositionButton").disabled=true;
-    $("portfolioLocked").style.display="block";
-    $("portfolioCount").textContent="0";
-    $("portfolioStatus").textContent="0 positions";
-    pushReady=false;
-    currentInstallationId=null;
-    renderPushState();
-  }
-}
-
-async function initAuth(){
-  const {data:{session}} = await supabase.auth.getSession();
-  currentSession=session;
-  currentUser=session?.user || null;
-  renderAuthState();
-
-  supabase.auth.onAuthStateChange(async (_event,session)=>{
-    currentSession=session;
-    currentUser=session?.user || null;
-    renderAuthState();
-
-    if(currentUser){
-      setTimeout(async ()=>{
-        await loadPortfolio();
-        await loadAlerts();
-      },0);
-    }else{
-      renderPortfolio([]);
-      renderAlertsLocked();
-    }
-  });
-}
-
-/* SWING BUY DATA */
-function swingTrendClass(value){
-  const s=String(value || "").toUpperCase();
-  if(s==="BULLISH") return "bull";
-  if(s==="BEARISH") return "bear";
-  return "neutral";
-}
-
-async function loadSwingBuy(){
-  const {data,error}=await supabase
-    .from("hanz_swing_signal_monitor")
-    .select("*")
-    .eq("state","SWING_BUY")
-    .order("score",{ascending:false})
-    .order("updated_at",{ascending:false});
-
-  if(error) throw error;
-
-  const rows=data || [];
-  $("opportunityCount").textContent=rows.length;
-
-  if(rows.length){
-    const top=rows[0];
-    $("topCandidate").textContent=top.ticker;
-    $("topCandidateSub").textContent=`Score ${top.score ?? "—"}/10`;
-    $("heroTopCandidate").textContent=top.ticker;
-    $("heroTopSub").textContent=`SWING BUY · Score ${top.score ?? "—"}/10`;
-    $("lastUpdate").textContent=formatTime(top.updated_at);
-    $("lastUpdateDate").textContent=`${formatDate(top.updated_at)} · Swing Live`;
-  }else{
-    $("topCandidate").textContent="—";
-    $("topCandidateSub").textContent="No SWING BUY";
-    $("heroTopCandidate").textContent="—";
-    $("heroTopSub").textContent="No confirmed SWING BUY";
-  }
-
-  renderSwingRanking(rows);
-  renderSwingOpportunities(rows);
-  renderSwingMonitor(rows);
-}
-
-function renderSwingRanking(rows){
-  if(!rows.length){
-    $("ranking").innerHTML='<div class="empty">No confirmed SWING BUY.</div>';
-    return;
-  }
-
-  $("ranking").innerHTML=rows.map((row,index)=>{
-    const score=Math.max(0,Math.min(10,Number(row.score || 0)));
-    return `
-      <div class="rank">
-        <div class="rank-no">#${index+1}</div>
-        <div class="rank-symbol">${safe(row.ticker)}</div>
-        <div class="rank-track"><div style="width:${score*10}%"></div></div>
-        <div class="rank-score">${score}/10</div>
-      </div>`;
-  }).join("");
-}
-
-function renderSwingOpportunities(rows){
-  if(!rows.length){
-    $("opportunityGrid").innerHTML='<div class="empty">No SWING BUY candidates right now.</div>';
-    return;
-  }
-
-  $("opportunityGrid").innerHTML=rows.map(row=>`
-    <article class="opportunity">
-      <div class="op-top">
-        <div>
-          <div class="op-symbol">${safe(row.ticker)}</div>
-          <div class="op-source">HANZ SWING ENGINE · 1D + 1W</div>
-        </div>
-        <div class="priority-ring">${row.score ?? "—"}</div>
-      </div>
-
-      <span class="active-chip">SWING BUY</span>
-
-      <div class="levels">
-        <div class="level"><span>PRICE</span><strong>${price(row.price)}</strong></div>
-        <div class="level confirm"><span>BREAKOUT</span><strong>${price(row.breakout_level)}</strong></div>
-        <div class="level invalid"><span>STOP LOSS</span><strong>${price(row.stop_loss)}</strong></div>
-        <div class="level confirm"><span>TARGET 1</span><strong>${price(row.target_1)}</strong></div>
-        <div class="level confirm"><span>TARGET 2</span><strong>${price(row.target_2)}</strong></div>
-      </div>
-
-      <div class="reason">${safe(row.evidence || "Confirmed daily breakout + weekly bullish trend")}</div>
-    </article>`).join("");
-}
-
-function renderSwingMonitor(rows){
-  if(!rows.length){
-    $("liveSignalMonitor").innerHTML=
-      '<div class="empty large-empty">No confirmed SWING BUY right now.</div>';
-    return;
-  }
-
-  $("liveSignalMonitor").innerHTML=rows.map(row=>{
-    const score=Math.max(0,Math.min(10,Number(row.score || 0)));
-
-    return `
-      <article class="signal-card buy">
-        <div class="sig-head">
-          <div>
-            <div class="sig-ticker">${safe(row.ticker)}</div>
-            <div class="sig-price">Price ${price(row.price)}</div>
-            <span class="signal-source">📈 DAILY + WEEKLY</span>
-          </div>
-          <span class="signal-state buy">SWING BUY</span>
-        </div>
-
-        <div class="sig-score">
-          <span>Swing score</span>
-          <strong>${row.score ?? "—"}/10</strong>
-        </div>
-        <div class="sig-bar"><div style="width:${score*10}%"></div></div>
-
-        <div class="sig-trends">
-          <div class="sig-trend">
-            <span>DAILY TREND</span>
-            <strong class="${swingTrendClass(row.daily_trend)}">${safe(row.daily_trend || "UNKNOWN")}</strong>
-          </div>
-          <div class="sig-trend">
-            <span>WEEKLY TREND</span>
-            <strong class="${swingTrendClass(row.weekly_trend)}">${safe(row.weekly_trend || "UNKNOWN")}</strong>
-          </div>
-        </div>
-
-        <div class="sig-meta">
-          <div><span>DAILY RSI</span><strong>${row.daily_rsi == null ? "—" : Number(row.daily_rsi).toFixed(1)}</strong></div>
-          <div><span>WEEKLY RSI</span><strong>${row.weekly_rsi == null ? "—" : Number(row.weekly_rsi).toFixed(1)}</strong></div>
-          <div><span>DAILY RVOL</span><strong>${row.daily_rvol == null ? "—" : `${Number(row.daily_rvol).toFixed(2)}×`}</strong></div>
-          <div><span>BREAKOUT 20D</span><strong>${row.breakout ? "YES" : "NO"}</strong></div>
-          <div><span>STOP LOSS</span><strong>${price(row.stop_loss)}</strong></div>
-          <div><span>TARGET 1</span><strong>${price(row.target_1)}</strong></div>
-          <div><span>TARGET 2</span><strong>${price(row.target_2)}</strong></div>
-          <div><span>BREAKOUT</span><strong>${price(row.breakout_level)}</strong></div>
-        </div>
-
-        <div class="sig-evidence">${safe(row.evidence || "Confirmed daily breakout + weekly bullish trend")}</div>
-        <div class="sig-price" style="margin-top:7px">Engine ${formatTime(row.updated_at)}</div>
-      </article>`;
+      <div class="sig-evidence">${safe(row.evidence || "Confirmed daily breakout + weekly bullish trend")}</div>
+    </article>`;
   }).join("");
 }
 
@@ -2456,8 +1320,8 @@ function renderPortfolio(rows){
     $("portfolioGrid").innerHTML=`
       <div class="empty large-empty">
         <div class="empty-symbol">◉</div>
-        <strong>Swing portfolio is empty</strong>
-        <p>Add your first swing position and HANZ will begin monitoring its SL, targets and trailing logic.</p>
+        <strong>Portfolio is empty</strong>
+        <p>Add your first stock position and HANZ will begin monitoring it.</p>
         <button class="primary-btn" id="emptyAddPositionButton">+ Add Position</button>
       </div>`;
     $("emptyAddPositionButton").addEventListener("click",openPositionModal);
@@ -2509,7 +1373,7 @@ function renderPortfolio(rows){
         </div>
 
         <div class="signal-row">
-          <span>SWING SIGNAL</span>
+          <span>HANZ SIGNAL</span>
           <strong>${safe(row.signal || "MONITOR")}</strong>
         </div>
 
@@ -2642,7 +1506,7 @@ async function savePosition(event){
     }else{
       payload.user_id=currentUser.id;
       payload.status="OPEN";
-      payload.signal="SWING_MONITOR";
+      payload.signal="MONITOR";
       payload.opened_at=new Date().toISOString();
 
       const {error}=await supabase.from("hanz_swing_portfolio").insert(payload);
@@ -2713,14 +1577,14 @@ async function loadAlerts(){
     $("alertsBox").innerHTML=`
       <div class="empty">
         <div class="empty-symbol">⚡</div>
-        Swing alerts will appear here when the Swing Engine creates trigger events.
+        Personal alerts will appear here when HANZ creates them.
       </div>`;
     return;
   }
 
   const rows=data || [];
   if(!rows.length){
-    $("alertsBox").innerHTML='<div class="empty"><div class="empty-symbol">⚡</div>No swing alerts yet.</div>';
+    $("alertsBox").innerHTML='<div class="empty"><div class="empty-symbol">⚡</div>No personal alerts yet.</div>';
     return;
   }
 
@@ -2747,7 +1611,7 @@ async function loadAll(){
   clearError();
 
   try{
-    await Promise.all([loadSwingBuy(),loadHealth()]);
+    await Promise.all([loadWatchlist(),loadHealth(),loadLiveSignalMonitor()]);
 
     if(currentUser){
       await Promise.all([loadPortfolio(),loadAlerts()]);
