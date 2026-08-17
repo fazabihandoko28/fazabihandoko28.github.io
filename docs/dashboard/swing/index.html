@@ -430,7 +430,7 @@ th{color:var(--muted)}
     <button class="secondary-btn" id="refreshButton">↻</button>
 
     <button id="pushButton" class="secondary-btn" style="display:none">🔔 Push OFF</button>
-    <button id="copyFcmTokenButton" class="secondary-btn" style="display:none">📋 Copy FCM Token</button>
+    <button id="copyFidButton" class="secondary-btn" style="display:none">📋 Copy FID</button>
 
     <button id="loginButton" class="primary-btn">Login</button>
 
@@ -743,11 +743,12 @@ import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
 import {
   getMessaging,
-  getToken,
   isSupported as isMessagingSupported,
   onMessage,
   onRegistered,
-  register as registerMessaging
+  onUnregistered,
+  register as registerMessaging,
+  unregister as unregisterMessaging
 } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-messaging.js";
 
 /* =========================================================
@@ -870,16 +871,16 @@ function renderPushState(){
 
   btn.classList.remove("push-on","push-denied");
 
-  const tokenBtn=$("copyFcmTokenButton");
+  const fidBtn=$("copyFidButton");
 
   if(!currentUser){
     btn.style.display="none";
-    if(tokenBtn) tokenBtn.style.display="none";
+    if(fidBtn) fidBtn.style.display="none";
     return;
   }
 
   btn.style.display="inline-flex";
-  if(tokenBtn) tokenBtn.style.display="inline-flex";
+  if(fidBtn) fidBtn.style.display="inline-flex";
 
   if(!("Notification" in window)){
     btn.textContent="🔕 Unsupported";
@@ -916,6 +917,17 @@ function renderPushState(){
 
 async function upsertPushDevice(installationId){
   if(!currentUser || !installationId) return;
+
+  // Keep only the currently registered FID enabled for this user.
+  const {error:disableError}=await supabase
+    .from("hanz_push_devices")
+    .update({
+      enabled:false,
+      last_seen_at:new Date().toISOString()
+    })
+    .eq("user_id",currentUser.id);
+
+  if(disableError) throw disableError;
 
   const payload = {
     user_id: currentUser.id,
@@ -990,6 +1002,31 @@ async function initPushMessaging(){
       }
     });
 
+    onUnregistered(firebaseMessaging, async installationId=>{
+      try{
+        if(currentUser && installationId){
+          await supabase
+            .from("hanz_push_devices")
+            .update({
+              enabled:false,
+              last_seen_at:new Date().toISOString()
+            })
+            .eq("user_id",currentUser.id)
+            .eq("installation_id",installationId);
+        }
+
+        if(currentInstallationId===installationId){
+          currentInstallationId=null;
+        }
+
+        pushReady=false;
+        renderPushState();
+        console.log("HANZ FID unregistered:", installationId);
+      }catch(error){
+        console.warn("HANZ unregister sync warning:",error);
+      }
+    });
+
     onMessage(firebaseMessaging, payload=>{
       const data = payload?.data || {};
       const title = data.title || "HANZ Alert";
@@ -1058,7 +1095,7 @@ async function disablePush(){
   try{
     setPushDisabledByUser(true);
 
-    let query=supabase
+    const {error}=await supabase
       .from("hanz_push_devices")
       .update({
         enabled:false,
@@ -1066,13 +1103,19 @@ async function disablePush(){
       })
       .eq("user_id",currentUser.id);
 
-    if(currentInstallationId){
-      query=query.eq("installation_id",currentInstallationId);
-    }
-
-    const {error}=await query;
     if(error) throw error;
 
+    // Modern FCM registration lifecycle: unregister the FID.
+    // If it is already stale/unregistered, keep HANZ OFF anyway.
+    try{
+      if(firebaseMessaging){
+        await unregisterMessaging(firebaseMessaging);
+      }
+    }catch(error){
+      console.warn("FCM unregister warning:",error);
+    }
+
+    currentInstallationId=null;
     pushReady=false;
     renderPushState();
     notify("HANZ push notifications disabled on this device.");
@@ -1125,15 +1168,15 @@ async function syncPushIfAlreadyGranted(){
 }
 
 
-async function copyFcmTestToken(){
+async function copyCurrentFid(){
   if(!currentUser){
     openAuth("login");
     return;
   }
 
   try{
-    if(Notification.permission !== "granted"){
-      notify("Enable Push first, then try Copy FCM Token again.","error");
+    if(pushDisabledByUser()){
+      notify("Turn Push ON first.","error");
       return;
     }
 
@@ -1143,25 +1186,32 @@ async function copyFcmTestToken(){
       return;
     }
 
-    const token=await getToken(firebaseMessaging,{
+    // Trigger a modern FID registration refresh. The FID itself is delivered
+    // asynchronously to onRegistered().
+    await registerMessaging(firebaseMessaging,{
       vapidKey:FIREBASE_VAPID_KEY,
       serviceWorkerRegistration:pushServiceWorkerRegistration
     });
 
-    if(!token){
-      notify("FCM token is not available yet. Turn Push OFF, then ON, and try again.","error");
+    // Give onRegistered a moment to update currentInstallationId.
+    for(let i=0;i<20 && !currentInstallationId;i++){
+      await new Promise(resolve=>setTimeout(resolve,100));
+    }
+
+    if(!currentInstallationId){
+      notify("FID is not available yet. Wait a moment and try again.","error");
       return;
     }
 
     try{
-      await navigator.clipboard.writeText(token);
-      notify("FCM registration token copied.");
+      await navigator.clipboard.writeText(currentInstallationId);
+      notify("Firebase Installation ID copied.");
     }catch(_){
-      window.prompt("Copy this FCM registration token:",token);
+      window.prompt("Copy this Firebase Installation ID:",currentInstallationId);
     }
   }catch(error){
     console.error(error);
-    notify("Failed to get FCM token: " + error.message,"error");
+    notify("Failed to get FID: " + error.message,"error");
   }
 }
 
@@ -1946,7 +1996,7 @@ window.addEventListener("DOMContentLoaded",async ()=>{
 
   $("refreshButton").addEventListener("click",loadAll);
   $("pushButton").addEventListener("click",togglePush);
-  $("copyFcmTokenButton").addEventListener("click",copyFcmTestToken);
+  $("copyFidButton").addEventListener("click",copyCurrentFid);
   $("loginButton").addEventListener("click",()=>openAuth("login"));
   $("logoutButton").addEventListener("click",logout);
   $("portfolioLoginButton").addEventListener("click",()=>openAuth("login"));
