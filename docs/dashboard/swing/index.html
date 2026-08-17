@@ -124,6 +124,48 @@ button{cursor:pointer}
 .kpi small{display:block;margin-top:5px;color:var(--muted);font-size:9px}
 .green-text{color:var(--green)!important}.red-text{color:#ff8992!important}.yellow-text{color:var(--yellow)!important}
 
+async function copyFcmTestToken(){
+  if(!currentUser){
+    openAuth("login");
+    return;
+  }
+
+  try{
+    if(Notification.permission !== "granted"){
+      notify("Enable Push first so browser notification permission is granted.","error");
+      return;
+    }
+
+    const okay=await initPushMessaging();
+    if(!okay){
+      notify("Push messaging is not supported on this browser.","error");
+      return;
+    }
+
+    const token=await getToken(firebaseMessaging,{
+      vapidKey:FIREBASE_VAPID_KEY,
+      serviceWorkerRegistration:pushServiceWorkerRegistration
+    });
+
+    if(!token){
+      notify("FCM token is not available yet. Toggle Push OFF then ON and try again.","error");
+      return;
+    }
+
+    try{
+      await navigator.clipboard.writeText(token);
+      notify("FCM test token copied to clipboard.");
+    }catch(_){
+      window.prompt("Copy this FCM registration token:",token);
+    }
+
+    console.log("HANZ FCM TEST TOKEN:",token);
+  }catch(error){
+    console.error(error);
+    notify("Failed to get FCM token: " + error.message,"error");
+  }
+}
+
 
 /* NAV */
 .desktop-nav{
@@ -430,6 +472,7 @@ th{color:var(--muted)}
     <button class="secondary-btn" id="refreshButton">↻</button>
 
     <button id="pushButton" class="secondary-btn" style="display:none">🔔 Push OFF</button>
+    <button id="copyFcmTokenButton" class="secondary-btn" style="display:none">📋 Copy FCM Token</button>
 
     <button id="loginButton" class="primary-btn">Login</button>
 
@@ -868,12 +911,16 @@ function renderPushState(){
 
   btn.classList.remove("push-on","push-denied");
 
+  const tokenBtn=$("copyFcmTokenButton");
+
   if(!currentUser){
     btn.style.display="none";
+    if(tokenBtn) tokenBtn.style.display="none";
     return;
   }
 
   btn.style.display="inline-flex";
+  if(tokenBtn) tokenBtn.style.display="inline-flex";
 
   if(!("Notification" in window)){
     btn.textContent="🔕 Unsupported";
@@ -1892,6 +1939,7 @@ window.addEventListener("DOMContentLoaded",async ()=>{
 
   $("refreshButton").addEventListener("click",loadAll);
   $("pushButton").addEventListener("click",togglePush);
+  $("copyFcmTokenButton").addEventListener("click",copyFcmTestToken);
   $("loginButton").addEventListener("click",()=>openAuth("login"));
   $("logoutButton").addEventListener("click",logout);
   $("portfolioLoginButton").addEventListener("click",()=>openAuth("login"));
