@@ -1,21 +1,19 @@
-name: HANZ Swing Engine
+name: HANZ Swing Scanner
 
 on:
   workflow_dispatch:
 
   schedule:
-    # IDX / WIB schedule (GitHub cron is UTC)
-    # 09:10 WIB = Session I portfolio/risk monitor
-    # 12:10 WIB = Midday portfolio/risk monitor
-    # 16:10 WIB = Post-close FINAL Swing scan
-    # Calendar gate inside Python blocks weekends and IDX holidays.
-    - cron: "10 2,5,9 * * 1-5"
+    # 16:10 WIB = 09:10 UTC
+    # Full 200-stock scan only after IDX close.
+    # Python calendar gate blocks weekends and IDX holidays.
+    - cron: "10 9 * * 1-5"
 
 permissions:
   contents: read
 
 concurrency:
-  group: hanz-swing-engine
+  group: hanz-swing-scanner
   cancel-in-progress: false
 
 jobs:
@@ -49,6 +47,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run HANZ Swing Engine
+      - name: Run HANZ Swing Scanner
         run: |
           python -m hanz_app.swing_trading_engine
