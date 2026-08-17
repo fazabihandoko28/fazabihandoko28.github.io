@@ -24,8 +24,12 @@ jobs:
       PYTHONPATH: src
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+      FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+      HANZ_SWING_DASHBOARD_URL: https://fazabihandoko28.github.io/dashboard/swing/
       HANZ_SWING_RUN_ONCE: "1"
       HANZ_SWING_MAX_SYMBOLS_PER_CYCLE: "220"
+      HANZ_SWING_TRAILING_ATR_T1: "1.5"
+      HANZ_SWING_TRAILING_ATR_T2: "1.0"
 
     steps:
       - name: Checkout HANZ repository
