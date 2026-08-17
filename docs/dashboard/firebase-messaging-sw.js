@@ -1,11 +1,9 @@
 /* HANZ Firebase Messaging Service Worker
-   Scope: /dashboard/
-   File: docs/dashboard/firebase-messaging-sw.js
+   Force-show background notifications for both:
+   - notification payloads
+   - data-only payloads
 */
 
-/*
-  Register notificationclick BEFORE importing Firebase Messaging.
-*/
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
 
@@ -15,26 +13,24 @@ self.addEventListener("notificationclick", (event) => {
   ).href;
 
   event.waitUntil(
-    clients
-      .matchAll({
-        type: "window",
-        includeUncontrolled: true
-      })
-      .then((clientList) => {
-        for (const client of clientList) {
-          if ("focus" in client) {
-            try {
-              client.navigate(targetUrl);
-            } catch (_) {}
+    clients.matchAll({
+      type: "window",
+      includeUncontrolled: true
+    }).then((clientList) => {
+      for (const client of clientList) {
+        if ("focus" in client) {
+          try {
+            client.navigate(targetUrl);
+          } catch (_) {}
 
-            return client.focus();
-          }
+          return client.focus();
         }
+      }
 
-        if (clients.openWindow) {
-          return clients.openWindow(targetUrl);
-        }
-      })
+      if (clients.openWindow) {
+        return clients.openWindow(targetUrl);
+      }
+    })
   );
 });
 
@@ -59,51 +55,45 @@ const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage((payload) => {
   console.log(
-    "[HANZ SW] Background FCM message received:",
+    "[HANZ SW] Background message received:",
     payload
   );
 
-  /*
-    Notification messages sent by Firebase Console
-    are normally displayed automatically by FCM
-    when the web app is in the background.
+  const notification =
+    payload?.notification || {};
 
-    HANZ backend data-only messages are displayed
-    manually below.
-  */
-  if (payload?.notification) {
-    console.log(
-      "[HANZ SW] Notification payload detected; FCM handles display."
-    );
-    return;
-  }
-
-  const data = payload?.data || {};
+  const data =
+    payload?.data || {};
 
   const title =
+    notification.title ||
     data.title ||
     "HANZ Swing Alert";
 
   const options = {
     body:
+      notification.body ||
       data.body ||
       data.message ||
       "New HANZ trading alert.",
 
     tag:
+      notification.tag ||
       data.dedupe_key ||
       data.alert_id ||
-      undefined,
+      "hanz-swing-alert",
 
-    renotify: false,
+    renotify: true,
 
     data: {
       url:
         data.url ||
         "/dashboard/swing/",
+
       ticker:
         data.ticker ||
         null,
+
       alert_type:
         data.alert_type ||
         null
