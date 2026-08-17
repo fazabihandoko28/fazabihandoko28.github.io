@@ -1160,7 +1160,7 @@ async function loadWatchlist(){
     $("topCandidate").textContent=top.ticker;
     $("topCandidateSub").textContent=`Score ${top.score ?? "—"}/10`;
     $("heroTopCandidate").textContent=top.ticker;
-    $("heroTopSub").textContent=`SWING BUY · Score ${top.score ?? "—"}/10`;
+    $("heroTopSub").textContent=`SWING BUY · Swing ${top.score ?? "—"}/10 · Discount ${top.discount_score ?? "—"}/100 · Fundamental ${top.fundamental_score ?? "—"}/100`;
     $("lastUpdate").textContent=formatTime(top.updated_at);
     $("lastUpdateDate").textContent=`${formatDate(top.updated_at)} · Last completed Swing scan`;
   }else{
@@ -1186,7 +1186,7 @@ function renderRanking(rows){
       <div class="rank-no">#${index+1}</div>
       <div class="rank-symbol">${safe(row.ticker)}</div>
       <div class="rank-track"><div style="width:${score*10}%"></div></div>
-      <div class="rank-score">${score}/10</div>
+      <div class="rank-score">${score}/10 · D${row.discount_score==null?"—":Math.round(Number(row.discount_score))}</div>
     </div>`;
   }).join("");
 }
@@ -1206,13 +1206,28 @@ function renderOpportunities(rows){
         <div class="priority-ring">${row.score ?? "—"}</div>
       </div>
       <span class="active-chip">SWING BUY</span>
+      <span class="active-chip">${safe((row.discount_label || "DISCOUNT N/A").replaceAll("_"," "))}</span>
       <div class="levels">
         <div class="level"><span>PRICE</span><strong>${price(row.price)}</strong></div>
+        <div class="level confirm"><span>DISCOUNT SCORE</span><strong>${row.discount_score==null?"—":Number(row.discount_score).toFixed(0)+"/100"}</strong></div>
+        <div class="level confirm"><span>FUNDAMENTAL</span><strong>${row.fundamental_score==null?"—":Number(row.fundamental_score).toFixed(0)+"/100"} · ${safe(row.fundamental_label || "N/A")}</strong></div>
+        <div class="level"><span>REVENUE GROWTH</span><strong>${row.revenue_growth_pct==null?"—":Number(row.revenue_growth_pct).toFixed(1)+"%"}</strong></div>
+        <div class="level"><span>PROFIT GROWTH</span><strong>${row.net_income_growth_pct==null?"—":Number(row.net_income_growth_pct).toFixed(1)+"%"}</strong></div>
+        <div class="level"><span>ROE</span><strong>${row.roe_pct==null?"—":Number(row.roe_pct).toFixed(1)+"%"}</strong></div>
+        <div class="level"><span>DEBT / EQUITY</span><strong>${row.debt_to_equity==null?"—":Number(row.debt_to_equity).toFixed(2)+"x"}</strong></div>
+        <div class="level"><span>NET MARGIN</span><strong>${row.net_margin_pct==null?"—":Number(row.net_margin_pct).toFixed(1)+"%"}</strong></div>
+        <div class="level"><span>SECTOR</span><strong>${safe(row.sector || "—")}</strong></div>
+        <div class="level"><span>ANALYST TARGET</span><strong>${price(row.analyst_target_mean)}</strong></div>
+        <div class="level confirm"><span>ANALYST UPSIDE</span><strong>${row.analyst_upside_pct==null?"—":Number(row.analyst_upside_pct).toFixed(1)+"%"}</strong></div>
+        <div class="level"><span>52W HIGH</span><strong>${price(row.week52_high)}</strong></div>
+        <div class="level"><span>BELOW 52W HIGH</span><strong>${row.week52_discount_pct==null?"—":Number(row.week52_discount_pct).toFixed(1)+"%"}</strong></div>
         <div class="level confirm"><span>BREAKOUT</span><strong>${price(row.breakout_level)}</strong></div>
         <div class="level invalid"><span>STOP LOSS</span><strong>${price(row.stop_loss)}</strong></div>
         <div class="level confirm"><span>TARGET 1</span><strong>${price(row.target_1)}</strong></div>
         <div class="level confirm"><span>TARGET 2</span><strong>${price(row.target_2)}</strong></div>
       </div>
+      <div class="reason"><strong>Fundamental:</strong> ${safe(row.fundamental_reason || "Fundamental data unavailable")}</div>
+      <div class="reason"><strong>Discount:</strong> ${safe(row.discount_reason || "")}</div>
       <div class="reason">${safe(row.evidence || "Confirmed daily breakout + weekly bullish trend")}</div>
     </article>`).join("");
 }
@@ -1231,9 +1246,14 @@ function renderLiveSignalMonitor(rows){
           <div class="sig-price">Price ${price(row.price)}</div>
           <span class="signal-source">📈 DAILY + WEEKLY</span>
         </div>
-        <span class="signal-state buy">SWING BUY</span>
+        <div>
+          <span class="signal-state buy">SWING BUY</span>
+          <span class="signal-state buy">${safe((row.discount_label || "DISCOUNT N/A").replaceAll("_"," "))}</span>
+        </div>
       </div>
       <div class="sig-score"><span>Swing score</span><strong>${row.score ?? "—"}/10</strong></div>
+      <div class="sig-score"><span>Discount score</span><strong>${row.discount_score==null?"—":Number(row.discount_score).toFixed(0)+"/100"} · ${safe(row.discount_confidence || "—")}</strong></div>
+      <div class="sig-score"><span>Fundamental score</span><strong>${row.fundamental_score==null?"—":Number(row.fundamental_score).toFixed(0)+"/100"} · ${safe(row.fundamental_label || "—")} · ${safe(row.fundamental_confidence || "—")}</strong></div>
       <div class="sig-bar"><div style="width:${score*10}%"></div></div>
       <div class="sig-trends">
         <div class="sig-trend"><span>DAILY TREND</span><strong>${safe(row.daily_trend || "—")}</strong></div>
@@ -1244,11 +1264,23 @@ function renderLiveSignalMonitor(rows){
         <div><span>WEEKLY RSI</span><strong>${row.weekly_rsi==null?"—":Number(row.weekly_rsi).toFixed(1)}</strong></div>
         <div><span>DAILY RVOL</span><strong>${row.daily_rvol==null?"—":Number(row.daily_rvol).toFixed(2)+"×"}</strong></div>
         <div><span>BREAKOUT 20D</span><strong>${row.breakout ? "YES" : "NO"}</strong></div>
+        <div><span>ANALYST TARGET</span><strong>${price(row.analyst_target_mean)}</strong></div>
+        <div><span>ANALYST UPSIDE</span><strong>${row.analyst_upside_pct==null?"—":Number(row.analyst_upside_pct).toFixed(1)+"%"}</strong></div>
+        <div><span>52W HIGH</span><strong>${price(row.week52_high)}</strong></div>
+        <div><span>52W DISCOUNT</span><strong>${row.week52_discount_pct==null?"—":Number(row.week52_discount_pct).toFixed(1)+"%"}</strong></div>
+        <div><span>REVENUE GROWTH</span><strong>${row.revenue_growth_pct==null?"—":Number(row.revenue_growth_pct).toFixed(1)+"%"}</strong></div>
+        <div><span>PROFIT GROWTH</span><strong>${row.net_income_growth_pct==null?"—":Number(row.net_income_growth_pct).toFixed(1)+"%"}</strong></div>
+        <div><span>ROE</span><strong>${row.roe_pct==null?"—":Number(row.roe_pct).toFixed(1)+"%"}</strong></div>
+        <div><span>D/E</span><strong>${row.debt_to_equity==null?"—":Number(row.debt_to_equity).toFixed(2)+"x"}</strong></div>
+        <div><span>NET MARGIN</span><strong>${row.net_margin_pct==null?"—":Number(row.net_margin_pct).toFixed(1)+"%"}</strong></div>
+        <div><span>SECTOR</span><strong>${safe(row.sector || "—")}</strong></div>
         <div><span>STOP LOSS</span><strong>${price(row.stop_loss)}</strong></div>
         <div><span>TARGET 1</span><strong>${price(row.target_1)}</strong></div>
         <div><span>TARGET 2</span><strong>${price(row.target_2)}</strong></div>
         <div><span>BREAKOUT</span><strong>${price(row.breakout_level)}</strong></div>
       </div>
+      <div class="sig-evidence"><strong>Fundamental:</strong> ${safe(row.fundamental_reason || "Fundamental data unavailable")}</div>
+      <div class="sig-evidence"><strong>Discount:</strong> ${safe(row.discount_reason || "")}</div>
       <div class="sig-evidence">${safe(row.evidence || "Confirmed daily breakout + weekly bullish trend")}</div>
     </article>`;
   }).join("");
