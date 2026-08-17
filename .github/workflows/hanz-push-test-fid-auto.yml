@@ -1,0 +1,114 @@
+name: HANZ Push Test FID Auto
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  send-test-push:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    env:
+      FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install "firebase-admin>=7.5.0" requests
+
+      - name: Send test to latest enabled FID
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import sys
+          import requests
+
+          import firebase_admin
+          from firebase_admin import credentials, messaging
+
+          service_account_raw = os.getenv("FIREBASE_SERVICE_ACCOUNT_JSON", "").strip()
+          supabase_url = os.getenv("SUPABASE_URL", "").rstrip("/")
+          supabase_key = os.getenv("SUPABASE_SECRET_KEY", "").strip()
+
+          if not service_account_raw:
+              print("ERROR: FIREBASE_SERVICE_ACCOUNT_JSON secret is missing.")
+              sys.exit(1)
+          if not supabase_url or not supabase_key:
+              print("ERROR: SUPABASE_URL or SUPABASE_SECRET_KEY secret is missing.")
+              sys.exit(1)
+
+          # Pull the freshest FID that HANZ itself currently considers enabled.
+          endpoint = (
+              f"{supabase_url}/rest/v1/hanz_push_devices"
+              "?enabled=eq.true"
+              "&select=installation_id,last_seen_at,platform"
+              "&order=last_seen_at.desc"
+              "&limit=1"
+          )
+          headers = {
+              "apikey": supabase_key,
+              "Authorization": f"Bearer {supabase_key}",
+          }
+
+          response = requests.get(endpoint, headers=headers, timeout=20)
+          if response.status_code >= 300:
+              print("ERROR: Supabase device lookup failed:", response.status_code, response.text)
+              sys.exit(1)
+
+          rows = response.json()
+          if not rows:
+              print("ERROR: No enabled FID found in hanz_push_devices.")
+              sys.exit(1)
+
+          row = rows[0]
+          fid = (row.get("installation_id") or "").strip()
+          if not fid:
+              print("ERROR: Latest enabled device row has no installation_id.")
+              sys.exit(1)
+
+          print("Using latest enabled HANZ FID.")
+          print("Last seen:", row.get("last_seen_at"))
+          print("Platform:", row.get("platform"))
+
+          service_account = json.loads(service_account_raw)
+
+          if not firebase_admin._apps:
+              firebase_admin.initialize_app(
+                  credentials.Certificate(service_account)
+              )
+
+          message = messaging.Message(
+              fid=fid,
+              data={
+                  "title": "HANZ FID AUTO TEST",
+                  "body": "Latest registered HANZ device received this push.",
+                  "message": "Latest registered HANZ device received this push.",
+                  "ticker": "TEST",
+                  "alert_type": "TEST_PUSH",
+                  "dedupe_key": "hanz-fid-auto-test",
+                  "url": "/dashboard/swing/"
+              }
+          )
+
+          try:
+              msg_id = messaging.send(message)
+              print("HANZ FID AUTO TEST SENT SUCCESSFULLY")
+              print("Firebase message id:", msg_id)
+          except Exception as exc:
+              print("HANZ FID AUTO TEST FAILED")
+              print(type(exc).__name__ + ":", exc)
+              sys.exit(1)
+          PY
