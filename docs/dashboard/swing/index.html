@@ -913,8 +913,8 @@ async function initPushMessaging(){
 
   if(!pushServiceWorkerRegistration){
     pushServiceWorkerRegistration = await navigator.serviceWorker.register(
-      "./firebase-messaging-sw.js",
-      {scope:"./"}
+      "/dashboard/firebase-messaging-sw.js",
+      {scope:"/dashboard/"}
     );
   }
 
