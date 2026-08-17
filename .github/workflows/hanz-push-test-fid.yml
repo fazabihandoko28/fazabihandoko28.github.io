@@ -1,0 +1,92 @@
+name: HANZ Push Test FID
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  send-test-push:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    env:
+      FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+      HANZ_TEST_FID: ${{ secrets.HANZ_TEST_FID }}
+
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Firebase Admin SDK
+        run: |
+          python -m pip install --upgrade pip
+          pip install "firebase-admin>=7.5.0"
+
+      - name: Send HANZ FID web-push test
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import sys
+
+          import firebase_admin
+          from firebase_admin import credentials, messaging
+
+          service_account_raw = os.getenv("FIREBASE_SERVICE_ACCOUNT_JSON", "").strip()
+          fid = os.getenv("HANZ_TEST_FID", "").strip()
+
+          if not service_account_raw:
+              print("ERROR: FIREBASE_SERVICE_ACCOUNT_JSON secret is missing.")
+              sys.exit(1)
+
+          if not fid:
+              print("ERROR: HANZ_TEST_FID secret is missing.")
+              sys.exit(1)
+
+          service_account = json.loads(service_account_raw)
+
+          if not firebase_admin._apps:
+              firebase_admin.initialize_app(
+                  credentials.Certificate(service_account)
+              )
+
+          message = messaging.Message(
+              fid=fid,
+              data={
+                  "title": "HANZ FID TEST",
+                  "body": "HANZ push via Firebase Installation ID is working.",
+                  "message": "HANZ push via Firebase Installation ID is working.",
+                  "ticker": "TEST",
+                  "alert_type": "TEST_PUSH",
+                  "dedupe_key": "hanz-fid-push-test",
+                  "url": "/dashboard/swing/"
+              },
+              webpush=messaging.WebpushConfig(
+                  notification=messaging.WebpushNotification(
+                      title="HANZ FID TEST",
+                      body="HANZ push via Firebase Installation ID is working.",
+                      tag="hanz-fid-push-test",
+                      data={
+                          "url": "/dashboard/swing/",
+                          "ticker": "TEST",
+                          "alert_type": "TEST_PUSH"
+                      }
+                  )
+              )
+          )
+
+          try:
+              response = messaging.send(message)
+              print("HANZ FID PUSH TEST SENT SUCCESSFULLY")
+              print("Target FID:", fid)
+              print("Firebase message id:", response)
+          except Exception as exc:
+              print("HANZ FID PUSH TEST FAILED")
+              print(type(exc).__name__ + ":", exc)
+              sys.exit(1)
+          PY
