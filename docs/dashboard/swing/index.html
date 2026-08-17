@@ -843,6 +843,25 @@ function clearError(){
 
 
 /* PUSH NOTIFICATIONS */
+function pushPreferenceKey(){
+  return currentUser ? `hanz_push_disabled_${currentUser.id}` : "hanz_push_disabled";
+}
+
+function pushDisabledByUser(){
+  try{
+    return localStorage.getItem(pushPreferenceKey()) === "1";
+  }catch(_){
+    return false;
+  }
+}
+
+function setPushDisabledByUser(disabled){
+  try{
+    if(disabled) localStorage.setItem(pushPreferenceKey(),"1");
+    else localStorage.removeItem(pushPreferenceKey());
+  }catch(_){}
+}
+
 function renderPushState(){
   const btn = $("pushButton");
   if(!btn) return;
@@ -870,8 +889,13 @@ function renderPushState(){
     return;
   }
 
+  if(pushDisabledByUser()){
+    btn.textContent="🔕 Push OFF — tap to enable";
+    return;
+  }
+
   if(pushReady && currentInstallationId){
-    btn.textContent="🔔 Push ON";
+    btn.textContent="🔔 Push ON — tap to disable";
     btn.classList.add("push-on");
   }else{
     btn.textContent="🔔 Enable Push";
@@ -924,6 +948,26 @@ async function initPushMessaging(){
     onRegistered(firebaseMessaging, async installationId=>{
       try{
         currentInstallationId = installationId;
+
+        if(pushDisabledByUser()){
+          const {error}=await supabase
+            .from("hanz_push_devices")
+            .upsert({
+              user_id:currentUser.id,
+              installation_id:installationId,
+              platform:navigator.platform || null,
+              user_agent:navigator.userAgent || null,
+              enabled:false,
+              last_seen_at:new Date().toISOString()
+            },{onConflict:"user_id,installation_id"});
+          if(error) throw error;
+
+          pushReady=false;
+          renderPushState();
+          console.log("HANZ push remains disabled:", installationId);
+          return;
+        }
+
         await upsertPushDevice(installationId);
         pushReady = true;
         renderPushState();
@@ -939,7 +983,11 @@ async function initPushMessaging(){
       const title = data.title || "HANZ Alert";
       const body = data.body || data.message || "New HANZ trading alert.";
 
-      if(Notification.permission === "granted" && pushServiceWorkerRegistration){
+      if(
+        Notification.permission === "granted" &&
+        pushServiceWorkerRegistration &&
+        !pushDisabledByUser()
+      ){
         pushServiceWorkerRegistration.showNotification(title,{
           body,
           tag:data.dedupe_key || data.alert_id || undefined,
@@ -963,6 +1011,7 @@ async function enablePush(){
   }
 
   try{
+    setPushDisabledByUser(false);
     const okay = await initPushMessaging();
     if(!okay){
       notify("Push notification is not supported on this browser.","error");
@@ -989,8 +1038,64 @@ async function enablePush(){
   }
 }
 
+async function disablePush(){
+  if(!currentUser) return;
+
+  try{
+    setPushDisabledByUser(true);
+
+    let query=supabase
+      .from("hanz_push_devices")
+      .update({
+        enabled:false,
+        last_seen_at:new Date().toISOString()
+      })
+      .eq("user_id",currentUser.id);
+
+    if(currentInstallationId){
+      query=query.eq("installation_id",currentInstallationId);
+    }
+
+    const {error}=await query;
+    if(error) throw error;
+
+    pushReady=false;
+    renderPushState();
+    notify("HANZ push notifications disabled on this device.");
+  }catch(error){
+    setPushDisabledByUser(false);
+    console.error(error);
+    notify("Failed to disable push: " + error.message,"error");
+    renderPushState();
+  }
+}
+
+async function togglePush(){
+  if(!currentUser){
+    openAuth("login");
+    return;
+  }
+
+  const btn=$("pushButton");
+  const looksOn=!!btn && btn.classList.contains("push-on");
+
+  if(!pushDisabledByUser() && (looksOn || pushReady || currentInstallationId)){
+    await disablePush();
+    return;
+  }
+
+  setPushDisabledByUser(false);
+  renderPushState();
+  await enablePush();
+}
+
 async function syncPushIfAlreadyGranted(){
   if(!currentUser || Notification.permission !== "granted") return;
+  if(pushDisabledByUser()){
+    pushReady=false;
+    renderPushState();
+    return;
+  }
 
   try{
     const okay = await initPushMessaging();
@@ -1786,7 +1891,7 @@ window.addEventListener("DOMContentLoaded",async ()=>{
   });
 
   $("refreshButton").addEventListener("click",loadAll);
-  $("pushButton").addEventListener("click",enablePush);
+  $("pushButton").addEventListener("click",togglePush);
   $("loginButton").addEventListener("click",()=>openAuth("login"));
   $("logoutButton").addEventListener("click",logout);
   $("portfolioLoginButton").addEventListener("click",()=>openAuth("login"));
