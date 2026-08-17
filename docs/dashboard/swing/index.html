@@ -900,12 +900,18 @@ function renderPushState(){
     return;
   }
 
-  if(pushReady && currentInstallationId){
+  // Browser notification permission survives page/browser restart.
+  // If permission is still granted and the user has not explicitly
+  // disabled HANZ push, show the persisted state as ON immediately.
+  // syncPushIfAlreadyGranted() will refresh the Firebase registration
+  // in the background after login.
+  if(Notification.permission === "granted"){
     btn.textContent="🔔 Push ON — tap to disable";
     btn.classList.add("push-on");
-  }else{
-    btn.textContent="🔔 Enable Push";
+    return;
   }
+
+  btn.textContent="🔔 Enable Push";
 }
 
 async function upsertPushDevice(installationId){
@@ -1037,6 +1043,8 @@ async function enablePush(){
       serviceWorkerRegistration:pushServiceWorkerRegistration
     });
 
+    try{ localStorage.setItem(`hanz_push_ever_enabled_${currentUser.id}`,"1"); }catch(_){}
+    renderPushState();
     notify("HANZ push notifications enabled.");
   }catch(error){
     console.error(error);
