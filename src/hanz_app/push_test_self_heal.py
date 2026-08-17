@@ -1,110 +1,146 @@
-"""
-HANZ Firebase push sender with automatic stale-FID cleanup.
-
-Expected environment:
-- FIREBASE_SERVICE_ACCOUNT_JSON
-- SUPABASE_URL
-- SUPABASE_SECRET_KEY
-"""
-
 import json
 import os
+import sys
 from datetime import datetime, timezone
 
 import firebase_admin
 import requests
 from firebase_admin import credentials, messaging
-from firebase_admin.exceptions import FirebaseError
 
 
-SUPABASE_URL = os.getenv("SUPABASE_URL", "").rstrip("/")
-SUPABASE_SECRET_KEY = os.getenv("SUPABASE_SECRET_KEY", "")
-FIREBASE_SERVICE_ACCOUNT_JSON = os.getenv(
-    "FIREBASE_SERVICE_ACCOUNT_JSON", ""
-)
+def main():
+    service_account_raw = os.getenv(
+        "FIREBASE_SERVICE_ACCOUNT_JSON", ""
+    ).strip()
+    supabase_url = os.getenv(
+        "SUPABASE_URL", ""
+    ).rstrip("/")
+    supabase_key = os.getenv(
+        "SUPABASE_SECRET_KEY", ""
+    ).strip()
 
+    if not service_account_raw:
+        print("ERROR: FIREBASE_SERVICE_ACCOUNT_JSON is missing.")
+        return 1
 
-def _headers():
-    return {
-        "apikey": SUPABASE_SECRET_KEY,
-        "Authorization": f"Bearer {SUPABASE_SECRET_KEY}",
+    if not supabase_url or not supabase_key:
+        print("ERROR: Supabase secrets are missing.")
+        return 1
+
+    headers = {
+        "apikey": supabase_key,
+        "Authorization": f"Bearer {supabase_key}",
         "Content-Type": "application/json",
     }
 
+    def get_enabled_devices():
+        url = (
+            f"{supabase_url}/rest/v1/hanz_push_devices"
+            "?enabled=eq.true"
+            "&select=id,installation_id,last_seen_at,platform"
+            "&order=last_seen_at.desc"
+            "&limit=10"
+        )
+        response = requests.get(
+            url,
+            headers=headers,
+            timeout=20,
+        )
+        response.raise_for_status()
+        return response.json()
 
-def _ensure_firebase():
-    if firebase_admin._apps:
-        return
+    def disable_fid(fid):
+        url = (
+            f"{supabase_url}/rest/v1/hanz_push_devices"
+            f"?installation_id=eq.{fid}"
+        )
+        response = requests.patch(
+            url,
+            headers=headers,
+            json={
+                "enabled": False,
+                "last_seen_at": datetime.now(
+                    timezone.utc
+                ).isoformat(),
+            },
+            timeout=20,
+        )
+        response.raise_for_status()
 
-    if not FIREBASE_SERVICE_ACCOUNT_JSON:
-        raise RuntimeError(
-            "FIREBASE_SERVICE_ACCOUNT_JSON is missing"
+    service_account = json.loads(service_account_raw)
+
+    if not firebase_admin._apps:
+        firebase_admin.initialize_app(
+            credentials.Certificate(service_account)
         )
 
-    service_account = json.loads(
-        FIREBASE_SERVICE_ACCOUNT_JSON
+    devices = get_enabled_devices()
+
+    if not devices:
+        print("ERROR: No enabled HANZ FID found.")
+        return 1
+
+    for row in devices:
+        fid = (
+            row.get("installation_id") or ""
+        ).strip()
+
+        if not fid:
+            continue
+
+        print(
+            "Trying FID:",
+            "last_seen=",
+            row.get("last_seen_at"),
+            "platform=",
+            row.get("platform"),
+        )
+
+        message = messaging.Message(
+            fid=fid,
+            data={
+                "title": "HANZ SELF-HEAL TEST",
+                "body": "Self-healing FID delivery is working.",
+                "message": "Self-healing FID delivery is working.",
+                "ticker": "TEST",
+                "alert_type": "TEST_PUSH",
+                "dedupe_key": "hanz-self-heal-test",
+                "url": "/dashboard/swing/",
+            },
+        )
+
+        try:
+            message_id = messaging.send(message)
+            print("HANZ SELF-HEAL TEST SENT SUCCESSFULLY")
+            print("Firebase message id:", message_id)
+            return 0
+
+        except messaging.UnregisteredError:
+            print(
+                "FID is NotRegistered. "
+                "Disabling it in Supabase and trying next."
+            )
+            disable_fid(fid)
+            continue
+
+        except Exception as exc:
+            print(
+                "Unexpected push failure:",
+                type(exc).__name__,
+                exc,
+            )
+            return 1
+
+    print(
+        "ERROR: All currently enabled FIDs were "
+        "stale/unregistered."
     )
-
-    firebase_admin.initialize_app(
-        credentials.Certificate(service_account)
+    print(
+        "Open HANZ with Push ON to create a fresh "
+        "registration, then run this workflow again."
     )
+    return 1
 
 
-def disable_fid(fid: str) -> None:
-    if not fid or not SUPABASE_URL or not SUPABASE_SECRET_KEY:
-        return
-
-    endpoint = (
-        f"{SUPABASE_URL}/rest/v1/hanz_push_devices"
-        f"?installation_id=eq.{fid}"
-    )
-
-    requests.patch(
-        endpoint,
-        headers=_headers(),
-        json={
-            "enabled": False,
-            "last_seen_at": datetime.now(
-                timezone.utc
-            ).isoformat(),
-        },
-        timeout=20,
-    ).raise_for_status()
-
-
-def send_to_fid(
-    fid: str,
-    *,
-    title: str,
-    body: str,
-    ticker: str = "",
-    alert_type: str = "",
-    url: str = "/dashboard/swing/",
-    dedupe_key: str = "",
-):
-    _ensure_firebase()
-
-    message = messaging.Message(
-        fid=fid,
-        data={
-            "title": title,
-            "body": body,
-            "message": body,
-            "ticker": ticker,
-            "alert_type": alert_type,
-            "url": url,
-            "dedupe_key": dedupe_key,
-        },
-    )
-
-    try:
-        return messaging.send(message)
-
-    except messaging.UnregisteredError:
-        # Firebase has explicitly told us this registration is dead.
-        # Remove it from future sends immediately.
-        disable_fid(fid)
-        return None
-
-    except FirebaseError:
-        raise
+if __name__ == "__main__":
+    raise SystemExit(main())
