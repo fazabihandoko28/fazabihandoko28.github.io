@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1625,7 +1626,7 @@ async function loadWatchlist(){
     $("topCandidate").textContent=top.ticker;
     $("topCandidateSub").textContent=`Score ${top.score ?? "—"}/10`;
     $("heroTopCandidate").textContent=top.ticker;
-    $("heroTopSub").textContent=`SWING BUY · Swing ${top.score ?? "—"}/10 · Discount ${top.discount_score ?? "—"}/100 · Fundamental ${top.fundamental_score ?? "—"}/100`;
+    $("heroTopSub").textContent=`SWING BUY · Swing ${top.score ?? "—"}/10 · Discount ${top.discount_score==null?"PENDING":Number(top.discount_score).toFixed(0)+"/100"} · Fundamental ${top.fundamental_score==null?"PENDING":Number(top.fundamental_score).toFixed(0)+"/100"}`;
     $("lastUpdate").textContent=formatTime(top.updated_at);
     $("lastUpdateDate").textContent=`${formatDate(top.updated_at)} · Last completed Swing scan`;
   }else{
@@ -1836,25 +1837,18 @@ function nearestTradingDay(iso,direction){
 function renderIdxMarketClock(){
   const m=idxStatusNow();
   const p=m.parts;
+
+  const previousTradingDay=nearestTradingDay(p.iso,-1);
+  const nextTradingDay=nearestTradingDay(p.iso,1);
   const marketText=m.reason==="Trading Day" ? m.state : `${m.state} · ${m.reason}`;
 
+  // System panel
   if($("idxMarketState")) $("idxMarketState").textContent=marketText;
   if($("idxMarketTime")) $("idxMarketTime").textContent=`${p.iso} ${p.hour}:${p.minute} WIB`;
-  if($("idxLastTradingDay")) $("idxLastTradingDay").textContent=nearestTradingDay(p.iso,-1);
-  if($("idxNextTradingDay")) $("idxNextTradingDay").textContent=nearestTradingDay(p.iso,1);
+  if($("idxLastTradingDay")) $("idxLastTradingDay").textContent=previousTradingDay;
+  if($("idxNextTradingDay")) $("idxNextTradingDay").textContent=nextTradingDay;
 
-  // Do not describe stale holiday/weekend data as "Swing Live".
-  if($("lastUpdateDate")){
-    if(m.reason==="Trading Day" && ["SESSION 1","LUNCH BREAK","SESSION 2","POST-CLOSE"].includes(m.state)){
-      $("lastUpdateDate").textContent=`IDX ${m.state} · WIB`;
-    }else{
-      $("lastUpdateDate").textContent=`IDX ${marketText}`;
-    }
-  }
-
-  return m;
-
-  // Persistent header status
+  // Persistent top market strip
   const topMarket=$("topIdxMarket");
   const topSession=$("topIdxSession");
   const topReason=$("topIdxReason");
@@ -1862,38 +1856,47 @@ function renderIdxMarketClock(){
   const topPrev=$("topIdxPrev");
   const topNext=$("topIdxNext");
 
+  let topMarketText="IDX: MARKET CLOSED";
+  if(m.reason==="Trading Day"){
+    if(m.state==="SESSION 1" || m.state==="SESSION 2"){
+      topMarketText="IDX: MARKET OPEN";
+    }else if(m.state==="LUNCH BREAK"){
+      topMarketText="IDX: MARKET BREAK";
+    }else if(m.state==="PRE-OPEN"){
+      topMarketText="IDX: PRE-OPEN";
+    }else if(m.state==="POST-CLOSE"){
+      topMarketText="IDX: POST-CLOSE";
+    }
+  }
+
   if(topMarket){
-    const marketText =
-      market?.state === "SESSION_1" ||
-      market?.state === "SESSION_2"
-        ? "IDX: MARKET OPEN"
-        : "IDX: MARKET CLOSED";
-
-    topMarket.textContent=marketText;
-    topMarket.classList.toggle("market-open",marketText.includes("OPEN"));
-    topMarket.classList.toggle("market-closed",marketText.includes("CLOSED"));
+    topMarket.textContent=topMarketText;
+    topMarket.classList.toggle("market-open",topMarketText==="IDX: MARKET OPEN");
+    topMarket.classList.toggle(
+      "market-closed",
+      topMarketText!=="IDX: MARKET OPEN"
+    );
   }
 
-  if(topSession){
-    topSession.textContent=market?.state || "UNKNOWN";
+  if(topSession) topSession.textContent=m.state || "UNKNOWN";
+  if(topReason) topReason.textContent=m.reason ? `· ${m.reason}` : "";
+  if(topWib) topWib.textContent=`WIB ${p.hour}:${p.minute}`;
+  if(topPrev) topPrev.textContent=`Prev ${previousTradingDay}`;
+  if(topNext) topNext.textContent=`Next ${nextTradingDay}`;
+
+  // Do not describe stale holiday/weekend data as "Swing Live".
+  if($("lastUpdateDate")){
+    if(
+      m.reason==="Trading Day" &&
+      ["SESSION 1","LUNCH BREAK","SESSION 2","POST-CLOSE"].includes(m.state)
+    ){
+      $("lastUpdateDate").textContent=`IDX ${m.state} · ${p.hour}:${p.minute} WIB`;
+    }else{
+      $("lastUpdateDate").textContent=`IDX ${marketText}`;
+    }
   }
 
-  if(topReason){
-    topReason.textContent=market?.reason ? `· ${market.reason}` : "";
-  }
-
-  if(topWib){
-    topWib.textContent=`WIB ${parts.hour}:${parts.minute}`;
-  }
-
-  if(topPrev){
-    topPrev.textContent=`Prev ${previousTradingDay}`;
-  }
-
-  if(topNext){
-    topNext.textContent=`Next ${nextTradingDay}`;
-  }
-
+  return m;
 }
 
 
