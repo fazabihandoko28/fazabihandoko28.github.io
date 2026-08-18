@@ -11,8 +11,6 @@ from zoneinfo import ZoneInfo
 import pandas as pd
 import yfinance as yf
 
-from .hanz_push_sender_self_healing import disable_fid
-
 # Firebase Admin is optional. Alerts continue writing to Supabase even
 # when the GitHub Actions Firebase secret is not configured.
 try:
@@ -26,7 +24,7 @@ except Exception:
 
 
 # ============================================================
-# HANZ SWING / WEEKLY TRADING ENGINE — EARLY ENTRY V6
+# HANZ SWING / WEEKLY TRADING ENGINE
 # Separate from Fast Engine. Do NOT replace fast_trading_engine.py
 # ============================================================
 
@@ -66,6 +64,19 @@ MIN_BUY_SCORE = int(
 
 MAX_SYMBOLS_PER_CYCLE = int(
     os.getenv("HANZ_SWING_MAX_SYMBOLS_PER_CYCLE", "220")
+)
+
+
+# Intraday quote freshness guard.
+# Yahoo/yfinance IDX quotes are treated as delayed, not tick-by-tick realtime.
+INTRADAY_INTERVAL = os.getenv(
+    "HANZ_SWING_INTRADAY_TIMEFRAME", "1m"
+)
+INTRADAY_PERIOD = os.getenv(
+    "HANZ_SWING_INTRADAY_PERIOD", "1d"
+)
+INTRADAY_STALE_MINUTES = int(
+    os.getenv("HANZ_SWING_STALE_GUARD_MINUTES", "20")
 )
 
 
@@ -421,6 +432,47 @@ def download_frame(ticker, interval, period):
     return df
 
 
+def latest_intraday_quote(ticker):
+    """
+    Return latest intraday Yahoo/yfinance quote plus provider-bar timestamp.
+    A quote older than INTRADAY_STALE_MINUTES during active use is rejected.
+    """
+    df = download_frame(
+        ticker,
+        INTRADAY_INTERVAL,
+        INTRADAY_PERIOD,
+    )
+
+    price = safe_float(df["Close"].iloc[-1])
+    bar_ts = pd.Timestamp(df.index[-1])
+
+    if bar_ts.tzinfo is None:
+        # yfinance normally returns tz-aware intraday indexes; if not,
+        # interpret the timestamp in Jakarta time rather than pretending UTC.
+        bar_ts = bar_ts.tz_localize(JAKARTA_TZ)
+    else:
+        bar_ts = bar_ts.tz_convert(JAKARTA_TZ)
+
+    now_wib = datetime.now(JAKARTA_TZ)
+    age_minutes = max(
+        0.0,
+        (now_wib - bar_ts.to_pydatetime()).total_seconds() / 60.0,
+    )
+
+    fresh = (
+        price is not None
+        and age_minutes <= INTRADAY_STALE_MINUTES
+    )
+
+    return {
+        "price": price,
+        "bar_at": bar_ts.isoformat(),
+        "age_minutes": round(age_minutes, 2),
+        "fresh": fresh,
+        "status": "OK" if fresh else "STALE",
+    }
+
+
 def rsi(series, period=14):
     delta = series.diff()
     gain = delta.clip(lower=0)
@@ -514,46 +566,6 @@ def daily_metrics(df):
                 * 100
             )
 
-    ret3 = None
-    if len(close) >= 4:
-        base3 = safe_float(close.iloc[-4])
-        if base3 and price:
-            ret3 = (
-                (price - base3)
-                / base3
-                * 100
-            )
-
-    daily_gain_pct = None
-    open_price = safe_float(df["Open"].iloc[-1])
-    if open_price not in (None, 0) and price is not None:
-        daily_gain_pct = (
-            (price - open_price)
-            / open_price
-            * 100
-        )
-
-    ema20_slope_5d_pct = None
-    if len(ema20) >= 6:
-        ema20_base = safe_float(ema20.iloc[-6])
-        ema20_now = safe_float(ema20.iloc[-1])
-        if ema20_base not in (None, 0) and ema20_now is not None:
-            ema20_slope_5d_pct = (
-                (ema20_now - ema20_base)
-                / ema20_base
-                * 100
-            )
-
-    ema_spread_pct = None
-    ema20_now = safe_float(ema20.iloc[-1])
-    ema50_now = safe_float(ema50.iloc[-1])
-    if ema50_now not in (None, 0) and ema20_now is not None:
-        ema_spread_pct = (
-            (ema20_now - ema50_now)
-            / ema50_now
-            * 100
-        )
-
     lookback_52w = df.iloc[-252:] if len(df) >= 252 else df
     week52_high = safe_float(lookback_52w["High"].max())
     week52_low = safe_float(lookback_52w["Low"].min())
@@ -595,10 +607,6 @@ def daily_metrics(df):
         "prior_high20": prior_high20,
         "prior_low20": prior_low20,
         "ret5_pct": safe_float(ret5),
-        "ret3_pct": safe_float(ret3),
-        "daily_gain_pct": safe_float(daily_gain_pct),
-        "ema20_slope_5d_pct": safe_float(ema20_slope_5d_pct),
-        "ema_spread_pct": safe_float(ema_spread_pct),
         "bar_at": pd.Timestamp(
             df.index[-1]
         ).isoformat(),
@@ -634,370 +642,109 @@ def weekly_metrics(df):
 
 
 def swing_score(daily, weekly):
-    """
-    HANZ EARLY-ENTRY Swing logic.
-
-    Philosophy:
-    SWING_BUY is NOT "the most bullish stock".
-    It is a stock whose structure is turning bullish while entry is
-    still reasonably close to the base / breakout zone.
-
-    Trend quality and entry timing are deliberately separated.
-    Mature / overextended trends are blocked from SWING_BUY even if
-    their trend looks excellent.
-    """
+    score = 0
     evidence = []
 
-    price = safe_float(daily.get("price"))
-    ema20 = safe_float(daily.get("ema20"))
-    ema50 = safe_float(daily.get("ema50"))
-    ema_slope = safe_float(daily.get("ema20_slope_5d_pct"))
-    ema_spread = safe_float(daily.get("ema_spread_pct"))
-    rsi_d = safe_float(daily.get("rsi14"))
-    rsi_w = safe_float(weekly.get("rsi14"))
-    rvol = safe_float(daily.get("rvol20")) or 0
-    ret3 = safe_float(daily.get("ret3_pct"))
-    ret5 = safe_float(daily.get("ret5_pct"))
-    day_gain = safe_float(daily.get("daily_gain_pct"))
-    atr14 = safe_float(daily.get("atr14"))
-    breakout_level = safe_float(daily.get("prior_high20"))
-
-    weekly_ema10 = safe_float(weekly.get("ema10"))
-    weekly_ema20 = safe_float(weekly.get("ema20"))
+    price = daily["price"]
 
     daily_trend = (
-        ema20 is not None
-        and ema50 is not None
-        and ema20 > ema50
+        daily["ema20"] is not None
+        and daily["ema50"] is not None
+        and daily["ema20"] > daily["ema50"]
     )
 
     weekly_trend = (
-        weekly_ema10 is not None
-        and weekly_ema20 is not None
-        and weekly_ema10 > weekly_ema20
+        weekly["ema10"] is not None
+        and weekly["ema20"] is not None
+        and weekly["ema10"] > weekly["ema20"]
     )
 
     breakout = (
         price is not None
-        and breakout_level is not None
-        and price > breakout_level
+        and daily["prior_high20"] is not None
+        and price > daily["prior_high20"]
     )
 
-    breakout_gap_pct = None
-    breakout_extension_atr = None
+    near_breakout = False
+    if (
+        price is not None
+        and daily["prior_high20"] not in (None, 0)
+    ):
+        gap = (
+            daily["prior_high20"] - price
+        ) / daily["prior_high20"] * 100
+        near_breakout = 0 <= gap <= 3.0
 
     if (
         price is not None
-        and breakout_level not in (None, 0)
+        and daily["ema20"] is not None
+        and price > daily["ema20"]
     ):
-        breakout_gap_pct = (
-            (breakout_level - price)
-            / breakout_level
-            * 100
-        )
+        score += 1
+        evidence.append("price above daily EMA20")
 
-        if atr14 not in (None, 0):
-            breakout_extension_atr = (
-                (price - breakout_level)
-                / atr14
-            )
+    if daily_trend:
+        score += 1
+        evidence.append("daily EMA20 above EMA50")
 
-    ema_extension_pct = None
-    if (
-        price is not None
-        and ema20 not in (None, 0)
-    ):
-        ema_extension_pct = (
-            (price - ema20)
-            / ema20
-            * 100
-        )
+    if weekly_trend:
+        score += 2
+        evidence.append("weekly EMA10 above EMA20")
 
-    # --------------------------------------------------------
-    # TREND READINESS (0-4)
-    # Is the stock beginning to turn up?
-    # --------------------------------------------------------
-    trend_score = 0
+    rsi_d = daily["rsi14"]
+    if rsi_d is not None and 50 <= rsi_d <= 72:
+        score += 1
+        evidence.append(f"daily RSI {rsi_d:.1f}")
 
-    if (
-        price is not None
-        and ema20 is not None
-        and price >= ema20
-    ):
-        trend_score += 1
-        evidence.append("price reclaimed/holds EMA20")
+    rsi_w = weekly["rsi14"]
+    if rsi_w is not None and 50 <= rsi_w <= 75:
+        score += 1
+        evidence.append(f"weekly RSI {rsi_w:.1f}")
 
-    if ema_slope is not None and ema_slope > 0:
-        trend_score += 1
-        evidence.append(
-            f"EMA20 turning up ({ema_slope:+.2f}%/5d)"
-        )
+    rvol = daily["rvol20"] or 0
+    if rvol >= 1.2:
+        score += 1
+        evidence.append(f"daily RVOL {rvol:.2f}x")
 
-    # Fresh / near EMA20-EMA50 crossover is preferred.
-    # A huge positive spread often means we are already late.
-    if (
-        ema_spread is not None
-        and -2.0 <= ema_spread <= 3.5
-    ):
-        trend_score += 1
-        evidence.append(
-            f"EMA20/50 early zone ({ema_spread:+.2f}%)"
-        )
+    if breakout:
+        score += 2
+        evidence.append("20-day breakout")
+    elif near_breakout:
+        score += 1
+        evidence.append("within 3% of 20-day breakout")
 
-    # Weekly does not need to be fully bullish yet.
-    # We want "not broken" and starting to improve.
-    weekly_ready = (
-        rsi_w is not None
-        and 44 <= rsi_w <= 66
-    )
-
-    if weekly_ready:
-        trend_score += 1
-        evidence.append(
-            f"weekly RSI constructive {rsi_w:.1f}"
-        )
-
-    # --------------------------------------------------------
-    # ENTRY TIMING (0-6)
-    # Is NOW still a good place to enter?
-    # --------------------------------------------------------
-    timing_score = 0
-
-    if rsi_d is not None and 48 <= rsi_d <= 64:
-        timing_score += 1
-        evidence.append(
-            f"daily RSI early-zone {rsi_d:.1f}"
-        )
-    elif rsi_d is not None and 45 <= rsi_d < 48:
-        timing_score += 0.5
-        evidence.append(
-            f"daily RSI recovering {rsi_d:.1f}"
-        )
-
-    if 1.0 <= rvol <= 2.5:
-        timing_score += 1
-        evidence.append(
-            f"healthy RVOL {rvol:.2f}x"
-        )
-    elif 0.8 <= rvol < 1.0:
-        timing_score += 0.5
-        evidence.append(
-            f"RVOL building {rvol:.2f}x"
-        )
-
-    # Best zone: just below breakout or only slightly through it.
-    if breakout_gap_pct is not None:
-        if 0 <= breakout_gap_pct <= 3.0:
-            timing_score += 2
-            evidence.append(
-                f"approaching breakout ({breakout_gap_pct:.2f}% away)"
-            )
-        elif (
-            breakout
-            and breakout_gap_pct >= -2.0
-        ):
-            timing_score += 2
-            evidence.append(
-                f"fresh breakout ({-breakout_gap_pct:.2f}% extension)"
-            )
-        elif (
-            breakout
-            and breakout_gap_pct >= -4.0
-        ):
-            timing_score += 1
-            evidence.append(
-                "breakout still near base"
-            )
-
-    if ret5 is not None and 0 <= ret5 <= 8:
-        timing_score += 1
-        evidence.append(
-            f"5-day momentum controlled +{ret5:.2f}%"
-        )
-    elif ret5 is not None and -3 <= ret5 < 0:
-        timing_score += 0.5
-        evidence.append(
-            f"5-day base/retest {ret5:.2f}%"
-        )
-
-    if (
-        ema_extension_pct is not None
-        and -1 <= ema_extension_pct <= 6
-    ):
-        timing_score += 1
-        evidence.append(
-            f"price still near EMA20 ({ema_extension_pct:+.2f}%)"
-        )
-
-    # --------------------------------------------------------
-    # HARD LATE-ENTRY / DISTRIBUTION GUARDS
-    # --------------------------------------------------------
-    overextended = False
-    overextended_reasons = []
-
-    if ema_extension_pct is not None and ema_extension_pct > 7:
-        overextended = True
-        overextended_reasons.append(
-            f"{ema_extension_pct:.1f}% above EMA20"
-        )
-
-    if (
-        breakout_extension_atr is not None
-        and breakout_extension_atr > 1.0
-    ):
-        overextended = True
-        overextended_reasons.append(
-            f"{breakout_extension_atr:.2f} ATR above breakout"
-        )
-
-    if ret5 is not None and ret5 > 10:
-        overextended = True
-        overextended_reasons.append(
-            f"5-day rally already +{ret5:.1f}%"
-        )
-
-    if rsi_d is not None and rsi_d > 68:
-        overextended = True
-        overextended_reasons.append(
-            f"daily RSI already {rsi_d:.1f}"
-        )
-
-    mature_trend = (
-        ema_spread is not None
-        and ema_spread > 5.0
-        and ema_extension_pct is not None
-        and ema_extension_pct > 5.0
-    )
-
-    if mature_trend:
-        overextended = True
-        overextended_reasons.append(
-            "EMA20/EMA50 trend already mature"
-        )
-
-    # We cannot literally identify a whale from OHLCV.
-    # This is a conservative distribution-risk proxy:
-    # strong short rally + unusually high volume / large up-day.
-    distribution_risk = False
-    distribution_reasons = []
-
-    if (
-        ret5 is not None
-        and ret5 >= 8
-        and rvol >= 2.0
-    ):
-        distribution_risk = True
-        distribution_reasons.append(
-            "large 5-day rally with volume spike"
-        )
-
-    if (
-        day_gain is not None
-        and day_gain >= 6
-        and rvol >= 2.0
-    ):
-        distribution_risk = True
-        distribution_reasons.append(
-            "large daily gain with heavy volume"
-        )
-
-    if (
-        ret3 is not None
-        and ret3 >= 8
-        and rvol >= 2.5
-    ):
-        distribution_risk = True
-        distribution_reasons.append(
-            "3-day acceleration with very high volume"
-        )
-
-    score = round(
-        min(10, trend_score + timing_score),
-        1,
-    )
-
-    # Early-entry eligibility.
-    early_structure = (
-        trend_score >= 3
-        and timing_score >= 4
-        and price is not None
-        and ema20 is not None
-        and price >= ema20
-    )
+    ret5 = daily["ret5_pct"]
+    if ret5 is not None and ret5 > 0:
+        score += 1
+        evidence.append(f"5-day momentum +{ret5:.2f}%")
 
     state = "NO_SETUP"
-    entry_timing = "NO_ENTRY"
 
-    if overextended or distribution_risk:
-        # Strong trend can remain on radar, but NEVER show as SWING_BUY.
-        if score >= MIN_CONFIRM_SCORE:
-            state = "SWING_CONFIRMING"
-        elif score >= MIN_WATCH_SCORE:
-            state = "SWING_WATCH"
-
-        entry_timing = (
-            "DISTRIBUTION_RISK"
-            if distribution_risk
-            else "WAIT_PULLBACK"
-        )
-
-    elif (
+    if (
         score >= MIN_BUY_SCORE
-        and early_structure
+        and breakout
+        and weekly_trend
     ):
         state = "SWING_BUY"
-        entry_timing = "EARLY_BUY"
-
     elif score >= MIN_CONFIRM_SCORE:
         state = "SWING_CONFIRMING"
-        entry_timing = "FORMING"
-
     elif score >= MIN_WATCH_SCORE:
         state = "SWING_WATCH"
-        entry_timing = "WATCH"
-
-    if overextended_reasons:
-        evidence.append(
-            "LATE ENTRY BLOCK: "
-            + ", ".join(overextended_reasons)
-        )
-
-    if distribution_reasons:
-        evidence.append(
-            "DISTRIBUTION RISK: "
-            + ", ".join(distribution_reasons)
-        )
-
-    evidence.append(
-        f"trend readiness {trend_score:.1f}/4"
-    )
-    evidence.append(
-        f"entry timing {timing_score:.1f}/6"
-    )
 
     return {
-        "score": score,
+        "score": min(score, 10),
         "state": state,
         "daily_trend": (
             "BULLISH"
             if daily_trend
-            else "EARLY_OR_NOT_BULLISH"
+            else "NOT_BULLISH"
         ),
         "weekly_trend": (
             "BULLISH"
             if weekly_trend
-            else "EARLY_OR_NOT_BULLISH"
+            else "NOT_BULLISH"
         ),
         "breakout": breakout,
-        "entry_timing": entry_timing,
-        "trend_score": trend_score,
-        "timing_score": timing_score,
-        "overextended": overextended,
-        "distribution_risk": distribution_risk,
-        "ema_extension_pct": safe_float(ema_extension_pct),
-        "breakout_extension_atr": safe_float(
-            breakout_extension_atr
-        ),
         "evidence": evidence,
     }
 
@@ -1098,31 +845,17 @@ def risk_levels(
             (price - ema20) / ema20 * 100
         )
 
-    engine_entry_timing = result.get(
-        "entry_timing"
-    )
-
     if (
-        engine_entry_timing
-        in {
-            "WAIT_PULLBACK",
-            "DISTRIBUTION_RISK",
-        }
-        or (
+        (
             breakout_extension_atr is not None
-            and breakout_extension_atr > 1.0
+            and breakout_extension_atr > 1.25
         )
         or (
             ema_extension_pct is not None
-            and ema_extension_pct > 7
+            and ema_extension_pct > 10
         )
     ):
-        entry_status = (
-            "DISTRIBUTION_RISK"
-            if engine_entry_timing == "DISTRIBUTION_RISK"
-            else "WAIT_PULLBACK"
-        )
-
+        entry_status = "WAIT_PULLBACK"
         entry_price = max(
             breakout_level or (price - 0.75 * atr14),
             price - 0.75 * atr14,
@@ -1132,32 +865,15 @@ def risk_levels(
             entry_price - 0.25 * atr14,
         )
         entry_high = entry_price + (0.25 * atr14)
-
-        if entry_status == "DISTRIBUTION_RISK":
-            entry_note = (
-                "Trend is strong but short-term price/volume is "
-                "already too aggressive. Do not chase; wait for "
-                "a new base or controlled pullback."
-            )
-        else:
-            entry_note = (
-                "Trend may remain bullish, but entry is already "
-                "extended. Wait for pullback into the entry zone."
-            )
-
-    elif engine_entry_timing == "EARLY_BUY":
-        entry_status = "EARLY_BUY"
         entry_note = (
-            "Early bullish transition confirmed. Entry remains "
-            "close to the base/breakout zone; avoid buying above "
-            "the upper band."
+            "SWING BUY confirmed, but price is extended. "
+            "Prefer pullback into the entry zone; do not chase."
         )
-
     else:
-        entry_status = "WAIT_CONFIRMATION"
+        entry_status = "ENTRY_ZONE"
         entry_note = (
-            "Setup is forming but early-entry confirmation is not "
-            "complete yet."
+            "SWING BUY confirmed. Use the entry zone on the next "
+            "trading session and avoid buying above the upper band."
         )
 
     # Risk is calculated from ideal/reference entry, not blindly from close.
@@ -1682,68 +1398,15 @@ def send_selective_push(
             app=app,
         )
 
-        stale_fids = []
-
-        for fid, send_result in zip(
-            installation_ids,
-            response.responses,
-        ):
-            if send_result.success:
-                continue
-
-            exc = send_result.exception
-
-            if (
-                messaging is not None
-                and isinstance(
-                    exc,
-                    messaging.UnregisteredError,
-                )
-            ):
-                stale_fids.append(fid)
-
-                try:
-                    disable_fid(fid)
-                    print(
-                        "SWING PUSH SELF-HEAL: "
-                        f"disabled stale FID {fid}",
-                        flush=True,
-                    )
-                except Exception as cleanup_exc:
-                    print(
-                        "SWING PUSH SELF-HEAL WARNING: "
-                        f"could not disable stale FID: "
-                        f"{cleanup_exc}",
-                        flush=True,
-                    )
-            else:
-                print(
-                    "SWING PUSH DEVICE FAILURE: "
-                    f"{type(exc).__name__}: {exc}",
-                    flush=True,
-                )
-
-        if response.success_count > 0:
-            finish_push_event(
-                event_key,
-                "SENT",
-            )
-        elif stale_fids and (
-            len(stale_fids)
-            == len(installation_ids)
-        ):
-            finish_push_event(
-                event_key,
-                "NO_DEVICE",
-            )
-        else:
-            release_failed_push_event(event_key)
+        finish_push_event(
+            event_key,
+            "SENT",
+        )
 
         print(
-            f"SWING PUSH RESULT: {event_key} "
+            f"SWING PUSH SENT: {event_key} "
             f"success={response.success_count} "
-            f"failed={response.failure_count} "
-            f"stale_cleaned={len(stale_fids)}",
+            f"failed={response.failure_count}",
             flush=True,
         )
 
@@ -3170,6 +2833,108 @@ def discount_intelligence_v2(
 
 
 
+def fetch_active_swing_monitor_rows():
+    data = supabase_request(
+        "GET",
+        "hanz_swing_signal_monitor"
+        "?state=eq.SWING_BUY"
+        "&select=ticker,price,updated_at"
+        "&order=score.desc",
+    )
+    return data or []
+
+
+def refresh_swing_buy_intraday_prices():
+    """
+    Refresh CURRENT PRICE for existing SWING_BUY rows during the trading day.
+    Freshness is measured from the provider bar timestamp, not fetch time.
+
+    Guard:
+      <= 20 min (default): price may update Supabase.
+      > 20 min: reject quote and leave previous stored price untouched.
+    """
+    rows = fetch_active_swing_monitor_rows()
+    refreshed = 0
+    stale = 0
+    errors = 0
+    details = []
+
+    for row in rows:
+        ticker = row.get("ticker")
+        if not ticker:
+            continue
+
+        try:
+            q = latest_intraday_quote(ticker)
+
+            if not q["fresh"]:
+                stale += 1
+                details.append({
+                    "ticker": clean_ticker(ticker),
+                    "status": "STALE",
+                    "age_minutes": q["age_minutes"],
+                    "bar_at": q["bar_at"],
+                })
+                print(
+                    f"SWING QUOTE {clean_ticker(ticker)} STALE "
+                    f"age={q['age_minutes']:.1f}m "
+                    f"bar={q['bar_at']} "
+                    f"guard={INTRADAY_STALE_MINUTES}m; "
+                    "stored price NOT overwritten.",
+                    flush=True,
+                )
+                continue
+
+            supabase_request(
+                "PATCH",
+                "hanz_swing_signal_monitor"
+                f"?ticker=eq.{urllib.parse.quote(clean_ticker(ticker))}",
+                {
+                    "price": q["price"],
+                    "updated_at": now_iso(),
+                },
+                prefer="return=minimal",
+            )
+
+            refreshed += 1
+            details.append({
+                "ticker": clean_ticker(ticker),
+                "status": "OK",
+                "price": q["price"],
+                "age_minutes": q["age_minutes"],
+                "bar_at": q["bar_at"],
+            })
+
+            print(
+                f"SWING QUOTE {clean_ticker(ticker)} "
+                f"price={q['price']} "
+                f"age={q['age_minutes']:.1f}m "
+                f"bar={q['bar_at']} OK",
+                flush=True,
+            )
+
+        except Exception as exc:
+            errors += 1
+            details.append({
+                "ticker": clean_ticker(ticker),
+                "status": "ERROR",
+                "error": str(exc),
+            })
+            print(
+                f"SWING QUOTE {clean_ticker(ticker)} ERROR: {exc}",
+                flush=True,
+            )
+
+    return {
+        "rows": len(rows),
+        "refreshed": refreshed,
+        "stale": stale,
+        "errors": errors,
+        "stale_guard_minutes": INTRADAY_STALE_MINUTES,
+        "details": details,
+    }
+
+
 def upsert_monitor(
     ticker,
     daily,
@@ -3439,17 +3204,38 @@ def run_cycle():
 
     if not market["is_trading_day"]:
         print(
-            "SWING SCANNER skipped: IDX is not a trading day.",
+            "SWING cycle skipped: IDX is not a trading day. "
+            "No new signal, portfolio trigger, alert or push.",
             flush=True,
         )
         return
 
-    if market["state"] != "POST_CLOSE":
-        print(
-            "SWING SCANNER skipped: full 200-stock scan runs "
-            "only during IDX POST_CLOSE window.",
-            flush=True,
-        )
+    # During active sessions / lunch, only monitor portfolio risk.
+    # Universe SWING_BUY generation waits for the completed daily bar.
+    if not market["allow_final_scan"]:
+        if market["allow_portfolio_monitor"]:
+            quote_summary = refresh_swing_buy_intraday_prices()
+            print(
+                "SWING intraday SWING_BUY price refresh complete: "
+                + json.dumps(quote_summary)
+                + f" | stale_guard={INTRADAY_STALE_MINUTES}m",
+                flush=True,
+            )
+
+            portfolio_summary = monitor_swing_portfolio(
+                allow_structural_exit=False
+            )
+            print(
+                "SWING intraday portfolio monitor complete: "
+                + json.dumps(portfolio_summary)
+                + " | structural exits=DEFERRED_TO_POST_CLOSE",
+                flush=True,
+            )
+        else:
+            print(
+                "SWING cycle skipped outside IDX operating window.",
+                flush=True,
+            )
         return
 
     universe = fetch_universe()
@@ -3480,9 +3266,15 @@ def run_cycle():
                 flush=True,
             )
 
+    portfolio_summary = monitor_swing_portfolio(
+        allow_structural_exit=True
+    )
+
     print(
         "SWING FINAL cycle complete: "
-        + json.dumps(counts),
+        + json.dumps(counts)
+        + " | portfolio="
+        + json.dumps(portfolio_summary),
         flush=True,
     )
 
@@ -3497,7 +3289,7 @@ def main():
         f"Daily={DAILY_INTERVAL}/{DAILY_PERIOD} | "
         f"Weekly={WEEKLY_INTERVAL}/{WEEKLY_PERIOD} | "
         f"Cycle={SWING_INTERVAL}s | "
-        f"Portfolio monitor=SEPARATE | "
+        f"Portfolio monitor=ON | "
         f"IDX calendar gate=ON (Asia/Jakarta) | "
         f"Trailing={TRAILING_ATR_MULTIPLIER_T1:.1f}x/"
         f"{TRAILING_ATR_MULTIPLIER_T2:.1f}x ATR",
