@@ -267,6 +267,17 @@ button{cursor:pointer}
 }
 .chart-basis-note strong{color:var(--green)}
 
+
+.hanz-fallback-wrap{
+  width:100%;background:#07101d;border-radius:12px;overflow:hidden;
+  border:1px solid rgba(255,255,255,.06)
+}
+.hanz-fallback-svg{display:block;width:100%;height:auto;background:#07101d}
+.hanz-fallback-note{
+  padding:7px 10px;border-top:1px solid rgba(255,255,255,.06);
+  color:#8fa0b7;font-size:7px;line-height:1.45
+}
+
 .chart-attribution{
   margin-top:8px;color:var(--muted);font-size:7px;line-height:1.5
 }
@@ -920,16 +931,16 @@ th{color:var(--muted)}
       <div id="hanzVolume"></div>
     </div>
     <div class="chart-attribution">
-      Open-source rendering by
+      Primary open-source rendering by
       <a href="https://www.tradingview.com/lightweight-charts/" target="_blank" rel="noopener">
         TradingView Lightweight Charts™
       </a>.
-      Market candles are loaded from the HANZ Supabase chart cache, produced server-side from completed daily bars.
+      Market candles are loaded from the HANZ Supabase chart cache and must match the latest completed IDX trading date. If the external chart library cannot load, HANZ automatically uses its built-in SVG renderer.
     </div>
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.3/dist/lightweight-charts.standalone.production.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.1.1/dist/lightweight-charts.standalone.production.js"></script>
 
 <script type="module">
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
@@ -1940,18 +1951,83 @@ function completedDailyCandlesOnly(candles){
   return candles;
 }
 
+
+function latestCompletedIdxDateClient(){
+  const m=idxStatusNow();
+  const today=m?.parts?.iso;
+  const state=String(m?.state || "");
+
+  if(!today) return null;
+
+  // During POST-CLOSE, today's candle is complete.
+  if(state==="POST-CLOSE" || state==="CLOSED · AFTER HOURS"){
+    return today;
+  }
+
+  // Before today's close, walk backwards to the prior IDX trading day.
+  const d=new Date(`${today}T00:00:00+07:00`);
+  for(let i=0;i<10;i++){
+    d.setDate(d.getDate()-1);
+    const iso=[
+      d.getFullYear(),
+      String(d.getMonth()+1).padStart(2,"0"),
+      String(d.getDate()).padStart(2,"0")
+    ].join("-");
+    const day=d.getDay();
+    if(day!==0 && day!==6 && !IDX_HOLIDAYS[iso]){
+      return iso;
+    }
+  }
+  return null;
+}
+
 async function supabaseDailyCandles(ticker){
   const clean=String(ticker || "").toUpperCase().replace(/\.JK$/,"");
+  let data=null;
+  let primaryError=null;
 
-  const {data,error}=await supabase
-    .from("hanz_swing_chart_data")
-    .select("ticker,state,source_bar_at,candles,updated_at")
-    .eq("ticker",clean)
-    .maybeSingle();
+  try{
+    const result=await supabase
+      .from("hanz_swing_chart_data")
+      .select("ticker,state,source_bar_at,candles,updated_at")
+      .eq("ticker",clean)
+      .maybeSingle();
 
-  if(error){
-    throw new Error(`HANZ chart cache: ${error.message}`);
+    if(result.error) throw result.error;
+    data=result.data;
+  }catch(error){
+    primaryError=error;
+    console.warn("HANZ chart Supabase JS read failed; trying REST fallback:",error);
   }
+
+  // Independent REST fallback. This uses the same public/publishable key and
+  // the RLS SELECT policy created for hanz_swing_chart_data.
+  if(!data){
+    const restUrl=
+      `${SUPABASE_URL}/rest/v1/hanz_swing_chart_data` +
+      `?ticker=eq.${encodeURIComponent(clean)}` +
+      `&select=ticker,state,source_bar_at,candles,updated_at&limit=1`;
+
+    const response=await fetch(restUrl,{
+      method:"GET",
+      headers:{
+        apikey:SUPABASE_KEY,
+        Accept:"application/json"
+      },
+      cache:"no-store"
+    });
+
+    if(!response.ok){
+      const body=await response.text();
+      throw new Error(
+        `HANZ chart REST ${response.status}: ${body || primaryError?.message || "read failed"}`
+      );
+    }
+
+    const rows=await response.json();
+    data=Array.isArray(rows) ? rows[0] : null;
+  }
+
   if(!data || !Array.isArray(data.candles)){
     throw new Error("HANZ chart cache is not available for this ticker yet");
   }
@@ -1973,9 +2049,21 @@ async function supabaseDailyCandles(ticker){
     throw new Error("Insufficient completed candles in HANZ chart cache");
   }
 
+  const sourceBarAt=String(
+    data.source_bar_at || completed[completed.length-1].time
+  ).slice(0,10);
+  const expected=latestCompletedIdxDateClient();
+
+  if(expected && sourceBarAt < expected){
+    throw new Error(
+      `HANZ chart cache is stale: latest ${sourceBarAt}, expected ${expected}. ` +
+      `Run a fresh HANZ Swing Scanner to repair the latest completed candle.`
+    );
+  }
+
   return {
     candles:completed,
-    sourceBarAt:data.source_bar_at || completed[completed.length-1].time,
+    sourceBarAt,
     updatedAt:data.updated_at || null
   };
 }
@@ -2023,6 +2111,126 @@ function latestVolumeStats(candles){
   return {latest,avg20,rvol};
 }
 
+
+function emaArray(candles,period){
+  const k=2/(period+1);
+  let e=null;
+  return candles.map(c=>{
+    e=e==null ? c.close : (c.close*k + e*(1-k));
+    return e;
+  });
+}
+
+function renderHanzFallbackChart(candles,row){
+  const chartBox=$("hanzChart");
+  const volumeBox=$("hanzVolume");
+  const width=900;
+  const priceH=360;
+  const volumeH=130;
+  const pad={l:48,r:64,t:18,b:28};
+  const usableW=width-pad.l-pad.r;
+  const visible=candles.slice(-90);
+  const ema20=emaArray(visible,20);
+  const ema50=emaArray(visible,50);
+
+  const levels=[
+    Number(row.entry_low),Number(row.entry_high),
+    Number(row.stop_loss),Number(row.target_1),Number(row.target_2)
+  ].filter(Number.isFinite);
+
+  let minP=Math.min(...visible.map(c=>c.low),...levels);
+  let maxP=Math.max(...visible.map(c=>c.high),...levels);
+  const spread=Math.max(1,maxP-minP);
+  minP-=spread*.06;
+  maxP+=spread*.06;
+
+  const x=i=>pad.l+(i+.5)*(usableW/visible.length);
+  const y=p=>pad.t+(maxP-p)/(maxP-minP)*(priceH-pad.t-pad.b);
+  const step=usableW/visible.length;
+  const bodyW=Math.max(2,Math.min(8,step*.58));
+
+  const esc=safe;
+  let svg=`<div class="hanz-fallback-wrap">
+    <svg class="hanz-fallback-svg" viewBox="0 0 ${width} ${priceH}" role="img" aria-label="HANZ candlestick analysis chart">`;
+
+  // Grid
+  for(let g=0;g<=4;g++){
+    const gy=pad.t+g*(priceH-pad.t-pad.b)/4;
+    const gv=maxP-g*(maxP-minP)/4;
+    svg+=`<line x1="${pad.l}" x2="${width-pad.r}" y1="${gy}" y2="${gy}" stroke="rgba(255,255,255,.06)"/>`;
+    svg+=`<text x="${width-pad.r+6}" y="${gy+4}" fill="#8796aa" font-size="10">${gv.toFixed(0)}</text>`;
+  }
+
+  // Candles
+  visible.forEach((c,i)=>{
+    const xx=x(i);
+    const up=c.close>=c.open;
+    const col=up?"#28e0a2":"#ff6b78";
+    const yo=y(c.open), yc=y(c.close), yh=y(c.high), yl=y(c.low);
+    const top=Math.min(yo,yc), bh=Math.max(1,Math.abs(yc-yo));
+    svg+=`<line x1="${xx}" x2="${xx}" y1="${yh}" y2="${yl}" stroke="${col}" stroke-width="1"/>`;
+    svg+=`<rect x="${xx-bodyW/2}" y="${top}" width="${bodyW}" height="${bh}" fill="${col}"/>`;
+  });
+
+  // EMA lines
+  const pathFor=arr=>arr.map((v,i)=>`${i?"L":"M"}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
+  svg+=`<path d="${pathFor(ema20)}" fill="none" stroke="#4aa3ff" stroke-width="1.7"/>`;
+  svg+=`<path d="${pathFor(ema50)}" fill="none" stroke="#f1c75b" stroke-width="1.7"/>`;
+
+  // HANZ levels
+  const levelDefs=[
+    ["ENTRY L",row.entry_low,"#9b8cff"],
+    ["ENTRY H",row.entry_high,"#9b8cff"],
+    ["STOP",row.stop_loss,"#ff6b78"],
+    ["T1",row.target_1,"#28e0a2"],
+    ["T2",row.target_2,"#20b8ff"]
+  ];
+  levelDefs.forEach(([label,val,col])=>{
+    const n=Number(val);
+    if(!Number.isFinite(n)) return;
+    const yy=y(n);
+    svg+=`<line x1="${pad.l}" x2="${width-pad.r}" y1="${yy}" y2="${yy}" stroke="${col}" stroke-width="1" stroke-dasharray="5 4"/>`;
+    svg+=`<text x="${pad.l+4}" y="${yy-3}" fill="${col}" font-size="9" font-weight="700">${label} ${n}</text>`;
+  });
+
+  // Date labels
+  const labelIdx=[0,Math.floor((visible.length-1)/2),visible.length-1];
+  labelIdx.forEach(i=>{
+    if(i<0 || !visible[i]) return;
+    svg+=`<text x="${x(i)}" y="${priceH-8}" text-anchor="middle" fill="#8796aa" font-size="9">${esc(visible[i].time)}</text>`;
+  });
+
+  svg+=`</svg><div class="hanz-fallback-note">Built-in HANZ renderer active · Completed daily candles · EMA20/EMA50 · Entry/Stop/T1/T2</div></div>`;
+  chartBox.innerHTML=svg;
+
+  // Volume SVG
+  const vols=visible.map(c=>Number(c.volume||0));
+  const maxV=Math.max(1,...vols);
+  const avg20=smaVolumePoints(visible,20);
+  const avgMap=new Map(avg20.map(p=>[p.time,p.value]));
+  let vsvg=`<div class="hanz-fallback-wrap"><svg class="hanz-fallback-svg" viewBox="0 0 ${width} ${volumeH}" role="img" aria-label="HANZ volume chart">`;
+  visible.forEach((c,i)=>{
+    const v=Number(c.volume||0);
+    const h=(v/maxV)*(volumeH-30);
+    const xx=x(i);
+    const col=c.close>=c.open?"rgba(40,224,162,.65)":"rgba(255,107,120,.65)";
+    vsvg+=`<rect x="${xx-bodyW/2}" y="${volumeH-20-h}" width="${bodyW}" height="${h}" fill="${col}"/>`;
+  });
+  const avgPts=[];
+  visible.forEach((c,i)=>{
+    const v=avgMap.get(c.time);
+    if(v!=null){
+      const yy=volumeH-20-(v/maxV)*(volumeH-30);
+      avgPts.push(`${avgPts.length?"L":"M"}${x(i).toFixed(1)},${yy.toFixed(1)}`);
+    }
+  });
+  if(avgPts.length){
+    vsvg+=`<path d="${avgPts.join(" ")}" fill="none" stroke="#9b8cff" stroke-width="1.6"/>`;
+  }
+  vsvg+=`</svg></div>`;
+  volumeBox.innerHTML=vsvg;
+}
+
 async function openHanzChart(ticker){
   const modal=$("chartModal");
   const chartWrap=$("hanzChartWrap");
@@ -2049,12 +2257,33 @@ async function openHanzChart(ticker){
   status.style.display="block";
   status.textContent="Loading HANZ completed-candle chart cache…";
 
+  let chartPayload=null;
+  let candles=null;
+
   try{
-    if(!window.LightweightCharts) throw new Error("Chart library failed to load");
-    const chartPayload=await supabaseDailyCandles(ticker);
-    const candles=chartPayload.candles;
+    chartPayload=await supabaseDailyCandles(ticker);
+    candles=chartPayload.candles;
     $("chartSubtitle").textContent=
       `${signalStateLabel(row.state)} · Completed Daily Candles through ${chartPayload.sourceBarAt} · EMA20 / EMA50 · Volume`;
+
+    // If the third-party renderer is unavailable, HANZ still renders the
+    // complete analysis chart using its built-in SVG renderer.
+    if(!window.LightweightCharts){
+      chartBox.innerHTML="";
+      volumeBox.innerHTML="";
+      chartWrap.style.display="block";
+      status.style.display="none";
+      renderHanzFallbackChart(candles,row);
+
+      const volStats=latestVolumeStats(candles);
+      volumeLegend.innerHTML=[
+        ["Volume",Number.isFinite(volStats.latest)?volStats.latest.toLocaleString("en-US"):"—"],
+        ["Avg20",Number.isFinite(volStats.avg20)?Math.round(volStats.avg20).toLocaleString("en-US"):"—"],
+        ["RVOL",Number.isFinite(volStats.rvol)?volStats.rvol.toFixed(2)+"×":"—"]
+      ].map(([k,v])=>`<span class="chart-level-chip"><strong>${k}</strong>: ${v}</span>`).join("");
+      volumeLegend.style.display="flex";
+      return;
+    }
 
     if(hanzChartInstance){
       hanzChartInstance.remove();
@@ -2194,13 +2423,42 @@ async function openHanzChart(ticker){
 
   }catch(error){
     console.error("HANZ chart error:",error);
+
+    if(Array.isArray(candles) && candles.length){
+      try{
+        if(hanzChartInstance){
+          hanzChartInstance.remove();
+          hanzChartInstance=null;
+        }
+        if(hanzVolumeChartInstance){
+          hanzVolumeChartInstance.remove();
+          hanzVolumeChartInstance=null;
+        }
+        chartBox.innerHTML="";
+        volumeBox.innerHTML="";
+        chartWrap.style.display="block";
+        status.style.display="none";
+        renderHanzFallbackChart(candles,row);
+
+        const volStats=latestVolumeStats(candles);
+        volumeLegend.innerHTML=[
+          ["Volume",Number.isFinite(volStats.latest)?volStats.latest.toLocaleString("en-US"):"—"],
+          ["Avg20",Number.isFinite(volStats.avg20)?Math.round(volStats.avg20).toLocaleString("en-US"):"—"],
+          ["RVOL",Number.isFinite(volStats.rvol)?volStats.rvol.toFixed(2)+"×":"—"]
+        ].map(([k,v])=>`<span class="chart-level-chip"><strong>${k}</strong>: ${v}</span>`).join("");
+        volumeLegend.style.display="flex";
+        $("chartSubtitle").textContent=
+          `${signalStateLabel(row.state)} · Completed Daily Candles · HANZ built-in renderer`;
+        return;
+      }catch(fallbackError){
+        console.error("HANZ built-in chart fallback failed:",fallbackError);
+      }
+    }
+
     chartWrap.style.display="none";
     volumeLegend.style.display="none";
     status.style.display="block";
-    status.innerHTML=`HANZ chart cache could not be loaded.<br><span style="opacity:.7">${safe(error.message)}</span><br><br>
-      <a href="https://www.tradingview.com/symbols/IDX-${encodeURIComponent(String(ticker).toUpperCase())}/" target="_blank" rel="noopener" style="color:var(--green);font-weight:900">
-        Open ${safe(String(ticker).toUpperCase())} on TradingView ↗
-      </a>`;
+    status.innerHTML=`HANZ chart data could not be loaded.<br><span style="opacity:.7">${safe(error.message)}</span>`;
   }
 }
 
