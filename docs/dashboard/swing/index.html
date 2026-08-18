@@ -935,7 +935,7 @@ th{color:var(--muted)}
       <a href="https://www.tradingview.com/lightweight-charts/" target="_blank" rel="noopener">
         TradingView Lightweight Charts™
       </a>.
-      Market candles are loaded from the HANZ Supabase chart cache and must match the latest completed IDX trading date. If the external chart library cannot load, HANZ automatically uses its built-in SVG renderer.
+      Chart data is read directly from Supabase table hanz_swing_chart_data. If the external chart library cannot load, HANZ automatically uses its built-in SVG renderer.
     </div>
   </div>
 </div>
@@ -1982,89 +1982,64 @@ function latestCompletedIdxDateClient(){
 }
 
 async function supabaseDailyCandles(ticker){
-  const clean=String(ticker || "").toUpperCase().replace(/\.JK$/,"");
-  let data=null;
-  let primaryError=null;
+  const clean = String(ticker || "").toUpperCase().replace(/\.JK$/,"");
 
-  try{
-    const result=await supabase
-      .from("hanz_swing_chart_data")
-      .select("ticker,state,source_bar_at,candles,updated_at")
-      .eq("ticker",clean)
-      .maybeSingle();
+  const url =
+    `${SUPABASE_URL}/rest/v1/hanz_swing_chart_data` +
+    `?ticker=eq.${encodeURIComponent(clean)}` +
+    `&select=ticker,state,source_bar_at,candles,updated_at` +
+    `&limit=1`;
 
-    if(result.error) throw result.error;
-    data=result.data;
-  }catch(error){
-    primaryError=error;
-    console.warn("HANZ chart Supabase JS read failed; trying REST fallback:",error);
-  }
+  const response = await fetch(url, {
+    method: "GET",
+    headers: {
+      apikey: SUPABASE_KEY,
+      Accept: "application/json"
+    },
+    cache: "no-store"
+  });
 
-  // Independent REST fallback. This uses the same public/publishable key and
-  // the RLS SELECT policy created for hanz_swing_chart_data.
-  if(!data){
-    const restUrl=
-      `${SUPABASE_URL}/rest/v1/hanz_swing_chart_data` +
-      `?ticker=eq.${encodeURIComponent(clean)}` +
-      `&select=ticker,state,source_bar_at,candles,updated_at&limit=1`;
-
-    const response=await fetch(restUrl,{
-      method:"GET",
-      headers:{
-        apikey:SUPABASE_KEY,
-        Accept:"application/json"
-      },
-      cache:"no-store"
-    });
-
-    if(!response.ok){
-      const body=await response.text();
-      throw new Error(
-        `HANZ chart REST ${response.status}: ${body || primaryError?.message || "read failed"}`
-      );
-    }
-
-    const rows=await response.json();
-    data=Array.isArray(rows) ? rows[0] : null;
-  }
-
-  if(!data || !Array.isArray(data.candles)){
-    throw new Error("HANZ chart cache is not available for this ticker yet");
-  }
-
-  const out=data.candles.map(c=>({
-    time:String(c.time),
-    open:Number(c.open),
-    high:Number(c.high),
-    low:Number(c.low),
-    close:Number(c.close),
-    volume:Number(c.volume || 0)
-  })).filter(c=>
-    c.time &&
-    [c.open,c.high,c.low,c.close].every(Number.isFinite)
-  );
-
-  const completed=completedDailyCandlesOnly(out);
-  if(completed.length<10){
-    throw new Error("Insufficient completed candles in HANZ chart cache");
-  }
-
-  const sourceBarAt=String(
-    data.source_bar_at || completed[completed.length-1].time
-  ).slice(0,10);
-  const expected=latestCompletedIdxDateClient();
-
-  if(expected && sourceBarAt < expected){
+  if(!response.ok){
+    const body = await response.text();
     throw new Error(
-      `HANZ chart cache is stale: latest ${sourceBarAt}, expected ${expected}. ` +
-      `Run a fresh HANZ Swing Scanner to repair the latest completed candle.`
+      `Supabase read failed (${response.status})${body ? ": " + body : ""}`
     );
   }
 
+  const rows = await response.json();
+
+  if(!Array.isArray(rows) || rows.length === 0){
+    throw new Error(`No chart data found in Supabase for ${clean}`);
+  }
+
+  const data = rows[0];
+
+  if(!Array.isArray(data.candles) || data.candles.length === 0){
+    throw new Error(`Supabase chart candles are empty for ${clean}`);
+  }
+
+  const candles = data.candles.map(c => ({
+    time: String(c.time),
+    open: Number(c.open),
+    high: Number(c.high),
+    low: Number(c.low),
+    close: Number(c.close),
+    volume: Number(c.volume || 0)
+  })).filter(c =>
+    c.time &&
+    [c.open, c.high, c.low, c.close].every(Number.isFinite)
+  );
+
+  if(candles.length < 10){
+    throw new Error(`Insufficient chart candles for ${clean}`);
+  }
+
   return {
-    candles:completed,
-    sourceBarAt,
-    updatedAt:data.updated_at || null
+    candles,
+    sourceBarAt: String(
+      data.source_bar_at || candles[candles.length - 1].time
+    ).slice(0,10),
+    updatedAt: data.updated_at || null
   };
 }
 
@@ -2255,7 +2230,7 @@ async function openHanzChart(ticker){
   chartWrap.style.display="none";
   volumeLegend.style.display="none";
   status.style.display="block";
-  status.textContent="Loading HANZ completed-candle chart cache…";
+  status.textContent="Loading chart data directly from Supabase…";
 
   let chartPayload=null;
   let candles=null;
