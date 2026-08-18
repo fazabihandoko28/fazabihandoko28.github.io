@@ -2207,6 +2207,7 @@ function renderHanzFallbackChart(candles,row){
 }
 
 async function openHanzChart(ticker){
+  console.info("HANZ chart open:", ticker);
   const modal=$("chartModal");
   const chartWrap=$("hanzChartWrap");
   const chartBox=$("hanzChart");
@@ -2231,7 +2232,7 @@ async function openHanzChart(ticker){
     `<span class="chart-level-chip">${k}: ${safe(v)}</span>`
   ).join("");
 
-  modal.classList.add("open");
+  modal.classList.add("show");
   modal.setAttribute("aria-hidden","false");
 
   chartWrap.style.display="none";
@@ -2295,7 +2296,7 @@ async function openHanzChart(ticker){
 }
 
 function closeHanzChart(){
-  $("chartModal").classList.remove("open");
+  $("chartModal").classList.remove("show");
   $("chartModal").setAttribute("aria-hidden","true");
 }
 
