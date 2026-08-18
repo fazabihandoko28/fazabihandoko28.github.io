@@ -406,6 +406,7 @@ th{color:var(--muted)}
 
 
 .quality-legend{font-size:8px;color:var(--muted);margin-top:8px;line-height:1.5}
+.market-open{font-weight:800}.market-closed{font-weight:800;opacity:.85}
 </style>
 </head>
 
@@ -443,6 +444,34 @@ th{color:var(--muted)}
     </div>
   </div>
 </header>
+<div id="marketStatusStrip" style="
+  position:sticky;
+  top:0;
+  z-index:25;
+  display:flex;
+  gap:10px;
+  align-items:center;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  padding:9px 14px;
+  margin:0;
+  border-bottom:1px solid rgba(255,255,255,.08);
+  background:rgba(8,14,24,.96);
+  backdrop-filter:blur(10px);
+  font-size:12px;
+">
+  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+    <strong id="topIdxMarket">IDX: CHECKING</strong>
+    <span id="topIdxSession">—</span>
+    <span id="topIdxReason">—</span>
+  </div>
+  <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+    <span id="topIdxWib">WIB —</span>
+    <span id="topIdxPrev">Prev —</span>
+    <span id="topIdxNext">Next —</span>
+  </div>
+</div>
+
 
 <div id="errorBox" class="error-box"></div>
 
@@ -621,9 +650,21 @@ th{color:var(--muted)}
     </div>
 
     <div class="metric-card">
+      <span>RAW PUSH EVENT</span>
+      <strong id="diagRawPushState">NEVER</strong>
+      <small id="diagRawPushTime">No browser push event captured</small>
+    </div>
+
+    <div class="metric-card">
       <span>SERVICE WORKER</span>
       <strong id="diagSwState">CHECKING</strong>
       <small id="diagSwScope">—</small>
+    </div>
+
+    <div class="metric-card">
+      <span>CURRENT FID</span>
+      <strong id="diagCurrentFid">—</strong>
+      <small>Latest onRegistered() FID</small>
     </div>
 
     <div class="metric-card">
@@ -922,15 +963,38 @@ function formatDiagTime(value){
   }
 }
 
+async function readBackgroundProbeFromCache(){
+  try{
+    if(!("caches" in window)) return null;
+    const cache=await caches.open("hanz-push-diagnostic-v13");
+    const response=await cache.match("/__hanz_push_background_probe__");
+    if(!response) return null;
+    return await response.json();
+  }catch(error){
+    console.warn("HANZ background probe cache read failed:",error);
+    return null;
+  }
+}
+
 async function renderPushDiagnostic(){
   const state=readPushDiagnostic();
+  const backgroundProbe=await readBackgroundProbeFromCache();
+
+  if(backgroundProbe?.received_at){
+    state.background_at=backgroundProbe.received_at;
+    state.last_payload=backgroundProbe.payload || state.last_payload || null;
+    state.last_channel="BACKGROUND_RAW_PUSH";
+  }
 
   const fgState=$("diagForegroundState");
   const fgTime=$("diagForegroundTime");
   const bgState=$("diagBackgroundState");
   const bgTime=$("diagBackgroundTime");
+  const rawState=$("diagRawPushState");
+  const rawTime=$("diagRawPushTime");
   const swState=$("diagSwState");
   const swScope=$("diagSwScope");
+  const fid=$("diagCurrentFid");
   const perm=$("diagPermission");
   const payload=$("diagPayload");
 
@@ -939,6 +1003,11 @@ async function renderPushDiagnostic(){
 
   if(bgState) bgState.textContent=state.background_at ? "RECEIVED" : "NEVER";
   if(bgTime) bgTime.textContent=formatDiagTime(state.background_at);
+
+  if(rawState) rawState.textContent=backgroundProbe?.received_at ? "RECEIVED" : "NEVER";
+  if(rawTime) rawTime.textContent=formatDiagTime(backgroundProbe?.received_at);
+
+  if(fid) fid.textContent=currentInstallationId || "—";
 
   if(perm){
     perm.textContent=("Notification" in window)
@@ -1057,31 +1126,69 @@ function renderPushState(){
 async function upsertPushDevice(installationId){
   if(!currentUser || !installationId) return;
 
-  // Keep only the currently registered FID enabled for this user.
+  const now=new Date().toISOString();
+
+  // Only the FID reported by the latest successful register() remains enabled.
   const {error:disableError}=await supabase
     .from("hanz_push_devices")
     .update({
       enabled:false,
-      last_seen_at:new Date().toISOString()
+      last_seen_at:now
     })
     .eq("user_id",currentUser.id);
 
   if(disableError) throw disableError;
 
-  const payload = {
-    user_id: currentUser.id,
-    installation_id: installationId,
-    platform: navigator.platform || null,
-    user_agent: navigator.userAgent || null,
-    enabled: true,
-    last_seen_at: new Date().toISOString()
+  const payload={
+    user_id:currentUser.id,
+    installation_id:installationId,
+    platform:navigator.platform || null,
+    user_agent:navigator.userAgent || null,
+    enabled:true,
+    last_seen_at:now
   };
 
-  const {error} = await supabase
+  const {error}=await supabase
     .from("hanz_push_devices")
     .upsert(payload,{onConflict:"user_id,installation_id"});
 
   if(error) throw error;
+
+  currentInstallationId=installationId;
+  pushReady=true;
+  renderPushState();
+}
+
+let pushRegistrationRefreshPromise=null;
+
+async function refreshPushRegistration(){
+  if(!currentUser) return false;
+  if(pushDisabledByUser()) return false;
+
+  if(pushRegistrationRefreshPromise){
+    return pushRegistrationRefreshPromise;
+  }
+
+  pushRegistrationRefreshPromise=(async ()=>{
+    try{
+      const okay=await initPushMessaging();
+      if(!okay) return false;
+
+      if(Notification.permission !== "granted"){
+        return false;
+      }
+
+      // Modern Firebase Messaging registration. onRegistered() is the source
+      // of truth for the active FID and will update Supabase.
+      await refreshPushRegistration();
+
+      return true;
+    }finally{
+      pushRegistrationRefreshPromise=null;
+    }
+  })();
+
+  return pushRegistrationRefreshPromise;
 }
 
 async function initPushMessaging(){
@@ -1110,7 +1217,7 @@ async function initPushMessaging(){
 
     onRegistered(firebaseMessaging, async installationId=>{
       try{
-        currentInstallationId = installationId;
+        if(!currentUser || !installationId) return;
 
         if(pushDisabledByUser()){
           const {error}=await supabase
@@ -1123,18 +1230,17 @@ async function initPushMessaging(){
               enabled:false,
               last_seen_at:new Date().toISOString()
             },{onConflict:"user_id,installation_id"});
+
           if(error) throw error;
 
+          currentInstallationId=null;
           pushReady=false;
           renderPushState();
-          console.log("HANZ push remains disabled:", installationId);
           return;
         }
 
         await upsertPushDevice(installationId);
-        pushReady = true;
-        renderPushState();
-        console.log("HANZ push registered:", installationId);
+        console.log("HANZ active FID registered:",installationId);
       }catch(error){
         console.error("Push registration save failed:",error);
         notify("Push registration failed: " + error.message,"error");
@@ -1160,7 +1266,16 @@ async function initPushMessaging(){
 
         pushReady=false;
         renderPushState();
-        console.log("HANZ FID unregistered:", installationId);
+        console.warn("HANZ FID unregistered:",installationId);
+
+        // Self-heal only when user still wants push ON.
+        if(!pushDisabledByUser() && Notification.permission==="granted"){
+          setTimeout(()=>{
+            refreshPushRegistration().catch(error=>{
+              console.warn("HANZ push self-heal retry failed:",error);
+            });
+          },1500);
+        }
       }catch(error){
         console.warn("HANZ unregister sync warning:",error);
       }
@@ -1292,7 +1407,8 @@ async function togglePush(){
 }
 
 async function syncPushIfAlreadyGranted(){
-  if(!currentUser || Notification.permission !== "granted") return;
+  if(!currentUser || Notification.permission!=="granted") return;
+
   if(pushDisabledByUser()){
     pushReady=false;
     renderPushState();
@@ -1300,15 +1416,9 @@ async function syncPushIfAlreadyGranted(){
   }
 
   try{
-    const okay = await initPushMessaging();
-    if(!okay) return;
-
-    await registerMessaging(firebaseMessaging,{
-      vapidKey:FIREBASE_VAPID_KEY,
-      serviceWorkerRegistration:pushServiceWorkerRegistration
-    });
+    await refreshPushRegistration();
   }catch(error){
-    console.warn("Background push sync failed:",error);
+    console.warn("Background push registration refresh failed:",error);
   }
 }
 
@@ -1743,6 +1853,47 @@ function renderIdxMarketClock(){
   }
 
   return m;
+
+  // Persistent header status
+  const topMarket=$("topIdxMarket");
+  const topSession=$("topIdxSession");
+  const topReason=$("topIdxReason");
+  const topWib=$("topIdxWib");
+  const topPrev=$("topIdxPrev");
+  const topNext=$("topIdxNext");
+
+  if(topMarket){
+    const marketText =
+      market?.state === "SESSION_1" ||
+      market?.state === "SESSION_2"
+        ? "IDX: MARKET OPEN"
+        : "IDX: MARKET CLOSED";
+
+    topMarket.textContent=marketText;
+    topMarket.classList.toggle("market-open",marketText.includes("OPEN"));
+    topMarket.classList.toggle("market-closed",marketText.includes("CLOSED"));
+  }
+
+  if(topSession){
+    topSession.textContent=market?.state || "UNKNOWN";
+  }
+
+  if(topReason){
+    topReason.textContent=market?.reason ? `· ${market.reason}` : "";
+  }
+
+  if(topWib){
+    topWib.textContent=`WIB ${parts.hour}:${parts.minute}`;
+  }
+
+  if(topPrev){
+    topPrev.textContent=`Prev ${previousTradingDay}`;
+  }
+
+  if(topNext){
+    topNext.textContent=`Next ${nextTradingDay}`;
+  }
+
 }
 
 
@@ -2139,6 +2290,22 @@ window.addEventListener("DOMContentLoaded",async ()=>{
   document.querySelectorAll("[data-panel]").forEach(btn=>{
     btn.addEventListener("click",()=>showPanel(btn.dataset.panel));
   });
+
+  
+  // HANZ push registration heartbeat:
+  // refresh active FID while the dashboard is open, without user action.
+  setInterval(()=>{
+    if(
+      currentUser &&
+      !pushDisabledByUser() &&
+      "Notification" in window &&
+      Notification.permission==="granted"
+    ){
+      refreshPushRegistration().catch(error=>{
+        console.warn("HANZ push registration heartbeat failed:",error);
+      });
+    }
+  },5*60*1000);
 
   $("refreshButton").addEventListener("click",loadAll);
   $("pushButton").addEventListener("click",togglePush);
