@@ -62,6 +62,17 @@ MIN_BUY_SCORE = int(
     os.getenv("HANZ_SWING_MIN_BUY_SCORE", "8")
 )
 
+# V6 EARLY SIGNAL + RECONFIRMATION
+EARLY_WATCH_SCORE = int(os.getenv("HANZ_SWING_EARLY_WATCH_SCORE", "5"))
+PRE_ALERT_SCORE = int(os.getenv("HANZ_SWING_PRE_ALERT_SCORE", "7"))
+SETUP_READY_SCORE = int(os.getenv("HANZ_SWING_SETUP_READY_SCORE", "8"))
+EARLY_BREAKOUT_DISTANCE_PCT = float(
+    os.getenv("HANZ_SWING_EARLY_BREAKOUT_DISTANCE_PCT", "5.0")
+)
+SETUP_READY_BREAKOUT_DISTANCE_PCT = float(
+    os.getenv("HANZ_SWING_SETUP_READY_BREAKOUT_DISTANCE_PCT", "2.0")
+)
+
 MAX_SYMBOLS_PER_CYCLE = int(
     os.getenv("HANZ_SWING_MAX_SYMBOLS_PER_CYCLE", "220")
 )
@@ -95,6 +106,7 @@ INTRADAY_FEED_HEALTH_FRESH_RATIO = float(
 # so the 200-stock scan does not hammer Yahoo analysis endpoints.
 DISCOUNT_ANALYST_STATES = {
     "SWING_CONFIRMING",
+    "SETUP_READY",
     "SWING_BUY",
 }
 DISCOUNT_ANALYST_DELAY_SECONDS = float(
@@ -107,6 +119,7 @@ DISCOUNT_ANALYST_DELAY_SECONDS = float(
 # SWING_CONFIRMING and SWING_BUY candidates.
 FUNDAMENTAL_STATES = {
     "SWING_CONFIRMING",
+    "SETUP_READY",
     "SWING_BUY",
 }
 FUNDAMENTAL_FETCH_DELAY_SECONDS = float(
@@ -474,6 +487,12 @@ def latest_intraday_quote(ticker):
         and age_minutes <= INTRADAY_STALE_MINUTES
     )
 
+    breakout_distance_pct = None
+    if price is not None and prior_high20 not in (None, 0):
+        breakout_distance_pct = (
+            (prior_high20 - price) / prior_high20 * 100
+        )
+
     return {
         "price": price,
         "bar_at": bar_ts.isoformat(),
@@ -540,6 +559,27 @@ def daily_metrics(df):
     atr14 = atr(df, 14)
 
     avg_vol20 = volume.rolling(20).mean()
+    ema20_slope_5d_pct = None
+    rsi_change_5d = None
+    volume_accel_5d = None
+
+    if len(df) >= 8:
+        ema20_base = safe_float(ema20.iloc[-6])
+        ema20_now = safe_float(ema20.iloc[-1])
+        if ema20_base not in (None, 0) and ema20_now is not None:
+            ema20_slope_5d_pct = (
+                (ema20_now - ema20_base) / abs(ema20_base) * 100
+            )
+
+        rsi_then = safe_float(rsi14.iloc[-6])
+        rsi_now = safe_float(rsi14.iloc[-1])
+        if rsi_then is not None and rsi_now is not None:
+            rsi_change_5d = rsi_now - rsi_then
+
+        recent_avg = safe_float(volume.iloc[-3:].mean())
+        prior_avg = safe_float(volume.iloc[-8:-3].mean())
+        if recent_avg is not None and prior_avg not in (None, 0):
+            volume_accel_5d = recent_avg / prior_avg
 
     last = len(df) - 1
     prior_high20 = safe_float(
@@ -617,6 +657,10 @@ def daily_metrics(df):
         "prior_high20": prior_high20,
         "prior_low20": prior_low20,
         "ret5_pct": safe_float(ret5),
+        "ema20_slope_5d_pct": safe_float(ema20_slope_5d_pct),
+        "rsi_change_5d": safe_float(rsi_change_5d),
+        "volume_accel_5d": safe_float(volume_accel_5d),
+        "breakout_distance_pct": safe_float(breakout_distance_pct),
         "bar_at": pd.Timestamp(
             df.index[-1]
         ).isoformat(),
@@ -640,15 +684,202 @@ def weekly_metrics(df):
 
     rsi14 = rsi(close, 14)
 
+    ema10_now = safe_float(ema10.iloc[-1])
+    ema20_now = safe_float(ema20.iloc[-1])
+    ema_spread_pct = None
+    ema_spread_change_4w = None
+
+    if ema20_now not in (None, 0) and ema10_now is not None:
+        ema_spread_pct = (
+            (ema10_now - ema20_now) / abs(ema20_now) * 100
+        )
+
+    if len(close) >= 5:
+        old_ema20 = safe_float(ema20.iloc[-5])
+        old_ema10 = safe_float(ema10.iloc[-5])
+        if old_ema20 not in (None, 0) and old_ema10 is not None:
+            old_spread = (
+                (old_ema10 - old_ema20) / abs(old_ema20) * 100
+            )
+            if ema_spread_pct is not None:
+                ema_spread_change_4w = ema_spread_pct - old_spread
+
     return {
         "price": safe_float(close.iloc[-1]),
-        "ema10": safe_float(ema10.iloc[-1]),
-        "ema20": safe_float(ema20.iloc[-1]),
+        "ema10": ema10_now,
+        "ema20": ema20_now,
         "rsi14": safe_float(rsi14.iloc[-1]),
+        "ema_spread_pct": safe_float(ema_spread_pct),
+        "ema_spread_change_4w": safe_float(ema_spread_change_4w),
         "bar_at": pd.Timestamp(
             df.index[-1]
         ).isoformat(),
     }
+
+
+
+def early_signal_score(daily, weekly):
+    """Leading score; never actionable by itself."""
+    score = 0
+    evidence = []
+
+    price = safe_float(daily.get("price"))
+    ema20 = safe_float(daily.get("ema20"))
+    rsi_d = safe_float(daily.get("rsi14"))
+    rsi_change = safe_float(daily.get("rsi_change_5d"))
+    ema_slope = safe_float(daily.get("ema20_slope_5d_pct"))
+    rvol = safe_float(daily.get("rvol20"))
+    vol_accel = safe_float(daily.get("volume_accel_5d"))
+    ret5 = safe_float(daily.get("ret5_pct"))
+    distance = safe_float(daily.get("breakout_distance_pct"))
+
+    weekly_rsi = safe_float(weekly.get("rsi14"))
+    weekly_spread = safe_float(weekly.get("ema_spread_pct"))
+    weekly_improve = safe_float(weekly.get("ema_spread_change_4w"))
+
+    if price is not None and ema20 is not None and price >= ema20:
+        score += 1
+        evidence.append("price holding/reclaiming EMA20")
+
+    if ema_slope is not None and ema_slope > 0:
+        score += 1
+        evidence.append(f"EMA20 5d slope +{ema_slope:.2f}%")
+
+    if rsi_d is not None and 45 <= rsi_d <= 68:
+        score += 1
+        evidence.append(f"daily RSI constructive {rsi_d:.1f}")
+
+    if rsi_change is not None and rsi_change >= 3:
+        score += 1
+        evidence.append(f"RSI improving +{rsi_change:.1f} in 5d")
+
+    if ret5 is not None and ret5 > 0:
+        score += 1
+        evidence.append(f"5d momentum +{ret5:.2f}%")
+
+    if (rvol is not None and rvol >= 1.0) or (
+        vol_accel is not None and vol_accel >= 1.20
+    ):
+        score += 1
+        evidence.append(
+            f"RVOL building {rvol:.2f}x"
+            if rvol is not None and rvol >= 1.0
+            else f"volume acceleration {vol_accel:.2f}x"
+        )
+
+    if distance is not None:
+        if -0.5 <= distance <= SETUP_READY_BREAKOUT_DISTANCE_PCT:
+            score += 2
+            evidence.append(f"within {abs(distance):.2f}% of 20d trigger")
+        elif 0 <= distance <= EARLY_BREAKOUT_DISTANCE_PCT:
+            score += 1
+            evidence.append(f"approaching 20d trigger ({distance:.2f}% away)")
+
+    if (
+        (weekly_spread is not None and weekly_spread > 0)
+        or (weekly_improve is not None and weekly_improve > 0)
+    ):
+        score += 1
+        evidence.append("weekly structure bullish/improving")
+
+    if weekly_rsi is not None and weekly_rsi >= 45:
+        score += 1
+        evidence.append(f"weekly RSI supportive {weekly_rsi:.1f}")
+
+    return {"score": min(score, 10), "evidence": evidence}
+
+
+def fetch_prior_monitor(ticker):
+    encoded = urllib.parse.quote(clean_ticker(ticker), safe="")
+    rows = supabase_request(
+        "GET",
+        "hanz_swing_signal_monitor"
+        f"?ticker=eq.{encoded}"
+        "&select=ticker,state,score,daily_bar_at,updated_at"
+        "&limit=1",
+    ) or []
+    return rows[0] if rows else None
+
+
+def apply_early_state_and_reconfirmation(
+    ticker, daily, weekly, base_result, prior_monitor
+):
+    """
+    EARLY_WATCH -> PRE_ALERT -> SETUP_READY -> SWING_BUY.
+
+    SWING_BUY is the only actionable BUY and requires the hard BUY gate to
+    persist into a NEW completed daily bar. Re-running the same candle can
+    never reconfirm a BUY.
+    """
+    early = early_signal_score(daily, weekly)
+    early_score = early["score"]
+
+    prior_state = str((prior_monitor or {}).get("state") or "")
+    prior_bar = str((prior_monitor or {}).get("daily_bar_at") or "")
+    current_bar = str(daily.get("bar_at") or "")
+    new_completed_bar = bool(
+        current_bar and prior_bar and current_bar != prior_bar
+    )
+
+    raw_buy = (
+        base_result.get("score", 0) >= MIN_BUY_SCORE
+        and bool(base_result.get("breakout"))
+        and base_result.get("weekly_trend") == "BULLISH"
+    )
+
+    distance = safe_float(daily.get("breakout_distance_pct"))
+    state = "NO_SETUP"
+
+    if early_score >= EARLY_WATCH_SCORE:
+        state = "EARLY_WATCH"
+
+    if (
+        early_score >= PRE_ALERT_SCORE
+        and distance is not None
+        and distance <= EARLY_BREAKOUT_DISTANCE_PCT
+    ):
+        state = "PRE_ALERT"
+
+    if (
+        early_score >= SETUP_READY_SCORE
+        and distance is not None
+        and distance <= SETUP_READY_BREAKOUT_DISTANCE_PCT
+        and base_result.get("score", 0) >= MIN_CONFIRM_SCORE
+    ):
+        state = "SETUP_READY"
+
+    if raw_buy:
+        previously_armed = prior_state in {
+            "SETUP_READY", "SWING_CONFIRMING", "SWING_BUY"
+        }
+
+        if prior_state == "SWING_BUY":
+            state = "SWING_BUY"
+        elif previously_armed and new_completed_bar:
+            state = "SWING_BUY"
+        else:
+            state = "SETUP_READY"
+
+    evidence = list(base_result.get("evidence") or [])
+    evidence.extend(f"EARLY:{x}" for x in early["evidence"])
+
+    if raw_buy and state != "SWING_BUY":
+        evidence.append(
+            "RECONFIRM: hard BUY gate reached; waiting next completed daily bar"
+        )
+    elif state == "SWING_BUY":
+        evidence.append(
+            "RECONFIRM: hard BUY gate persisted on a new completed daily bar"
+        )
+
+    out = dict(base_result)
+    out["state"] = state
+    out["early_score"] = early_score
+    out["early_evidence"] = early["evidence"]
+    out["raw_buy_gate"] = raw_buy
+    out["reconfirmed"] = state == "SWING_BUY"
+    out["evidence"] = evidence
+    return out
 
 
 def swing_score(daily, weekly):
@@ -3179,9 +3410,18 @@ def scan_symbol(ticker):
     daily = daily_metrics(daily_df)
     weekly = weekly_metrics(weekly_df)
 
-    result = swing_score(
+    base_result = swing_score(
         daily,
         weekly,
+    )
+
+    prior_monitor = fetch_prior_monitor(ticker)
+    result = apply_early_state_and_reconfirmation(
+        ticker,
+        daily,
+        weekly,
+        base_result,
+        prior_monitor,
     )
 
     company_intel = {
@@ -3252,6 +3492,9 @@ def scan_symbol(ticker):
         f"SWING {clean_ticker(ticker)} "
         f"{result['state']} "
         f"score={result['score']}/10 "
+        f"early={result.get('early_score', 0)}/10 "
+        f"raw_buy={result.get('raw_buy_gate', False)} "
+        f"reconfirmed={result.get('reconfirmed', False)} "
         f"discount={discount['discount_score']}/100 "
         f"{discount['discount_label']} "
         f"fundamental={fundamental.get('fundamental_score')}/100 "
@@ -3332,6 +3575,9 @@ def run_cycle():
 
     counts = {
         "SWING_BUY": 0,
+        "SETUP_READY": 0,
+        "PRE_ALERT": 0,
+        "EARLY_WATCH": 0,
         "SWING_CONFIRMING": 0,
         "SWING_WATCH": 0,
         "NO_SETUP": 0,
@@ -3376,6 +3622,7 @@ def main():
         f"Cycle={SWING_INTERVAL}s | "
         f"Portfolio monitor=ON | "
         f"IDX calendar gate=ON (Asia/Jakarta) | "
+        f"Early radar=ON | Reconfirm BUY=NEW DAILY BAR | "
         f"Trailing={TRAILING_ATR_MULTIPLIER_T1:.1f}x/"
         f"{TRAILING_ATR_MULTIPLIER_T2:.1f}x ATR",
         flush=True,
