@@ -79,6 +79,16 @@ INTRADAY_STALE_MINUTES = int(
     os.getenv("HANZ_SWING_STALE_GUARD_MINUTES", "20")
 )
 
+# Adaptive feed-health guard:
+# A quote older than the ticker threshold is not automatically "stale".
+# First evaluate whether the overall provider/feed is still updating.
+INTRADAY_FEED_HEALTH_MIN_SYMBOLS = int(
+    os.getenv("HANZ_SWING_FEED_HEALTH_MIN_SYMBOLS", "2")
+)
+INTRADAY_FEED_HEALTH_FRESH_RATIO = float(
+    os.getenv("HANZ_SWING_FEED_HEALTH_FRESH_RATIO", "0.50")
+)
+
 
 # Discount Intelligence V1
 # Analyst-target calls are deliberately limited to stronger setups
@@ -459,7 +469,7 @@ def latest_intraday_quote(ticker):
         (now_wib - bar_ts.to_pydatetime()).total_seconds() / 60.0,
     )
 
-    fresh = (
+    fresh_by_age = (
         price is not None
         and age_minutes <= INTRADAY_STALE_MINUTES
     )
@@ -468,8 +478,8 @@ def latest_intraday_quote(ticker):
         "price": price,
         "bar_at": bar_ts.isoformat(),
         "age_minutes": round(age_minutes, 2),
-        "fresh": fresh,
-        "status": "OK" if fresh else "STALE",
+        "fresh_by_age": fresh_by_age,
+        "status": "OK" if fresh_by_age else "OLD_BAR",
     }
 
 
@@ -2846,19 +2856,27 @@ def fetch_active_swing_monitor_rows():
 
 def refresh_swing_buy_intraday_prices():
     """
-    Refresh CURRENT PRICE for existing SWING_BUY rows during the trading day.
-    Freshness is measured from the provider bar timestamp, not fetch time.
+    Adaptive intraday price refresh for existing SWING_BUY rows.
 
-    Guard:
-      <= 20 min (default): price may update Supabase.
-      > 20 min: reject quote and leave previous stored price untouched.
+    Key rule:
+      - A ticker bar older than INTRADAY_STALE_MINUTES is NOT automatically stale.
+      - First evaluate overall feed health using all active SWING_BUY tickers.
+      - If the feed is healthy, an old ticker bar is classified LAST_TRADE
+        (valid last traded price; ticker may simply have no recent transaction).
+      - If the feed is unhealthy and the ticker bar is old, classify STALE_FEED
+        and do NOT overwrite the stored price.
+
+    This prevents illiquid/quiet IDX stocks from being falsely marked stale.
     """
     rows = fetch_active_swing_monitor_rows()
     refreshed = 0
-    stale = 0
+    last_trade = 0
+    stale_feed = 0
     errors = 0
     details = []
 
+    # Phase 1: collect all quotes before deciding whether the provider feed is healthy.
+    quote_rows = []
     for row in rows:
         ticker = row.get("ticker")
         if not ticker:
@@ -2866,53 +2884,7 @@ def refresh_swing_buy_intraday_prices():
 
         try:
             q = latest_intraday_quote(ticker)
-
-            if not q["fresh"]:
-                stale += 1
-                details.append({
-                    "ticker": clean_ticker(ticker),
-                    "status": "STALE",
-                    "age_minutes": q["age_minutes"],
-                    "bar_at": q["bar_at"],
-                })
-                print(
-                    f"SWING QUOTE {clean_ticker(ticker)} STALE "
-                    f"age={q['age_minutes']:.1f}m "
-                    f"bar={q['bar_at']} "
-                    f"guard={INTRADAY_STALE_MINUTES}m; "
-                    "stored price NOT overwritten.",
-                    flush=True,
-                )
-                continue
-
-            supabase_request(
-                "PATCH",
-                "hanz_swing_signal_monitor"
-                f"?ticker=eq.{urllib.parse.quote(clean_ticker(ticker))}",
-                {
-                    "price": q["price"],
-                    "updated_at": now_iso(),
-                },
-                prefer="return=minimal",
-            )
-
-            refreshed += 1
-            details.append({
-                "ticker": clean_ticker(ticker),
-                "status": "OK",
-                "price": q["price"],
-                "age_minutes": q["age_minutes"],
-                "bar_at": q["bar_at"],
-            })
-
-            print(
-                f"SWING QUOTE {clean_ticker(ticker)} "
-                f"price={q['price']} "
-                f"age={q['age_minutes']:.1f}m "
-                f"bar={q['bar_at']} OK",
-                flush=True,
-            )
-
+            quote_rows.append((row, ticker, q))
         except Exception as exc:
             errors += 1
             details.append({
@@ -2925,12 +2897,125 @@ def refresh_swing_buy_intraday_prices():
                 flush=True,
             )
 
+    valid_quotes = [
+        q for _, _, q in quote_rows
+        if q.get("price") is not None
+    ]
+    fresh_quotes = [
+        q for q in valid_quotes
+        if q.get("fresh_by_age")
+    ]
+
+    total_valid = len(valid_quotes)
+    fresh_count = len(fresh_quotes)
+    fresh_ratio = (
+        fresh_count / total_valid
+        if total_valid
+        else 0.0
+    )
+
+    if total_valid == 0:
+        feed_healthy = False
+    elif total_valid < INTRADAY_FEED_HEALTH_MIN_SYMBOLS:
+        # With only one usable symbol, accept the feed only if that symbol itself is fresh.
+        feed_healthy = fresh_count == total_valid
+    else:
+        feed_healthy = (
+            fresh_ratio >= INTRADAY_FEED_HEALTH_FRESH_RATIO
+        )
+
+    feed_status = "HEALTHY" if feed_healthy else "STALE_FEED"
+
+    print(
+        "SWING FEED HEALTH "
+        f"{feed_status} "
+        f"fresh={fresh_count}/{total_valid} "
+        f"ratio={fresh_ratio:.0%} "
+        f"age_guard={INTRADAY_STALE_MINUTES}m",
+        flush=True,
+    )
+
+    # Phase 2: classify each quote using overall feed health.
+    for row, ticker, q in quote_rows:
+        clean = clean_ticker(ticker)
+        age = q["age_minutes"]
+        price_value = q["price"]
+
+        if q.get("fresh_by_age"):
+            status = "OK"
+            allow_update = True
+            refreshed += 1
+        elif feed_healthy:
+            # Provider is updating other symbols normally.
+            # This ticker most likely simply has no recent transaction.
+            status = "LAST_TRADE"
+            allow_update = True
+            last_trade += 1
+        else:
+            status = "STALE_FEED"
+            allow_update = False
+            stale_feed += 1
+
+        if allow_update:
+            supabase_request(
+                "PATCH",
+                "hanz_swing_signal_monitor"
+                f"?ticker=eq.{urllib.parse.quote(clean)}",
+                {
+                    "price": price_value,
+                    "updated_at": now_iso(),
+                },
+                prefer="return=minimal",
+            )
+
+        details.append({
+            "ticker": clean,
+            "status": status,
+            "price": price_value,
+            "age_minutes": age,
+            "bar_at": q["bar_at"],
+            "feed_status": feed_status,
+            "updated": allow_update,
+        })
+
+        if status == "OK":
+            print(
+                f"SWING QUOTE {clean} "
+                f"price={price_value} "
+                f"age={age:.1f}m "
+                f"bar={q['bar_at']} OK",
+                flush=True,
+            )
+        elif status == "LAST_TRADE":
+            print(
+                f"SWING QUOTE {clean} "
+                f"price={price_value} "
+                f"age={age:.1f}m "
+                f"bar={q['bar_at']} LAST_TRADE "
+                f"| feed={feed_status}; price accepted.",
+                flush=True,
+            )
+        else:
+            print(
+                f"SWING QUOTE {clean} STALE_FEED "
+                f"age={age:.1f}m "
+                f"bar={q['bar_at']} "
+                f"| feed={feed_status}; stored price NOT overwritten.",
+                flush=True,
+            )
+
     return {
         "rows": len(rows),
+        "valid_quotes": total_valid,
+        "fresh_quotes": fresh_count,
+        "fresh_ratio": round(fresh_ratio, 4),
+        "feed_status": feed_status,
         "refreshed": refreshed,
-        "stale": stale,
+        "last_trade": last_trade,
+        "stale_feed": stale_feed,
         "errors": errors,
         "stale_guard_minutes": INTRADAY_STALE_MINUTES,
+        "feed_health_fresh_ratio": INTRADAY_FEED_HEALTH_FRESH_RATIO,
         "details": details,
     }
 
