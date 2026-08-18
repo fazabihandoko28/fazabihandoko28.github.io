@@ -931,11 +931,11 @@ th{color:var(--muted)}
       <div id="hanzVolume"></div>
     </div>
     <div class="chart-attribution">
-      Primary open-source rendering by
+      HANZ built-in rendering
       <a href="https://www.tradingview.com/lightweight-charts/" target="_blank" rel="noopener">
         TradingView Lightweight Charts™
       </a>.
-      Chart data is read directly from Supabase table hanz_swing_chart_data. If the external chart library cannot load, HANZ automatically uses its built-in SVG renderer.
+      Chart data is read directly from Supabase table hanz_swing_chart_data and rendered by the built-in HANZ SVG renderer.
     </div>
   </div>
 </div>
@@ -2216,224 +2216,81 @@ async function openHanzChart(ticker){
   const row=currentSignalRow(ticker);
 
   $("chartTicker").textContent=String(ticker || "—").toUpperCase();
-  $("chartSubtitle").textContent=`${signalStateLabel(row.state)} · Completed Daily Candles · EMA20 / EMA50 · Volume`;
+  $("chartSubtitle").textContent=
+    `${signalStateLabel(row.state)} · Completed Daily Candles · HANZ Direct Renderer`;
+
   $("chartLevelChips").innerHTML=[
     ["Current (Intraday/Last Trade)",price(row.price)],
-    ["Entry",row.entry_low!=null && row.entry_high!=null ? `${price(row.entry_low)}–${price(row.entry_high)}` : "—"],
+    ["Entry",row.entry_low!=null && row.entry_high!=null
+      ? `${price(row.entry_low)}–${price(row.entry_high)}`
+      : "—"],
     ["Stop",price(row.stop_loss)],
     ["T1",price(row.target_1)],
     ["T2",price(row.target_2)]
-  ].map(([k,v])=>`<span class="chart-level-chip">${k}: ${safe(v)}</span>`).join("");
+  ].map(([k,v])=>
+    `<span class="chart-level-chip">${k}: ${safe(v)}</span>`
+  ).join("");
 
   modal.classList.add("open");
   modal.setAttribute("aria-hidden","false");
+
   chartWrap.style.display="none";
   volumeLegend.style.display="none";
   status.style.display="block";
   status.textContent="Loading chart data directly from Supabase…";
 
-  let chartPayload=null;
-  let candles=null;
-
   try{
-    chartPayload=await supabaseDailyCandles(ticker);
-    candles=chartPayload.candles;
-    $("chartSubtitle").textContent=
-      `${signalStateLabel(row.state)} · Completed Daily Candles through ${chartPayload.sourceBarAt} · EMA20 / EMA50 · Volume`;
-
-    // If the third-party renderer is unavailable, HANZ still renders the
-    // complete analysis chart using its built-in SVG renderer.
-    if(!window.LightweightCharts){
-      chartBox.innerHTML="";
-      volumeBox.innerHTML="";
-      chartWrap.style.display="block";
-      status.style.display="none";
-      renderHanzFallbackChart(candles,row);
-
-      const volStats=latestVolumeStats(candles);
-      volumeLegend.innerHTML=[
-        ["Volume",Number.isFinite(volStats.latest)?volStats.latest.toLocaleString("en-US"):"—"],
-        ["Avg20",Number.isFinite(volStats.avg20)?Math.round(volStats.avg20).toLocaleString("en-US"):"—"],
-        ["RVOL",Number.isFinite(volStats.rvol)?volStats.rvol.toFixed(2)+"×":"—"]
-      ].map(([k,v])=>`<span class="chart-level-chip"><strong>${k}</strong>: ${v}</span>`).join("");
-      volumeLegend.style.display="flex";
-      return;
-    }
+    // This is the same direct REST path that passed the standalone diagnostic.
+    const chartPayload=await supabaseDailyCandles(ticker);
+    const candles=chartPayload.candles;
 
     if(hanzChartInstance){
-      hanzChartInstance.remove();
+      try{ hanzChartInstance.remove(); }catch(_){}
       hanzChartInstance=null;
     }
     if(hanzVolumeChartInstance){
-      hanzVolumeChartInstance.remove();
+      try{ hanzVolumeChartInstance.remove(); }catch(_){}
       hanzVolumeChartInstance=null;
     }
 
     chartBox.innerHTML="";
     volumeBox.innerHTML="";
+
     chartWrap.style.display="block";
     status.style.display="none";
 
-    const chart=LightweightCharts.createChart(chartBox,{
-      width:chartBox.clientWidth,
-      height:chartBox.clientHeight || 330,
-      layout:{
-        background:{type:"solid",color:"#07101d"},
-        textColor:"#91a0b5"
-      },
-      grid:{
-        vertLines:{color:"rgba(255,255,255,.045)"},
-        horzLines:{color:"rgba(255,255,255,.045)"}
-      },
-      rightPriceScale:{borderColor:"rgba(255,255,255,.10)"},
-      timeScale:{
-        borderColor:"rgba(255,255,255,.10)",
-        timeVisible:false,
-        visible:false
-      },
-      crosshair:{mode:1}
-    });
-    hanzChartInstance=chart;
-
-    const volumeChart=LightweightCharts.createChart(volumeBox,{
-      width:volumeBox.clientWidth,
-      height:volumeBox.clientHeight || 120,
-      layout:{
-        background:{type:"solid",color:"#07101d"},
-        textColor:"#91a0b5"
-      },
-      grid:{
-        vertLines:{color:"rgba(255,255,255,.035)"},
-        horzLines:{color:"rgba(255,255,255,.035)"}
-      },
-      rightPriceScale:{
-        borderColor:"rgba(255,255,255,.10)",
-        scaleMargins:{top:0.12,bottom:0.05}
-      },
-      timeScale:{
-        borderColor:"rgba(255,255,255,.10)",
-        timeVisible:false
-      },
-      crosshair:{mode:1}
-    });
-    hanzVolumeChartInstance=volumeChart;
-
-    const candleSeries=chart.addCandlestickSeries({
-      upColor:"#28e0a2",
-      downColor:"#ff6b78",
-      borderVisible:false,
-      wickUpColor:"#28e0a2",
-      wickDownColor:"#ff6b78"
-    });
-    candleSeries.setData(candles.map(c=>({
-      time:c.time,open:c.open,high:c.high,low:c.low,close:c.close
-    })));
-
-    const ema20=chart.addLineSeries({color:"#4aa3ff",lineWidth:2,title:"EMA20"});
-    ema20.setData(emaPoints(candles,20));
-    const ema50=chart.addLineSeries({color:"#f1c75b",lineWidth:2,title:"EMA50"});
-    ema50.setData(emaPoints(candles,50));
-
-    const volumeSeries=volumeChart.addHistogramSeries({
-      priceFormat:{type:"volume"},
-      priceScaleId:""
-    });
-    volumeSeries.setData(candles.map(c=>({
-      time:c.time,
-      value:Number(c.volume || 0),
-      color:(c.close>=c.open)
-        ? "rgba(40,224,162,.55)"
-        : "rgba(255,107,120,.55)"
-    })));
-
-    const volumeAvg=volumeChart.addLineSeries({
-      color:"#9b8cff",
-      lineWidth:2,
-      title:"Avg Volume 20"
-    });
-    volumeAvg.setData(smaVolumePoints(candles,20));
-
-    addHorizontalLevel(candleSeries,row.stop_loss,"STOP","#ff6b78");
-    addHorizontalLevel(candleSeries,row.target_1,"T1","#28e0a2");
-    addHorizontalLevel(candleSeries,row.target_2,"T2","#20b8ff");
-
-    const entryLow=Number(row.entry_low), entryHigh=Number(row.entry_high);
-    if(Number.isFinite(entryLow)) addHorizontalLevel(candleSeries,entryLow,"ENTRY L","#9b8cff");
-    if(Number.isFinite(entryHigh)) addHorizontalLevel(candleSeries,entryHigh,"ENTRY H","#9b8cff");
+    // No external chart-library dependency for this path.
+    renderHanzFallbackChart(candles,row);
 
     const volStats=latestVolumeStats(candles);
     volumeLegend.innerHTML=[
-      ["Volume",Number.isFinite(volStats.latest)?volStats.latest.toLocaleString("en-US"):"—"],
-      ["Avg20",Number.isFinite(volStats.avg20)?Math.round(volStats.avg20).toLocaleString("en-US"):"—"],
-      ["RVOL",Number.isFinite(volStats.rvol)?volStats.rvol.toFixed(2)+"×":"—"]
-    ].map(([k,v])=>`<span class="chart-level-chip"><strong>${k}</strong>: ${v}</span>`).join("");
+      ["Volume",Number.isFinite(volStats.latest)
+        ? volStats.latest.toLocaleString("en-US")
+        : "—"],
+      ["Avg20",Number.isFinite(volStats.avg20)
+        ? Math.round(volStats.avg20).toLocaleString("en-US")
+        : "—"],
+      ["RVOL",Number.isFinite(volStats.rvol)
+        ? volStats.rvol.toFixed(2)+"×"
+        : "—"]
+    ].map(([k,v])=>
+      `<span class="chart-level-chip"><strong>${k}</strong>: ${v}</span>`
+    ).join("");
+
     volumeLegend.style.display="flex";
 
-    chart.timeScale().fitContent();
-    volumeChart.timeScale().fitContent();
-
-    let syncing=false;
-    chart.timeScale().subscribeVisibleLogicalRangeChange(range=>{
-      if(syncing || !range) return;
-      syncing=true;
-      volumeChart.timeScale().setVisibleLogicalRange(range);
-      syncing=false;
-    });
-    volumeChart.timeScale().subscribeVisibleLogicalRangeChange(range=>{
-      if(syncing || !range) return;
-      syncing=true;
-      chart.timeScale().setVisibleLogicalRange(range);
-      syncing=false;
-    });
-
-    const resize=()=>{
-      if(hanzChartInstance && modal.classList.contains("open")){
-        chart.applyOptions({width:chartBox.clientWidth,height:chartBox.clientHeight || 330});
-      }
-      if(hanzVolumeChartInstance && modal.classList.contains("open")){
-        volumeChart.applyOptions({width:volumeBox.clientWidth,height:volumeBox.clientHeight || 120});
-      }
-    };
-    window.addEventListener("resize",resize,{once:true});
+    $("chartSubtitle").textContent=
+      `${signalStateLabel(row.state)} · Completed Daily Candles through ${chartPayload.sourceBarAt} · EMA20 / EMA50 · Volume`;
 
   }catch(error){
-    console.error("HANZ chart error:",error);
-
-    if(Array.isArray(candles) && candles.length){
-      try{
-        if(hanzChartInstance){
-          hanzChartInstance.remove();
-          hanzChartInstance=null;
-        }
-        if(hanzVolumeChartInstance){
-          hanzVolumeChartInstance.remove();
-          hanzVolumeChartInstance=null;
-        }
-        chartBox.innerHTML="";
-        volumeBox.innerHTML="";
-        chartWrap.style.display="block";
-        status.style.display="none";
-        renderHanzFallbackChart(candles,row);
-
-        const volStats=latestVolumeStats(candles);
-        volumeLegend.innerHTML=[
-          ["Volume",Number.isFinite(volStats.latest)?volStats.latest.toLocaleString("en-US"):"—"],
-          ["Avg20",Number.isFinite(volStats.avg20)?Math.round(volStats.avg20).toLocaleString("en-US"):"—"],
-          ["RVOL",Number.isFinite(volStats.rvol)?volStats.rvol.toFixed(2)+"×":"—"]
-        ].map(([k,v])=>`<span class="chart-level-chip"><strong>${k}</strong>: ${v}</span>`).join("");
-        volumeLegend.style.display="flex";
-        $("chartSubtitle").textContent=
-          `${signalStateLabel(row.state)} · Completed Daily Candles · HANZ built-in renderer`;
-        return;
-      }catch(fallbackError){
-        console.error("HANZ built-in chart fallback failed:",fallbackError);
-      }
-    }
+    console.error("HANZ direct chart error:",error);
 
     chartWrap.style.display="none";
     volumeLegend.style.display="none";
     status.style.display="block";
-    status.innerHTML=`HANZ chart data could not be loaded.<br><span style="opacity:.7">${safe(error.message)}</span>`;
+    status.innerHTML=
+      `HANZ chart could not be loaded.<br>` +
+      `<span style="opacity:.7">${safe(error.message || String(error))}</span>`;
   }
 }
 
