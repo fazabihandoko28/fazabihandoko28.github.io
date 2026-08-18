@@ -1,0 +1,2837 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#050914">
+<title>HANZ — Swing Intelligence</title>
+
+<style>
+:root{
+  --bg:#050914;
+  --bg2:#080e1a;
+  --card:#0d1627;
+  --card2:#111d31;
+  --line:rgba(148,163,184,.16);
+  --text:#f8fafc;
+  --muted:#8291a8;
+  --green:#28e0a2;
+  --blue:#4da3ff;
+  --cyan:#48d7ff;
+  --yellow:#ffc857;
+  --red:#ff6572;
+  --purple:#a879ff;
+  --radius:20px;
+  --shadow:0 18px 55px rgba(0,0,0,.24);
+}
+*{box-sizing:border-box}
+html{background:var(--bg)}
+body{
+  margin:0;
+  min-height:100vh;
+  color:var(--text);
+  font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  background:
+    radial-gradient(circle at 90% 0%,rgba(77,163,255,.16),transparent 28%),
+    radial-gradient(circle at 10% 18%,rgba(40,224,162,.08),transparent 24%),
+    linear-gradient(180deg,#050914,#070d18 60%,#050914);
+}
+body:before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  background-image:
+    linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);
+  background-size:44px 44px;
+  mask-image:linear-gradient(to bottom,black,transparent 76%);
+}
+button,input,textarea{font:inherit}
+button{cursor:pointer}
+.app{max-width:1500px;margin:auto;padding:18px 22px 105px}
+
+/* HEADER */
+.header{
+  display:flex;justify-content:space-between;align-items:center;gap:16px;
+  min-height:66px;margin-bottom:16px
+}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{
+  width:46px;height:46px;border-radius:15px;display:grid;place-items:center;
+  font-weight:950;font-size:19px;color:#03120d;
+  background:linear-gradient(135deg,var(--green),var(--cyan));
+  box-shadow:0 10px 30px rgba(40,224,162,.18)
+}
+.brand strong{display:block;font-size:18px;letter-spacing:.7px}
+.brand span{display:block;color:var(--muted);font-size:10px;margin-top:3px}
+.header-actions{display:flex;align-items:center;gap:8px}
+.live-pill{
+  display:flex;align-items:center;gap:7px;min-height:37px;padding:0 12px;
+  border-radius:999px;border:1px solid var(--line);background:rgba(9,16,30,.72);
+  color:var(--muted);font-size:10px;font-weight:800
+}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--yellow)}
+.dot.online{background:var(--green);box-shadow:0 0 14px rgba(40,224,162,.9)}
+.secondary-btn,.primary-btn{
+  min-height:37px;padding:0 12px;border-radius:11px;font-size:10px;font-weight:800
+}
+.secondary-btn{border:1px solid var(--line);background:rgba(9,16,30,.72);color:#dbe4f0}
+.primary-btn{
+  border:none;background:linear-gradient(135deg,var(--green),var(--cyan));
+  color:#04130e;font-weight:950
+}
+.primary-btn:disabled{opacity:.4;cursor:not-allowed}
+.user-area{display:none;align-items:center;gap:9px}
+.push-on{color:var(--green)!important;border-color:rgba(40,224,162,.38)!important}
+.push-denied{color:var(--red)!important;border-color:rgba(255,101,114,.35)!important}
+.user-info{text-align:right}
+.user-info strong{display:block;font-size:10px}
+.user-info span{display:block;margin-top:2px;color:var(--muted);font-size:8px}
+
+/* HERO */
+.hero{
+  position:relative;overflow:hidden;min-height:190px;padding:27px;
+  display:flex;align-items:center;border:1px solid var(--line);border-radius:27px;
+  background:linear-gradient(120deg,rgba(14,23,42,.96),rgba(7,14,27,.88));
+  box-shadow:var(--shadow);margin-bottom:12px
+}
+.hero:after{
+  content:"";position:absolute;width:420px;height:420px;border-radius:50%;
+  right:-150px;top:-210px;
+  background:radial-gradient(circle,rgba(77,163,255,.28),transparent 68%)
+}
+.hero-content{position:relative;z-index:2;display:flex;width:100%;align-items:flex-end;justify-content:space-between;gap:30px}
+.hero small{color:var(--green);font-size:9px;font-weight:900;letter-spacing:1.3px}
+.hero h1{margin:9px 0 7px;max-width:720px;font-size:35px;line-height:1.07;letter-spacing:-1px}
+.hero p{max-width:650px;margin:0;color:var(--muted);font-size:11px;line-height:1.6}
+.hero-top{
+  min-width:245px;padding:16px;border:1px solid rgba(255,255,255,.07);
+  border-radius:17px;background:rgba(2,8,18,.42)
+}
+.hero-top span{color:var(--muted);font-size:8px;letter-spacing:.8px}
+.hero-top strong{display:block;margin-top:7px;font-size:25px}
+.hero-top small{display:block;margin-top:6px}
+
+/* KPI */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+.kpi{
+  min-height:105px;padding:15px;border:1px solid var(--line);border-radius:18px;
+  background:linear-gradient(145deg,rgba(14,23,42,.88),rgba(8,15,28,.75))
+}
+.kpi span{color:var(--muted);font-size:8px;text-transform:uppercase;letter-spacing:.7px}
+.kpi strong{display:block;margin-top:8px;font-size:24px}
+.kpi small{display:block;margin-top:5px;color:var(--muted);font-size:9px}
+.green-text{color:var(--green)!important}.red-text{color:#ff8992!important}.yellow-text{color:var(--yellow)!important}
+
+
+/* NAV */
+.desktop-nav{
+  display:flex;gap:5px;width:max-content;padding:4px;margin:0 0 13px;
+  border:1px solid var(--line);border-radius:13px;background:rgba(8,15,27,.68)
+}
+.desktop-nav button{
+  border:none;border-radius:9px;padding:8px 13px;background:transparent;
+  color:var(--muted);font-size:10px;font-weight:700
+}
+.desktop-nav button.active{background:linear-gradient(135deg,var(--green),var(--cyan));color:#04120d}
+.mobile-nav{display:none}
+
+/* PANELS */
+.panel{display:none}.panel.active{display:block}
+.layout{display:grid;grid-template-columns:1.5fr .7fr;gap:12px}
+.card{
+  padding:17px;border:1px solid var(--line);border-radius:var(--radius);
+  background:linear-gradient(145deg,rgba(14,23,42,.83),rgba(8,15,28,.74))
+}
+.section-head{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:14px}
+.section-head h2{margin:0;font-size:14px}
+.section-head p{margin:4px 0 0;color:var(--muted);font-size:9px}
+.small-tag{
+  display:inline-flex;align-items:center;padding:5px 8px;border-radius:999px;
+  color:var(--green);background:rgba(40,224,162,.08);
+  border:1px solid rgba(40,224,162,.14);font-size:8px;font-weight:900
+}
+
+/* RANKING */
+.ranking{display:flex;flex-direction:column;gap:7px}
+.rank{
+  display:grid;grid-template-columns:28px 65px 1fr 40px;gap:9px;align-items:center;
+  padding:9px;border-radius:12px;background:rgba(4,10,21,.48)
+}
+.rank-no{color:#62728a;font-size:9px}.rank-symbol{font-size:11px;font-weight:900}
+.rank-track{height:5px;background:#18243a;border-radius:999px;overflow:hidden}
+.rank-track div{height:100%;background:linear-gradient(90deg,var(--green),var(--blue))}
+.rank-score{text-align:right;font-size:10px;font-weight:900}
+
+/* STATUS */
+.status-row{
+  display:flex;justify-content:space-between;align-items:center;min-height:42px;
+  border-bottom:1px solid var(--line);font-size:10px
+}
+.status-row:last-child{border-bottom:0}.status-row span{color:var(--muted)}
+
+/* OPPORTUNITIES */
+.opportunity-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.opportunity{
+  position:relative;overflow:hidden;padding:15px;border:1px solid var(--line);
+  border-radius:18px;background:rgba(8,15,29,.66)
+}
+.opportunity:before{
+  content:"";position:absolute;left:0;right:0;top:0;height:3px;
+  background:linear-gradient(90deg,var(--green),var(--blue))
+}
+.op-top{display:flex;justify-content:space-between;align-items:center}
+.op-symbol{font-size:18px;font-weight:950}.op-source{margin-top:3px;color:var(--muted);font-size:7px}
+.priority-ring{
+  width:45px;height:45px;display:grid;place-items:center;border-radius:50%;
+  border:3px solid var(--green);font-size:11px;font-weight:900
+}
+.wait-chip,.open-chip,.active-chip,.off-chip{
+  display:inline-flex;padding:5px 7px;border-radius:999px;margin-top:9px;font-size:7px;font-weight:900
+}
+.wait-chip{color:var(--yellow);background:rgba(255,200,87,.09)}
+.open-chip{color:var(--green);background:rgba(40,224,162,.09);margin:0}
+.active-chip{color:#03120d;background:var(--green);margin:0}
+.off-chip{color:var(--muted);background:rgba(130,145,168,.12);margin:0}
+.levels{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px}
+.level{padding:9px;border-radius:10px;background:rgba(2,8,17,.45)}
+.level span,.portfolio-main span,.portfolio-levels span,.trail-grid span{
+  display:block;color:var(--muted);font-size:7px;letter-spacing:.5px
+}
+.level strong,.portfolio-main strong,.portfolio-levels strong,.trail-grid strong{
+  display:block;margin-top:4px;font-size:10px
+}
+.confirm strong{color:var(--green)}.invalid strong{color:#ff8992}
+.reason{margin-top:10px;color:#8190a6;font-size:8px;line-height:1.5}
+
+
+/* V16 EXPLAINABILITY + OPEN-SOURCE CHART */
+.state-chip{
+  display:inline-flex;align-items:center;padding:5px 8px;border-radius:999px;
+  font-size:7px;font-weight:900;letter-spacing:.2px;margin:0 4px 0 0
+}
+.state-buy{color:#03120d;background:var(--green)}
+.state-ready{color:var(--yellow);background:rgba(255,200,87,.12);border:1px solid rgba(255,200,87,.25)}
+.state-pre{color:#9dc7ff;background:rgba(87,156,255,.11);border:1px solid rgba(87,156,255,.22)}
+.state-early{color:#c6b6ff;background:rgba(154,120,255,.11);border:1px solid rgba(154,120,255,.22)}
+.why-box{
+  margin-top:11px;padding:10px;border:1px solid var(--line);border-radius:12px;
+  background:rgba(4,10,20,.48)
+}
+.why-title{font-size:8px;font-weight:900;letter-spacing:.45px;color:#dbe7f7}
+.why-list{margin:7px 0 0 14px;padding:0;color:#8fa0b7;font-size:8px;line-height:1.55}
+.why-list li{margin:2px 0}
+.chart-btn{
+  width:100%;margin-top:10px;padding:9px 11px;border-radius:11px;
+  border:1px solid rgba(40,224,162,.28);background:rgba(40,224,162,.08);
+  color:var(--green);font-size:8px;font-weight:900;cursor:pointer
+}
+.chart-btn:active{transform:translateY(1px)}
+.chart-modal-card{
+  width:min(94vw,900px);max-height:92vh;overflow:auto;padding:14px;
+  border-radius:18px;border:1px solid var(--line);background:#08111f
+}
+.chart-modal-head{
+  display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px
+}
+.chart-modal-title{font-size:18px;font-weight:950}
+.chart-modal-sub{margin-top:3px;color:var(--muted);font-size:8px}
+.chart-close{
+  border:1px solid var(--line);background:rgba(255,255,255,.04);color:#dfe7f2;
+  border-radius:10px;padding:7px 10px;cursor:pointer
+}
+.chart-toolbar{
+  display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 10px
+}
+.chart-level-chip{
+  padding:5px 7px;border-radius:999px;background:rgba(255,255,255,.045);
+  border:1px solid var(--line);font-size:7px;color:#aab8ca
+}
+#hanzChartWrap{width:100%}
+#hanzChart{width:100%;height:330px;border-radius:12px 12px 0 0;overflow:hidden;background:#07101d}
+#hanzVolume{width:100%;height:120px;border-radius:0 0 12px 12px;overflow:hidden;background:#07101d;border-top:1px solid rgba(255,255,255,.06)}
+.volume-legend{
+  display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 6px
+}
+.volume-legend .chart-level-chip strong{color:var(--green)}
+
+.chart-status{
+  padding:14px;text-align:center;color:var(--muted);font-size:9px
+}
+
+.chart-basis-note{
+  margin:8px 0 10px;padding:9px 10px;border-radius:11px;
+  border:1px solid rgba(40,224,162,.20);background:rgba(40,224,162,.055);
+  color:#aebfd2;font-size:8px;line-height:1.5
+}
+.chart-basis-note strong{color:var(--green)}
+
+.chart-attribution{
+  margin-top:8px;color:var(--muted);font-size:7px;line-height:1.5
+}
+.chart-attribution a{color:var(--green)}
+@media(max-width:620px){
+  #hanzChart{height:280px}
+  #hanzVolume{height:110px}
+  .chart-modal-card{padding:10px}
+}
+
+/* PORTFOLIO */
+.portfolio-lock{display:none;padding:40px 15px;text-align:center;color:var(--muted)}
+.portfolio-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:11px}
+.portfolio-card{
+  padding:15px;border:1px solid var(--line);border-radius:18px;background:rgba(7,14,27,.65)
+}
+.portfolio-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.portfolio-symbol{font-size:19px;font-weight:950}.portfolio-date{margin-top:3px;color:var(--muted);font-size:8px}
+.portfolio-main{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:13px}
+.portfolio-main>div,.portfolio-levels>div,.trail-grid>div{
+  padding:9px;border-radius:10px;background:rgba(2,8,17,.43)
+}
+.portfolio-levels{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:7px}
+.trailing-box{
+  margin-top:9px;padding:11px;border-radius:13px;border:1px solid rgba(77,163,255,.16);
+  background:linear-gradient(145deg,rgba(77,163,255,.07),rgba(40,224,162,.045))
+}
+.trailing-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
+.trailing-head strong{font-size:9px;letter-spacing:.5px}
+.trailing-sub{color:var(--muted);font-size:8px}
+.trail-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.signal-row{
+  display:flex;justify-content:space-between;margin-top:10px;padding:9px 10px;
+  border-radius:10px;background:rgba(40,224,162,.055);font-size:8px
+}
+.signal-row span{color:var(--muted)}
+.position-notes{margin-top:9px;color:var(--muted);font-size:8px;line-height:1.5}
+.position-actions{display:flex;gap:6px;margin-top:11px}
+.position-actions button{
+  flex:1;border:1px solid var(--line);border-radius:9px;padding:7px;
+  background:rgba(10,18,33,.7);color:#dce5f0;font-size:8px
+}
+.position-actions .close-btn{color:var(--yellow)}.position-actions .delete-btn{color:var(--red)}
+
+/* TABLE / EMPTY */
+.table-shell{overflow:auto;border:1px solid var(--line);border-radius:15px}
+table{min-width:650px;width:100%;border-collapse:collapse}
+th,td{padding:11px;border-bottom:1px solid var(--line);text-align:left;font-size:9px}
+th{color:var(--muted)}
+.empty{padding:38px 15px;color:var(--muted);text-align:center;font-size:10px}
+.large-empty{grid-column:1/-1}.empty-symbol{margin-bottom:7px;font-size:27px}
+.empty strong{display:block;color:var(--text);font-size:13px}
+.empty p{max-width:390px;margin:7px auto 14px;line-height:1.5}
+
+/* MODAL */
+.modal{
+  position:fixed;inset:0;z-index:500;display:none;align-items:center;justify-content:center;
+  padding:15px;background:rgba(1,5,12,.78);backdrop-filter:blur(9px)
+}
+.modal.show{display:flex}
+.modal-box{
+  width:min(460px,100%);max-height:calc(100vh - 30px);overflow:auto;padding:20px;
+  border:1px solid var(--line);border-radius:22px;
+  background:linear-gradient(160deg,#101b2f,#080f1c);box-shadow:0 30px 90px rgba(0,0,0,.55)
+}
+.modal-wide{width:min(660px,100%)}
+.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.modal-head h3{margin:0;font-size:16px}
+.x-btn{
+  width:31px;height:31px;border:1px solid var(--line);border-radius:9px;
+  background:rgba(4,10,20,.5);color:var(--muted)
+}
+.auth-tabs{
+  display:grid;grid-template-columns:1fr 1fr;gap:5px;padding:4px;margin-bottom:14px;
+  border-radius:11px;background:rgba(2,8,17,.5)
+}
+.auth-tabs button{
+  border:none;border-radius:8px;padding:8px;background:transparent;color:var(--muted);font-size:9px
+}
+.auth-tabs button.active{background:rgba(40,224,162,.1);color:var(--green)}
+.field{margin-bottom:11px}
+.field label{display:block;margin-bottom:5px;color:var(--muted);font-size:8px;letter-spacing:.4px}
+.field input,.field textarea{
+  width:100%;border:1px solid var(--line);outline:none;border-radius:10px;padding:10px 11px;
+  background:rgba(2,8,17,.52);color:white;font-size:10px
+}
+.field textarea{min-height:70px;resize:vertical}
+.field input:focus,.field textarea:focus{border-color:rgba(40,224,162,.55)}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.full-width{grid-column:1/-1}
+.auth-submit,.position-submit{
+  width:100%;border:none;border-radius:11px;min-height:40px;
+  background:linear-gradient(135deg,var(--green),var(--cyan));color:#04120d;font-size:10px;font-weight:950
+}
+.auth-message{margin-top:10px;font-size:9px;line-height:1.5}.auth-error{color:#ff8993}.auth-success{color:var(--green)}
+
+/* AUTO TRAILING TOGGLE */
+.toggle-row{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 12px;
+  margin-bottom:11px;border-radius:12px;border:1px solid var(--line);background:rgba(2,8,17,.38)
+}
+.toggle-copy strong{display:block;font-size:9px}.toggle-copy span{display:block;color:var(--muted);font-size:8px;margin-top:3px;line-height:1.4}
+.switch{position:relative;width:44px;height:24px;flex:none}
+.switch input{opacity:0;width:0;height:0}
+.slider{
+  position:absolute;cursor:pointer;inset:0;border-radius:999px;background:#263349;transition:.2s
+}
+.slider:before{
+  content:"";position:absolute;width:18px;height:18px;left:3px;top:3px;border-radius:50%;
+  background:white;transition:.2s
+}
+.switch input:checked + .slider{background:var(--green)}
+.switch input:checked + .slider:before{transform:translateX(20px)}
+.disabled-field{opacity:.42;pointer-events:none}
+
+/* ERROR / TOAST */
+.error-box{
+  display:none;padding:10px 12px;margin-bottom:10px;border:1px solid rgba(255,101,114,.25);
+  border-radius:11px;background:rgba(255,101,114,.07);color:#ffabb2;font-size:9px
+}
+.toast{
+  position:fixed;z-index:999;right:18px;bottom:20px;max-width:330px;padding:11px 14px;
+  border-radius:12px;background:#111d31;color:#eaf1f9;border:1px solid var(--line);
+  box-shadow:0 20px 50px rgba(0,0,0,.4);opacity:0;pointer-events:none;
+  transform:translateY(12px);transition:.2s;font-size:9px
+}
+.toast.show{opacity:1;transform:translateY(0)}.toast.error{color:#ffabb2}
+
+@media(max-width:900px){
+  .layout{grid-template-columns:1fr}
+  .opportunity-grid,.portfolio-grid{grid-template-columns:1fr}
+}
+@media(max-width:700px){
+  .app{padding:10px 10px 90px}
+  .engine-pill{display:none}.header{min-height:58px;margin-bottom:9px}
+  .logo{width:41px;height:41px}.brand strong{font-size:15px}.user-info{display:none}
+  .hero{padding:19px;border-radius:21px}.hero-content{display:block}.hero h1{font-size:28px}
+  .hero-top{width:100%;min-width:0;margin-top:17px}
+  .kpis{grid-template-columns:1fr 1fr;gap:7px}.kpi{min-height:94px;padding:12px}.kpi strong{font-size:20px}
+  .desktop-nav{display:none}
+  .mobile-nav{
+    position:fixed;left:0;right:0;bottom:0;z-index:200;display:grid;
+    grid-template-columns:repeat(5,1fr);
+    padding:7px max(6px,env(safe-area-inset-right)) calc(7px + env(safe-area-inset-bottom)) max(6px,env(safe-area-inset-left));
+    border-top:1px solid var(--line);background:rgba(5,9,20,.94);backdrop-filter:blur(18px)
+  }
+  .mobile-nav button{border:none;padding:5px 1px;background:transparent;color:#66768c;font-size:8px}
+  .mobile-nav button.active{color:var(--green)}
+  .mobile-nav b{display:block;margin-bottom:3px;font-size:16px}
+  .portfolio-levels{grid-template-columns:1fr 1fr}
+  .trail-grid{grid-template-columns:1fr 1fr}
+  .form-grid{grid-template-columns:1fr}.full-width{grid-column:auto}
+  .toast{left:10px;right:10px;bottom:82px;max-width:none}
+}
+
+/* LIVE SIGNAL MONITOR */
+.live-monitor-grid{
+  display:grid;
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:8px
+}
+.signal-card{
+  position:relative;padding:13px;border-radius:16px;
+  border:1px solid var(--line);background:rgba(5,12,24,.72);overflow:hidden
+}
+.signal-card:before{
+  content:"";position:absolute;left:0;right:0;top:0;height:3px;background:#53627a
+}
+.signal-card.early:before{background:var(--yellow)}
+.signal-card.surprise:before{background:#b77cff}
+.signal-card.confirming:before{background:#4da3ff}
+.signal-card.buy:before{background:var(--green)}
+.signal-card.stale:before{background:#718096}
+.signal-card.error:before{background:var(--red)}
+.sig-head{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.sig-ticker{font-size:16px;font-weight:950}
+.sig-price{margin-top:3px;color:var(--muted);font-size:8px}
+.signal-state{
+  padding:5px 7px;border-radius:999px;font-size:7px;font-weight:950;white-space:nowrap;
+  background:rgba(130,145,168,.11);color:#aab7c8
+}
+.signal-state.early{color:var(--yellow);background:rgba(255,200,87,.11)}
+.signal-state.surprise{color:#d8baff;background:rgba(183,124,255,.13)}
+.signal-state.confirming{color:#9dccff;background:rgba(77,163,255,.13)}
+.signal-state.buy{color:#03130d;background:var(--green)}
+.signal-source{
+  display:inline-block;margin-top:5px;padding:4px 6px;border-radius:999px;
+  font-size:6px;font-weight:900;letter-spacing:.25px;
+  color:#9dccff;background:rgba(77,163,255,.10)
+}
+.signal-source.scout{color:#d8baff;background:rgba(183,124,255,.13)}
+.signal-state.stale{color:#b5c0cf;background:rgba(130,145,168,.12)}
+.signal-state.error{color:#ffc1c5;background:rgba(255,101,114,.12)}
+.sig-score{display:flex;align-items:center;justify-content:space-between;margin-top:10px;color:var(--muted);font-size:8px}
+.sig-score strong{color:var(--text);font-size:10px}
+.sig-bar{height:5px;margin-top:5px;border-radius:999px;overflow:hidden;background:#172338}
+.sig-bar div{height:100%;background:linear-gradient(90deg,var(--yellow),var(--green))}
+.sig-trends,.sig-meta{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:9px}
+.sig-trend,.sig-meta div{padding:7px;border-radius:9px;background:rgba(255,255,255,.025)}
+.sig-trend span,.sig-meta span{display:block;color:var(--muted);font-size:7px}
+.sig-trend strong,.sig-meta strong{display:block;margin-top:3px;font-size:8px}
+.bull{color:var(--green)!important}.bear{color:var(--red)!important}.neutral{color:#aab7c8!important}
+.sig-evidence{margin-top:8px;color:var(--muted);font-size:7px;line-height:1.45;min-height:20px}
+.monitor-note{
+  margin-top:10px;padding:9px 10px;border-radius:10px;background:rgba(77,163,255,.055);
+  color:var(--muted);font-size:8px;line-height:1.5
+}
+@media(max-width:1100px){.live-monitor-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:700px){.live-monitor-grid{grid-template-columns:1fr}}
+
+
+.quality-legend{font-size:8px;color:var(--muted);margin-top:8px;line-height:1.5}
+.market-open{font-weight:800}.market-closed{font-weight:800;opacity:.85}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+<header class="header">
+  <div class="brand">
+    <div class="logo">H</div>
+    <div>
+      <strong>HANZ</strong>
+      <span>Swing / Weekly Intelligence</span>
+    </div>
+  </div>
+
+  <div class="header-actions">
+    <div class="live-pill">
+      <span id="engineDot" class="dot"></span>
+      <span id="engineLabel">CONNECTING</span>
+    </div>
+
+    <button class="secondary-btn" id="refreshButton">↻</button>
+
+    <button id="pushButton" class="secondary-btn" style="display:none">🔔 Push OFF</button>
+    <button id="copyFidButton" class="secondary-btn" style="display:none">📋 Copy FID</button>
+
+    <button id="loginButton" class="primary-btn">Login</button>
+
+    <div id="userArea" class="user-area">
+      <div class="user-info">
+        <strong id="userName">User</strong>
+        <span id="userEmail"></span>
+      </div>
+      <button id="logoutButton" class="secondary-btn">Logout</button>
+    </div>
+  </div>
+</header>
+<div id="marketStatusStrip" style="
+  position:sticky;
+  top:0;
+  z-index:25;
+  display:flex;
+  gap:10px;
+  align-items:center;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  padding:9px 14px;
+  margin:0;
+  border-bottom:1px solid rgba(255,255,255,.08);
+  background:rgba(8,14,24,.96);
+  backdrop-filter:blur(10px);
+  font-size:12px;
+">
+  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+    <strong id="topIdxMarket">IDX: CHECKING</strong>
+    <span id="topIdxSession">—</span>
+    <span id="topIdxReason">—</span>
+  </div>
+  <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+    <span id="topIdxWib">WIB —</span>
+    <span id="topIdxPrev">Prev —</span>
+    <span id="topIdxNext">Next —</span>
+  </div>
+</div>
+
+
+<div id="errorBox" class="error-box"></div>
+
+<section class="hero">
+  <div class="hero-content">
+    <div>
+      <small>HANZ INTELLIGENCE NETWORK</small>
+      <h1>Swing opportunities.<br>Personal portfolio intelligence.</h1>
+      <p>
+        Early-signal radar + reconfirmed SWING BUY scanning with private per-user swing portfolio monitoring,
+        risk levels, targets, alerts and automatic trailing-stop management.
+      </p>
+    </div>
+
+    <div class="hero-top">
+      <span>CURRENT TOP SWING BUY</span>
+      <strong id="heroTopCandidate">—</strong>
+      <small id="heroTopSub">Waiting for HANZ scan</small>
+    </div>
+  </div>
+</section>
+
+<section class="kpis">
+  <article class="kpi">
+    <span>SWING BUY</span>
+    <strong id="opportunityCount">—</strong>
+    <small>Reconfirmed SWING BUY candidates</small>
+  </article>
+
+  <article class="kpi">
+    <span>Top Swing</span>
+    <strong id="topCandidate" class="green-text">—</strong>
+    <small id="topCandidateSub">Priority —</small>
+  </article>
+
+  <article class="kpi">
+    <span>My Portfolio</span>
+    <strong id="portfolioCount">0</strong>
+    <small id="portfolioStatus">0 positions</small>
+  </article>
+
+  <article class="kpi">
+    <span>HANZ Engine</span>
+    <strong id="engineState">—</strong>
+    <small id="lastUpdateDate">Supabase Live</small>
+  </article>
+</section>
+
+<nav class="desktop-nav">
+  <button class="active" data-panel="overview">Overview</button>
+  <button data-panel="opportunities">Opportunities</button>
+  <button data-panel="portfolio">Portfolio</button>
+  <button data-panel="alerts">Alerts</button>
+  <button data-panel="system">System</button>
+  <a href="../" class="secondary-btn" style="display:inline-flex;align-items:center;text-decoration:none">⚡ Intraday</a>
+</nav>
+<section id="overview" class="panel active">
+  <div class="layout">
+    <article class="card">
+      <div class="section-head">
+        <div>
+          <h2>HANZ Signal Ranking</h2>
+          <p>Early Watch → Pre-Alert → Setup Ready → Reconfirmed Buy</p>
+        </div>
+        <span class="small-tag">SWING LIVE</span>
+      </div>
+      <div id="ranking" class="ranking"></div>
+    </article>
+
+    <article class="card">
+      <div class="section-head">
+        <div>
+          <h2>HANZ Status</h2>
+          <p>Trading intelligence infrastructure</p>
+        </div>
+      </div>
+      <div class="status-row"><span>Main Worker</span><strong id="mainWorkerStatus">—</strong></div>
+      <div class="status-row"><span>Fast Engine</span><strong>60 sec</strong></div>
+      <div class="status-row"><span>Trigger</span><strong>1m</strong></div>
+      <div class="status-row"><span>Confirmation</span><strong>5m</strong></div>
+      <div class="status-row"><span>Auto Trailing</span><strong>Per Position</strong></div>
+    </article>
+  </div>
+
+  <article class="card" style="margin-top:12px">
+    <div class="section-head">
+      <div>
+        <h2>HANZ Signal Monitor</h2>
+        <p>Early radar + reconfirmed BUY · Daily + Weekly intelligence</p>
+      </div>
+      <span class="small-tag">BUY ONLY</span>
+    </div>
+
+    <div id="liveSignalMonitor" class="live-monitor-grid">
+      <div class="empty large-empty">Waiting for confirmed SWING BUY data...</div>
+    </div>
+
+    <div class="monitor-note">
+      Only SWING BUY is displayed. WATCH and CONFIRMING stay internal to the engine.
+    </div>
+  </article>
+
+</section>
+
+<section id="opportunities" class="panel">
+  <article class="card">
+    <div class="section-head">
+      <div>
+        <h2>HANZ Swing Candidates</h2>
+        <p>Daily breakout + weekly bullish confirmation</p>
+      </div>
+      <span class="small-tag">SWING ENGINE</span>
+    </div>
+    <div id="opportunityGrid" class="opportunity-grid"></div>
+  </article>
+</section>
+
+<section id="portfolio" class="panel">
+  <article class="card">
+    <div class="section-head">
+      <div>
+        <h2>My Swing Portfolio</h2>
+        <p>Private swing positions, targets, alerts and automatic trailing per account</p>
+      </div>
+      <button id="addPositionButton" class="primary-btn" disabled>+ Add Position</button>
+    </div>
+
+    <div id="portfolioLocked" class="portfolio-lock">
+      Login first to access your private portfolio.
+      <br><br>
+      <button id="portfolioLoginButton" class="primary-btn">Login / Sign Up</button>
+    </div>
+
+    <div id="portfolioGrid" class="portfolio-grid"></div>
+  </article>
+</section>
+
+<section id="alerts" class="panel">
+  <article class="card">
+    <div class="section-head">
+      <div>
+        <h2>My Alerts</h2>
+        <p>Personal HANZ swing alerts</p>
+      </div>
+    </div>
+    <div class="monitor-note" style="margin-bottom:12px">
+      Swing triggers: STOP LOSS · DYNAMIC T1 · DYNAMIC T2 · TRAILING ACTIVATED · PROTECT PROFIT · CONFIRMED SELL.
+    </div>
+    <div id="alertsBox">
+      <div class="empty"><div class="empty-symbol">⚡</div>Login to view personal alerts.</div>
+    </div>
+  </article>
+</section>
+
+<section id="system" class="panel">
+
+<section class="card" id="pushDiagnosticCard">
+  <div class="section-title">
+    <div>
+      <small>PUSH DIAGNOSTIC</small>
+      <h2>Firebase delivery status</h2>
+    </div>
+  </div>
+
+  <div class="metric-grid">
+    <div class="metric-card">
+      <span>FOREGROUND FCM</span>
+      <strong id="diagForegroundState">NEVER</strong>
+      <small id="diagForegroundTime">No message received</small>
+    </div>
+
+    <div class="metric-card">
+      <span>BACKGROUND FCM</span>
+      <strong id="diagBackgroundState">NEVER</strong>
+      <small id="diagBackgroundTime">No message received</small>
+    </div>
+
+    <div class="metric-card">
+      <span>RAW PUSH EVENT</span>
+      <strong id="diagRawPushState">NEVER</strong>
+      <small id="diagRawPushTime">No browser push event captured</small>
+    </div>
+
+    <div class="metric-card">
+      <span>SERVICE WORKER</span>
+      <strong id="diagSwState">CHECKING</strong>
+      <small id="diagSwScope">—</small>
+    </div>
+
+    <div class="metric-card">
+      <span>CURRENT FID</span>
+      <strong id="diagCurrentFid">—</strong>
+      <small>Latest onRegistered() FID</small>
+    </div>
+
+    <div class="metric-card">
+      <span>NOTIFICATION PERMISSION</span>
+      <strong id="diagPermission">—</strong>
+      <small>Browser permission</small>
+    </div>
+  </div>
+
+  <div class="reason" style="margin-top:12px">
+    <strong>Last FCM payload</strong>
+    <pre id="diagPayload" style="white-space:pre-wrap;word-break:break-word;margin:8px 0 0;font-size:11px;line-height:1.45;max-height:220px;overflow:auto">No FCM message received yet.</pre>
+  </div>
+
+  <div class="reason" style="margin-top:10px">
+    <strong>How to read this</strong><br>
+    FOREGROUND = message reached the page while HANZ was open.<br>
+    BACKGROUND = service worker received the message while HANZ was in background.
+  </div>
+</section>
+
+  <article class="card">
+    <div class="section-head">
+      <div>
+        <h2>System Health</h2>
+        <p>HANZ infrastructure telemetry</p>
+      </div>
+    </div>
+    <div class="status-row"><span>Main Worker</span><strong id="sysStatus">—</strong></div>
+    <div class="status-row"><span>Heartbeat</span><strong id="heartbeat">—</strong></div>
+    <div class="status-row"><span>Last Successful Cycle</span><strong id="lastSuccess">—</strong></div>
+    <div class="status-row"><span>Consecutive Failures</span><strong id="failures">—</strong></div>
+    <div class="status-row"><span>Last Error</span><strong id="lastError">None</strong></div>
+    <div class="status-row"><span>IDX Market</span><strong id="idxMarketState">—</strong></div>
+    <div class="status-row"><span>Indonesia Time</span><strong id="idxMarketTime">—</strong></div>
+    <div class="status-row"><span>Last Trading Day</span><strong id="idxLastTradingDay">—</strong></div>
+    <div class="status-row"><span>Next Trading Day</span><strong id="idxNextTradingDay">—</strong></div>
+    <div class="status-row"><span>Last Market Update</span><strong id="lastUpdate">—</strong></div>
+  </article>
+</section>
+
+<nav class="mobile-nav">
+  <button class="active" data-panel="overview"><b>⌂</b>Home</button>
+  <button data-panel="opportunities"><b>⌁</b>Signals</button>
+  <button data-panel="portfolio"><b>◉</b>Portfolio</button>
+  <button data-panel="alerts"><b>⚡</b>Alerts</button>
+  <button data-panel="system"><b>⚙</b>System</button>
+</nav>
+
+<!-- AUTH MODAL -->
+<div id="authModal" class="modal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3>HANZ Account</h3>
+      <button id="closeAuthButton" class="x-btn">×</button>
+    </div>
+
+    <div class="auth-tabs">
+      <button id="loginTab" class="active">Login</button>
+      <button id="signupTab">Sign Up</button>
+    </div>
+
+    <form id="authForm">
+      <div id="signupNameWrap" class="field" style="display:none">
+        <label>NAME</label>
+        <input id="authName" type="text" placeholder="Your name">
+      </div>
+
+      <div class="field">
+        <label>EMAIL</label>
+        <input id="authEmail" type="email" autocomplete="email" required placeholder="name@email.com">
+      </div>
+
+      <div class="field">
+        <label>PASSWORD</label>
+        <input id="authPassword" type="password" autocomplete="current-password" required minlength="6" placeholder="Minimum 6 characters">
+      </div>
+
+      <button id="authSubmit" type="submit" class="auth-submit">Login to HANZ</button>
+      <div id="authMessage" class="auth-message"></div>
+    </form>
+  </div>
+</div>
+
+<!-- POSITION MODAL -->
+<div id="positionModal" class="modal">
+  <div class="modal-box modal-wide">
+    <div class="modal-head">
+      <h3 id="positionModalTitle">Add Position</h3>
+      <button id="closePositionModalButton" class="x-btn">×</button>
+    </div>
+
+    <form id="positionForm">
+      <div class="form-grid">
+        <div class="field">
+          <label>TICKER</label>
+          <input id="positionTicker" required placeholder="BBRI" maxlength="12">
+        </div>
+
+        <div class="field">
+          <label>BUY DATE</label>
+          <input id="positionBuyDate" type="date" required>
+        </div>
+
+        <div class="field">
+          <label>BUY PRICE</label>
+          <input id="positionAvgBuy" type="number" step="any" min="0" required placeholder="3050">
+        </div>
+
+        <div class="field">
+          <label>LOTS</label>
+          <input id="positionLots" type="number" step="any" min="0" required placeholder="1">
+        </div>
+
+        <div class="field">
+          <label>STOP LOSS</label>
+          <input id="positionStopLoss" type="number" step="any" placeholder="Optional">
+        </div>
+
+        <div class="field">
+          <label>DYNAMIC T1</label>
+          <input id="positionTarget1" type="number" step="any" placeholder="Optional">
+        </div>
+
+        <div class="field">
+          <label>DYNAMIC T2</label>
+          <input id="positionTarget2" type="number" step="any" placeholder="Optional">
+        </div>
+
+        <div class="field" id="manualTrailingField">
+          <label>MANUAL TRAILING STOP</label>
+          <input id="positionTrailing" type="number" step="any" placeholder="Used only when Auto Trailing is OFF">
+        </div>
+
+        <div class="full-width">
+          <div class="toggle-row">
+            <div class="toggle-copy">
+              <strong>AUTO TRAILING STOP</strong>
+              <span>
+                HANZ activates trailing after Target 1. It tightens from 1.5× ATR to 1.0× ATR after Target 2.
+              </span>
+            </div>
+            <label class="switch">
+              <input id="positionAutoTrailing" type="checkbox" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="field full-width">
+          <label>NOTES</label>
+          <textarea id="positionNotes" placeholder="Optional notes..."></textarea>
+        </div>
+      </div>
+
+      <button id="positionSubmit" type="submit" class="position-submit">Save Position</button>
+    </form>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<div id="chartModal" class="modal" aria-hidden="true">
+  <div class="chart-modal-card">
+    <div class="chart-modal-head">
+      <div>
+        <div id="chartTicker" class="chart-modal-title">—</div>
+        <div id="chartSubtitle" class="chart-modal-sub">HANZ technical chart</div>
+      </div>
+      <button id="closeChartModalButton" class="chart-close" type="button">✕</button>
+    </div>
+    <div id="chartLevelChips" class="chart-toolbar"></div>
+    <div class="chart-basis-note">
+      <strong>Analysis basis:</strong> completed daily candles only.
+      Current Price is shown separately as the latest intraday / last-traded price and does not change the completed-candle technical analysis. Volume panel shows daily volume, 20-day average volume, and RVOL context.
+    </div>
+    <div id="chartStatus" class="chart-status">Select a stock to load its chart.</div>
+    <div id="chartVolumeLegend" class="volume-legend" style="display:none"></div>
+    <div id="hanzChartWrap" style="display:none">
+      <div id="hanzChart"></div>
+      <div id="hanzVolume"></div>
+    </div>
+    <div class="chart-attribution">
+      Open-source rendering by
+      <a href="https://www.tradingview.com/lightweight-charts/" target="_blank" rel="noopener">
+        TradingView Lightweight Charts™
+      </a>.
+      Market candles are requested from Yahoo Finance; availability may be delayed or limited.
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.3/dist/lightweight-charts.standalone.production.js"></script>
+
+<script type="module">
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
+import {
+  getMessaging,
+  isSupported as isMessagingSupported,
+  onMessage,
+  onRegistered,
+  onUnregistered,
+  register as registerMessaging,
+  unregister as unregisterMessaging
+} from "https://www.gstatic.com/firebasejs/12.17.1/firebase-messaging.js";
+
+/* =========================================================
+   SUPABASE CONFIG — browser uses Publishable Key only
+========================================================= */
+const SUPABASE_URL = "https://fgyfszkadstmdzqvwppt.supabase.co";
+const SUPABASE_KEY = "sb_publishable_rBY4VJwPS1T5tm0zPw4tbg_BhApWtfM";
+const REFRESH_MS = 30000;
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+/* =========================================================
+   FIREBASE CLOUD MESSAGING
+========================================================= */
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyAqNOI43fKCFSsJFmSM1VDu1QHYOfBQ5yw",
+  authDomain: "hanz-trading-intelligenc-c8f4d.firebaseapp.com",
+  projectId: "hanz-trading-intelligenc-c8f4d",
+  storageBucket: "hanz-trading-intelligenc-c8f4d.firebasestorage.app",
+  messagingSenderId: "313426947063",
+  appId: "1:313426947063:web:39450e958b473d8e089cf2"
+};
+
+const FIREBASE_VAPID_KEY =
+  "BNkFe2_5sroVo6CgrCpO-U1g95Tdyov7oJ7yufwwLW9TywsrH4nBCYAU3lNH40yPlYl5rVO6Vr5JQtJ0yq0JPTc";
+
+const firebaseApp = initializeApp(FIREBASE_CONFIG);
+
+let currentUser = null;
+let currentSession = null;
+let portfolioRows = [];
+let editPositionId = null;
+
+let firebaseMessaging = null;
+let pushServiceWorkerRegistration = null;
+let currentInstallationId = null;
+let pushReady = false;
+
+/* HELPERS */
+const $ = id => document.getElementById(id);
+
+function safe(value){
+  return String(value ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;");
+}
+
+function price(value){
+  if(value === null || value === undefined || value === "") return "—";
+  const n = Number(value);
+  if(!Number.isFinite(n)) return safe(value);
+  return n.toLocaleString("en-US",{maximumFractionDigits:2});
+}
+
+function formatDate(value){
+  if(!value) return "—";
+  const d = new Date(value);
+  if(Number.isNaN(d.getTime())) return safe(value);
+  return new Intl.DateTimeFormat("en-GB",{day:"2-digit",month:"short",year:"numeric"}).format(d);
+}
+
+function formatTime(value){
+  if(!value) return "—";
+  const d = new Date(value);
+  if(Number.isNaN(d.getTime())) return "—";
+  return new Intl.DateTimeFormat("en-GB",{hour:"2-digit",minute:"2-digit",second:"2-digit"}).format(d);
+}
+
+function localDateISO(){
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth()+1).padStart(2,"0");
+  const d = String(now.getDate()).padStart(2,"0");
+  return `${y}-${m}-${d}`;
+}
+
+function notify(message,type="success"){
+  const toast = $("toast");
+  toast.textContent = message;
+  toast.className = "toast show " + type;
+  clearTimeout(window.toastTimer);
+  window.toastTimer = setTimeout(()=>{toast.className="toast";},3500);
+}
+
+function showError(message){
+  $("errorBox").textContent = message;
+  $("errorBox").style.display = "block";
+}
+
+function clearError(){
+  $("errorBox").style.display = "none";
+}
+
+
+
+/* PUSH DIAGNOSTICS */
+const PUSH_DIAG_STORAGE_KEY="hanz_push_diagnostic_v11";
+
+function readPushDiagnostic(){
+  try{
+    return JSON.parse(localStorage.getItem(PUSH_DIAG_STORAGE_KEY) || "{}");
+  }catch(_){
+    return {};
+  }
+}
+
+function writePushDiagnostic(update){
+  const current=readPushDiagnostic();
+  const next={...current,...update};
+  try{
+    localStorage.setItem(PUSH_DIAG_STORAGE_KEY,JSON.stringify(next));
+  }catch(_){}
+  renderPushDiagnostic();
+}
+
+function formatDiagTime(value){
+  if(!value) return "No message received";
+  try{
+    return new Date(value).toLocaleString();
+  }catch(_){
+    return String(value);
+  }
+}
+
+async function readBackgroundProbeFromCache(){
+  try{
+    if(!("caches" in window)) return null;
+    const cache=await caches.open("hanz-push-diagnostic-v13");
+    const response=await cache.match("/__hanz_push_background_probe__");
+    if(!response) return null;
+    return await response.json();
+  }catch(error){
+    console.warn("HANZ background probe cache read failed:",error);
+    return null;
+  }
+}
+
+async function renderPushDiagnostic(){
+  const state=readPushDiagnostic();
+  const backgroundProbe=await readBackgroundProbeFromCache();
+
+  if(backgroundProbe?.received_at){
+    state.background_at=backgroundProbe.received_at;
+    state.last_payload=backgroundProbe.payload || state.last_payload || null;
+    state.last_channel="BACKGROUND_RAW_PUSH";
+  }
+
+  const fgState=$("diagForegroundState");
+  const fgTime=$("diagForegroundTime");
+  const bgState=$("diagBackgroundState");
+  const bgTime=$("diagBackgroundTime");
+  const rawState=$("diagRawPushState");
+  const rawTime=$("diagRawPushTime");
+  const swState=$("diagSwState");
+  const swScope=$("diagSwScope");
+  const fid=$("diagCurrentFid");
+  const perm=$("diagPermission");
+  const payload=$("diagPayload");
+
+  if(fgState) fgState.textContent=state.foreground_at ? "RECEIVED" : "NEVER";
+  if(fgTime) fgTime.textContent=formatDiagTime(state.foreground_at);
+
+  if(bgState) bgState.textContent=state.background_at ? "RECEIVED" : "NEVER";
+  if(bgTime) bgTime.textContent=formatDiagTime(state.background_at);
+
+  if(rawState) rawState.textContent=backgroundProbe?.received_at ? "RECEIVED" : "NEVER";
+  if(rawTime) rawTime.textContent=formatDiagTime(backgroundProbe?.received_at);
+
+  if(fid) fid.textContent=currentInstallationId || "—";
+
+  if(perm){
+    perm.textContent=("Notification" in window)
+      ? String(Notification.permission || "default").toUpperCase()
+      : "UNSUPPORTED";
+  }
+
+  if(payload){
+    const latest=state.last_payload || null;
+    payload.textContent=latest
+      ? JSON.stringify(latest,null,2)
+      : "No FCM message received yet.";
+  }
+
+  if(swState && swScope){
+    try{
+      const reg=await navigator.serviceWorker.getRegistration("/dashboard/");
+      if(reg){
+        swState.textContent=reg.active ? "ACTIVE" : "REGISTERED";
+        swScope.textContent=reg.scope || "/dashboard/";
+      }else{
+        swState.textContent="NOT FOUND";
+        swScope.textContent="No /dashboard/ service worker registration";
+      }
+    }catch(error){
+      swState.textContent="ERROR";
+      swScope.textContent=error.message || String(error);
+    }
+  }
+}
+
+if("serviceWorker" in navigator){
+  navigator.serviceWorker.addEventListener("message",(event)=>{
+    const msg=event?.data || {};
+    if(msg.type!=="HANZ_FCM_BACKGROUND") return;
+
+    writePushDiagnostic({
+      background_at:new Date().toISOString(),
+      last_payload:msg.payload || null,
+      last_channel:"BACKGROUND"
+    });
+  });
+}
+
+
+/* PUSH NOTIFICATIONS */
+function pushPreferenceKey(){
+  return currentUser ? `hanz_push_disabled_${currentUser.id}` : "hanz_push_disabled";
+}
+
+function pushDisabledByUser(){
+  try{
+    return localStorage.getItem(pushPreferenceKey()) === "1";
+  }catch(_){
+    return false;
+  }
+}
+
+function setPushDisabledByUser(disabled){
+  try{
+    if(disabled) localStorage.setItem(pushPreferenceKey(),"1");
+    else localStorage.removeItem(pushPreferenceKey());
+  }catch(_){}
+}
+
+function renderPushState(){
+  const btn = $("pushButton");
+  if(!btn) return;
+
+  btn.classList.remove("push-on","push-denied");
+
+  const fidBtn=$("copyFidButton");
+
+  if(!currentUser){
+    btn.style.display="none";
+    if(fidBtn) fidBtn.style.display="none";
+    return;
+  }
+
+  btn.style.display="inline-flex";
+  if(fidBtn) fidBtn.style.display="inline-flex";
+
+  if(!("Notification" in window)){
+    btn.textContent="🔕 Unsupported";
+    btn.disabled=true;
+    return;
+  }
+
+  btn.disabled=false;
+
+  if(Notification.permission === "denied"){
+    btn.textContent="🔕 Push Blocked";
+    btn.classList.add("push-denied");
+    return;
+  }
+
+  if(pushDisabledByUser()){
+    btn.textContent="🔕 Push OFF — tap to enable";
+    return;
+  }
+
+  // Browser notification permission survives page/browser restart.
+  // If permission is still granted and the user has not explicitly
+  // disabled HANZ push, show the persisted state as ON immediately.
+  // syncPushIfAlreadyGranted() will refresh the Firebase registration
+  // in the background after login.
+  if(Notification.permission === "granted"){
+    btn.textContent="🔔 Push ON — tap to disable";
+    btn.classList.add("push-on");
+    return;
+  }
+
+  btn.textContent="🔔 Enable Push";
+}
+
+async function upsertPushDevice(installationId){
+  if(!currentUser || !installationId) return;
+
+  const now=new Date().toISOString();
+
+  // Only the FID reported by the latest successful register() remains enabled.
+  const {error:disableError}=await supabase
+    .from("hanz_push_devices")
+    .update({
+      enabled:false,
+      last_seen_at:now
+    })
+    .eq("user_id",currentUser.id);
+
+  if(disableError) throw disableError;
+
+  const payload={
+    user_id:currentUser.id,
+    installation_id:installationId,
+    platform:navigator.platform || null,
+    user_agent:navigator.userAgent || null,
+    enabled:true,
+    last_seen_at:now
+  };
+
+  const {error}=await supabase
+    .from("hanz_push_devices")
+    .upsert(payload,{onConflict:"user_id,installation_id"});
+
+  if(error) throw error;
+
+  currentInstallationId=installationId;
+  pushReady=true;
+  renderPushState();
+}
+
+let pushRegistrationRefreshPromise=null;
+
+async function refreshPushRegistration(){
+  if(!currentUser) return false;
+  if(pushDisabledByUser()) return false;
+
+  if(pushRegistrationRefreshPromise){
+    return pushRegistrationRefreshPromise;
+  }
+
+  pushRegistrationRefreshPromise=(async ()=>{
+    try{
+      const okay=await initPushMessaging();
+      if(!okay) return false;
+
+      if(Notification.permission !== "granted"){
+        return false;
+      }
+
+      // Modern Firebase Messaging registration. onRegistered() is the source
+      // of truth for the active FID and will update Supabase.
+      await refreshPushRegistration();
+
+      return true;
+    }finally{
+      pushRegistrationRefreshPromise=null;
+    }
+  })();
+
+  return pushRegistrationRefreshPromise;
+}
+
+async function initPushMessaging(){
+  if(!currentUser) return false;
+
+  if(!("Notification" in window) || !("serviceWorker" in navigator)){
+    renderPushState();
+    return false;
+  }
+
+  const supported = await isMessagingSupported();
+  if(!supported){
+    renderPushState();
+    return false;
+  }
+
+  if(!pushServiceWorkerRegistration){
+    pushServiceWorkerRegistration = await navigator.serviceWorker.register(
+      "/dashboard/firebase-messaging-sw.js",
+      {scope:"/dashboard/"}
+    );
+  }
+
+  if(!firebaseMessaging){
+    firebaseMessaging = getMessaging(firebaseApp);
+
+    onRegistered(firebaseMessaging, async installationId=>{
+      try{
+        if(!currentUser || !installationId) return;
+
+        if(pushDisabledByUser()){
+          const {error}=await supabase
+            .from("hanz_push_devices")
+            .upsert({
+              user_id:currentUser.id,
+              installation_id:installationId,
+              platform:navigator.platform || null,
+              user_agent:navigator.userAgent || null,
+              enabled:false,
+              last_seen_at:new Date().toISOString()
+            },{onConflict:"user_id,installation_id"});
+
+          if(error) throw error;
+
+          currentInstallationId=null;
+          pushReady=false;
+          renderPushState();
+          return;
+        }
+
+        await upsertPushDevice(installationId);
+        console.log("HANZ active FID registered:",installationId);
+      }catch(error){
+        console.error("Push registration save failed:",error);
+        notify("Push registration failed: " + error.message,"error");
+      }
+    });
+
+    onUnregistered(firebaseMessaging, async installationId=>{
+      try{
+        if(currentUser && installationId){
+          await supabase
+            .from("hanz_push_devices")
+            .update({
+              enabled:false,
+              last_seen_at:new Date().toISOString()
+            })
+            .eq("user_id",currentUser.id)
+            .eq("installation_id",installationId);
+        }
+
+        if(currentInstallationId===installationId){
+          currentInstallationId=null;
+        }
+
+        pushReady=false;
+        renderPushState();
+        console.warn("HANZ FID unregistered:",installationId);
+
+        // Self-heal only when user still wants push ON.
+        if(!pushDisabledByUser() && Notification.permission==="granted"){
+          setTimeout(()=>{
+            refreshPushRegistration().catch(error=>{
+              console.warn("HANZ push self-heal retry failed:",error);
+            });
+          },1500);
+        }
+      }catch(error){
+        console.warn("HANZ unregister sync warning:",error);
+      }
+    });
+
+    onMessage(firebaseMessaging, payload=>{
+      writePushDiagnostic({
+        foreground_at:new Date().toISOString(),
+        last_payload:payload || null,
+        last_channel:"FOREGROUND"
+      });
+
+      const data = payload?.data || {};
+      const title = data.title || payload?.notification?.title || "HANZ Alert";
+      const body = data.body || data.message || "New HANZ trading alert.";
+
+      if(
+        Notification.permission === "granted" &&
+        pushServiceWorkerRegistration &&
+        !pushDisabledByUser()
+      ){
+        pushServiceWorkerRegistration.showNotification(title,{
+          body,
+          tag:data.dedupe_key || data.alert_id || undefined,
+          data:{
+            url:data.url || "./",
+            ticker:data.ticker || null,
+            alert_type:data.alert_type || null
+          }
+        });
+      }
+    });
+  }
+
+  return true;
+}
+
+async function enablePush(){
+  if(!currentUser){
+    openAuth("login");
+    return;
+  }
+
+  try{
+    setPushDisabledByUser(false);
+    const okay = await initPushMessaging();
+    if(!okay){
+      notify("Push notification is not supported on this browser.","error");
+      return;
+    }
+
+    const permission = await Notification.requestPermission();
+    renderPushState();
+
+    if(permission !== "granted"){
+      notify("Notification permission was not granted.","error");
+      return;
+    }
+
+    await registerMessaging(firebaseMessaging,{
+      vapidKey:FIREBASE_VAPID_KEY,
+      serviceWorkerRegistration:pushServiceWorkerRegistration
+    });
+
+    try{ localStorage.setItem(`hanz_push_ever_enabled_${currentUser.id}`,"1"); }catch(_){}
+    renderPushState();
+    notify("HANZ push notifications enabled.");
+  }catch(error){
+    console.error(error);
+    notify("Push setup failed: " + error.message,"error");
+  }
+}
+
+async function disablePush(){
+  if(!currentUser) return;
+
+  try{
+    setPushDisabledByUser(true);
+
+    const {error}=await supabase
+      .from("hanz_push_devices")
+      .update({
+        enabled:false,
+        last_seen_at:new Date().toISOString()
+      })
+      .eq("user_id",currentUser.id);
+
+    if(error) throw error;
+
+    // Modern FCM registration lifecycle: unregister the FID.
+    // If it is already stale/unregistered, keep HANZ OFF anyway.
+    try{
+      if(firebaseMessaging){
+        await unregisterMessaging(firebaseMessaging);
+      }
+    }catch(error){
+      console.warn("FCM unregister warning:",error);
+    }
+
+    currentInstallationId=null;
+    pushReady=false;
+    renderPushState();
+    notify("HANZ push notifications disabled on this device.");
+  }catch(error){
+    setPushDisabledByUser(false);
+    console.error(error);
+    notify("Failed to disable push: " + error.message,"error");
+    renderPushState();
+  }
+}
+
+async function togglePush(){
+  if(!currentUser){
+    openAuth("login");
+    return;
+  }
+
+  const btn=$("pushButton");
+  const looksOn=!!btn && btn.classList.contains("push-on");
+
+  if(!pushDisabledByUser() && (looksOn || pushReady || currentInstallationId)){
+    await disablePush();
+    return;
+  }
+
+  setPushDisabledByUser(false);
+  renderPushState();
+  await enablePush();
+}
+
+async function syncPushIfAlreadyGranted(){
+  if(!currentUser || Notification.permission!=="granted") return;
+
+  if(pushDisabledByUser()){
+    pushReady=false;
+    renderPushState();
+    return;
+  }
+
+  try{
+    await refreshPushRegistration();
+  }catch(error){
+    console.warn("Background push registration refresh failed:",error);
+  }
+}
+
+
+async function copyCurrentFid(){
+  if(!currentUser){
+    openAuth("login");
+    return;
+  }
+
+  try{
+    if(pushDisabledByUser()){
+      notify("Turn Push ON first.","error");
+      return;
+    }
+
+    const okay=await initPushMessaging();
+    if(!okay){
+      notify("Push messaging is not supported on this browser.","error");
+      return;
+    }
+
+    // Trigger a modern FID registration refresh. The FID itself is delivered
+    // asynchronously to onRegistered().
+    await registerMessaging(firebaseMessaging,{
+      vapidKey:FIREBASE_VAPID_KEY,
+      serviceWorkerRegistration:pushServiceWorkerRegistration
+    });
+
+    // Give onRegistered a moment to update currentInstallationId.
+    for(let i=0;i<20 && !currentInstallationId;i++){
+      await new Promise(resolve=>setTimeout(resolve,100));
+    }
+
+    if(!currentInstallationId){
+      notify("FID is not available yet. Wait a moment and try again.","error");
+      return;
+    }
+
+    try{
+      await navigator.clipboard.writeText(currentInstallationId);
+      notify("Firebase Installation ID copied.");
+    }catch(_){
+      window.prompt("Copy this Firebase Installation ID:",currentInstallationId);
+    }
+  }catch(error){
+    console.error(error);
+    notify("Failed to get FID: " + error.message,"error");
+  }
+}
+
+/* NAV */
+function showPanel(name){
+  document.querySelectorAll(".panel").forEach(panel=>{
+    panel.classList.toggle("active",panel.id===name);
+  });
+  document.querySelectorAll("[data-panel]").forEach(btn=>{
+    btn.classList.toggle("active",btn.dataset.panel===name);
+  });
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+/* AUTH */
+function openAuth(mode="login"){
+  $("authModal").classList.add("show");
+  setAuthMode(mode);
+}
+
+function closeAuth(){
+  $("authModal").classList.remove("show");
+  $("authMessage").textContent = "";
+}
+
+function setAuthMode(mode){
+  const loginMode = mode === "login";
+  $("loginTab").classList.toggle("active",loginMode);
+  $("signupTab").classList.toggle("active",!loginMode);
+  $("signupNameWrap").style.display = loginMode ? "none" : "block";
+  $("authSubmit").textContent = loginMode ? "Login to HANZ" : "Create HANZ Account";
+  $("authForm").dataset.mode = mode;
+  $("authMessage").textContent = "";
+}
+
+async function signUp(){
+  const name = $("authName").value.trim();
+  const email = $("authEmail").value.trim();
+  const password = $("authPassword").value;
+
+  if(!name) throw new Error("Please enter your name.");
+  if(!email) throw new Error("Please enter your email.");
+  if(password.length < 6) throw new Error("Password must contain at least 6 characters.");
+
+  const redirectUrl = window.location.origin + window.location.pathname;
+
+  const {error} = await supabase.auth.signUp({
+    email,
+    password,
+    options:{
+      emailRedirectTo:redirectUrl,
+      data:{full_name:name}
+    }
+  });
+
+  if(error) throw error;
+
+  $("authMessage").innerHTML =
+    `<div class="auth-success">Account created. Check <strong>${safe(email)}</strong> and confirm your email.</div>`;
+}
+
+async function login(){
+  const email = $("authEmail").value.trim();
+  const password = $("authPassword").value;
+
+  if(!email || !password) throw new Error("Enter email and password.");
+
+  const {data,error} = await supabase.auth.signInWithPassword({email,password});
+  if(error) throw error;
+
+  currentSession = data.session;
+  currentUser = data.user;
+  closeAuth();
+  renderAuthState();
+  await loadPortfolio();
+  await loadAlerts();
+  notify("Welcome to HANZ.");
+}
+
+async function logout(){
+  const {error} = await supabase.auth.signOut();
+  if(error){notify(error.message,"error");return;}
+  currentUser=null;
+  currentSession=null;
+  portfolioRows=[];
+  renderAuthState();
+  renderPortfolio([]);
+  renderAlertsLocked();
+  notify("Logged out.");
+}
+
+function renderAuthState(){
+  if(currentUser){
+    const metadata = currentUser.user_metadata || {};
+    const displayName = metadata.full_name || currentUser.email?.split("@")[0] || "HANZ User";
+
+    $("loginButton").style.display="none";
+    $("userArea").style.display="flex";
+    $("userName").textContent=displayName;
+    $("userEmail").textContent=currentUser.email || "";
+    $("addPositionButton").disabled=false;
+    $("portfolioLocked").style.display="none";
+    renderPushState();
+    setTimeout(syncPushIfAlreadyGranted,0);
+  }else{
+    $("loginButton").style.display="inline-flex";
+    $("userArea").style.display="none";
+    $("addPositionButton").disabled=true;
+    $("portfolioLocked").style.display="block";
+    $("portfolioCount").textContent="0";
+    $("portfolioStatus").textContent="0 positions";
+    pushReady=false;
+    currentInstallationId=null;
+    renderPushState();
+  }
+}
+
+async function initAuth(){
+  const {data:{session}} = await supabase.auth.getSession();
+  currentSession=session;
+  currentUser=session?.user || null;
+  renderAuthState();
+
+  supabase.auth.onAuthStateChange(async (_event,session)=>{
+    currentSession=session;
+    currentUser=session?.user || null;
+    renderAuthState();
+
+    if(currentUser){
+      setTimeout(async ()=>{
+        await loadPortfolio();
+        await loadAlerts();
+      },0);
+    }else{
+      renderPortfolio([]);
+      renderAlertsLocked();
+    }
+  });
+}
+
+/* SHARED HANZ SIGNALS */
+const HANZ_SIGNAL_STATES=["SWING_BUY","SETUP_READY","PRE_ALERT","EARLY_WATCH"];
+
+function signalStateRank(state){
+  return {
+    "SWING_BUY":4,
+    "SETUP_READY":3,
+    "PRE_ALERT":2,
+    "EARLY_WATCH":1
+  }[String(state || "").toUpperCase()] || 0;
+}
+
+function signalStateLabel(state){
+  return {
+    "SWING_BUY":"RECONFIRMED BUY",
+    "SETUP_READY":"SETUP READY",
+    "PRE_ALERT":"PRE-ALERT",
+    "EARLY_WATCH":"EARLY WATCH"
+  }[String(state || "").toUpperCase()] || String(state || "UNKNOWN").replaceAll("_"," ");
+}
+
+function signalStateClass(state){
+  return {
+    "SWING_BUY":"state-buy",
+    "SETUP_READY":"state-ready",
+    "PRE_ALERT":"state-pre",
+    "EARLY_WATCH":"state-early"
+  }[String(state || "").toUpperCase()] || "state-pre";
+}
+
+function whyReasons(row,limit=6){
+  const raw=String(row?.evidence || "").split(";").map(x=>x.trim()).filter(Boolean);
+  const unique=[];
+  for(const item of raw){
+    const cleaned=item.replace(/^EARLY:/i,"").trim();
+    if(cleaned && !unique.includes(cleaned)) unique.push(cleaned);
+    if(unique.length>=limit) break;
+  }
+  if(!unique.length){
+    if(row?.daily_trend==="BULLISH") unique.push("Daily trend bullish");
+    if(row?.weekly_trend==="BULLISH") unique.push("Weekly trend bullish");
+    if(row?.breakout) unique.push("20-day breakout confirmed");
+  }
+  return unique;
+}
+
+function whyHtml(row){
+  const reasons=whyReasons(row);
+  const items=reasons.length
+    ? reasons.map(x=>`<li>${safe(x)}</li>`).join("")
+    : "<li>HANZ evidence is not available yet.</li>";
+  return `<div class="why-box">
+    <div class="why-title">WHY HANZ PICKED THIS</div>
+    <ul class="why-list">${items}</ul>
+  </div>`;
+}
+
+async function loadWatchlist(){
+  const {data,error}=await supabase
+    .from("hanz_swing_signal_monitor")
+    .select("*")
+    .in("state",HANZ_SIGNAL_STATES)
+    .order("score",{ascending:false})
+    .order("updated_at",{ascending:false});
+  if(error) throw error;
+
+  const rows=(data || []).sort((a,b)=>{
+    const sr=signalStateRank(b.state)-signalStateRank(a.state);
+    if(sr) return sr;
+    return Number(b.score || 0)-Number(a.score || 0);
+  });
+
+  window.__hanzSignalRows=rows;
+  const confirmed=rows.filter(r=>r.state==="SWING_BUY");
+  $("opportunityCount").textContent=confirmed.length;
+
+  if(rows.length){
+    const top=confirmed[0] || rows[0];
+    $("topCandidate").textContent=top.ticker;
+    $("topCandidateSub").textContent=`${signalStateLabel(top.state)} · Score ${top.score ?? "—"}/10`;
+    $("heroTopCandidate").textContent=top.ticker;
+    $("heroTopSub").textContent=`${signalStateLabel(top.state)} · Swing ${top.score ?? "—"}/10 · Discount ${top.discount_score==null?"PENDING":Number(top.discount_score).toFixed(0)+"/100"} · Fundamental ${top.fundamental_score==null?"PENDING":Number(top.fundamental_score).toFixed(0)+"/100"}`;
+    $("lastUpdate").textContent=formatTime(top.updated_at);
+    $("lastUpdateDate").textContent=`${formatDate(top.updated_at)} · Last HANZ signal update`;
+  }else{
+    $("topCandidate").textContent="—";
+    $("topCandidateSub").textContent="No active HANZ signal";
+    $("heroTopCandidate").textContent="—";
+    $("heroTopSub").textContent="No active Early Watch / Pre-Alert / Setup Ready / Buy";
+  }
+
+  renderRanking(rows);
+  renderOpportunities(rows);
+  renderLiveSignalMonitor(rows);
+}
+
+function renderRanking(rows){
+  if(!rows.length){
+    $("ranking").innerHTML='<div class="empty">No active HANZ swing signals.</div>';
+    return;
+  }
+  $("ranking").innerHTML=rows.map((row,index)=>{
+    const score=Math.max(0,Math.min(10,Number(row.score || 0)));
+    return `<div class="rank">
+      <div class="rank-no">#${index+1}</div>
+      <div class="rank-symbol">${safe(row.ticker)}<div style="margin-top:3px"><span class="state-chip ${signalStateClass(row.state)}">${safe(signalStateLabel(row.state))}</span></div></div>
+      <div class="rank-track"><div style="width:${score*10}%"></div></div>
+      <div class="rank-score">${score}/10 · D${row.discount_score==null?"—":Math.round(Number(row.discount_score))}</div>
+    </div>`;
+  }).join("");
+}
+
+function renderOpportunities(rows){
+  if(!rows.length){
+    $("opportunityGrid").innerHTML='<div class="empty">No active HANZ swing candidates right now.</div>';
+    return;
+  }
+  $("opportunityGrid").innerHTML=rows.map(row=>`
+    <article class="opportunity">
+      <div class="op-top">
+        <div>
+          <div class="op-symbol">${safe(row.ticker)}</div>
+          <div class="op-source">HANZ SWING ENGINE · EARLY RADAR + RECONFIRM</div>
+        </div>
+        <div class="priority-ring">${row.score ?? "—"}</div>
+      </div>
+      <div style="margin-top:9px">
+        <span class="state-chip ${signalStateClass(row.state)}">${safe(signalStateLabel(row.state))}</span>
+        <span class="state-chip state-buy">${safe((row.discount_label || "DISCOUNT N/A").replaceAll("_"," "))}</span>
+      </div>
+      <div class="levels">
+        <div class="level"><span>CURRENT PRICE</span><strong>${price(row.price)}</strong></div>
+        <div class="level confirm"><span>ENTRY ZONE</span><strong>${price(row.entry_low)} – ${price(row.entry_high)}</strong></div>
+        <div class="level"><span>STOP LOSS</span><strong>${price(row.stop_loss)}</strong></div>
+        <div class="level target"><span>DYNAMIC T1</span><strong>${price(row.target_1)}</strong></div>
+        <div class="level target"><span>DYNAMIC T2</span><strong>${price(row.target_2)}</strong></div>
+        <div class="level confirm"><span>QUALITY</span><strong>Swing ${row.score ?? "—"}/10 · D${row.discount_score==null?"—":Number(row.discount_score).toFixed(0)} · F${row.fundamental_score==null?"—":Number(row.fundamental_score).toFixed(0)}</strong></div>
+      </div>
+      ${whyHtml(row)}
+      <button class="chart-btn" type="button" data-chart-ticker="${safe(row.ticker)}">📈 VIEW CHART + HANZ LEVELS</button>
+      <div class="reason"><strong>Entry:</strong> ${safe(row.entry_note || "")}</div>
+      <div class="reason"><strong>Fundamental:</strong> ${safe(row.fundamental_reason || "Fundamental data unavailable")}</div>
+      <div class="reason"><strong>Discount:</strong> ${safe(row.discount_reason || "")}</div>
+    </article>`).join("");
+}
+
+function renderLiveSignalMonitor(rows){
+  if(!rows.length){
+    $("liveSignalMonitor").innerHTML='<div class="empty large-empty">No active HANZ swing signals right now.</div>';
+    return;
+  }
+  $("liveSignalMonitor").innerHTML=rows.map(row=>{
+    const score=Math.max(0,Math.min(10,Number(row.score || 0)));
+    return `<article class="signal-card buy">
+      <div class="sig-head">
+        <div>
+          <div class="sig-ticker">${safe(row.ticker)}</div>
+          <div class="sig-price">Price ${price(row.price)}</div>
+          <span class="signal-source">📈 DAILY + WEEKLY · V6 RADAR</span>
+        </div>
+        <div>
+          <span class="state-chip ${signalStateClass(row.state)}">${safe(signalStateLabel(row.state))}</span>
+        </div>
+      </div>
+      <div class="sig-score"><span>Swing score</span><strong>${row.score ?? "—"}/10</strong></div>
+      <div class="sig-score"><span>Discount score</span><strong>${row.discount_score==null?"—":Number(row.discount_score).toFixed(0)+"/100"} · ${safe(row.discount_confidence || "—")}</strong></div>
+      <div class="sig-score"><span>Fundamental score</span><strong>${row.fundamental_score==null?"—":Number(row.fundamental_score).toFixed(0)+"/100"} · ${safe(row.fundamental_label || "—")} · ${safe(row.fundamental_confidence || "—")}</strong></div>
+      <div class="sig-bar"><div style="width:${score*10}%"></div></div>
+      <div class="sig-trends">
+        <div class="sig-trend"><span>DAILY TREND</span><strong>${safe(row.daily_trend || "—")}</strong></div>
+        <div class="sig-trend"><span>WEEKLY TREND</span><strong>${safe(row.weekly_trend || "—")}</strong></div>
+      </div>
+      <div class="sig-meta">
+        <div><span>CURRENT PRICE</span><strong>${price(row.price)}</strong></div>
+        <div><span>ENTRY ZONE</span><strong>${price(row.entry_low)} – ${price(row.entry_high)}</strong></div>
+        <div><span>STOP LOSS</span><strong>${price(row.stop_loss)}</strong></div>
+        <div><span>DYNAMIC T1</span><strong>${price(row.target_1)}</strong></div>
+        <div><span>DYNAMIC T2</span><strong>${price(row.target_2)}</strong></div>
+        <div><span>QUALITY</span><strong>S${row.score ?? "—"} · D${row.discount_score==null?"—":Number(row.discount_score).toFixed(0)} · F${row.fundamental_score==null?"—":Number(row.fundamental_score).toFixed(0)}</strong></div>
+      </div>
+      ${whyHtml(row)}
+      <button class="chart-btn" type="button" data-chart-ticker="${safe(row.ticker)}">📈 VIEW CHART + HANZ LEVELS</button>
+      <div class="sig-evidence"><strong>Fundamental:</strong> ${safe(row.fundamental_reason || "Fundamental data unavailable")}</div>
+      <div class="sig-evidence"><strong>Discount:</strong> ${safe(row.discount_reason || "")}</div>
+    </article>`;
+  }).join("");
+}
+
+
+
+/* V16 OPEN-SOURCE STOCK CHART */
+let hanzChartInstance=null;
+let hanzVolumeChartInstance=null;
+
+function emaPoints(candles,period){
+  const k=2/(period+1);
+  let ema=null;
+  return candles.map((c,i)=>{
+    ema = ema==null ? c.close : (c.close*k + ema*(1-k));
+    return {time:c.time,value:Number(ema.toFixed(4))};
+  });
+}
+
+function currentSignalRow(ticker){
+  const all=[...(window.__hanzSignalRows || [])];
+  return all.find(r=>String(r.ticker).toUpperCase()===String(ticker).toUpperCase()) || {};
+}
+
+function completedDailyCandlesOnly(candles){
+  if(!Array.isArray(candles) || !candles.length) return candles || [];
+
+  const m=idxStatusNow();
+  const todayWib=m?.parts?.iso;
+  const state=String(m?.state || "");
+
+  // Today's daily candle is considered complete only from POST-CLOSE onward.
+  // During PRE-OPEN / SESSION 1 / LUNCH / SESSION 2, remove today's partial candle.
+  const todayCompleted = (
+    state==="POST-CLOSE" ||
+    state==="CLOSED · AFTER HOURS"
+  );
+
+  if(!todayCompleted && todayWib){
+    return candles.filter(c=>String(c.time)!==String(todayWib));
+  }
+  return candles;
+}
+
+async function yahooDailyCandles(ticker){
+  const symbol=String(ticker || "").toUpperCase().endsWith(".JK")
+    ? String(ticker).toUpperCase()
+    : String(ticker).toUpperCase()+".JK";
+
+  const url=`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=6mo&interval=1d&includePrePost=false&events=div%2Csplits`;
+  const response=await fetch(url,{cache:"no-store"});
+  if(!response.ok) throw new Error(`Yahoo chart HTTP ${response.status}`);
+  const json=await response.json();
+  const result=json?.chart?.result?.[0];
+  if(!result) throw new Error(json?.chart?.error?.description || "No chart data");
+
+  const ts=result.timestamp || [];
+  const q=result.indicators?.quote?.[0] || {};
+  const out=[];
+
+  for(let i=0;i<ts.length;i++){
+    const open=Number(q.open?.[i]);
+    const high=Number(q.high?.[i]);
+    const low=Number(q.low?.[i]);
+    const close=Number(q.close?.[i]);
+    const volume=Number(q.volume?.[i] || 0);
+    if(![open,high,low,close].every(Number.isFinite)) continue;
+
+    const d=new Date(Number(ts[i])*1000);
+    const time=d.toISOString().slice(0,10);
+    out.push({time,open,high,low,close,volume});
+  }
+  const completed=completedDailyCandlesOnly(out);
+  if(completed.length<10) throw new Error("Insufficient completed chart candles");
+  return completed;
+}
+
+function addHorizontalLevel(series,value,title,color){
+  const n=Number(value);
+  if(!Number.isFinite(n)) return;
+  series.createPriceLine({
+    price:n,
+    color,
+    lineWidth:1,
+    lineStyle:2,
+    axisLabelVisible:true,
+    title
+  });
+}
+
+
+function smaVolumePoints(candles,period=20){
+  const out=[];
+  const window=[];
+  let sum=0;
+  for(const c of candles){
+    const v=Number(c.volume || 0);
+    window.push(v);
+    sum += v;
+    if(window.length>period){
+      sum -= window.shift();
+    }
+    if(window.length===period){
+      out.push({time:c.time,value:sum/period});
+    }
+  }
+  return out;
+}
+
+function latestVolumeStats(candles){
+  if(!Array.isArray(candles) || !candles.length){
+    return {latest:null,avg20:null,rvol:null};
+  }
+  const latest=Number(candles[candles.length-1].volume || 0);
+  const recent=candles.slice(-20).map(c=>Number(c.volume || 0)).filter(Number.isFinite);
+  const avg20=recent.length ? recent.reduce((a,b)=>a+b,0)/recent.length : null;
+  const rvol=(avg20 && Number.isFinite(latest)) ? latest/avg20 : null;
+  return {latest,avg20,rvol};
+}
+
+async function openHanzChart(ticker){
+  const modal=$("chartModal");
+  const chartWrap=$("hanzChartWrap");
+  const chartBox=$("hanzChart");
+  const volumeBox=$("hanzVolume");
+  const volumeLegend=$("chartVolumeLegend");
+  const status=$("chartStatus");
+  const row=currentSignalRow(ticker);
+
+  $("chartTicker").textContent=String(ticker || "—").toUpperCase();
+  $("chartSubtitle").textContent=`${signalStateLabel(row.state)} · Completed Daily Candles · EMA20 / EMA50 · Volume`;
+  $("chartLevelChips").innerHTML=[
+    ["Current (Intraday/Last Trade)",price(row.price)],
+    ["Entry",row.entry_low!=null && row.entry_high!=null ? `${price(row.entry_low)}–${price(row.entry_high)}` : "—"],
+    ["Stop",price(row.stop_loss)],
+    ["T1",price(row.target_1)],
+    ["T2",price(row.target_2)]
+  ].map(([k,v])=>`<span class="chart-level-chip">${k}: ${safe(v)}</span>`).join("");
+
+  modal.classList.add("open");
+  modal.setAttribute("aria-hidden","false");
+  chartWrap.style.display="none";
+  volumeLegend.style.display="none";
+  status.style.display="block";
+  status.textContent="Loading completed daily-candle analysis chart…";
+
+  try{
+    if(!window.LightweightCharts) throw new Error("Chart library failed to load");
+    const candles=await yahooDailyCandles(ticker);
+
+    if(hanzChartInstance){
+      hanzChartInstance.remove();
+      hanzChartInstance=null;
+    }
+    if(hanzVolumeChartInstance){
+      hanzVolumeChartInstance.remove();
+      hanzVolumeChartInstance=null;
+    }
+
+    chartBox.innerHTML="";
+    volumeBox.innerHTML="";
+    chartWrap.style.display="block";
+    status.style.display="none";
+
+    const chart=LightweightCharts.createChart(chartBox,{
+      width:chartBox.clientWidth,
+      height:chartBox.clientHeight || 330,
+      layout:{
+        background:{type:"solid",color:"#07101d"},
+        textColor:"#91a0b5"
+      },
+      grid:{
+        vertLines:{color:"rgba(255,255,255,.045)"},
+        horzLines:{color:"rgba(255,255,255,.045)"}
+      },
+      rightPriceScale:{borderColor:"rgba(255,255,255,.10)"},
+      timeScale:{
+        borderColor:"rgba(255,255,255,.10)",
+        timeVisible:false,
+        visible:false
+      },
+      crosshair:{mode:1}
+    });
+    hanzChartInstance=chart;
+
+    const volumeChart=LightweightCharts.createChart(volumeBox,{
+      width:volumeBox.clientWidth,
+      height:volumeBox.clientHeight || 120,
+      layout:{
+        background:{type:"solid",color:"#07101d"},
+        textColor:"#91a0b5"
+      },
+      grid:{
+        vertLines:{color:"rgba(255,255,255,.035)"},
+        horzLines:{color:"rgba(255,255,255,.035)"}
+      },
+      rightPriceScale:{
+        borderColor:"rgba(255,255,255,.10)",
+        scaleMargins:{top:0.12,bottom:0.05}
+      },
+      timeScale:{
+        borderColor:"rgba(255,255,255,.10)",
+        timeVisible:false
+      },
+      crosshair:{mode:1}
+    });
+    hanzVolumeChartInstance=volumeChart;
+
+    const candleSeries=chart.addCandlestickSeries({
+      upColor:"#28e0a2",
+      downColor:"#ff6b78",
+      borderVisible:false,
+      wickUpColor:"#28e0a2",
+      wickDownColor:"#ff6b78"
+    });
+    candleSeries.setData(candles.map(c=>({
+      time:c.time,open:c.open,high:c.high,low:c.low,close:c.close
+    })));
+
+    const ema20=chart.addLineSeries({color:"#4aa3ff",lineWidth:2,title:"EMA20"});
+    ema20.setData(emaPoints(candles,20));
+    const ema50=chart.addLineSeries({color:"#f1c75b",lineWidth:2,title:"EMA50"});
+    ema50.setData(emaPoints(candles,50));
+
+    const volumeSeries=volumeChart.addHistogramSeries({
+      priceFormat:{type:"volume"},
+      priceScaleId:""
+    });
+    volumeSeries.setData(candles.map(c=>({
+      time:c.time,
+      value:Number(c.volume || 0),
+      color:(c.close>=c.open)
+        ? "rgba(40,224,162,.55)"
+        : "rgba(255,107,120,.55)"
+    })));
+
+    const volumeAvg=volumeChart.addLineSeries({
+      color:"#9b8cff",
+      lineWidth:2,
+      title:"Avg Volume 20"
+    });
+    volumeAvg.setData(smaVolumePoints(candles,20));
+
+    addHorizontalLevel(candleSeries,row.stop_loss,"STOP","#ff6b78");
+    addHorizontalLevel(candleSeries,row.target_1,"T1","#28e0a2");
+    addHorizontalLevel(candleSeries,row.target_2,"T2","#20b8ff");
+
+    const entryLow=Number(row.entry_low), entryHigh=Number(row.entry_high);
+    if(Number.isFinite(entryLow)) addHorizontalLevel(candleSeries,entryLow,"ENTRY L","#9b8cff");
+    if(Number.isFinite(entryHigh)) addHorizontalLevel(candleSeries,entryHigh,"ENTRY H","#9b8cff");
+
+    const volStats=latestVolumeStats(candles);
+    volumeLegend.innerHTML=[
+      ["Volume",Number.isFinite(volStats.latest)?volStats.latest.toLocaleString("en-US"):"—"],
+      ["Avg20",Number.isFinite(volStats.avg20)?Math.round(volStats.avg20).toLocaleString("en-US"):"—"],
+      ["RVOL",Number.isFinite(volStats.rvol)?volStats.rvol.toFixed(2)+"×":"—"]
+    ].map(([k,v])=>`<span class="chart-level-chip"><strong>${k}</strong>: ${v}</span>`).join("");
+    volumeLegend.style.display="flex";
+
+    chart.timeScale().fitContent();
+    volumeChart.timeScale().fitContent();
+
+    let syncing=false;
+    chart.timeScale().subscribeVisibleLogicalRangeChange(range=>{
+      if(syncing || !range) return;
+      syncing=true;
+      volumeChart.timeScale().setVisibleLogicalRange(range);
+      syncing=false;
+    });
+    volumeChart.timeScale().subscribeVisibleLogicalRangeChange(range=>{
+      if(syncing || !range) return;
+      syncing=true;
+      chart.timeScale().setVisibleLogicalRange(range);
+      syncing=false;
+    });
+
+    const resize=()=>{
+      if(hanzChartInstance && modal.classList.contains("open")){
+        chart.applyOptions({width:chartBox.clientWidth,height:chartBox.clientHeight || 330});
+      }
+      if(hanzVolumeChartInstance && modal.classList.contains("open")){
+        volumeChart.applyOptions({width:volumeBox.clientWidth,height:volumeBox.clientHeight || 120});
+      }
+    };
+    window.addEventListener("resize",resize,{once:true});
+
+  }catch(error){
+    console.error("HANZ chart error:",error);
+    chartWrap.style.display="none";
+    volumeLegend.style.display="none";
+    status.style.display="block";
+    status.innerHTML=`Chart data could not be loaded in-browser.<br><span style="opacity:.7">${safe(error.message)}</span><br><br>
+      <a href="https://www.tradingview.com/symbols/IDX-${encodeURIComponent(String(ticker).toUpperCase())}/" target="_blank" rel="noopener" style="color:var(--green);font-weight:900">
+        Open ${safe(String(ticker).toUpperCase())} on TradingView ↗
+      </a>`;
+  }
+}
+
+function closeHanzChart(){
+  $("chartModal").classList.remove("open");
+  $("chartModal").setAttribute("aria-hidden","true");
+}
+
+
+/* IDX / BEI CALENDAR — WIB */
+const IDX_HOLIDAYS_2026 = {
+  "2026-01-01":"New Year 2026",
+  "2026-01-16":"Isra Mikraj",
+  "2026-02-16":"Chinese New Year Collective Leave",
+  "2026-02-17":"Chinese New Year",
+  "2026-03-18":"Nyepi Collective Leave",
+  "2026-03-19":"Nyepi",
+  "2026-03-20":"Eid al-Fitr Collective Leave",
+  "2026-03-23":"Eid al-Fitr Collective Leave",
+  "2026-03-24":"Eid al-Fitr Collective Leave",
+  "2026-04-03":"Good Friday",
+  "2026-05-01":"Labour Day",
+  "2026-05-14":"Ascension Day",
+  "2026-05-15":"Ascension Day Collective Leave",
+  "2026-05-27":"Eid al-Adha",
+  "2026-05-28":"Eid al-Adha Collective Leave",
+  "2026-06-01":"Pancasila Day",
+  "2026-06-16":"Islamic New Year",
+  "2026-08-17":"Independence Day",
+  "2026-08-25":"Prophet Muhammad's Birthday",
+  "2026-12-24":"Christmas Collective Leave",
+  "2026-12-25":"Christmas Day",
+  "2026-12-31":"IDX Trading Holiday"
+};
+
+function jakartaParts(date=new Date()){
+  const parts=new Intl.DateTimeFormat("en-CA",{
+    timeZone:"Asia/Jakarta",
+    year:"numeric",month:"2-digit",day:"2-digit",
+    weekday:"short",hour:"2-digit",minute:"2-digit",
+    hourCycle:"h23"
+  }).formatToParts(date);
+  const o={};
+  parts.forEach(p=>{ if(p.type!=="literal") o[p.type]=p.value; });
+  o.iso=`${o.year}-${o.month}-${o.day}`;
+  o.minutes=Number(o.hour)*60+Number(o.minute);
+  return o;
+}
+
+function idxTradingDayFromParts(p){
+  const day=p.weekday;
+  if(day==="Sat" || day==="Sun") return {open:false,reason:"Weekend"};
+  if(Number(p.year)!==2026) return {open:false,reason:"Calendar year unverified"};
+  if(IDX_HOLIDAYS_2026[p.iso]) return {open:false,reason:IDX_HOLIDAYS_2026[p.iso]};
+  return {open:true,reason:"Trading Day"};
+}
+
+function idxStatusNow(){
+  const p=jakartaParts();
+  const td=idxTradingDayFromParts(p);
+  if(!td.open){
+    return {
+      state:td.reason==="Weekend"?"CLOSED · WEEKEND":
+            td.reason==="Calendar year unverified"?"CALENDAR UNVERIFIED":"CLOSED · HOLIDAY",
+      reason:td.reason, parts:p
+    };
+  }
+
+  const fri=p.weekday==="Fri";
+  const s1end=fri ? 11*60+30 : 12*60;
+  const s2start=fri ? 14*60 : 13*60+30;
+  let state="CLOSED";
+
+  if(p.minutes<8*60+45) state="CLOSED · BEFORE HOURS";
+  else if(p.minutes<9*60) state="PRE-OPEN";
+  else if(p.minutes<s1end) state="SESSION 1";
+  else if(p.minutes<s2start) state="LUNCH BREAK";
+  else if(p.minutes<15*60+50) state="SESSION 2";
+  else if(p.minutes<=16*60+15) state="POST-CLOSE";
+  else state="CLOSED · AFTER HOURS";
+
+  return {state,reason:"Trading Day",parts:p};
+}
+
+function addJakartaDays(iso,delta){
+  const [y,m,d]=iso.split("-").map(Number);
+  const base=new Date(Date.UTC(y,m-1,d,12,0,0));
+  base.setUTCDate(base.getUTCDate()+delta);
+  return `${base.getUTCFullYear()}-${String(base.getUTCMonth()+1).padStart(2,"0")}-${String(base.getUTCDate()).padStart(2,"0")}`;
+}
+
+function weekdayForIso(iso){
+  const [y,m,d]=iso.split("-").map(Number);
+  return new Intl.DateTimeFormat("en-US",{weekday:"short",timeZone:"UTC"}).format(new Date(Date.UTC(y,m-1,d,12)));
+}
+
+function isIdxTradingIso(iso){
+  const y=Number(iso.slice(0,4));
+  if(y!==2026) return false;
+  const wd=weekdayForIso(iso);
+  return wd!=="Sat" && wd!=="Sun" && !IDX_HOLIDAYS_2026[iso];
+}
+
+function nearestTradingDay(iso,direction){
+  let x=iso;
+  for(let i=0;i<370;i++){
+    x=addJakartaDays(x,direction);
+    if(isIdxTradingIso(x)) return x;
+  }
+  return "—";
+}
+
+function renderIdxMarketClock(){
+  const m=idxStatusNow();
+  const p=m.parts;
+
+  const previousTradingDay=nearestTradingDay(p.iso,-1);
+  const nextTradingDay=nearestTradingDay(p.iso,1);
+  const marketText=m.reason==="Trading Day" ? m.state : `${m.state} · ${m.reason}`;
+
+  // System panel
+  if($("idxMarketState")) $("idxMarketState").textContent=marketText;
+  if($("idxMarketTime")) $("idxMarketTime").textContent=`${p.iso} ${p.hour}:${p.minute} WIB`;
+  if($("idxLastTradingDay")) $("idxLastTradingDay").textContent=previousTradingDay;
+  if($("idxNextTradingDay")) $("idxNextTradingDay").textContent=nextTradingDay;
+
+  // Persistent top market strip
+  const topMarket=$("topIdxMarket");
+  const topSession=$("topIdxSession");
+  const topReason=$("topIdxReason");
+  const topWib=$("topIdxWib");
+  const topPrev=$("topIdxPrev");
+  const topNext=$("topIdxNext");
+
+  let topMarketText="IDX: MARKET CLOSED";
+  if(m.reason==="Trading Day"){
+    if(m.state==="SESSION 1" || m.state==="SESSION 2"){
+      topMarketText="IDX: MARKET OPEN";
+    }else if(m.state==="LUNCH BREAK"){
+      topMarketText="IDX: MARKET BREAK";
+    }else if(m.state==="PRE-OPEN"){
+      topMarketText="IDX: PRE-OPEN";
+    }else if(m.state==="POST-CLOSE"){
+      topMarketText="IDX: POST-CLOSE";
+    }
+  }
+
+  if(topMarket){
+    topMarket.textContent=topMarketText;
+    topMarket.classList.toggle("market-open",topMarketText==="IDX: MARKET OPEN");
+    topMarket.classList.toggle(
+      "market-closed",
+      topMarketText!=="IDX: MARKET OPEN"
+    );
+  }
+
+  if(topSession) topSession.textContent=m.state || "UNKNOWN";
+  if(topReason) topReason.textContent=m.reason ? `· ${m.reason}` : "";
+  if(topWib) topWib.textContent=`WIB ${p.hour}:${p.minute}`;
+  if(topPrev) topPrev.textContent=`Prev ${previousTradingDay}`;
+  if(topNext) topNext.textContent=`Next ${nextTradingDay}`;
+
+  // Do not describe stale holiday/weekend data as "Swing Live".
+  if($("lastUpdateDate")){
+    if(
+      m.reason==="Trading Day" &&
+      ["SESSION 1","LUNCH BREAK","SESSION 2","POST-CLOSE"].includes(m.state)
+    ){
+      $("lastUpdateDate").textContent=`IDX ${m.state} · ${p.hour}:${p.minute} WIB`;
+    }else{
+      $("lastUpdateDate").textContent=`IDX ${marketText}`;
+    }
+  }
+
+  return m;
+}
+
+
+/* HEALTH */
+async function loadHealth(){
+  const {data,error} = await supabase
+    .from("hanz_live_state")
+    .select("id,status,heartbeat_at,last_success_at,last_error,consecutive_failures,updated_at")
+    .eq("id","bei-main")
+    .limit(1);
+
+  if(error) throw error;
+
+  const state=data?.[0];
+  if(!state) return;
+
+  const status=String(state.status || "").toLowerCase();
+  const online=status==="online";
+
+  $("engineState").textContent=online ? "ONLINE" : "CHECK";
+  $("mainWorkerStatus").textContent=status.toUpperCase();
+  $("sysStatus").textContent=status.toUpperCase();
+  $("heartbeat").textContent=formatTime(state.heartbeat_at);
+  $("lastSuccess").textContent=formatTime(state.last_success_at);
+  $("failures").textContent=state.consecutive_failures ?? 0;
+  $("lastError").textContent=state.last_error || "None";
+  $("engineDot").classList.toggle("online",online);
+
+  const market=renderIdxMarketClock();
+  const marketClosed=market.state.startsWith("CLOSED") || market.state==="CALENDAR UNVERIFIED";
+  $("engineLabel").textContent=
+    online
+      ? (marketClosed ? "MARKET CLOSED" : "HANZ ONLINE")
+      : "CHECK ENGINE";
+}
+
+/* PORTFOLIO */
+async function loadPortfolio(){
+  if(!currentUser){
+    portfolioRows=[];
+    renderPortfolio([]);
+    return;
+  }
+
+  const {data,error} = await supabase
+    .from("hanz_swing_portfolio")
+    .select("*")
+    .eq("status","OPEN")
+    .order("opened_at",{ascending:false});
+
+  if(error){
+    console.error(error);
+    showError("Portfolio error: " + error.message);
+    return;
+  }
+
+  portfolioRows=data || [];
+  renderPortfolio(portfolioRows);
+}
+
+function trailingStatus(row){
+  if(!row.auto_trailing) return {label:"OFF",cls:"off-chip",detail:"Manual trailing"};
+  if(row.trailing_active) return {label:"ACTIVE",cls:"active-chip",detail:"HANZ trailing engaged"};
+  return {label:"WAITING",cls:"wait-chip",detail:"Activates after Target 1"};
+}
+
+function renderPortfolio(rows){
+  $("portfolioCount").textContent=rows.length;
+  $("portfolioStatus").textContent=rows.length + (rows.length===1 ? " position" : " positions");
+
+  if(!currentUser){
+    $("portfolioGrid").innerHTML="";
+    return;
+  }
+
+  if(!rows.length){
+    $("portfolioGrid").innerHTML=`
+      <div class="empty large-empty">
+        <div class="empty-symbol">◉</div>
+        <strong>Portfolio is empty</strong>
+        <p>Add your first stock position and HANZ will begin monitoring it.</p>
+        <button class="primary-btn" id="emptyAddPositionButton">+ Add Position</button>
+      </div>`;
+    $("emptyAddPositionButton").addEventListener("click",openPositionModal);
+    return;
+  }
+
+  $("portfolioGrid").innerHTML=rows.map(row=>{
+    const quantity=row.quantity ?? (Number(row.lots || 0)*100);
+    const trail=trailingStatus(row);
+    const multiplier=row.trailing_atr_multiplier ?? 1.5;
+
+    return `
+      <article class="portfolio-card">
+        <div class="portfolio-head">
+          <div>
+            <div class="portfolio-symbol">${safe(row.ticker)}</div>
+            <div class="portfolio-date">Bought ${formatDate(row.buy_date || row.opened_at)}</div>
+          </div>
+          <span class="open-chip">${safe(row.status || "OPEN")}</span>
+        </div>
+
+        <div class="portfolio-main">
+          <div><span>AVG BUY</span><strong>${price(row.avg_buy)}</strong></div>
+          <div><span>LOTS</span><strong>${price(row.lots)}</strong></div>
+          <div><span>SHARES</span><strong>${price(quantity)}</strong></div>
+        </div>
+
+        <div class="portfolio-levels">
+          <div><span>STOP LOSS</span><strong class="red-text">${price(row.stop_loss)}</strong></div>
+          <div><span>DYNAMIC T1</span><strong class="green-text">${price(row.target_1)}</strong></div>
+          <div><span>DYNAMIC T2</span><strong class="green-text">${price(row.target_2)}</strong></div>
+        </div>
+
+        <div class="trailing-box">
+          <div class="trailing-head">
+            <div>
+              <strong>AUTO TRAILING</strong>
+              <div class="trailing-sub">${trail.detail}</div>
+            </div>
+            <span class="${trail.cls}">${trail.label}</span>
+          </div>
+
+          <div class="trail-grid">
+            <div><span>PEAK PRICE</span><strong>${price(row.peak_price)}</strong></div>
+            <div><span>CURRENT TRAIL</span><strong class="${row.trailing_active ? "green-text" : ""}">${price(row.trailing_stop)}</strong></div>
+            <div><span>ATR MULTIPLIER</span><strong>${row.auto_trailing ? `${price(multiplier)}×` : "MANUAL"}</strong></div>
+            <div><span>LAST TRAIL UPDATE</span><strong>${formatTime(row.last_trailing_update_at)}</strong></div>
+          </div>
+        </div>
+
+        <div class="signal-row">
+          <span>HANZ SIGNAL</span>
+          <strong>${safe(row.signal || "MONITOR")}</strong>
+        </div>
+
+        ${row.notes ? `<div class="position-notes">${safe(row.notes)}</div>` : ""}
+
+        <div class="position-actions">
+          <button data-edit="${row.id}">Edit</button>
+          <button class="close-btn" data-close="${row.id}">Close</button>
+          <button class="delete-btn" data-delete="${row.id}">Delete</button>
+        </div>
+      </article>`;
+  }).join("");
+
+  document.querySelectorAll("[data-edit]").forEach(btn=>{
+    btn.addEventListener("click",()=>editPosition(Number(btn.dataset.edit)));
+  });
+  document.querySelectorAll("[data-close]").forEach(btn=>{
+    btn.addEventListener("click",()=>closePosition(Number(btn.dataset.close)));
+  });
+  document.querySelectorAll("[data-delete]").forEach(btn=>{
+    btn.addEventListener("click",()=>deletePosition(Number(btn.dataset.delete)));
+  });
+}
+
+/* POSITION MODAL */
+function updateTrailingFieldState(){
+  const auto=$("positionAutoTrailing").checked;
+  $("manualTrailingField").classList.toggle("disabled-field",auto);
+  $("positionTrailing").disabled=auto;
+  if(auto) $("positionTrailing").placeholder="Managed automatically by HANZ";
+}
+
+function openPositionModal(){
+  if(!currentUser){openAuth("login");return;}
+
+  editPositionId=null;
+  $("positionModalTitle").textContent="Add Position";
+  $("positionSubmit").textContent="Save Position";
+  $("positionForm").reset();
+  $("positionTicker").disabled=false;
+  $("positionBuyDate").value=localDateISO();
+  $("positionAutoTrailing").checked=true;
+  updateTrailingFieldState();
+  $("positionModal").classList.add("show");
+}
+
+function closePositionModal(){
+  $("positionModal").classList.remove("show");
+  editPositionId=null;
+}
+
+function editPosition(id){
+  const row=portfolioRows.find(r=>Number(r.id)===Number(id));
+  if(!row) return;
+
+  editPositionId=row.id;
+  $("positionModalTitle").textContent="Edit Position";
+  $("positionSubmit").textContent="Update Position";
+  $("positionTicker").value=row.ticker || "";
+  $("positionAvgBuy").value=row.avg_buy ?? "";
+  $("positionLots").value=row.lots ?? "";
+  $("positionBuyDate").value=row.buy_date || localDateISO();
+  $("positionStopLoss").value=row.stop_loss ?? "";
+  $("positionTarget1").value=row.target_1 ?? "";
+  $("positionTarget2").value=row.target_2 ?? "";
+  $("positionTrailing").value=row.trailing_stop ?? "";
+  $("positionAutoTrailing").checked=row.auto_trailing !== false;
+  $("positionNotes").value=row.notes ?? "";
+  updateTrailingFieldState();
+  $("positionModal").classList.add("show");
+}
+
+async function savePosition(event){
+  event.preventDefault();
+
+  if(!currentUser){openAuth("login");return;}
+
+  const ticker=$("positionTicker").value.trim().toUpperCase().replace(".JK","");
+  const avgBuy=Number($("positionAvgBuy").value);
+  const lots=Number($("positionLots").value);
+  const buyDate=$("positionBuyDate").value;
+  const autoTrailing=$("positionAutoTrailing").checked;
+
+  if(!ticker){notify("Ticker is required.","error");return;}
+  if(!Number.isFinite(avgBuy) || avgBuy<=0){notify("Buy price is invalid.","error");return;}
+  if(!Number.isFinite(lots) || lots<=0){notify("Lots must be greater than zero.","error");return;}
+
+  const optionalNumber=id=>{
+    const raw=$(id).value.trim();
+    if(raw==="") return null;
+    const n=Number(raw);
+    return Number.isFinite(n) ? n : null;
+  };
+
+  const payload={
+    ticker,
+    avg_buy:avgBuy,
+    lots,
+    quantity:lots*100,
+    buy_date:buyDate || localDateISO(),
+    stop_loss:optionalNumber("positionStopLoss"),
+    target_1:optionalNumber("positionTarget1"),
+    target_2:optionalNumber("positionTarget2"),
+    auto_trailing:autoTrailing,
+    notes:$("positionNotes").value.trim() || null
+  };
+
+  if(autoTrailing){
+    if(!editPositionId){
+      payload.trailing_stop=null;
+      payload.trailing_active=false;
+      payload.peak_price=null;
+      payload.trailing_atr_multiplier=1.5;
+      payload.trailing_activated_at=null;
+      payload.last_trailing_update_at=null;
+    }
+  }else{
+    payload.trailing_stop=optionalNumber("positionTrailing");
+    payload.trailing_active=false;
+  }
+
+  try{
+    if(editPositionId){
+      const {error}=await supabase
+        .from("hanz_swing_portfolio")
+        .update(payload)
+        .eq("id",editPositionId);
+      if(error) throw error;
+      notify(`${ticker} updated.`);
+    }else{
+      payload.user_id=currentUser.id;
+      payload.status="OPEN";
+      payload.signal="MONITOR";
+      payload.opened_at=new Date().toISOString();
+
+      const {error}=await supabase.from("hanz_swing_portfolio").insert(payload);
+      if(error) throw error;
+      notify(`${ticker} added to portfolio.`);
+    }
+
+    closePositionModal();
+    await loadPortfolio();
+
+  }catch(error){
+    console.error(error);
+    notify(error.message,"error");
+  }
+}
+
+async function closePosition(id){
+  const row=portfolioRows.find(r=>Number(r.id)===Number(id));
+  if(!row) return;
+
+  if(!confirm(`Close ${row.ticker} position?\n\nIt will leave the active portfolio but stay in the database as CLOSED.`)) return;
+
+  const {error}=await supabase
+    .from("hanz_swing_portfolio")
+    .update({status:"CLOSED",signal:"CLOSED"})
+    .eq("id",id);
+
+  if(error){notify(error.message,"error");return;}
+
+  notify(`${row.ticker} position closed.`);
+  await loadPortfolio();
+}
+
+async function deletePosition(id){
+  const row=portfolioRows.find(r=>Number(r.id)===Number(id));
+  if(!row) return;
+
+  if(!confirm(`DELETE ${row.ticker} permanently?\n\nUse Close instead if this was a real trade.`)) return;
+
+  const {error}=await supabase
+    .from("hanz_swing_portfolio")
+    .delete()
+    .eq("id",id);
+
+  if(error){notify(error.message,"error");return;}
+
+  notify(`${row.ticker} deleted.`);
+  await loadPortfolio();
+}
+
+/* ALERTS */
+function renderAlertsLocked(){
+  $("alertsBox").innerHTML=
+    '<div class="empty"><div class="empty-symbol">⚡</div>Login to view personal alerts.</div>';
+}
+
+async function loadAlerts(){
+  if(!currentUser){renderAlertsLocked();return;}
+
+  const {data,error}=await supabase
+    .from("hanz_swing_alerts")
+    .select("*")
+    .eq("user_id",currentUser.id)
+    .order("created_at",{ascending:false})
+    .limit(30);
+
+  if(error){
+    $("alertsBox").innerHTML=`
+      <div class="empty">
+        <div class="empty-symbol">⚡</div>
+        Personal alerts will appear here when HANZ creates them.
+      </div>`;
+    return;
+  }
+
+  const rows=data || [];
+  if(!rows.length){
+    $("alertsBox").innerHTML='<div class="empty"><div class="empty-symbol">⚡</div>No personal alerts yet.</div>';
+    return;
+  }
+
+  $("alertsBox").innerHTML=`
+    <div class="table-shell">
+      <table>
+        <thead><tr><th>Time</th><th>Ticker</th><th>Alert</th><th>Priority</th><th>Message</th></tr></thead>
+        <tbody>
+          ${rows.map(row=>`
+            <tr>
+              <td>${formatTime(row.created_at)}</td>
+              <td><strong>${safe(row.ticker)}</strong></td>
+              <td>${safe(row.alert_type || "")}</td>
+              <td>${safe(row.priority ?? "—")}</td>
+              <td>${safe(row.message || row.reason || "")}</td>
+            </tr>`).join("")}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+/* LOAD ALL */
+async function loadAll(){
+  clearError();
+
+  try{
+    await Promise.all([
+      loadWatchlist(),
+      loadHealth()
+    ]);
+
+    if(currentUser){
+      await Promise.all([
+        loadPortfolio(),
+        loadAlerts()
+      ]);
+    }
+  }catch(error){
+    console.error(error);
+    showError("Live data connection error: " + error.message);
+  }
+}
+
+/* EVENTS + START */
+window.addEventListener("DOMContentLoaded",async ()=>{
+  renderIdxMarketClock();
+  renderPushDiagnostic();
+  setInterval(renderIdxMarketClock,60000);
+
+  document.querySelectorAll("[data-panel]").forEach(btn=>{
+    btn.addEventListener("click",()=>showPanel(btn.dataset.panel));
+  });
+
+  
+  // HANZ push registration heartbeat:
+  // refresh active FID while the dashboard is open, without user action.
+  setInterval(()=>{
+    if(
+      currentUser &&
+      !pushDisabledByUser() &&
+      "Notification" in window &&
+      Notification.permission==="granted"
+    ){
+      refreshPushRegistration().catch(error=>{
+        console.warn("HANZ push registration heartbeat failed:",error);
+      });
+    }
+  },5*60*1000);
+
+  document.addEventListener("click",event=>{
+    const btn=event.target.closest("[data-chart-ticker]");
+    if(btn) openHanzChart(btn.dataset.chartTicker);
+  });
+  $("closeChartModalButton").addEventListener("click",closeHanzChart);
+  $("chartModal").addEventListener("click",event=>{
+    if(event.target===$("chartModal")) closeHanzChart();
+  });
+
+  $("refreshButton").addEventListener("click",loadAll);
+  $("pushButton").addEventListener("click",togglePush);
+  $("copyFidButton").addEventListener("click",copyCurrentFid);
+  $("loginButton").addEventListener("click",()=>openAuth("login"));
+  $("logoutButton").addEventListener("click",logout);
+  $("portfolioLoginButton").addEventListener("click",()=>openAuth("login"));
+  $("addPositionButton").addEventListener("click",openPositionModal);
+  $("closeAuthButton").addEventListener("click",closeAuth);
+  $("closePositionModalButton").addEventListener("click",closePositionModal);
+  $("loginTab").addEventListener("click",()=>setAuthMode("login"));
+  $("signupTab").addEventListener("click",()=>setAuthMode("signup"));
+  $("positionAutoTrailing").addEventListener("change",updateTrailingFieldState);
+
+  $("authForm").addEventListener("submit",async event=>{
+    event.preventDefault();
+    const button=$("authSubmit");
+    button.disabled=true;
+    $("authMessage").textContent="";
+
+    try{
+      if(event.currentTarget.dataset.mode==="signup") await signUp();
+      else await login();
+    }catch(error){
+      $("authMessage").innerHTML=`<div class="auth-error">${safe(error.message)}</div>`;
+    }finally{
+      button.disabled=false;
+    }
+  });
+
+  $("positionForm").addEventListener("submit",savePosition);
+
+  $("authModal").addEventListener("click",event=>{
+    if(event.target===$("authModal")) closeAuth();
+  });
+
+  $("positionModal").addEventListener("click",event=>{
+    if(event.target===$("positionModal")) closePositionModal();
+  });
+
+  await initAuth();
+  await loadAll();
+
+  setInterval(loadAll,REFRESH_MS);
+});
+</script>
+</body>
+</html>
