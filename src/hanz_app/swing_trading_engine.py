@@ -73,6 +73,19 @@ SETUP_READY_BREAKOUT_DISTANCE_PCT = float(
     os.getenv("HANZ_SWING_SETUP_READY_BREAKOUT_DISTANCE_PCT", "2.0")
 )
 
+
+# Chart persistence: completed daily candles are stored server-side in Supabase.
+# The dashboard never calls Yahoo Finance directly.
+CHART_LOOKBACK_BARS = int(
+    os.getenv("HANZ_SWING_CHART_LOOKBACK_BARS", "130")
+)
+CHART_STATES = {
+    "EARLY_WATCH",
+    "PRE_ALERT",
+    "SETUP_READY",
+    "SWING_BUY",
+}
+
 MAX_SYMBOLS_PER_CYCLE = int(
     os.getenv("HANZ_SWING_MAX_SYMBOLS_PER_CYCLE", "220")
 )
@@ -487,12 +500,6 @@ def latest_intraday_quote(ticker):
         and age_minutes <= INTRADAY_STALE_MINUTES
     )
 
-    breakout_distance_pct = None
-    if price is not None and prior_high20 not in (None, 0):
-        breakout_distance_pct = (
-            (prior_high20 - price) / prior_high20 * 100
-        )
-
     return {
         "price": price,
         "bar_at": bar_ts.isoformat(),
@@ -638,6 +645,12 @@ def daily_metrics(df):
             (price - week52_low)
             / (week52_high - week52_low)
             * 100
+        )
+
+    breakout_distance_pct = None
+    if price is not None and prior_high20 not in (None, 0):
+        breakout_distance_pct = (
+            (prior_high20 - price) / prior_high20 * 100
         )
 
     return {
@@ -3251,6 +3264,82 @@ def refresh_swing_buy_intraday_prices():
     }
 
 
+
+def chart_candles_from_daily_df(daily_df, limit=None):
+    """
+    Serialize completed daily OHLCV bars already downloaded by the engine.
+
+    Full universe scans only run after the IDX final-scan gate opens, so the
+    last daily bar used here is a completed bar. No browser-side Yahoo request
+    is required later.
+    """
+    limit = max(60, int(limit or CHART_LOOKBACK_BARS))
+    frame = daily_df.tail(limit).copy()
+
+    candles = []
+    for idx, row in frame.iterrows():
+        o = safe_float(row.get("Open"))
+        h = safe_float(row.get("High"))
+        l = safe_float(row.get("Low"))
+        c = safe_float(row.get("Close"))
+        v = safe_float(row.get("Volume"))
+
+        if None in (o, h, l, c):
+            continue
+
+        ts = pd.Timestamp(idx)
+        if ts.tzinfo is not None:
+            ts = ts.tz_convert(JAKARTA_TZ)
+
+        candles.append({
+            "time": ts.date().isoformat(),
+            "open": o,
+            "high": h,
+            "low": l,
+            "close": c,
+            "volume": int(v) if v is not None else 0,
+        })
+
+    return candles
+
+
+def upsert_chart_data(ticker, daily_df, result):
+    """
+    Persist chart data only for active HANZ signal states.
+    One compact JSON row per ticker keeps dashboard reads fast and avoids CORS.
+    """
+    state = str(result.get("state") or "")
+    if state not in CHART_STATES:
+        return {"stored": False, "reason": "inactive_state"}
+
+    candles = chart_candles_from_daily_df(daily_df)
+    if len(candles) < 60:
+        raise RuntimeError(
+            f"Insufficient chart candles for {clean_ticker(ticker)}"
+        )
+
+    payload = {
+        "ticker": clean_ticker(ticker),
+        "state": state,
+        "source_bar_at": candles[-1]["time"],
+        "candles": candles,
+        "updated_at": now_iso(),
+    }
+
+    supabase_request(
+        "POST",
+        "hanz_swing_chart_data?on_conflict=ticker",
+        payload,
+        prefer="resolution=merge-duplicates,return=minimal",
+    )
+
+    return {
+        "stored": True,
+        "bars": len(candles),
+        "source_bar_at": candles[-1]["time"],
+    }
+
+
 def upsert_monitor(
     ticker,
     daily,
@@ -3480,6 +3569,21 @@ def scan_symbol(ticker):
         fundamental,
     )
 
+    chart_summary = {"stored": False}
+    if result.get("state") in CHART_STATES:
+        try:
+            chart_summary = upsert_chart_data(
+                ticker,
+                daily_df,
+                result,
+            )
+        except Exception as exc:
+            # Chart persistence must never break the signal engine.
+            print(
+                f"SWING CHART {clean_ticker(ticker)} failed: {exc}",
+                flush=True,
+            )
+
     if result["state"] == "SWING_BUY":
         insert_swing_signal(
             ticker,
@@ -3495,6 +3599,8 @@ def scan_symbol(ticker):
         f"early={result.get('early_score', 0)}/10 "
         f"raw_buy={result.get('raw_buy_gate', False)} "
         f"reconfirmed={result.get('reconfirmed', False)} "
+        f"chart={chart_summary.get('stored', False)}"
+        f"/{chart_summary.get('bars', 0)}bars "
         f"discount={discount['discount_score']}/100 "
         f"{discount['discount_label']} "
         f"fundamental={fundamental.get('fundamental_score')}/100 "
@@ -3507,6 +3613,85 @@ def scan_symbol(ticker):
     )
 
     return result["state"]
+
+
+
+def backfill_active_chart_cache():
+    """
+    Keep chart cache available even when the market is closed.
+
+    Only active HANZ signal rows are considered. A ticker is downloaded only
+    when its chart cache is missing or older than the monitor's completed
+    daily_bar_at. This makes manual after-hours runs useful without repeatedly
+    hammering Yahoo/yfinance every scheduled hour.
+    """
+    state_filter = ",".join(sorted(CHART_STATES))
+    monitor_rows = supabase_request(
+        "GET",
+        "hanz_swing_signal_monitor"
+        f"?state=in.({state_filter})"
+        "&select=ticker,state,daily_bar_at"
+        "&order=score.desc",
+    ) or []
+
+    summary = {
+        "active": len(monitor_rows),
+        "backfilled": 0,
+        "already_current": 0,
+        "failed": 0,
+    }
+
+    for row in monitor_rows:
+        ticker = clean_ticker(row.get("ticker"))
+        state = str(row.get("state") or "")
+        monitor_bar = str(row.get("daily_bar_at") or "")[:10]
+
+        if not ticker or state not in CHART_STATES:
+            continue
+
+        try:
+            encoded = urllib.parse.quote(ticker, safe="")
+            cached = supabase_request(
+                "GET",
+                "hanz_swing_chart_data"
+                f"?ticker=eq.{encoded}"
+                "&select=ticker,source_bar_at"
+                "&limit=1",
+            ) or []
+
+            cached_bar = (
+                str(cached[0].get("source_bar_at") or "")[:10]
+                if cached else ""
+            )
+
+            if cached_bar and monitor_bar and cached_bar >= monitor_bar:
+                summary["already_current"] += 1
+                continue
+
+            daily_df = download_frame(
+                ticker,
+                DAILY_INTERVAL,
+                DAILY_PERIOD,
+            )
+
+            result = {"state": state}
+            stored = upsert_chart_data(
+                ticker,
+                daily_df,
+                result,
+            )
+
+            if stored.get("stored"):
+                summary["backfilled"] += 1
+
+        except Exception as exc:
+            summary["failed"] += 1
+            print(
+                f"SWING CHART BACKFILL {ticker} failed: {exc}",
+                flush=True,
+            )
+
+    return summary
 
 
 def run_cycle():
@@ -3529,6 +3714,22 @@ def run_cycle():
         f"next={next_day}",
         flush=True,
     )
+
+    # Chart cache maintenance is independent of BUY generation.
+    # It is safe to run after hours because it uses completed daily candles
+    # and only fills missing/stale chart cache rows.
+    try:
+        chart_cache_summary = backfill_active_chart_cache()
+        print(
+            "SWING CHART CACHE: "
+            + json.dumps(chart_cache_summary),
+            flush=True,
+        )
+    except Exception as exc:
+        print(
+            f"SWING CHART CACHE unavailable: {exc}",
+            flush=True,
+        )
 
     if not market["is_trading_day"]:
         print(
@@ -3623,6 +3824,7 @@ def main():
         f"Portfolio monitor=ON | "
         f"IDX calendar gate=ON (Asia/Jakarta) | "
         f"Early radar=ON | Reconfirm BUY=NEW DAILY BAR | "
+        f"Chart backend=SUPABASE/{CHART_LOOKBACK_BARS} completed bars | "
         f"Trailing={TRAILING_ATR_MULTIPLIER_T1:.1f}x/"
         f"{TRAILING_ATR_MULTIPLIER_T2:.1f}x ATR",
         flush=True,
