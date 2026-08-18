@@ -924,7 +924,7 @@ th{color:var(--muted)}
       <a href="https://www.tradingview.com/lightweight-charts/" target="_blank" rel="noopener">
         TradingView Lightweight Charts™
       </a>.
-      Market candles are requested from Yahoo Finance; availability may be delayed or limited.
+      Market candles are loaded from the HANZ Supabase chart cache, produced server-side from completed daily bars.
     </div>
   </div>
 </div>
@@ -1940,37 +1940,44 @@ function completedDailyCandlesOnly(candles){
   return candles;
 }
 
-async function yahooDailyCandles(ticker){
-  const symbol=String(ticker || "").toUpperCase().endsWith(".JK")
-    ? String(ticker).toUpperCase()
-    : String(ticker).toUpperCase()+".JK";
+async function supabaseDailyCandles(ticker){
+  const clean=String(ticker || "").toUpperCase().replace(/\.JK$/,"");
 
-  const url=`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=6mo&interval=1d&includePrePost=false&events=div%2Csplits`;
-  const response=await fetch(url,{cache:"no-store"});
-  if(!response.ok) throw new Error(`Yahoo chart HTTP ${response.status}`);
-  const json=await response.json();
-  const result=json?.chart?.result?.[0];
-  if(!result) throw new Error(json?.chart?.error?.description || "No chart data");
+  const {data,error}=await supabase
+    .from("hanz_swing_chart_data")
+    .select("ticker,state,source_bar_at,candles,updated_at")
+    .eq("ticker",clean)
+    .maybeSingle();
 
-  const ts=result.timestamp || [];
-  const q=result.indicators?.quote?.[0] || {};
-  const out=[];
-
-  for(let i=0;i<ts.length;i++){
-    const open=Number(q.open?.[i]);
-    const high=Number(q.high?.[i]);
-    const low=Number(q.low?.[i]);
-    const close=Number(q.close?.[i]);
-    const volume=Number(q.volume?.[i] || 0);
-    if(![open,high,low,close].every(Number.isFinite)) continue;
-
-    const d=new Date(Number(ts[i])*1000);
-    const time=d.toISOString().slice(0,10);
-    out.push({time,open,high,low,close,volume});
+  if(error){
+    throw new Error(`HANZ chart cache: ${error.message}`);
   }
+  if(!data || !Array.isArray(data.candles)){
+    throw new Error("HANZ chart cache is not available for this ticker yet");
+  }
+
+  const out=data.candles.map(c=>({
+    time:String(c.time),
+    open:Number(c.open),
+    high:Number(c.high),
+    low:Number(c.low),
+    close:Number(c.close),
+    volume:Number(c.volume || 0)
+  })).filter(c=>
+    c.time &&
+    [c.open,c.high,c.low,c.close].every(Number.isFinite)
+  );
+
   const completed=completedDailyCandlesOnly(out);
-  if(completed.length<10) throw new Error("Insufficient completed chart candles");
-  return completed;
+  if(completed.length<10){
+    throw new Error("Insufficient completed candles in HANZ chart cache");
+  }
+
+  return {
+    candles:completed,
+    sourceBarAt:data.source_bar_at || completed[completed.length-1].time,
+    updatedAt:data.updated_at || null
+  };
 }
 
 function addHorizontalLevel(series,value,title,color){
@@ -2040,11 +2047,14 @@ async function openHanzChart(ticker){
   chartWrap.style.display="none";
   volumeLegend.style.display="none";
   status.style.display="block";
-  status.textContent="Loading completed daily-candle analysis chart…";
+  status.textContent="Loading HANZ completed-candle chart cache…";
 
   try{
     if(!window.LightweightCharts) throw new Error("Chart library failed to load");
-    const candles=await yahooDailyCandles(ticker);
+    const chartPayload=await supabaseDailyCandles(ticker);
+    const candles=chartPayload.candles;
+    $("chartSubtitle").textContent=
+      `${signalStateLabel(row.state)} · Completed Daily Candles through ${chartPayload.sourceBarAt} · EMA20 / EMA50 · Volume`;
 
     if(hanzChartInstance){
       hanzChartInstance.remove();
@@ -2187,7 +2197,7 @@ async function openHanzChart(ticker){
     chartWrap.style.display="none";
     volumeLegend.style.display="none";
     status.style.display="block";
-    status.innerHTML=`Chart data could not be loaded in-browser.<br><span style="opacity:.7">${safe(error.message)}</span><br><br>
+    status.innerHTML=`HANZ chart cache could not be loaded.<br><span style="opacity:.7">${safe(error.message)}</span><br><br>
       <a href="https://www.tradingview.com/symbols/IDX-${encodeURIComponent(String(ticker).toUpperCase())}/" target="_blank" rel="noopener" style="color:var(--green);font-weight:900">
         Open ${safe(String(ticker).toUpperCase())} on TradingView ↗
       </a>`;
