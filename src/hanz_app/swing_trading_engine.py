@@ -86,6 +86,16 @@ CHART_STATES = {
     "SWING_BUY",
 }
 
+
+# If Yahoo daily bars lag, rebuild the latest completed IDX daily candle from
+# intraday data. This is server-side only; the browser still reads Supabase.
+CHART_REPAIR_INTRADAY_INTERVAL = os.getenv(
+    "HANZ_SWING_CHART_REPAIR_INTERVAL", "5m"
+)
+CHART_REPAIR_INTRADAY_PERIOD = os.getenv(
+    "HANZ_SWING_CHART_REPAIR_PERIOD", "5d"
+)
+
 MAX_SYMBOLS_PER_CYCLE = int(
     os.getenv("HANZ_SWING_MAX_SYMBOLS_PER_CYCLE", "220")
 )
@@ -3265,6 +3275,127 @@ def refresh_swing_buy_intraday_prices():
 
 
 
+
+def latest_completed_idx_date(now=None):
+    """
+    Return the latest IDX trading date whose daily candle should be complete.
+    Before today's close, this is the previous trading day. After POST_CLOSE,
+    it is today.
+    """
+    now = now or jakarta_now()
+    market = idx_market_session(now)
+
+    if market.get("is_trading_day") and market.get("allow_final_scan"):
+        return now.date()
+
+    return previous_idx_trading_day(now.date())
+
+
+def intraday_to_daily_frame(ticker):
+    """
+    Aggregate recent intraday bars into Jakarta-date OHLCV daily bars.
+    Used only to repair a missing/stale latest completed daily candle.
+    """
+    df = download_frame(
+        ticker,
+        CHART_REPAIR_INTRADAY_INTERVAL,
+        CHART_REPAIR_INTRADAY_PERIOD,
+    ).copy()
+
+    if df.empty:
+        return df
+
+    idx = pd.DatetimeIndex(df.index)
+    if idx.tz is None:
+        idx = idx.tz_localize(JAKARTA_TZ)
+    else:
+        idx = idx.tz_convert(JAKARTA_TZ)
+
+    df.index = idx
+    df["_date"] = idx.date
+
+    grouped = df.groupby("_date", sort=True).agg(
+        {
+            "Open": "first",
+            "High": "max",
+            "Low": "min",
+            "Close": "last",
+            "Volume": "sum",
+        }
+    )
+    grouped.index = pd.to_datetime(grouped.index)
+    return grouped
+
+
+def ensure_latest_completed_daily_bar(ticker, daily_df):
+    """
+    Repair stale Yahoo 1d history when the latest completed IDX session is
+    missing. We never fabricate a candle: the repair happens only when recent
+    intraday bars contain the exact completed trading date.
+    """
+    frame = daily_df.copy()
+    target_date = latest_completed_idx_date()
+
+    last_date = pd.Timestamp(frame.index[-1]).date()
+    if last_date >= target_date:
+        return frame, {
+            "target_date": target_date.isoformat(),
+            "source": "DAILY",
+            "repaired": False,
+            "last_date": last_date.isoformat(),
+        }
+
+    intraday_daily = intraday_to_daily_frame(ticker)
+    if intraday_daily is None or intraday_daily.empty:
+        raise RuntimeError(
+            f"Latest completed candle missing: daily={last_date}, "
+            f"target={target_date}, intraday repair unavailable"
+        )
+
+    repair_row = None
+    for idx, row in intraday_daily.iterrows():
+        if pd.Timestamp(idx).date() == target_date:
+            repair_row = row
+            break
+
+    if repair_row is None:
+        available = [
+            pd.Timestamp(x).date().isoformat()
+            for x in intraday_daily.index
+        ]
+        raise RuntimeError(
+            f"Latest completed candle missing: daily={last_date}, "
+            f"target={target_date}, intraday dates={available}"
+        )
+
+    repair_ts = pd.Timestamp(target_date)
+    replacement = pd.DataFrame(
+        [{
+            "Open": safe_float(repair_row["Open"]),
+            "High": safe_float(repair_row["High"]),
+            "Low": safe_float(repair_row["Low"]),
+            "Close": safe_float(repair_row["Close"]),
+            "Volume": safe_float(repair_row["Volume"]),
+        }],
+        index=[repair_ts],
+    )
+
+    # Remove any duplicate date, append repaired candle, and preserve ordering.
+    keep = [
+        pd.Timestamp(x).date() != target_date
+        for x in frame.index
+    ]
+    frame = frame.loc[keep]
+    frame = pd.concat([frame, replacement]).sort_index()
+
+    return frame, {
+        "target_date": target_date.isoformat(),
+        "source": "INTRADAY_AGGREGATED",
+        "repaired": True,
+        "last_date": target_date.isoformat(),
+    }
+
+
 def chart_candles_from_daily_df(daily_df, limit=None):
     """
     Serialize completed daily OHLCV bars already downloaded by the engine.
@@ -3312,10 +3443,21 @@ def upsert_chart_data(ticker, daily_df, result):
     if state not in CHART_STATES:
         return {"stored": False, "reason": "inactive_state"}
 
-    candles = chart_candles_from_daily_df(daily_df)
+    repaired_df, freshness = ensure_latest_completed_daily_bar(
+        ticker,
+        daily_df,
+    )
+
+    candles = chart_candles_from_daily_df(repaired_df)
     if len(candles) < 60:
         raise RuntimeError(
             f"Insufficient chart candles for {clean_ticker(ticker)}"
+        )
+
+    if candles[-1]["time"] != freshness["target_date"]:
+        raise RuntimeError(
+            f"Chart freshness check failed for {clean_ticker(ticker)}: "
+            f"last={candles[-1]['time']} target={freshness['target_date']}"
         )
 
     payload = {
@@ -3337,6 +3479,9 @@ def upsert_chart_data(ticker, daily_df, result):
         "stored": True,
         "bars": len(candles),
         "source_bar_at": candles[-1]["time"],
+        "target_date": freshness["target_date"],
+        "bar_source": freshness["source"],
+        "repaired": freshness["repaired"],
     }
 
 
@@ -3600,7 +3745,9 @@ def scan_symbol(ticker):
         f"raw_buy={result.get('raw_buy_gate', False)} "
         f"reconfirmed={result.get('reconfirmed', False)} "
         f"chart={chart_summary.get('stored', False)}"
-        f"/{chart_summary.get('bars', 0)}bars "
+        f"/{chart_summary.get('bars', 0)}bars"
+        f"/{chart_summary.get('source_bar_at', '—')}"
+        f"/{chart_summary.get('bar_source', '—')} "
         f"discount={discount['discount_score']}/100 "
         f"{discount['discount_label']} "
         f"fundamental={fundamental.get('fundamental_score')}/100 "
@@ -3645,6 +3792,7 @@ def backfill_active_chart_cache():
         ticker = clean_ticker(row.get("ticker"))
         state = str(row.get("state") or "")
         monitor_bar = str(row.get("daily_bar_at") or "")[:10]
+        target_bar = latest_completed_idx_date().isoformat()
 
         if not ticker or state not in CHART_STATES:
             continue
@@ -3664,7 +3812,10 @@ def backfill_active_chart_cache():
                 if cached else ""
             )
 
-            if cached_bar and monitor_bar and cached_bar >= monitor_bar:
+            # Cache is current only when it reaches the latest completed IDX
+            # trading date. A stale monitor row must not allow an old chart cache
+            # (for example Aug 14 when Aug 18 is completed) to be accepted.
+            if cached_bar and cached_bar >= target_bar:
                 summary["already_current"] += 1
                 continue
 
