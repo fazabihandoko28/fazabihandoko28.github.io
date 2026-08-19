@@ -1,0 +1,134 @@
+name: iTick IDX Coverage Test
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test-itick:
+    runs-on: ubuntu-latest
+
+    env:
+      ITICK_API_TOKEN: ${{ secrets.ITICK_API_TOKEN }}
+
+    steps:
+      - name: Check iTick secret exists
+        shell: bash
+        run: |
+          if [ -z "$ITICK_API_TOKEN" ]; then
+            echo "ERROR: GitHub Secret ITICK_API_TOKEN is missing."
+            exit 1
+          fi
+          echo "ITICK_API_TOKEN detected."
+
+      - name: Test AUTO HATM TOTL VIVA
+        shell: python
+        run: |
+          import os
+          import json
+          import urllib.parse
+          import urllib.request
+          from datetime import datetime, timezone
+          from zoneinfo import ZoneInfo
+
+          TOKEN = os.environ["ITICK_API_TOKEN"].strip()
+          BASE = "https://api.itick.org/stock/quote"
+          TICKERS = ["AUTO", "HATM", "TOTL", "VIVA"]
+          WIB = ZoneInfo("Asia/Jakarta")
+
+          def fmt_ts(ms):
+              try:
+                  dt = datetime.fromtimestamp(float(ms) / 1000, tz=timezone.utc)
+                  return dt.astimezone(WIB).isoformat(timespec="seconds")
+              except Exception:
+                  return "—"
+
+          results = []
+
+          for ticker in TICKERS:
+              params = urllib.parse.urlencode({
+                  "region": "ID",
+                  "code": ticker,
+              })
+              url = f"{BASE}?{params}"
+
+              req = urllib.request.Request(
+                  url,
+                  headers={
+                      "accept": "application/json",
+                      "token": TOKEN,
+                      "User-Agent": "HANZ-iTick-Coverage-Test/1.0",
+                  },
+                  method="GET",
+              )
+
+              item = {
+                  "ticker": ticker,
+                  "ok": False,
+                  "price": None,
+                  "trade_time_wib": None,
+                  "status": None,
+                  "message": None,
+              }
+
+              try:
+                  with urllib.request.urlopen(req, timeout=20) as resp:
+                      payload = json.loads(resp.read().decode("utf-8"))
+
+                  if payload.get("code") != 0:
+                      item["message"] = payload.get("msg") or f"API code {payload.get('code')}"
+                  else:
+                      data = payload.get("data") or {}
+                      item.update({
+                          "ok": True,
+                          "price": data.get("ld"),
+                          "open": data.get("o"),
+                          "prev_close": data.get("p"),
+                          "high": data.get("h"),
+                          "low": data.get("l"),
+                          "volume": data.get("v"),
+                          "turnover": data.get("tu"),
+                          "change": data.get("ch"),
+                          "change_pct": data.get("chp"),
+                          "trade_time_wib": fmt_ts(data.get("t")),
+                          "status": data.get("ts"),
+                          "symbol_returned": data.get("s"),
+                      })
+
+              except Exception as exc:
+                  item["message"] = f"{type(exc).__name__}: {exc}"
+
+              results.append(item)
+
+          print("")
+          print("=" * 78)
+          print("HANZ iTick IDX COVERAGE TEST")
+          print("=" * 78)
+
+          ok_count = 0
+          for r in results:
+              if r["ok"]:
+                  ok_count += 1
+                  print(
+                      f"{r['ticker']:5} PASS | "
+                      f"price={r['price']} | "
+                      f"time_WIB={r['trade_time_wib']} | "
+                      f"status={r['status']} | "
+                      f"volume={r.get('volume')} | "
+                      f"change={r.get('change_pct')}%"
+                  )
+              else:
+                  print(
+                      f"{r['ticker']:5} FAIL | "
+                      f"{r['message']}"
+                  )
+
+          print("-" * 78)
+          print(f"SUMMARY: {ok_count}/4 tickers returned successfully")
+          print("Trading status: 0=Normal, 1=Halt, 2=Delisted, 3=Circuit Breaker")
+          print("=" * 78)
+
+          if ok_count == 0:
+              raise SystemExit("No requested IDX ticker returned successfully from iTick.")
