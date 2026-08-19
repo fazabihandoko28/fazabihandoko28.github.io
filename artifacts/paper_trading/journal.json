@@ -388,5 +388,55 @@
     "source": "YAHOO_FINANCE_RESEARCH_ONLY",
     "recorded_at": "2026-08-18T15:04:50.785273+00:00",
     "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "SRTG",
+    "status": "WAIT",
+    "signal_timestamp": "2026-08-19T00:00:00+00:00",
+    "signal_close": 1880.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-08-19T15:05:27.138622+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "SMSM",
+    "status": "WAIT",
+    "signal_timestamp": "2026-08-19T00:00:00+00:00",
+    "signal_close": 1740.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-08-19T15:05:27.138649+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "PRDA",
+    "status": "WAIT",
+    "signal_timestamp": "2026-08-19T00:00:00+00:00",
+    "signal_close": 2430.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-08-19T15:05:27.138659+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "LPKR",
+    "status": "WAIT",
+    "signal_timestamp": "2026-08-19T00:00:00+00:00",
+    "signal_close": 64.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-08-19T15:05:27.138667+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "ARTO",
+    "status": "WAIT",
+    "signal_timestamp": "2026-08-19T00:00:00+00:00",
+    "signal_close": 1075.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-08-19T15:05:27.138676+00:00",
+    "outcome": "PENDING"
   }
 ]
