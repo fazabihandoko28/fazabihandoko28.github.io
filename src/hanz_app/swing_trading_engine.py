@@ -159,6 +159,89 @@ TRAILING_ATR_MULTIPLIER_T2 = float(
     os.getenv("HANZ_SWING_TRAILING_ATR_T2", "1.0")
 )
 
+
+# ============================================================
+# V8 REAL-MONEY GUARD
+#
+# Important:
+# - HANZ still produces its technical state (EARLY/PRE/READY/SWING_BUY).
+# - risk_gate is a separate execution-safety layer.
+# - No broker orders are sent by this engine.
+# - Account capital is intentionally NOT guessed. If it is not configured,
+#   SWING_BUY remains PAPER_ONLY for position sizing / execution purposes.
+# ============================================================
+
+RISK_LIVE_GATE_ENABLED = (
+    os.getenv("HANZ_RISK_LIVE_GATE_ENABLED", "1").strip() != "0"
+)
+
+ACCOUNT_CAPITAL_IDR = float(
+    os.getenv("HANZ_ACCOUNT_CAPITAL_IDR", "0")
+)
+RISK_PER_TRADE_PCT = float(
+    os.getenv("HANZ_RISK_PER_TRADE_PCT", "0.50")
+)
+MAX_PORTFOLIO_RISK_PCT = float(
+    os.getenv("HANZ_MAX_PORTFOLIO_RISK_PCT", "3.00")
+)
+MAX_POSITION_PCT = float(
+    os.getenv("HANZ_MAX_POSITION_PCT", "15.0")
+)
+MAX_OPEN_POSITIONS = int(
+    os.getenv("HANZ_MAX_OPEN_POSITIONS", "6")
+)
+MAX_SECTOR_EXPOSURE_PCT = float(
+    os.getenv("HANZ_MAX_SECTOR_EXPOSURE_PCT", "30.0")
+)
+
+# Broker costs differ by broker/account. HANZ deliberately does not guess them.
+# Configure all three before a signal can become ELIGIBLE for real-money use.
+BUY_FEE_PCT = float(
+    os.getenv("HANZ_BUY_FEE_PCT", "-1")
+)
+SELL_FEE_PCT = float(
+    os.getenv("HANZ_SELL_FEE_PCT", "-1")
+)
+SLIPPAGE_PCT = float(
+    os.getenv("HANZ_SLIPPAGE_PCT", "-1")
+)
+
+# HANZ defaults below are strategy guardrails, not IDX regulatory thresholds.
+MIN_AVG_DAILY_VALUE_IDR = float(
+    os.getenv("HANZ_MIN_AVG_DAILY_VALUE_IDR", "5000000000")
+)
+MAX_ZERO_VOLUME_DAYS_20 = int(
+    os.getenv("HANZ_MAX_ZERO_VOLUME_DAYS_20", "1")
+)
+MAX_ATR_PCT = float(
+    os.getenv("HANZ_MAX_ATR_PCT", "12.0")
+)
+MAX_ADV_PARTICIPATION_PCT = float(
+    os.getenv("HANZ_MAX_ADV_PARTICIPATION_PCT", "0.50")
+)
+MIN_RR_T1 = float(
+    os.getenv("HANZ_MIN_RR_T1", "1.30")
+)
+MIN_RR_T2 = float(
+    os.getenv("HANZ_MIN_RR_T2", "2.00")
+)
+
+KILL_SWITCH_CONSECUTIVE_LOSSES = int(
+    os.getenv("HANZ_KILL_SWITCH_CONSECUTIVE_LOSSES", "4")
+)
+KILL_SWITCH_LOOKBACK_TRADES = int(
+    os.getenv("HANZ_KILL_SWITCH_LOOKBACK_TRADES", "10")
+)
+KILL_SWITCH_MIN_WIN_RATE_PCT = float(
+    os.getenv("HANZ_KILL_SWITCH_MIN_WIN_RATE_PCT", "35.0")
+)
+
+MARKET_REGIME_TICKER = os.getenv(
+    "HANZ_MARKET_REGIME_TICKER", "^JKSE"
+)
+
+_REAL_MONEY_CONTEXT = None
+
 FIREBASE_SERVICE_ACCOUNT_JSON = os.getenv(
     "FIREBASE_SERVICE_ACCOUNT_JSON", ""
 ).strip()
@@ -576,6 +659,13 @@ def daily_metrics(df):
     atr14 = atr(df, 14)
 
     avg_vol20 = volume.rolling(20).mean()
+
+    traded_value = close * volume
+    avg_value20 = traded_value.rolling(20).mean()
+    median_value20 = traded_value.rolling(20).median()
+    zero_volume_days20 = int((volume.iloc[-20:] <= 0).sum())
+    atr_pct = None
+
     ema20_slope_5d_pct = None
     rsi_change_5d = None
     volume_accel_5d = None
@@ -622,6 +712,10 @@ def daily_metrics(df):
         )
         else None
     )
+
+    atr_now = safe_float(atr14.iloc[-1])
+    if price not in (None, 0) and atr_now is not None:
+        atr_pct = atr_now / price * 100
 
     ret5 = None
     if len(close) >= 6:
@@ -677,6 +771,10 @@ def daily_metrics(df):
         "rsi14": safe_float(rsi14.iloc[-1]),
         "atr14": safe_float(atr14.iloc[-1]),
         "rvol20": safe_float(rvol),
+        "avg_value20": safe_float(avg_value20.iloc[-1]),
+        "median_value20": safe_float(median_value20.iloc[-1]),
+        "zero_volume_days20": zero_volume_days20,
+        "atr_pct": safe_float(atr_pct),
         "prior_high20": prior_high20,
         "prior_low20": prior_low20,
         "ret5_pct": safe_float(ret5),
@@ -1284,6 +1382,564 @@ def risk_levels(
         "target_mode": target_mode,
     }
 
+
+
+
+# ============================================================
+# V8 REAL-MONEY RISK / VALIDATION LAYER
+# ============================================================
+
+def _position_quantity(position):
+    qty = safe_float(position.get("quantity"))
+    if qty is not None and qty > 0:
+        return qty
+
+    lots = safe_float(position.get("lots"))
+    if lots is not None and lots > 0:
+        return lots * 100.0
+
+    return 0.0
+
+
+def market_regime_context():
+    """Classify the broad IDX market using IHSG completed daily structure."""
+    try:
+        df = download_frame(
+            MARKET_REGIME_TICKER,
+            DAILY_INTERVAL,
+            DAILY_PERIOD,
+        )
+
+        if len(df) < 60:
+            raise RuntimeError("Insufficient IHSG history")
+
+        close = df["Close"].astype(float)
+        price = safe_float(close.iloc[-1])
+        ema20 = safe_float(close.ewm(span=20, adjust=False).mean().iloc[-1])
+        ema50 = safe_float(close.ewm(span=50, adjust=False).mean().iloc[-1])
+        rsi14 = safe_float(rsi(close, 14).iloc[-1])
+
+        ret5 = None
+        if len(close) >= 6:
+            base = safe_float(close.iloc[-6])
+            if base not in (None, 0) and price is not None:
+                ret5 = (price / base - 1) * 100
+
+        if (
+            price is not None
+            and ema20 is not None
+            and ema50 is not None
+            and price > ema20 > ema50
+            and rsi14 is not None
+            and rsi14 >= 50
+            and (ret5 is None or ret5 > -2.0)
+        ):
+            regime = "GREEN"
+            score = 100
+            multiplier = 1.0
+            reason = "IHSG above EMA20/EMA50 with constructive momentum."
+        elif (
+            price is not None
+            and ema20 is not None
+            and ema50 is not None
+            and (
+                (price < ema50 and ema20 < ema50)
+                or (rsi14 is not None and rsi14 < 40)
+                or (ret5 is not None and ret5 <= -5.0)
+            )
+        ):
+            regime = "RED"
+            score = 20
+            multiplier = 0.0
+            reason = "IHSG risk-off structure; new real-money BUY blocked."
+        else:
+            regime = "YELLOW"
+            score = 60
+            multiplier = 0.5
+            reason = "IHSG mixed; only reduced-size/high-quality setups allowed."
+
+        return {
+            "regime": regime,
+            "score": score,
+            "size_multiplier": multiplier,
+            "price": price,
+            "ema20": ema20,
+            "ema50": ema50,
+            "rsi14": rsi14,
+            "ret5_pct": safe_float(ret5),
+            "bar_at": pd.Timestamp(df.index[-1]).isoformat(),
+            "reason": reason,
+        }
+
+    except Exception as exc:
+        # Fail closed for live-money gating.
+        return {
+            "regime": "UNKNOWN",
+            "score": 0,
+            "size_multiplier": 0.0,
+            "reason": f"Market regime unavailable: {exc}",
+        }
+
+
+def closed_trade_performance_context():
+    """Use manually closed real positions to create a simple system kill switch."""
+    try:
+        rows = supabase_request(
+            "GET",
+            "hanz_swing_portfolio"
+            "?status=eq.CLOSED"
+            "&realized_pnl_pct=not.is.null"
+            "&select=ticker,realized_pnl_pct,closed_at"
+            "&order=closed_at.desc"
+            "&limit=20",
+        ) or []
+    except Exception as exc:
+        return {
+            "status": "UNKNOWN",
+            "trade_count": 0,
+            "reason": f"Closed-trade history unavailable: {exc}",
+        }
+
+    pnls = []
+    for row in rows:
+        value = safe_float(row.get("realized_pnl_pct"))
+        if value is not None:
+            pnls.append(value)
+
+    if not pnls:
+        return {
+            "status": "WARMUP",
+            "trade_count": 0,
+            "consecutive_losses": 0,
+            "win_rate_pct": None,
+            "avg_pnl_pct": None,
+            "reason": "No closed real-money trade history yet.",
+        }
+
+    consecutive_losses = 0
+    for pnl in pnls:
+        if pnl < 0:
+            consecutive_losses += 1
+        else:
+            break
+
+    sample = pnls[:max(1, KILL_SWITCH_LOOKBACK_TRADES)]
+    wins = sum(1 for x in sample if x > 0)
+    win_rate = wins / len(sample) * 100
+    avg_pnl = sum(sample) / len(sample)
+
+    status = "NORMAL"
+    reason = "Recent closed-trade performance is within guardrails."
+
+    if consecutive_losses >= KILL_SWITCH_CONSECUTIVE_LOSSES:
+        status = "LOCKED"
+        reason = (
+            f"{consecutive_losses} consecutive losing trades reached "
+            f"the kill-switch limit."
+        )
+    elif (
+        len(sample) >= KILL_SWITCH_LOOKBACK_TRADES
+        and win_rate < KILL_SWITCH_MIN_WIN_RATE_PCT
+        and avg_pnl < 0
+    ):
+        status = "LOCKED"
+        reason = (
+            f"Rolling {len(sample)}-trade performance is negative "
+            f"(win rate {win_rate:.1f}%, avg {avg_pnl:.2f}%)."
+        )
+    elif consecutive_losses >= max(2, KILL_SWITCH_CONSECUTIVE_LOSSES - 1):
+        status = "CAUTION"
+        reason = (
+            f"{consecutive_losses} consecutive losses; "
+            "position size should be reduced."
+        )
+
+    return {
+        "status": status,
+        "trade_count": len(pnls),
+        "consecutive_losses": consecutive_losses,
+        "win_rate_pct": round(win_rate, 2),
+        "avg_pnl_pct": round(avg_pnl, 3),
+        "reason": reason,
+    }
+
+
+def portfolio_risk_context():
+    positions = fetch_swing_portfolio()
+    total_risk_idr = 0.0
+    total_market_value_idr = 0.0
+
+    ticker_list = []
+    for position in positions:
+        ticker = clean_ticker(position.get("ticker"))
+        if ticker:
+            ticker_list.append(ticker)
+
+        qty = _position_quantity(position)
+        avg_buy = safe_float(position.get("avg_buy"))
+        stop = safe_float(position.get("stop_loss"))
+
+        if qty > 0 and avg_buy is not None:
+            total_market_value_idr += qty * avg_buy
+
+        if (
+            qty > 0
+            and avg_buy is not None
+            and stop is not None
+            and avg_buy > stop
+        ):
+            total_risk_idr += qty * (avg_buy - stop)
+
+    sectors = {}
+    if ticker_list:
+        try:
+            encoded = ",".join(
+                urllib.parse.quote(t, safe="")
+                for t in sorted(set(ticker_list))
+            )
+            rows = supabase_request(
+                "GET",
+                "hanz_swing_signal_monitor"
+                f"?ticker=in.({encoded})"
+                "&select=ticker,sector",
+            ) or []
+            sectors = {
+                clean_ticker(row.get("ticker")): row.get("sector")
+                for row in rows
+            }
+        except Exception:
+            sectors = {}
+
+    sector_market_value = {}
+    for position in positions:
+        ticker = clean_ticker(position.get("ticker"))
+        sector = sectors.get(ticker) or "UNKNOWN"
+        qty = _position_quantity(position)
+        avg_buy = safe_float(position.get("avg_buy"))
+        if qty > 0 and avg_buy is not None:
+            sector_market_value[sector] = (
+                sector_market_value.get(sector, 0.0)
+                + qty * avg_buy
+            )
+
+    portfolio_risk_pct = None
+    if ACCOUNT_CAPITAL_IDR > 0:
+        portfolio_risk_pct = total_risk_idr / ACCOUNT_CAPITAL_IDR * 100
+
+    return {
+        "open_positions": len(positions),
+        "total_risk_idr": round(total_risk_idr, 2),
+        "total_market_value_idr": round(total_market_value_idr, 2),
+        "portfolio_risk_pct": safe_float(portfolio_risk_pct),
+        "sector_market_value": sector_market_value,
+    }
+
+
+def build_real_money_context():
+    return {
+        "market": market_regime_context(),
+        "portfolio": portfolio_risk_context(),
+        "performance": closed_trade_performance_context(),
+        "account_capital_idr": ACCOUNT_CAPITAL_IDR,
+    }
+
+
+def liquidity_validation(daily):
+    avg_value = safe_float(daily.get("avg_value20"))
+    median_value = safe_float(daily.get("median_value20"))
+    zero_days = int(daily.get("zero_volume_days20") or 0)
+    atr_pct = safe_float(daily.get("atr_pct"))
+
+    reasons = []
+    passed = True
+    score = 100
+
+    if avg_value is None or avg_value < MIN_AVG_DAILY_VALUE_IDR:
+        passed = False
+        score -= 50
+        reasons.append(
+            f"20d avg traded value below HANZ minimum "
+            f"Rp{MIN_AVG_DAILY_VALUE_IDR:,.0f}."
+        )
+    else:
+        reasons.append(
+            f"20d avg traded value Rp{avg_value:,.0f}."
+        )
+
+    if zero_days > MAX_ZERO_VOLUME_DAYS_20:
+        passed = False
+        score -= 30
+        reasons.append(
+            f"{zero_days} zero-volume days in last 20 sessions."
+        )
+
+    if atr_pct is not None and atr_pct > MAX_ATR_PCT:
+        passed = False
+        score -= 25
+        reasons.append(
+            f"ATR {atr_pct:.1f}% exceeds HANZ volatility guard."
+        )
+
+    if not passed:
+        grade = "FAIL"
+    elif avg_value is not None and avg_value >= MIN_AVG_DAILY_VALUE_IDR * 5:
+        grade = "A"
+    elif avg_value is not None and avg_value >= MIN_AVG_DAILY_VALUE_IDR * 2:
+        grade = "B"
+    else:
+        grade = "C"
+
+    return {
+        "pass": passed,
+        "grade": grade,
+        "score": max(0, min(100, score)),
+        "avg_value20": avg_value,
+        "median_value20": median_value,
+        "zero_volume_days20": zero_days,
+        "atr_pct": atr_pct,
+        "reason": " ".join(reasons),
+    }
+
+
+def real_money_validation(
+    ticker,
+    daily,
+    result,
+    levels,
+    fundamental,
+    context,
+):
+    """Independent execution gate. Technical SWING_BUY is preserved."""
+    context = context or build_real_money_context()
+    market = context.get("market") or {}
+    portfolio = context.get("portfolio") or {}
+    performance = context.get("performance") or {}
+    liquidity = liquidity_validation(daily)
+
+    entry = safe_float(levels.get("entry_price") or daily.get("price"))
+    stop = safe_float(levels.get("stop_loss"))
+    target1 = safe_float(levels.get("target_1"))
+    target2 = safe_float(levels.get("target_2"))
+
+    stop_distance_pct = None
+    risk_per_share = None
+    rr1 = None
+    rr2 = None
+    net_rr1 = None
+    net_rr2 = None
+
+    costs_configured = (
+        BUY_FEE_PCT >= 0
+        and SELL_FEE_PCT >= 0
+        and SLIPPAGE_PCT >= 0
+    )
+
+    if (
+        entry not in (None, 0)
+        and stop is not None
+        and entry > stop
+    ):
+        risk_per_share = entry - stop
+        stop_distance_pct = risk_per_share / entry * 100
+        if target1 is not None and target1 > entry:
+            rr1 = (target1 - entry) / risk_per_share
+        if target2 is not None and target2 > entry:
+            rr2 = (target2 - entry) / risk_per_share
+
+        if costs_configured:
+            buy_cost_rate = (BUY_FEE_PCT + SLIPPAGE_PCT) / 100.0
+            sell_cost_rate = (SELL_FEE_PCT + SLIPPAGE_PCT) / 100.0
+
+            effective_entry = entry * (1.0 + buy_cost_rate)
+            effective_stop = stop * (1.0 - sell_cost_rate)
+            effective_risk = effective_entry - effective_stop
+
+            if effective_risk > 0:
+                if target1 is not None and target1 > entry:
+                    effective_t1 = target1 * (1.0 - sell_cost_rate)
+                    net_rr1 = (effective_t1 - effective_entry) / effective_risk
+                if target2 is not None and target2 > entry:
+                    effective_t2 = target2 * (1.0 - sell_cost_rate)
+                    net_rr2 = (effective_t2 - effective_entry) / effective_risk
+
+    gate = "MONITOR"
+    score = 100
+    blockers = []
+    cautions = []
+
+    if result.get("state") != "SWING_BUY":
+        gate = "MONITOR"
+        score = 0
+    else:
+        if not liquidity.get("pass"):
+            blockers.append("LIQUIDITY")
+
+        if market.get("regime") in {"RED", "UNKNOWN"}:
+            blockers.append("MARKET_REGIME")
+        elif market.get("regime") == "YELLOW":
+            cautions.append("MARKET_YELLOW")
+            score -= 15
+
+        if performance.get("status") == "LOCKED":
+            blockers.append("KILL_SWITCH")
+        elif performance.get("status") in {"CAUTION", "WARMUP", "UNKNOWN"}:
+            cautions.append(f"PERFORMANCE_{performance.get('status')}")
+            score -= 10
+
+        if risk_per_share is None or risk_per_share <= 0:
+            blockers.append("INVALID_STOP")
+        else:
+            if stop_distance_pct is not None and stop_distance_pct > 12.0:
+                blockers.append("STOP_TOO_WIDE")
+            elif stop_distance_pct is not None and stop_distance_pct < 1.0:
+                cautions.append("STOP_VERY_TIGHT")
+                score -= 10
+
+        if not costs_configured:
+            cautions.append("TRADING_COSTS_NOT_CONFIGURED")
+            score -= 10
+
+        rr1_for_gate = net_rr1 if costs_configured else rr1
+        rr2_for_gate = net_rr2 if costs_configured else rr2
+
+        if rr1_for_gate is None or rr1_for_gate < MIN_RR_T1:
+            blockers.append("RR_T1")
+        if rr2_for_gate is None or rr2_for_gate < MIN_RR_T2:
+            blockers.append("RR_T2")
+
+        portfolio_risk_pct = safe_float(portfolio.get("portfolio_risk_pct"))
+        if (
+            portfolio_risk_pct is not None
+            and portfolio_risk_pct >= MAX_PORTFOLIO_RISK_PCT
+        ):
+            blockers.append("PORTFOLIO_RISK_LIMIT")
+
+        if int(portfolio.get("open_positions") or 0) >= MAX_OPEN_POSITIONS:
+            blockers.append("MAX_OPEN_POSITIONS")
+
+        sector = fundamental.get("sector") or "UNKNOWN"
+        sector_value = safe_float(
+            (portfolio.get("sector_market_value") or {}).get(sector)
+        ) or 0.0
+        sector_exposure_pct = None
+        if ACCOUNT_CAPITAL_IDR > 0:
+            sector_exposure_pct = sector_value / ACCOUNT_CAPITAL_IDR * 100
+            if sector != "UNKNOWN" and sector_exposure_pct >= MAX_SECTOR_EXPOSURE_PCT:
+                blockers.append("SECTOR_CONCENTRATION")
+
+        if blockers:
+            gate = "BLOCKED"
+            score -= 50
+        elif ACCOUNT_CAPITAL_IDR <= 0 or not costs_configured:
+            gate = "PAPER_ONLY"
+            if ACCOUNT_CAPITAL_IDR <= 0:
+                cautions.append("ACCOUNT_CAPITAL_NOT_CONFIGURED")
+            if not costs_configured and "TRADING_COSTS_NOT_CONFIGURED" not in cautions:
+                cautions.append("TRADING_COSTS_NOT_CONFIGURED")
+            score -= 20
+        elif cautions:
+            gate = "CAUTION"
+        else:
+            gate = "ELIGIBLE"
+
+    score -= max(0, 100 - int(liquidity.get("score") or 0)) * 0.35
+    score = int(max(0, min(100, round(score))))
+
+    # Position sizing
+    suggested_lots = None
+    suggested_shares = None
+    suggested_position_idr = None
+    risk_budget_idr = None
+
+    if (
+        result.get("state") == "SWING_BUY"
+        and ACCOUNT_CAPITAL_IDR > 0
+        and risk_per_share not in (None, 0)
+        and entry not in (None, 0)
+        and gate in {"ELIGIBLE", "CAUTION"}
+    ):
+        size_multiplier = safe_float(market.get("size_multiplier"))
+        if size_multiplier is None:
+            size_multiplier = 0.0
+        if performance.get("status") == "CAUTION":
+            size_multiplier *= 0.5
+
+        risk_budget_idr = (
+            ACCOUNT_CAPITAL_IDR
+            * (RISK_PER_TRADE_PCT / 100.0)
+            * size_multiplier
+        )
+
+        shares_by_risk = int(risk_budget_idr // risk_per_share)
+
+        max_position_idr = ACCOUNT_CAPITAL_IDR * (MAX_POSITION_PCT / 100.0)
+        shares_by_position = int(max_position_idr // entry)
+
+        avg_value = safe_float(liquidity.get("avg_value20"))
+        shares_by_liquidity = shares_by_position
+        if avg_value not in (None, 0):
+            max_liq_value = avg_value * (MAX_ADV_PARTICIPATION_PCT / 100.0)
+            shares_by_liquidity = int(max_liq_value // entry)
+
+        shares = min(
+            shares_by_risk,
+            shares_by_position,
+            shares_by_liquidity,
+        )
+        lots = max(0, shares // 100)
+
+        if lots > 0:
+            suggested_lots = lots
+            suggested_shares = lots * 100
+            suggested_position_idr = suggested_shares * entry
+
+    actionable = (
+        result.get("state") == "SWING_BUY"
+        and (
+            (not RISK_LIVE_GATE_ENABLED)
+            or gate == "ELIGIBLE"
+        )
+    )
+
+    return {
+        "gate": gate,
+        "score": score,
+        "actionable": actionable,
+        "blockers": blockers,
+        "cautions": cautions,
+        "market_regime": market.get("regime"),
+        "market_reason": market.get("reason"),
+        "market_score": market.get("score"),
+        "liquidity_grade": liquidity.get("grade"),
+        "liquidity_pass": liquidity.get("pass"),
+        "liquidity_reason": liquidity.get("reason"),
+        "avg_value20": liquidity.get("avg_value20"),
+        "median_value20": liquidity.get("median_value20"),
+        "zero_volume_days20": liquidity.get("zero_volume_days20"),
+        "atr_pct": liquidity.get("atr_pct"),
+        "stop_distance_pct": safe_float(stop_distance_pct),
+        "rr_target_1": safe_float(rr1),
+        "rr_target_2": safe_float(rr2),
+        "net_rr_target_1": safe_float(net_rr1),
+        "net_rr_target_2": safe_float(net_rr2),
+        "costs_configured": costs_configured,
+        "buy_fee_pct": BUY_FEE_PCT if BUY_FEE_PCT >= 0 else None,
+        "sell_fee_pct": SELL_FEE_PCT if SELL_FEE_PCT >= 0 else None,
+        "slippage_pct": SLIPPAGE_PCT if SLIPPAGE_PCT >= 0 else None,
+        "risk_per_share": safe_float(risk_per_share),
+        "risk_budget_idr": safe_float(risk_budget_idr),
+        "suggested_lots": suggested_lots,
+        "suggested_shares": suggested_shares,
+        "suggested_position_idr": safe_float(suggested_position_idr),
+        "portfolio_risk_pct": portfolio.get("portfolio_risk_pct"),
+        "open_positions": portfolio.get("open_positions"),
+        "kill_switch": performance.get("status"),
+        "kill_switch_reason": performance.get("reason"),
+        "performance_win_rate_pct": performance.get("win_rate_pct"),
+        "performance_avg_pnl_pct": performance.get("avg_pnl_pct"),
+        "account_capital_configured": ACCOUNT_CAPITAL_IDR > 0,
+        "generated_at": now_iso(),
+    }
 
 
 # ============================================================
@@ -3493,6 +4149,7 @@ def upsert_monitor(
     levels,
     discount,
     fundamental,
+    risk_validation,
 ):
     payload = {
         "ticker": clean_ticker(ticker),
@@ -3549,6 +4206,10 @@ def upsert_monitor(
         "operating_margin_pct": fundamental.get("operating_margin_pct"),
         "pe_ratio": fundamental.get("pe_ratio"),
         "pb_ratio": fundamental.get("pb_ratio"),
+        "market_regime": risk_validation.get("market_regime"),
+        "risk_gate": risk_validation.get("gate"),
+        "risk_score": risk_validation.get("score"),
+        "risk_validation": risk_validation,
         "evidence": "; ".join(
             result["evidence"]
         ),
@@ -3704,6 +4365,15 @@ def scan_symbol(ticker):
         fundamental=fundamental,
     )
 
+    risk_validation = real_money_validation(
+        ticker,
+        daily,
+        result,
+        levels,
+        fundamental,
+        _REAL_MONEY_CONTEXT,
+    )
+
     upsert_monitor(
         ticker,
         daily,
@@ -3712,6 +4382,7 @@ def scan_symbol(ticker):
         levels,
         discount,
         fundamental,
+        risk_validation,
     )
 
     chart_summary = {"stored": False}
@@ -3729,7 +4400,10 @@ def scan_symbol(ticker):
                 flush=True,
             )
 
-    if result["state"] == "SWING_BUY":
+    if (
+        result["state"] == "SWING_BUY"
+        and risk_validation.get("actionable")
+    ):
         insert_swing_signal(
             ticker,
             daily,
@@ -3752,6 +4426,11 @@ def scan_symbol(ticker):
         f"{discount['discount_label']} "
         f"fundamental={fundamental.get('fundamental_score')}/100 "
         f"{fundamental.get('fundamental_label')} "
+        f"risk={risk_validation.get('gate')}"
+        f"/{risk_validation.get('score')} "
+        f"market={risk_validation.get('market_regime')} "
+        f"liq={risk_validation.get('liquidity_grade')} "
+        f"lots={risk_validation.get('suggested_lots')} "
         f"entry={levels.get('entry_low')}-{levels.get('entry_high')} "
         f"T1={levels.get('target_1')} "
         f"T2={levels.get('target_2')} "
@@ -3918,6 +4597,15 @@ def run_cycle():
             )
         return
 
+    global _REAL_MONEY_CONTEXT
+    _REAL_MONEY_CONTEXT = build_real_money_context()
+
+    print(
+        "HANZ REAL-MONEY CONTEXT: "
+        + json.dumps(_REAL_MONEY_CONTEXT, default=str),
+        flush=True,
+    )
+
     universe = fetch_universe()
 
     print(
@@ -3976,6 +4664,10 @@ def main():
         f"IDX calendar gate=ON (Asia/Jakarta) | "
         f"Early radar=ON | Reconfirm BUY=NEW DAILY BAR | "
         f"Chart backend=SUPABASE/{CHART_LOOKBACK_BARS} completed bars | "
+        f"Real-money guard={'ON' if RISK_LIVE_GATE_ENABLED else 'OFF'} | "
+        f"Risk/trade={RISK_PER_TRADE_PCT:.2f}% | "
+        f"Portfolio risk cap={MAX_PORTFOLIO_RISK_PCT:.2f}% | "
+        f"Costs={'CONFIGURED' if (BUY_FEE_PCT >= 0 and SELL_FEE_PCT >= 0 and SLIPPAGE_PCT >= 0) else 'PENDING'} | "
         f"Trailing={TRAILING_ATR_MULTIPLIER_T1:.1f}x/"
         f"{TRAILING_ATR_MULTIPLIER_T2:.1f}x ATR",
         flush=True,
