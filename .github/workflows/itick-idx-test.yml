@@ -34,7 +34,7 @@ jobs:
           from zoneinfo import ZoneInfo
 
           TOKEN = os.environ["ITICK_API_TOKEN"].strip()
-          BASE = "https://api.itick.org/stock/quote"
+          BASE = "https://api-free.itick.org/stock/quote"
           TICKERS = ["AUTO", "HATM", "TOTL", "VIVA"]
           WIB = ZoneInfo("Asia/Jakarta")
 
@@ -104,7 +104,7 @@ jobs:
 
           print("")
           print("=" * 78)
-          print("HANZ iTick IDX COVERAGE TEST")
+          print("HANZ iTick IDX COVERAGE TEST — FREE ENDPOINT")
           print("=" * 78)
 
           ok_count = 0
