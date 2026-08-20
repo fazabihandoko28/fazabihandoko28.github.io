@@ -438,5 +438,55 @@
     "source": "YAHOO_FINANCE_RESEARCH_ONLY",
     "recorded_at": "2026-08-19T15:05:27.138676+00:00",
     "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "ITMG",
+    "status": "WAIT",
+    "signal_timestamp": "2026-08-20T00:00:00+00:00",
+    "signal_close": 25400.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-08-20T15:09:00.859895+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "GJTL",
+    "status": "WAIT",
+    "signal_timestamp": "2026-08-20T00:00:00+00:00",
+    "signal_close": 1365.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-08-20T15:09:00.859924+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "SRTG",
+    "status": "WAIT",
+    "signal_timestamp": "2026-08-20T00:00:00+00:00",
+    "signal_close": 1925.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-08-20T15:09:00.859936+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "ARTO",
+    "status": "WAIT",
+    "signal_timestamp": "2026-08-20T00:00:00+00:00",
+    "signal_close": 1055.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-08-20T15:09:00.859946+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "MNCN",
+    "status": "WAIT",
+    "signal_timestamp": "2026-08-20T00:00:00+00:00",
+    "signal_close": 204.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-08-20T15:09:00.859956+00:00",
+    "outcome": "PENDING"
   }
 ]
