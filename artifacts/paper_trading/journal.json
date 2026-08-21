@@ -488,5 +488,55 @@
     "source": "YAHOO_FINANCE_RESEARCH_ONLY",
     "recorded_at": "2026-08-20T15:09:00.859956+00:00",
     "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "BBNI",
+    "status": "READY",
+    "signal_timestamp": "2026-08-21T00:00:00+00:00",
+    "signal_close": 3730.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-08-21T15:07:02.074331+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "BBRI",
+    "status": "READY",
+    "signal_timestamp": "2026-08-21T00:00:00+00:00",
+    "signal_close": 3230.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-08-21T15:07:02.074355+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "HRUM",
+    "status": "WAIT",
+    "signal_timestamp": "2026-08-21T00:00:00+00:00",
+    "signal_close": 920.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-08-21T15:07:02.074363+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "GJTL",
+    "status": "WAIT",
+    "signal_timestamp": "2026-08-21T00:00:00+00:00",
+    "signal_close": 1375.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-08-21T15:07:02.074371+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "BRIS",
+    "status": "WAIT",
+    "signal_timestamp": "2026-08-21T00:00:00+00:00",
+    "signal_close": 1805.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-08-21T15:07:02.074378+00:00",
+    "outcome": "PENDING"
   }
 ]
