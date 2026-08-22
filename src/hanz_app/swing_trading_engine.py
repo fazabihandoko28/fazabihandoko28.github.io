@@ -4593,7 +4593,7 @@ def insert_swing_signal(
     )
 
 
-def scan_symbol(ticker):
+def scan_symbol(ticker, maintenance_mode=False):
     daily_df = download_frame(
         ticker,
         DAILY_INTERVAL,
@@ -4678,16 +4678,29 @@ def scan_symbol(ticker):
         _REAL_MONEY_CONTEXT,
     )
 
-    upsert_monitor(
-        ticker,
-        daily,
-        weekly,
-        result,
-        levels,
-        discount,
-        fundamental,
-        risk_validation,
-    )
+    # Off-market maintenance mode may DOWNGRADE stale states, but must never
+    # create/upgrade an actionable BUY while IDX is closed.
+    prior_state = str((prior_monitor or {}).get("state") or "").upper()
+    maintenance_write = True
+    if maintenance_mode:
+        if result.get("state") == "SWING_BUY":
+            # Never write/upgrade BUY while the market is closed.
+            maintenance_write = False
+        elif result.get("state") != "MOMENTUM_BROKEN":
+            # Only persist safety downgrades during closed-market maintenance.
+            maintenance_write = False
+
+    if maintenance_write:
+        upsert_monitor(
+            ticker,
+            daily,
+            weekly,
+            result,
+            levels,
+            discount,
+            fundamental,
+            risk_validation,
+        )
 
     chart_summary = {"stored": False}
     if result.get("state") in CHART_STATES:
@@ -4705,7 +4718,8 @@ def scan_symbol(ticker):
             )
 
     if (
-        result["state"] == "SWING_BUY"
+        not maintenance_mode
+        and result["state"] == "SWING_BUY"
         and risk_validation.get("actionable")
     ):
         insert_swing_signal(
@@ -4866,9 +4880,45 @@ def run_cycle():
         )
 
     if not market["is_trading_day"]:
+        # CLOSED-MARKET MAINTENANCE RE-EVALUATION
+        # Recalculate the watch universe from the latest completed candles so
+        # stale BUY/setup rows can be SAFETY-DOWNGRADED (for example to
+        # MOMENTUM_BROKEN). This path is deliberately one-way: it does not
+        # create a new BUY, portfolio trigger, alert, or push.
+        global _REAL_MONEY_CONTEXT
+        _REAL_MONEY_CONTEXT = build_real_money_context()
+
+        universe = fetch_universe()
+        maintenance_counts = {
+            "MOMENTUM_BROKEN": 0,
+            "UNCHANGED_OR_NOT_WRITTEN": 0,
+            "ERROR": 0,
+        }
+
         print(
-            "SWING cycle skipped: IDX is not a trading day. "
-            "No new signal, portfolio trigger, alert or push.",
+            f"SWING CLOSED-MARKET MAINTENANCE universe: {len(universe)} | "
+            "downgrade-only=ON | new BUY=BLOCKED | portfolio/alert/push=BLOCKED",
+            flush=True,
+        )
+
+        for ticker in universe:
+            try:
+                state = scan_symbol(ticker, maintenance_mode=True)
+                if state == "MOMENTUM_BROKEN":
+                    maintenance_counts["MOMENTUM_BROKEN"] += 1
+                else:
+                    maintenance_counts["UNCHANGED_OR_NOT_WRITTEN"] += 1
+            except Exception as exc:
+                maintenance_counts["ERROR"] += 1
+                print(
+                    f"SWING MAINTENANCE {ticker} failed: {exc}",
+                    flush=True,
+                )
+
+        print(
+            "SWING CLOSED-MARKET MAINTENANCE complete: "
+            + json.dumps(maintenance_counts)
+            + " | No new signal, portfolio trigger, alert or push.",
             flush=True,
         )
         return
@@ -4901,7 +4951,6 @@ def run_cycle():
             )
         return
 
-    global _REAL_MONEY_CONTEXT
     _REAL_MONEY_CONTEXT = build_real_money_context()
 
     print(
