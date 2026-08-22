@@ -657,7 +657,7 @@ th{color:var(--muted)}
       <div class="section-head">
         <div>
           <h2>HANZ Signal Ranking</h2>
-          <p>Top 5 · Reconfirmed actionable SWING BUY only</p>
+          <p>Top 5 · Radar progress first, confirmed BUY remains clearly separated</p>
         </div>
         <span class="small-tag">SWING LIVE</span>
       </div>
@@ -1764,7 +1764,33 @@ async function initAuth(){
 }
 
 /* SHARED HANZ SIGNALS */
-const HANZ_SIGNAL_STATES=["SWING_BUY"];
+const HANZ_SIGNAL_STATES=["SWING_BUY","RADAR_ARMED","RADAR_PRE_ALERT","RADAR_WATCH","SETUP_READY","PRE_ALERT","EARLY_WATCH","MOMENTUM_BROKEN"];
+
+function radarProgress(state){
+  return {
+    "EARLY_WATCH":20,
+    "RADAR_WATCH":30,
+    "PRE_ALERT":45,
+    "RADAR_PRE_ALERT":55,
+    "SETUP_READY":70,
+    "RADAR_ARMED":80,
+    "SWING_BUY":100,
+    "MOMENTUM_BROKEN":0
+  }[String(state || "").toUpperCase()] ?? 0;
+}
+
+function radarStageLabel(state){
+  return {
+    "EARLY_WATCH":"Early structure detected",
+    "RADAR_WATCH":"Predictive radar watching",
+    "PRE_ALERT":"Pre-alert building",
+    "RADAR_PRE_ALERT":"Predictive pre-alert",
+    "SETUP_READY":"Setup ready — waiting reconfirmation",
+    "RADAR_ARMED":"Radar armed — waiting completed-bar reconfirmation",
+    "SWING_BUY":"Reconfirmed actionable signal",
+    "MOMENTUM_BROKEN":"Setup invalidated"
+  }[String(state || "").toUpperCase()] || String(state || "UNKNOWN").replaceAll("_"," ");
+}
 
 function signalStateRank(state){
   return {
@@ -1779,6 +1805,9 @@ function signalStateRank(state){
 function signalStateLabel(state){
   return {
     "SWING_BUY":"RECONFIRMED BUY",
+    "RADAR_ARMED":"RADAR ARMED",
+    "RADAR_PRE_ALERT":"RADAR PRE-ALERT",
+    "RADAR_WATCH":"RADAR WATCH",
     "MOMENTUM_BROKEN":"AVOID · MOMENTUM BROKEN",
     "SETUP_READY":"SETUP READY",
     "PRE_ALERT":"PRE-ALERT",
@@ -1964,44 +1993,55 @@ async function loadWatchlist(){
     .order("updated_at",{ascending:false});
   if(error) throw error;
 
-  const rows=(data || [])
-    .filter(row=>{
-      const state=String(row?.state || "").toUpperCase();
-      const decision=finalDecision(row);
-      const r=(row && row.risk_validation && typeof row.risk_validation==="object")
-        ? row.risk_validation : {};
-      const radarInternal=Boolean(r.radar_internal);
-      return (
-        state==="SWING_BUY" &&
-        decision.label==="BUY" &&
-        !radarInternal
-      );
-    })
-    .sort((a,b)=>{
-      const fr=finalDecisionRank(b)-finalDecisionRank(a);
-      if(fr) return fr;
-      return Number(b.score || 0)-Number(a.score || 0);
-    });
+  const allRows=(data || []).sort((a,b)=>{
+    const rp=radarProgress(b.state)-radarProgress(a.state);
+    if(rp) return rp;
+    const fr=finalDecisionRank(b)-finalDecisionRank(a);
+    if(fr) return fr;
+    const sr=signalStateRank(b.state)-signalStateRank(a.state);
+    if(sr) return sr;
+    return Number(b.score || 0)-Number(a.score || 0);
+  });
+
+  const confirmed=allRows.filter(row=>{
+    const state=String(row?.state || "").toUpperCase();
+    const decision=finalDecision(row);
+    const r=(row && row.risk_validation && typeof row.risk_validation==="object")
+      ? row.risk_validation : {};
+    const radarInternal=Boolean(r.radar_internal);
+    return state==="SWING_BUY" && decision.label==="BUY" && !radarInternal;
+  });
+
+  const radarRows=allRows.filter(row=>String(row?.state || "").toUpperCase()!=="SWING_BUY");
+  const rows=allRows;
 
   window.__hanzSignalRows=rows;
-  const confirmed=rows;
+  window.__hanzConfirmedRows=confirmed;
+  window.__hanzRadarRows=radarRows;
   $("opportunityCount").textContent=confirmed.length;
 
   if(rows.length){
     const nonBroken=rows.filter(r=>r.state!=="MOMENTUM_BROKEN");
-    const top=confirmed[0] || nonBroken[0] || rows[0];
+    const topRadar=radarRows
+      .filter(r=>r.state!=="MOMENTUM_BROKEN")
+      .sort((a,b)=>radarProgress(b.state)-radarProgress(a.state))[0];
+    const top=confirmed[0] || topRadar || nonBroken[0] || rows[0];
     const topDecision=finalDecision(top);
     $("topCandidate").textContent=top.ticker;
-    $("topCandidateSub").textContent=`RECONFIRMED ${topDecision.label} · Score ${top.score ?? "—"}/10`;
+    $("topCandidateSub").textContent=confirmed.includes(top)
+      ? `RECONFIRMED ${topDecision.label} · Score ${top.score ?? "—"}/10`
+      : `${radarStageLabel(top.state)} · Progress ${radarProgress(top.state)}% · Score ${top.score ?? "—"}/10 · NOT YET ACTIONABLE`;
     $("heroTopCandidate").textContent=top.ticker;
-    $("heroTopSub").textContent=`RECONFIRMED ${topDecision.label} · Swing ${top.score ?? "—"}/10 · Risk ${top.risk_gate || "MONITOR"} · Discount ${top.discount_score==null?"PENDING":Number(top.discount_score).toFixed(0)+"/100"} · Fundamental ${top.fundamental_score==null?"PENDING":Number(top.fundamental_score).toFixed(0)+"/100"}`;
+    $("heroTopSub").textContent=confirmed.includes(top)
+      ? `RECONFIRMED ${topDecision.label} · Swing ${top.score ?? "—"}/10 · Risk ${top.risk_gate || "MONITOR"} · Discount ${top.discount_score==null?"PENDING":Number(top.discount_score).toFixed(0)+"/100"} · Fundamental ${top.fundamental_score==null?"PENDING":Number(top.fundamental_score).toFixed(0)+"/100"}`
+      : `${radarStageLabel(top.state)} · ${radarProgress(top.state)}% toward reconfirmation · Risk ${top.risk_gate || "MONITOR"} · NOT A BUY SIGNAL`;
     $("lastUpdate").textContent=formatTime(top.updated_at);
     $("lastUpdateDate").textContent=`${formatDate(top.updated_at)} · Last HANZ signal update`;
   }else{
     $("topCandidate").textContent="—";
-    $("topCandidateSub").textContent="No reconfirmed actionable swing signal";
+    $("topCandidateSub").textContent="No confirmed BUY yet — radar progress remains visible below";
     $("heroTopCandidate").textContent="—";
-    $("heroTopSub").textContent="Predictive radar is running internally; dashboard stays empty until reconfirmation";
+    $("heroTopSub").textContent="HANZ radar is working; candidates remain visible as progress until reconfirmed";
   }
 
   renderRanking(rows);
@@ -2059,7 +2099,11 @@ function renderOpportunities(rows){
       <div class="op-top">
         <div>
           <div class="op-symbol">${safe(row.ticker)}</div>
-          <div class="op-source">HANZ SWING ENGINE · INTERNAL RADAR → COMPLETED-BAR RECONFIRMATION</div>
+          <div class="op-source">HANZ SWING ENGINE · RADAR PROGRESS → COMPLETED-BAR RECONFIRMATION → ACTIONABLE BUY</div>
+<div style="margin-top:8px;padding:10px 12px;border:1px solid rgba(255,255,255,.12);border-radius:12px;font-size:12px;line-height:1.45">
+  <strong>Radar Progress:</strong> Early Watch → Pre-Alert → Setup Ready / Radar Armed → Reconfirmed BUY.
+  Kandidat radar adalah <strong>progress kerja HANZ, bukan sinyal beli</strong>. Hanya RECONFIRMED BUY yang actionable.
+</div>
         </div>
         <div class="priority-ring">${row.score ?? "—"}</div>
       </div>
