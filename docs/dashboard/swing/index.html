@@ -657,7 +657,7 @@ th{color:var(--muted)}
       <div class="section-head">
         <div>
           <h2>HANZ Signal Ranking</h2>
-          <p>Top 5 · Final decision first, then setup strength</p>
+          <p>Top 5 · Reconfirmed actionable SWING BUY only</p>
         </div>
         <span class="small-tag">SWING LIVE</span>
       </div>
@@ -1764,7 +1764,7 @@ async function initAuth(){
 }
 
 /* SHARED HANZ SIGNALS */
-const HANZ_SIGNAL_STATES=["SWING_BUY","MOMENTUM_BROKEN","SETUP_READY","PRE_ALERT","EARLY_WATCH"];
+const HANZ_SIGNAL_STATES=["SWING_BUY"];
 
 function signalStateRank(state){
   return {
@@ -1964,16 +1964,27 @@ async function loadWatchlist(){
     .order("updated_at",{ascending:false});
   if(error) throw error;
 
-  const rows=(data || []).sort((a,b)=>{
-    const fr=finalDecisionRank(b)-finalDecisionRank(a);
-    if(fr) return fr;
-    const sr=signalStateRank(b.state)-signalStateRank(a.state);
-    if(sr) return sr;
-    return Number(b.score || 0)-Number(a.score || 0);
-  });
+  const rows=(data || [])
+    .filter(row=>{
+      const state=String(row?.state || "").toUpperCase();
+      const decision=finalDecision(row);
+      const r=(row && row.risk_validation && typeof row.risk_validation==="object")
+        ? row.risk_validation : {};
+      const radarInternal=Boolean(r.radar_internal);
+      return (
+        state==="SWING_BUY" &&
+        decision.label==="BUY" &&
+        !radarInternal
+      );
+    })
+    .sort((a,b)=>{
+      const fr=finalDecisionRank(b)-finalDecisionRank(a);
+      if(fr) return fr;
+      return Number(b.score || 0)-Number(a.score || 0);
+    });
 
   window.__hanzSignalRows=rows;
-  const confirmed=rows.filter(r=>r.state==="SWING_BUY");
+  const confirmed=rows;
   $("opportunityCount").textContent=confirmed.length;
 
   if(rows.length){
@@ -1981,16 +1992,16 @@ async function loadWatchlist(){
     const top=confirmed[0] || nonBroken[0] || rows[0];
     const topDecision=finalDecision(top);
     $("topCandidate").textContent=top.ticker;
-    $("topCandidateSub").textContent=`${topDecision.label} · ${signalStateLabel(top.state)} · Score ${top.score ?? "—"}/10`;
+    $("topCandidateSub").textContent=`RECONFIRMED ${topDecision.label} · Score ${top.score ?? "—"}/10`;
     $("heroTopCandidate").textContent=top.ticker;
-    $("heroTopSub").textContent=`FINAL ${topDecision.label} · ${signalStateLabel(top.state)} · Swing ${top.score ?? "—"}/10 · Risk ${top.risk_gate || "MONITOR"} · Discount ${top.discount_score==null?"PENDING":Number(top.discount_score).toFixed(0)+"/100"} · Fundamental ${top.fundamental_score==null?"PENDING":Number(top.fundamental_score).toFixed(0)+"/100"}`;
+    $("heroTopSub").textContent=`RECONFIRMED ${topDecision.label} · Swing ${top.score ?? "—"}/10 · Risk ${top.risk_gate || "MONITOR"} · Discount ${top.discount_score==null?"PENDING":Number(top.discount_score).toFixed(0)+"/100"} · Fundamental ${top.fundamental_score==null?"PENDING":Number(top.fundamental_score).toFixed(0)+"/100"}`;
     $("lastUpdate").textContent=formatTime(top.updated_at);
     $("lastUpdateDate").textContent=`${formatDate(top.updated_at)} · Last HANZ signal update`;
   }else{
     $("topCandidate").textContent="—";
-    $("topCandidateSub").textContent="No active HANZ signal";
+    $("topCandidateSub").textContent="No reconfirmed actionable swing signal";
     $("heroTopCandidate").textContent="—";
-    $("heroTopSub").textContent="No active Early Watch / Pre-Alert / Setup Ready / Buy";
+    $("heroTopSub").textContent="Predictive radar is running internally; dashboard stays empty until reconfirmation";
   }
 
   renderRanking(rows);
@@ -2048,7 +2059,7 @@ function renderOpportunities(rows){
       <div class="op-top">
         <div>
           <div class="op-symbol">${safe(row.ticker)}</div>
-          <div class="op-source">HANZ SWING ENGINE · EARLY RADAR + RECONFIRM</div>
+          <div class="op-source">HANZ SWING ENGINE · INTERNAL RADAR → COMPLETED-BAR RECONFIRMATION</div>
         </div>
         <div class="priority-ring">${row.score ?? "—"}</div>
       </div>
