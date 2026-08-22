@@ -215,6 +215,7 @@ button{cursor:pointer}
 .state-ready{color:var(--yellow);background:rgba(255,200,87,.12);border:1px solid rgba(255,200,87,.25)}
 .state-pre{color:#9dc7ff;background:rgba(87,156,255,.11);border:1px solid rgba(87,156,255,.22)}
 .state-early{color:#c6b6ff;background:rgba(154,120,255,.11);border:1px solid rgba(154,120,255,.22)}
+.state-broken{color:#ff7b86;background:rgba(255,107,120,.13);border:1px solid rgba(255,107,120,.30)}
 
 .risk-box{
   margin-top:10px;padding:10px 11px;border:1px solid rgba(255,255,255,.08);
@@ -1743,20 +1744,22 @@ async function initAuth(){
 }
 
 /* SHARED HANZ SIGNALS */
-const HANZ_SIGNAL_STATES=["SWING_BUY","SETUP_READY","PRE_ALERT","EARLY_WATCH"];
+const HANZ_SIGNAL_STATES=["SWING_BUY","MOMENTUM_BROKEN","SETUP_READY","PRE_ALERT","EARLY_WATCH"];
 
 function signalStateRank(state){
   return {
-    "SWING_BUY":4,
-    "SETUP_READY":3,
-    "PRE_ALERT":2,
-    "EARLY_WATCH":1
+    "SWING_BUY":5,
+    "SETUP_READY":4,
+    "PRE_ALERT":3,
+    "EARLY_WATCH":2,
+    "MOMENTUM_BROKEN":1
   }[String(state || "").toUpperCase()] || 0;
 }
 
 function signalStateLabel(state){
   return {
     "SWING_BUY":"RECONFIRMED BUY",
+    "MOMENTUM_BROKEN":"AVOID · MOMENTUM BROKEN",
     "SETUP_READY":"SETUP READY",
     "PRE_ALERT":"PRE-ALERT",
     "EARLY_WATCH":"EARLY WATCH"
@@ -1766,10 +1769,38 @@ function signalStateLabel(state){
 function signalStateClass(state){
   return {
     "SWING_BUY":"state-buy",
+    "MOMENTUM_BROKEN":"state-broken",
     "SETUP_READY":"state-ready",
     "PRE_ALERT":"state-pre",
     "EARLY_WATCH":"state-early"
   }[String(state || "").toUpperCase()] || "state-pre";
+}
+
+
+function finalDecision(row){
+  const state=String(row?.state || "").toUpperCase();
+  const gate=String(row?.risk_gate || row?.risk_validation?.gate || "MONITOR").toUpperCase();
+  const momentum=String(row?.risk_validation?.momentum_status || "").toUpperCase();
+
+  if(state==="MOMENTUM_BROKEN" || momentum==="BROKEN"){
+    return {label:"AVOID",cls:"state-broken",detail:"Momentum/breakout damage veto"};
+  }
+  if(state==="SWING_BUY" && ["ELIGIBLE","CAUTION"].includes(gate)){
+    return {label:"BUY",cls:"state-buy",detail:gate==="CAUTION" ? "Buy signal with caution" : "Actionable reconfirmed buy"};
+  }
+  if(state==="SWING_BUY" && ["BLOCKED","PAPER_ONLY"].includes(gate)){
+    return {label:"NO BUY",cls:"state-broken",detail:`Risk gate ${gate}`};
+  }
+  if(state==="SETUP_READY"){
+    return {label:"WAIT",cls:"state-ready",detail:"Setup ready; reconfirmation required"};
+  }
+  return {label:"WATCH",cls:"state-pre",detail:"Not actionable"};
+}
+
+function pctText(v){
+  const n=Number(v);
+  if(!Number.isFinite(n)) return "—";
+  return `${n>0?"+":""}${n.toFixed(2)}%`;
 }
 
 function whyReasons(row,limit=6){
@@ -1788,159 +1819,13 @@ function whyReasons(row,limit=6){
   return unique;
 }
 
-
-function humanReasonText(raw){
-  const text=String(raw || "").trim();
-  if(!text) return "";
-  const t=text.replace(/^EARLY:\s*/i,"").replace(/\s+/g," ").trim();
-
-  const rules=[
-    [/price.*above.*ema20/i,"Harga sudah berada di atas rata-rata 20 hari, jadi arah jangka pendek mulai mendukung kenaikan."],
-    [/ema20.*above.*ema50/i,"Rata-rata harga 20 hari sudah berada di atas rata-rata 50 hari, menandakan tren harian cukup sehat."],
-    [/weekly.*ema10.*above.*ema20/i,"Tren mingguan masih naik, jadi peluang swing tidak hanya didukung pergerakan harian."],
-    [/rsi.*50.*72/i,"Momentum harian cukup kuat tetapi belum terlalu panas, sehingga ruang naik masih tersedia."],
-    [/weekly.*rsi.*50.*75/i,"Momentum mingguan masih sehat dan belum terlalu jenuh beli."],
-    [/rvol.*1\.2/i,"Aktivitas transaksi lebih ramai dari biasanya, sehingga pergerakan harga mendapat dukungan volume."],
-    [/breakout/i,"Harga sudah menembus area tertinggi sebelumnya, tanda tekanan beli mulai mengambil alih."],
-    [/near.*high20|below.*high20|distance/i,"Harga sudah dekat dengan area pemicu breakout, jadi saham sedang mendekati titik keputusan penting."],
-    [/ret5.*positive|5d.*positive/i,"Pergerakan 5 hari terakhir masih positif, menunjukkan momentum pendek belum kehilangan tenaga."],
-    [/ema20.*slope.*positive/i,"Arah rata-rata 20 hari mulai menanjak, tanda tren jangka pendek sedang membaik."],
-    [/rsi.*change.*\+?3/i,"Momentum RSI meningkat cukup cepat dalam beberapa hari terakhir, menandakan minat beli sedang menguat."],
-    [/volume.*accel|recent.*3d.*prior.*5d/i,"Volume transaksi beberapa hari terakhir meningkat dibanding periode sebelumnya, jadi minat pasar mulai bertambah."],
-    [/weekly.*spread.*improv|weekly.*improving/i,"Struktur tren mingguan sedang membaik, walaupun belum sepenuhnya kuat."],
-    [/weekly.*rsi.*45/i,"Momentum mingguan masih berada di area yang cukup sehat untuk melanjutkan penguatan."]
-  ];
-
-  for(const [rx,msg] of rules){
-    if(rx.test(t)) return msg;
-  }
-
-  return t
-    .replaceAll("_"," ")
-    .replace(/\bEMA20\b/g,"rata-rata 20 hari")
-    .replace(/\bEMA50\b/g,"rata-rata 50 hari")
-    .replace(/\bRVOL\b/g,"volume relatif")
-    .replace(/\bRSI\b/g,"momentum RSI");
-}
-
-function riskCodeToHuman(code){
-  const key=String(code || "").toUpperCase();
-  const map={
-    LIQUIDITY:"Likuiditas saham terlalu rendah untuk transaksi yang nyaman. Risiko sulit masuk atau keluar di harga yang diinginkan lebih tinggi.",
-    MARKET_REGIME:"Kondisi IHSG sedang kurang mendukung pembukaan posisi baru secara agresif.",
-    KILL_SWITCH:"Performa transaksi terakhir sedang buruk, jadi entry baru sebaiknya ditahan sementara.",
-    INVALID_STOP:"Stop Loss belum valid, sehingga risiko transaksi belum bisa dihitung dengan benar.",
-    STOP_TOO_WIDE:"Jarak Stop Loss terlalu jauh. Jika tetap masuk, potensi kerugiannya terlalu besar dibanding harga entry.",
-    STOP_VERY_TIGHT:"Jarak Stop Loss terlalu dekat. Posisi berisiko mudah tersentuh pergerakan harga normal.",
-    RR_T1:"Target 1 belum memberi potensi keuntungan yang cukup menarik dibanding risiko ke Stop Loss.",
-    RR_T2:"Target 2 belum memberi potensi keuntungan yang cukup menarik dibanding risiko ke Stop Loss.",
-    PORTFOLIO_RISK_LIMIT:"Total risiko portfolio akan terlalu besar jika posisi ini ditambahkan.",
-    MAX_OPEN_POSITIONS:"Jumlah posisi terbuka sudah cukup banyak. Posisi baru akan membuat portfolio terlalu padat.",
-    SECTOR_CONCENTRATION:"Portfolio sudah terlalu banyak terpapar pada sektor yang sama, sehingga risiko konsentrasi meningkat.",
-    MARKET_YELLOW:"IHSG sedang campuran. Peluang tetap ada, tetapi dukungan pasar belum kuat.",
-    PERFORMANCE_CAUTION:"Beberapa transaksi terakhir kurang bagus. Setup masih bisa diambil, tetapi ukuran posisi sebaiknya lebih kecil.",
-    PERFORMANCE_WARMUP:"Belum ada cukup riwayat transaksi nyata untuk menilai performa sistem secara penuh.",
-    PERFORMANCE_UNKNOWN:"Data performa transaksi belum lengkap, jadi penilaian risiko belum sepenuhnya yakin.",
-    ACCOUNT_CAPITAL_NOT_CONFIGURED:"Modal akun belum diisi, sehingga HANZ belum bisa menghitung jumlah lot yang sesuai.",
-    TRADING_COSTS_NOT_CONFIGURED:"Fee broker dan slippage belum diisi, sehingga potensi untung-rugi bersih belum bisa dihitung secara akurat."
-  };
-  return map[key] || String(code || "").replaceAll("_"," ");
-}
-
-function marketRegimeHuman(regime){
-  const r=String(regime || "").toUpperCase();
-  if(r==="GREEN") return "IHSG sedang mendukung. Tren pasar cukup sehat untuk mencari peluang swing.";
-  if(r==="YELLOW") return "IHSG sedang campuran. Peluang tetap ada, tetapi dukungan pasar belum kuat.";
-  if(r==="RED") return "IHSG sedang lemah. Peluang individual masih bisa muncul, tetapi risiko false breakout lebih tinggi.";
-  return "Kondisi IHSG belum bisa dinilai dengan cukup yakin dari data yang tersedia.";
-}
-
-function liquidityHuman(r){
-  const grade=String(r?.liquidity_grade || "").toUpperCase();
-  const adv=Number(r?.avg_value20);
-  const advText=Number.isFinite(adv) ? compactIDR(adv) : "—";
-
-  if(grade==="A") return `Likuiditas sangat baik. Nilai transaksi rata-rata sekitar ${advText} per hari, sehingga entry dan exit relatif lebih mudah.`;
-  if(grade==="B") return `Likuiditas cukup baik. Nilai transaksi rata-rata sekitar ${advText} per hari dan masih nyaman untuk transaksi normal.`;
-  if(grade==="C") return `Likuiditas masih cukup, tetapi tidak terlalu tebal. Nilai transaksi rata-rata sekitar ${advText} per hari, jadi ukuran posisi perlu dijaga.`;
-  if(grade==="FAIL") return `Likuiditas kurang memadai. Nilai transaksi rata-rata sekitar ${advText} per hari, sehingga risiko sulit keluar di harga yang diinginkan lebih tinggi.`;
-  return "Likuiditas belum bisa dinilai dengan lengkap.";
-}
-
-function profitRiskHuman(row,r){
-  const entry=Number(row?.entry_low ?? row?.entry_price ?? row?.price);
-  const stop=Number(row?.stop_loss);
-  const t1=Number(row?.target_1);
-  const t2=Number(row?.target_2);
-
-  if(!Number.isFinite(entry) || !Number.isFinite(stop) || entry<=0 || stop>=entry){
-    return "Potensi untung dan risiko belum bisa dihitung karena harga entry atau Stop Loss belum valid.";
-  }
-
-  const riskPct=(entry-stop)/entry*100;
-  const t1Pct=Number.isFinite(t1) && t1>entry ? (t1-entry)/entry*100 : null;
-  const t2Pct=Number.isFinite(t2) && t2>entry ? (t2-entry)/entry*100 : null;
-
-  let verdict="";
-  const rr1=Number(r?.net_rr_target_1 ?? r?.rr_target_1);
-  const rr2=Number(r?.net_rr_target_2 ?? r?.rr_target_2);
-
-  if(Number.isFinite(rr2) && rr2>=2){
-    verdict="Potensi keuntungan Target 2 jauh lebih besar daripada risiko ke Stop Loss, jadi struktur trade cukup menarik.";
-  }else if(Number.isFinite(rr1) && rr1>=1.3){
-    verdict="Potensi keuntungan masih lebih besar daripada risiko, meskipun keunggulannya belum terlalu lebar.";
-  }else{
-    verdict="Potensi keuntungan belum cukup menarik dibanding risiko ke Stop Loss.";
-  }
-
-  return `Jika harga turun sampai Stop Loss, potensi kerugian sekitar ${riskPct.toFixed(1)}%. ` +
-    (t1Pct!=null ? `Jika mencapai Target 1, potensi keuntungan sekitar ${t1Pct.toFixed(1)}%. ` : "") +
-    (t2Pct!=null ? `Jika mencapai Target 2, potensi keuntungan sekitar ${t2Pct.toFixed(1)}%. ` : "") +
-    verdict;
-}
-
-function portfolioRiskHuman(r){
-  const p=Number(r?.portfolio_risk_pct);
-  if(!Number.isFinite(p)){
-    return "Risiko total portfolio belum bisa dihitung karena modal atau data posisi belum lengkap.";
-  }
-  if(p<1.5) return `Total risiko portfolio sekitar ${p.toFixed(2)}% dari modal. Beban risiko masih ringan.`;
-  if(p<3) return `Total risiko portfolio sekitar ${p.toFixed(2)}% dari modal. Masih terkendali, tetapi tambahan posisi perlu lebih selektif.`;
-  return `Total risiko portfolio sekitar ${p.toFixed(2)}% dari modal. Beban risiko sudah tinggi, jadi posisi baru sebaiknya diperkecil atau ditunda.`;
-}
-
-function finalTakeDecision(row,r){
-  const blockers=Array.isArray(r?.blockers) ? r.blockers : [];
-  const cautions=Array.isArray(r?.cautions) ? r.cautions : [];
-
-  if(String(row?.state || "")!=="SWING_BUY"){
-    return "Belum waktunya entry. Setup masih dalam tahap pemantauan dan belum mendapat konfirmasi BUY penuh.";
-  }
-  if(blockers.includes("INVALID_STOP")){
-    return "Jangan eksekusi dulu karena Stop Loss belum valid. Risiko transaksi belum bisa dihitung dengan aman.";
-  }
-  if(blockers.includes("LIQUIDITY")){
-    return "Sinyal teknikal menarik, tetapi likuiditas terlalu lemah. Risiko sulit keluar di harga yang diinginkan cukup besar.";
-  }
-  if(blockers.includes("RR_T1") && blockers.includes("RR_T2")){
-    return "Setup teknikal sudah konfirmasi BUY, tetapi potensi keuntungan belum cukup besar dibanding risiko. Lebih baik tunggu entry yang lebih menarik.";
-  }
-  if(blockers.length){
-    return "Setup teknikal tetap menarik, tetapi ada faktor risiko penting yang perlu diperhatikan sebelum memakai uang nyata.";
-  }
-  if(cautions.length){
-    return "Setup masih layak dipertimbangkan. Ada beberapa faktor yang perlu diperhatikan, jadi ukuran posisi sebaiknya disesuaikan.";
-  }
-  return "Setup teknikal dan kondisi risikonya sama-sama mendukung. Posisi dapat dipertimbangkan sesuai ukuran modal dan batas risiko pribadi.";
-}
-
 function whyHtml(row){
   const reasons=whyReasons(row);
   const items=reasons.length
-    ? reasons.map(x=>`<li>${safe(humanReasonText(x))}</li>`).join("")
-    : "<li>Belum ada penjelasan yang cukup dari engine.</li>";
+    ? reasons.map(x=>`<li>${safe(x)}</li>`).join("")
+    : "<li>HANZ evidence is not available yet.</li>";
   return `<div class="why-box">
-    <div class="why-title">KENAPA HANZ MEMILIH SAHAM INI</div>
+    <div class="why-title">WHY HANZ PICKED THIS</div>
     <ul class="why-list">${items}</ul>
   </div>`;
 }
@@ -1968,40 +1853,36 @@ function compactIDR(value){
 function riskHtml(row){
   const r=(row && row.risk_validation && typeof row.risk_validation==="object")
     ? row.risk_validation : {};
+  const gate=row?.risk_gate || r.gate || "MONITOR";
   const blockers=Array.isArray(r.blockers) ? r.blockers : [];
   const cautions=Array.isArray(r.cautions) ? r.cautions : [];
-  const reasons=[
-    ...blockers.map(riskCodeToHuman),
-    ...cautions.map(riskCodeToHuman)
-  ].filter(Boolean);
 
-  const rawTicker=String(row?.ticker || "x");
-  const safeId=rawTicker.replace(/[^A-Za-z0-9_-]/g,"");
-  const id=`risk-detail-${safeId}`;
+  const reason=[
+    blockers.length ? "Blocked: "+blockers.join(", ") : "",
+    cautions.length ? "Watch: "+cautions.join(", ") : "",
+    r.kill_switch_reason || ""
+  ].filter(Boolean).join(" · ");
 
-  return `<div style="margin-top:10px">
-    <button class="chart-btn" type="button"
-      onclick="const el=document.getElementById('${id}'); if(el) el.style.display=el.style.display==='none'?'block':'none';">
-      LIHAT ALASAN AMBIL / TIDAK AMBIL
-    </button>
-
-    <div id="${id}" class="risk-box" style="display:none;margin-top:8px">
-      <div class="risk-title" style="margin-bottom:10px">ALASAN AMBIL / TIDAK AMBIL</div>
-
-      <div class="risk-reason"><strong>Kondisi IHSG</strong><br>${safe(marketRegimeHuman(r.market_regime || row?.market_regime))}</div>
-
-      <div class="risk-reason"><strong>Likuiditas Saham</strong><br>${safe(liquidityHuman(r))}</div>
-
-      <div class="risk-reason"><strong>Potensi Untung vs Risiko</strong><br>${safe(profitRiskHuman(row,r))}</div>
-
-      <div class="risk-reason"><strong>Risiko Portfolio</strong><br>${safe(portfolioRiskHuman(r))}</div>
-
-      ${reasons.length
-        ? `<div class="risk-reason"><strong>Hal yang Perlu Diperhatikan</strong><br>${reasons.map(x=>`• ${safe(x)}`).join("<br>")}</div>`
-        : ""}
-
-      <div class="risk-reason"><strong>Kesimpulan HANZ</strong><br>${safe(finalTakeDecision(row,r))}</div>
+  return `<div class="risk-box">
+    <div class="risk-head">
+      <div class="risk-title">REAL-MONEY GUARD</div>
+      <span class="risk-gate ${riskGateClass(gate)}">${safe(String(gate).replaceAll("_"," "))}</span>
     </div>
+    <div class="risk-grid">
+      <div><span>MARKET REGIME</span><strong>${safe(r.market_regime || row?.market_regime || "—")}</strong></div>
+      <div><span>MOMENTUM</span><strong>${safe(r.momentum_status || "—")}</strong></div>
+      <div><span>1D / 3D / 5D</span><strong>${pctText(r.ret1_pct)} / ${pctText(r.ret3_pct)} / ${pctText(r.ret5_pct)}</strong></div>
+      <div><span>FAILED BREAKOUT</span><strong>${r.failed_breakout ? "YES" : "NO"}</strong></div>
+      <div><span>LIQUIDITY</span><strong>${safe(r.liquidity_grade || "—")} · ${compactIDR(r.avg_value20)}</strong></div>
+      <div><span>RISK SCORE</span><strong>${row?.risk_score ?? r.score ?? "—"}/100</strong></div>
+      <div><span>STOP DISTANCE</span><strong>${Number.isFinite(Number(r.stop_distance_pct)) ? Number(r.stop_distance_pct).toFixed(2)+"%" : "—"}</strong></div>
+      <div><span>R:R NET T1 / T2</span><strong>${Number.isFinite(Number(r.net_rr_target_1)) ? Number(r.net_rr_target_1).toFixed(2) : (Number.isFinite(Number(r.rr_target_1)) ? Number(r.rr_target_1).toFixed(2) : "—")} / ${Number.isFinite(Number(r.net_rr_target_2)) ? Number(r.net_rr_target_2).toFixed(2) : (Number.isFinite(Number(r.rr_target_2)) ? Number(r.rr_target_2).toFixed(2) : "—")}</strong></div>
+      <div><span>SUGGESTED SIZE</span><strong>${r.suggested_lots==null ? "—" : r.suggested_lots+" lots"}</strong></div>
+      <div><span>PORTFOLIO RISK</span><strong>${Number.isFinite(Number(r.portfolio_risk_pct)) ? Number(r.portfolio_risk_pct).toFixed(2)+"%" : "—"}</strong></div>
+      <div><span>KILL SWITCH</span><strong>${safe(r.kill_switch || "—")}</strong></div>
+      <div><span>TRADING COSTS</span><strong>${r.costs_configured ? "CONFIGURED" : "PENDING"}</strong></div>
+    </div>
+    ${reason ? `<div class="risk-reason">${safe(reason)}</div>` : ""}
   </div>`;
 }
 
@@ -2026,11 +1907,13 @@ async function loadWatchlist(){
   $("opportunityCount").textContent=confirmed.length;
 
   if(rows.length){
-    const top=confirmed[0] || rows[0];
+    const nonBroken=rows.filter(r=>r.state!=="MOMENTUM_BROKEN");
+    const top=confirmed[0] || nonBroken[0] || rows[0];
+    const topDecision=finalDecision(top);
     $("topCandidate").textContent=top.ticker;
-    $("topCandidateSub").textContent=`${signalStateLabel(top.state)} · Score ${top.score ?? "—"}/10`;
+    $("topCandidateSub").textContent=`${topDecision.label} · ${signalStateLabel(top.state)} · Score ${top.score ?? "—"}/10`;
     $("heroTopCandidate").textContent=top.ticker;
-    $("heroTopSub").textContent=`${signalStateLabel(top.state)} · Swing ${top.score ?? "—"}/10 · Discount ${top.discount_score==null?"PENDING":Number(top.discount_score).toFixed(0)+"/100"} · Fundamental ${top.fundamental_score==null?"PENDING":Number(top.fundamental_score).toFixed(0)+"/100"}`;
+    $("heroTopSub").textContent=`FINAL ${topDecision.label} · ${signalStateLabel(top.state)} · Swing ${top.score ?? "—"}/10 · Risk ${top.risk_gate || "MONITOR"} · Discount ${top.discount_score==null?"PENDING":Number(top.discount_score).toFixed(0)+"/100"} · Fundamental ${top.fundamental_score==null?"PENDING":Number(top.fundamental_score).toFixed(0)+"/100"}`;
     $("lastUpdate").textContent=formatTime(top.updated_at);
     $("lastUpdateDate").textContent=`${formatDate(top.updated_at)} · Last HANZ signal update`;
   }else{
@@ -2052,11 +1935,12 @@ function renderRanking(rows){
   }
   $("ranking").innerHTML=rows.map((row,index)=>{
     const score=Math.max(0,Math.min(10,Number(row.score || 0)));
+    const decision=finalDecision(row);
     return `<div class="rank">
       <div class="rank-no">#${index+1}</div>
-      <div class="rank-symbol">${safe(row.ticker)}<div style="margin-top:3px"><span class="state-chip ${signalStateClass(row.state)}">${safe(signalStateLabel(row.state))}</span></div></div>
+      <div class="rank-symbol">${safe(row.ticker)}<div style="margin-top:3px"><span class="state-chip ${decision.cls}">FINAL ${safe(decision.label)}</span> <span class="state-chip ${signalStateClass(row.state)}">${safe(signalStateLabel(row.state))}</span></div></div>
       <div class="rank-track"><div style="width:${score*10}%"></div></div>
-      <div class="rank-score">${score}/10</div>
+      <div class="rank-score">Setup ${score}/10 · ${safe(row.risk_gate || "MONITOR")} · R${row.risk_score ?? "—"}</div>
     </div>`;
   }).join("");
 }
@@ -2066,7 +1950,9 @@ function renderOpportunities(rows){
     $("opportunityGrid").innerHTML='<div class="empty">No active HANZ swing candidates right now.</div>';
     return;
   }
-  $("opportunityGrid").innerHTML=rows.map(row=>`
+  $("opportunityGrid").innerHTML=rows.map(row=>{
+    const decision=finalDecision(row);
+    return `
     <article class="opportunity">
       <div class="op-top">
         <div>
@@ -2076,6 +1962,7 @@ function renderOpportunities(rows){
         <div class="priority-ring">${row.score ?? "—"}</div>
       </div>
       <div style="margin-top:9px">
+        <span class="state-chip ${decision.cls}">FINAL ${safe(decision.label)}</span>
         <span class="state-chip ${signalStateClass(row.state)}">${safe(signalStateLabel(row.state))}</span>
         <span class="state-chip state-buy">${safe((row.discount_label || "DISCOUNT N/A").replaceAll("_"," "))}</span>
       </div>
@@ -2093,7 +1980,8 @@ function renderOpportunities(rows){
       <div class="reason"><strong>Entry:</strong> ${safe(row.entry_note || "")}</div>
       <div class="reason"><strong>Fundamental:</strong> ${safe(row.fundamental_reason || "Fundamental data unavailable")}</div>
       <div class="reason"><strong>Discount:</strong> ${safe(row.discount_reason || "")}</div>
-    </article>`).join("");
+    </article>`;
+  }).join("");
 }
 
 function renderLiveSignalMonitor(rows){
@@ -2103,6 +1991,7 @@ function renderLiveSignalMonitor(rows){
   }
   $("liveSignalMonitor").innerHTML=rows.map(row=>{
     const score=Math.max(0,Math.min(10,Number(row.score || 0)));
+    const decision=finalDecision(row);
     return `<article class="signal-card buy">
       <div class="sig-head">
         <div>
@@ -2111,10 +2000,12 @@ function renderLiveSignalMonitor(rows){
           <span class="signal-source">📈 DAILY + WEEKLY · V6 RADAR</span>
         </div>
         <div>
+          <span class="state-chip ${decision.cls}">FINAL ${safe(decision.label)}</span>
           <span class="state-chip ${signalStateClass(row.state)}">${safe(signalStateLabel(row.state))}</span>
         </div>
       </div>
-      <div class="sig-score"><span>Swing score</span><strong>${row.score ?? "—"}/10</strong></div>
+      <div class="sig-score"><span>Final decision</span><strong>${safe(decision.label)} · ${safe(decision.detail)}</strong></div>
+      <div class="sig-score"><span>Setup score</span><strong>${row.score ?? "—"}/10</strong></div>
       <div class="sig-score"><span>Discount score</span><strong>${row.discount_score==null?"—":Number(row.discount_score).toFixed(0)+"/100"} · ${safe(row.discount_confidence || "—")}</strong></div>
       <div class="sig-score"><span>Fundamental score</span><strong>${row.fundamental_score==null?"—":Number(row.fundamental_score).toFixed(0)+"/100"} · ${safe(row.fundamental_label || "—")} · ${safe(row.fundamental_confidence || "—")}</strong></div>
       <div class="sig-bar"><div style="width:${score*10}%"></div></div>
