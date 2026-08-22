@@ -73,6 +73,17 @@ SETUP_READY_BREAKOUT_DISTANCE_PCT = float(
     os.getenv("HANZ_SWING_SETUP_READY_BREAKOUT_DISTANCE_PCT", "2.0")
 )
 
+# V8.5 Predictive Radar
+# Radar states are INTERNAL ONLY and must never be shown as user-facing BUY signals.
+RADAR_BASE_MIN_SCORE = int(os.getenv("HANZ_RADAR_BASE_MIN_SCORE", "4"))
+RADAR_WATCH_SCORE = int(os.getenv("HANZ_RADAR_WATCH_SCORE", "6"))
+RADAR_PRE_ALERT_SCORE = int(os.getenv("HANZ_RADAR_PRE_ALERT_SCORE", "8"))
+RADAR_ARMED_SCORE = int(os.getenv("HANZ_RADAR_ARMED_SCORE", "9"))
+RADAR_ARM_DISTANCE_PCT = float(os.getenv("HANZ_RADAR_ARM_DISTANCE_PCT", "2.5"))
+RADAR_MIN_VOLUME_PACE = float(os.getenv("HANZ_RADAR_MIN_VOLUME_PACE", "1.0"))
+RADAR_INTERVAL = os.getenv("HANZ_RADAR_INTRADAY_INTERVAL", "5m")
+RADAR_PERIOD = os.getenv("HANZ_RADAR_INTRADAY_PERIOD", "5d")
+
 
 # Chart persistence: completed daily candles are stored server-side in Supabase.
 # The dashboard never calls Yahoo Finance directly.
@@ -1032,6 +1043,283 @@ def weekly_metrics(df):
 
 
 
+
+def _completed_daily_frame_for_radar(daily_df):
+    """Keep radar baseline strictly on completed IDX daily candles."""
+    target = latest_completed_idx_date()
+    frame = daily_df.copy()
+    keep = [
+        pd.Timestamp(x).date() <= target
+        for x in frame.index
+    ]
+    frame = frame.loc[keep]
+    if len(frame) < 60:
+        raise RuntimeError("Insufficient completed daily history for radar")
+    return frame
+
+
+def _idx_session_progress_fraction(now=None):
+    """Approximate fraction of today's active IDX trading minutes completed."""
+    now = now or jakarta_now()
+    minute = now.hour * 60 + now.minute
+    friday = now.weekday() == 4
+
+    s1_start = 9 * 60
+    s1_end = 11 * 60 + 30 if friday else 12 * 60
+    s2_start = 14 * 60 if friday else 13 * 60 + 30
+    s2_end = 15 * 60 + 50
+
+    s1_len = max(0, s1_end - s1_start)
+    s2_len = max(0, s2_end - s2_start)
+    total = max(1, s1_len + s2_len)
+
+    if minute <= s1_start:
+        elapsed = 0
+    elif minute <= s1_end:
+        elapsed = minute - s1_start
+    elif minute < s2_start:
+        elapsed = s1_len
+    elif minute <= s2_end:
+        elapsed = s1_len + (minute - s2_start)
+    else:
+        elapsed = total
+
+    # Opening minutes are noisy; floor the denominator so volume pace
+    # is useful without exploding on the first few prints.
+    return max(0.15, min(1.0, elapsed / total))
+
+
+def intraday_radar_snapshot(ticker, completed_daily_df, daily):
+    """
+    Build a live, non-actionable radar snapshot from intraday bars.
+
+    The snapshot is used only to detect leading conditions BEFORE the
+    completed daily candle confirms them. It can arm a candidate, but it
+    can never create a SWING_BUY by itself.
+    """
+    attempts = [
+        (RADAR_INTERVAL, RADAR_PERIOD),
+        ("15m", "5d"),
+    ]
+    last_error = None
+    frame = None
+    source = None
+
+    for interval, period in attempts:
+        try:
+            candidate = download_frame(ticker, interval, period).copy()
+            if candidate is None or candidate.empty:
+                continue
+            frame = candidate
+            source = f"{interval}/{period}"
+            break
+        except Exception as exc:
+            last_error = exc
+
+    if frame is None or frame.empty:
+        raise RuntimeError(f"Radar intraday data unavailable: {last_error}")
+
+    idx = pd.DatetimeIndex(frame.index)
+    if idx.tz is None:
+        idx = idx.tz_localize(JAKARTA_TZ)
+    else:
+        idx = idx.tz_convert(JAKARTA_TZ)
+    frame.index = idx
+
+    today = jakarta_now().date()
+    today_frame = frame.loc[[x.date() == today for x in frame.index]].copy()
+    if today_frame.empty:
+        raise RuntimeError("No current-session intraday bars for predictive radar")
+
+    last_ts = pd.Timestamp(today_frame.index[-1])
+    age_minutes = max(
+        0.0,
+        (jakarta_now() - last_ts.to_pydatetime()).total_seconds() / 60.0,
+    )
+    fresh = age_minutes <= max(INTRADAY_STALE_MINUTES, 30)
+
+    current_price = safe_float(today_frame["Close"].iloc[-1])
+    day_open = safe_float(today_frame["Open"].iloc[0])
+    day_high = safe_float(today_frame["High"].max())
+    day_low = safe_float(today_frame["Low"].min())
+    volume_today = safe_float(today_frame["Volume"].fillna(0).sum()) or 0.0
+
+    prior_close = safe_float(daily.get("price"))
+    prior_high20 = safe_float(daily.get("prior_high20"))
+    ema20 = safe_float(daily.get("ema20"))
+
+    intraday_return_pct = None
+    gap_pct = None
+    breakout_distance_pct = None
+    day_range_pct = None
+
+    if current_price is not None and prior_close not in (None, 0):
+        intraday_return_pct = (current_price / prior_close - 1) * 100
+    if day_open is not None and prior_close not in (None, 0):
+        gap_pct = (day_open / prior_close - 1) * 100
+    if current_price is not None and prior_high20 not in (None, 0):
+        breakout_distance_pct = (
+            (prior_high20 - current_price) / prior_high20 * 100
+        )
+    if current_price not in (None, 0) and day_high is not None and day_low is not None:
+        day_range_pct = (day_high - day_low) / abs(current_price) * 100
+
+    avg_daily_volume20 = None
+    if len(completed_daily_df) >= 20:
+        avg_daily_volume20 = safe_float(
+            completed_daily_df["Volume"].astype(float).iloc[-20:].mean()
+        )
+
+    progress = _idx_session_progress_fraction()
+    projected_rvol = None
+    if avg_daily_volume20 not in (None, 0):
+        expected_volume_now = avg_daily_volume20 * progress
+        if expected_volume_now > 0:
+            projected_rvol = volume_today / expected_volume_now
+
+    last_30m_return_pct = None
+    intraday_volume_accel = None
+    if len(today_frame) >= 7:
+        base_price = safe_float(today_frame["Close"].iloc[-7])
+        if base_price not in (None, 0) and current_price is not None:
+            last_30m_return_pct = (
+                (current_price / base_price) - 1
+            ) * 100
+
+    if len(today_frame) >= 12:
+        recent_volume = safe_float(today_frame["Volume"].iloc[-6:].sum())
+        prior_volume = safe_float(today_frame["Volume"].iloc[-12:-6].sum())
+        if recent_volume is not None and prior_volume not in (None, 0):
+            intraday_volume_accel = recent_volume / prior_volume
+
+    return {
+        "fresh": fresh,
+        "age_minutes": round(age_minutes, 2),
+        "source": source,
+        "bar_at": last_ts.isoformat(),
+        "price": current_price,
+        "day_open": day_open,
+        "day_high": day_high,
+        "day_low": day_low,
+        "volume_today": volume_today,
+        "session_progress": round(progress, 4),
+        "projected_rvol": safe_float(projected_rvol),
+        "intraday_return_pct": safe_float(intraday_return_pct),
+        "gap_pct": safe_float(gap_pct),
+        "breakout_distance_pct": safe_float(breakout_distance_pct),
+        "day_range_pct": safe_float(day_range_pct),
+        "last_30m_return_pct": safe_float(last_30m_return_pct),
+        "intraday_volume_accel": safe_float(intraday_volume_accel),
+        "ema20": ema20,
+        "prior_high20": prior_high20,
+    }
+
+
+def predictive_radar_signal(daily, weekly, snapshot):
+    """
+    Leading-condition score.
+
+    Goal: identify improving structure BEFORE a textbook breakout becomes
+    obvious, while remaining explicitly NON-ACTIONABLE until post-close
+    completed-bar reconfirmation.
+    """
+    base = early_signal_score(daily, weekly)
+    score = int(base.get("score") or 0)
+    evidence = list(base.get("evidence") or [])
+
+    if not snapshot.get("fresh"):
+        return {
+            "state": "NO_SETUP",
+            "score": min(score, 10),
+            "evidence": evidence + [
+                f"RADAR_INTERNAL: stale intraday feed ({snapshot.get('age_minutes')}m)"
+            ],
+            "armed": False,
+        }
+
+    live_price = safe_float(snapshot.get("price"))
+    ema20 = safe_float(snapshot.get("ema20"))
+    distance = safe_float(snapshot.get("breakout_distance_pct"))
+    pace = safe_float(snapshot.get("projected_rvol"))
+    ret = safe_float(snapshot.get("intraday_return_pct"))
+    ret30 = safe_float(snapshot.get("last_30m_return_pct"))
+    vol_accel = safe_float(snapshot.get("intraday_volume_accel"))
+    weekly_spread = safe_float(weekly.get("ema_spread_pct"))
+    weekly_improve = safe_float(weekly.get("ema_spread_change_4w"))
+
+    if live_price is not None and ema20 is not None and live_price >= ema20:
+        score += 1
+        evidence.append("RADAR: live price holding above EMA20")
+
+    if distance is not None:
+        if -1.0 <= distance <= RADAR_ARM_DISTANCE_PCT:
+            score += 2
+            evidence.append(
+                f"RADAR: live price within {abs(distance):.2f}% of 20d trigger"
+            )
+        elif 0 <= distance <= EARLY_BREAKOUT_DISTANCE_PCT:
+            score += 1
+            evidence.append(
+                f"RADAR: approaching trigger ({distance:.2f}% away)"
+            )
+
+    if pace is not None:
+        if pace >= 1.50:
+            score += 2
+            evidence.append(f"RADAR: projected volume pace {pace:.2f}x")
+        elif pace >= 1.10:
+            score += 1
+            evidence.append(f"RADAR: projected volume pace {pace:.2f}x")
+
+    if ret is not None and 0.40 <= ret <= 5.0:
+        score += 1
+        evidence.append(f"RADAR: session momentum +{ret:.2f}%")
+
+    if ret30 is not None and ret30 >= 0.30:
+        score += 1
+        evidence.append(f"RADAR: 30m price acceleration +{ret30:.2f}%")
+
+    if vol_accel is not None and vol_accel >= 1.20:
+        score += 1
+        evidence.append(f"RADAR: intraday volume acceleration {vol_accel:.2f}x")
+
+    if (
+        (weekly_spread is not None and weekly_spread > 0)
+        or (weekly_improve is not None and weekly_improve > 0)
+    ):
+        score += 1
+        evidence.append("RADAR: weekly structure supportive")
+
+    score = min(score, 10)
+
+    state = "NO_SETUP"
+    if score >= RADAR_WATCH_SCORE:
+        state = "RADAR_WATCH"
+    if score >= RADAR_PRE_ALERT_SCORE:
+        state = "RADAR_PRE_ALERT"
+
+    armed = (
+        score >= RADAR_ARMED_SCORE
+        and distance is not None
+        and -1.0 <= distance <= RADAR_ARM_DISTANCE_PCT
+        and pace is not None
+        and pace >= RADAR_MIN_VOLUME_PACE
+    )
+    if armed:
+        state = "RADAR_ARMED"
+
+    evidence.append(
+        "RADAR_INTERNAL_ONLY: never actionable; waits for completed daily-bar reconfirmation"
+    )
+
+    return {
+        "state": state,
+        "score": score,
+        "evidence": evidence,
+        "armed": armed,
+    }
+
+
 def early_signal_score(daily, weekly):
     """Leading score; never actionable by itself."""
     score = 0
@@ -1258,7 +1546,7 @@ def apply_early_state_and_reconfirmation(
 
     if raw_buy:
         previously_armed = prior_state in {
-            "SETUP_READY", "SWING_CONFIRMING", "SWING_BUY"
+            "RADAR_ARMED", "SETUP_READY", "SWING_CONFIRMING", "SWING_BUY"
         }
 
         if prior_state == "SWING_BUY":
@@ -4722,6 +5010,153 @@ def insert_swing_signal(
     )
 
 
+
+def scan_predictive_radar_symbol(ticker):
+    """
+    Intraday predictive radar.
+
+    Writes INTERNAL radar states to the monitor table so the next completed
+    daily bar can reconfirm them. It never inserts a signal, sends a push,
+    or creates a user-facing BUY.
+    """
+    daily_df_raw = download_frame(
+        ticker,
+        DAILY_INTERVAL,
+        DAILY_PERIOD,
+    )
+    daily_df = _completed_daily_frame_for_radar(daily_df_raw)
+
+    weekly_df = download_frame(
+        ticker,
+        WEEKLY_INTERVAL,
+        WEEKLY_PERIOD,
+    )
+
+    daily = daily_metrics(daily_df)
+    weekly = weekly_metrics(weekly_df)
+    prior_monitor = fetch_prior_monitor(ticker)
+    prior_state = str((prior_monitor or {}).get("state") or "").upper()
+
+    # Never let the internal radar overwrite an already confirmed BUY or a
+    # safety-broken state during the live session.
+    if prior_state in {"SWING_BUY", "MOMENTUM_BROKEN"}:
+        return "PRESERVE_ACTIVE"
+
+    baseline = early_signal_score(daily, weekly)
+    if (
+        int(baseline.get("score") or 0) < RADAR_BASE_MIN_SCORE
+        and not prior_state.startswith("RADAR_")
+        and prior_state not in {"EARLY_WATCH", "PRE_ALERT", "SETUP_READY"}
+    ):
+        return "NO_RADAR"
+
+    snapshot = intraday_radar_snapshot(
+        ticker,
+        daily_df,
+        daily,
+    )
+    radar = predictive_radar_signal(
+        daily,
+        weekly,
+        snapshot,
+    )
+
+    base_result = swing_score(
+        daily,
+        weekly,
+    )
+
+    result = {
+        **base_result,
+        "state": radar["state"],
+        "score": radar["score"],
+        "early_score": baseline.get("score", 0),
+        "raw_buy_gate": False,
+        "reconfirmed": False,
+        "evidence": radar["evidence"],
+    }
+
+    # Use live price only for provisional internal risk/entry diagnostics.
+    # daily_bar_at remains the last COMPLETED daily candle so post-close can
+    # prove that a new completed candle exists.
+    radar_daily = dict(daily)
+    if safe_float(snapshot.get("price")) is not None:
+        radar_daily["price"] = safe_float(snapshot.get("price"))
+    if safe_float(snapshot.get("projected_rvol")) is not None:
+        radar_daily["rvol20"] = safe_float(snapshot.get("projected_rvol"))
+    if safe_float(snapshot.get("intraday_return_pct")) is not None:
+        radar_daily["ret1_pct"] = safe_float(snapshot.get("intraday_return_pct"))
+    if safe_float(snapshot.get("gap_pct")) is not None:
+        radar_daily["gap_pct"] = safe_float(snapshot.get("gap_pct"))
+    if safe_float(snapshot.get("day_range_pct")) is not None:
+        radar_daily["day_range_pct"] = safe_float(snapshot.get("day_range_pct"))
+    if safe_float(snapshot.get("breakout_distance_pct")) is not None:
+        radar_daily["breakout_distance_pct"] = safe_float(
+            snapshot.get("breakout_distance_pct")
+        )
+
+    fundamental = fundamental_intelligence_v1({})
+    discount = discount_intelligence_v2(
+        ticker,
+        radar_daily,
+        weekly,
+        result,
+        {},
+        fundamental,
+    )
+    levels = risk_levels(
+        radar_daily,
+        result=result,
+        discount=discount,
+        fundamental=fundamental,
+    )
+    risk_validation = real_money_validation(
+        ticker,
+        radar_daily,
+        result,
+        levels,
+        fundamental,
+        _REAL_MONEY_CONTEXT,
+    )
+    risk_validation["radar_internal"] = True
+    risk_validation["radar_state"] = radar["state"]
+    risk_validation["radar_score"] = radar["score"]
+    risk_validation["radar_armed"] = bool(radar.get("armed"))
+    risk_validation["radar_snapshot"] = snapshot
+    risk_validation["dashboard_eligible"] = False
+    risk_validation["reconfirmation_required"] = True
+
+    # If a previously armed radar loses the setup before close, clear it.
+    # NO_SETUP is internal and is hidden by the dashboard.
+    upsert_monitor(
+        ticker,
+        radar_daily,
+        weekly,
+        result,
+        levels,
+        discount,
+        fundamental,
+        risk_validation,
+    )
+
+    print(
+        f"RADAR {clean_ticker(ticker)} "
+        f"{radar['state']} score={radar['score']}/10 "
+        f"base={baseline.get('score', 0)}/10 "
+        f"price={snapshot.get('price')} "
+        f"dist={snapshot.get('breakout_distance_pct')}% "
+        f"pace={snapshot.get('projected_rvol')}x "
+        f"ret={snapshot.get('intraday_return_pct')}% "
+        f"30m={snapshot.get('last_30m_return_pct')}% "
+        f"volacc={snapshot.get('intraday_volume_accel')}x "
+        f"fresh={snapshot.get('fresh')} "
+        f"INTERNAL_ONLY=TRUE",
+        flush=True,
+    )
+
+    return radar["state"]
+
+
 def scan_symbol(ticker, maintenance_mode=False):
     daily_df = download_frame(
         ticker,
@@ -5054,10 +5489,53 @@ def run_cycle():
         )
         return
 
-    # During active sessions / lunch, only monitor portfolio risk.
-    # Universe SWING_BUY generation waits for the completed daily bar.
+    # During active sessions / lunch:
+    # 1) run INTERNAL predictive radar on the universe;
+    # 2) monitor existing portfolio risk.
+    # The radar can arm candidates early, but can NEVER create a user-facing BUY.
+    # User-facing BUY still waits for post-close completed-bar reconfirmation.
     if not market["allow_final_scan"]:
         if market["allow_portfolio_monitor"]:
+            _REAL_MONEY_CONTEXT = build_real_money_context()
+
+            universe = fetch_universe()
+            radar_counts = {
+                "RADAR_ARMED": 0,
+                "RADAR_PRE_ALERT": 0,
+                "RADAR_WATCH": 0,
+                "NO_SETUP": 0,
+                "NO_RADAR": 0,
+                "PRESERVE_ACTIVE": 0,
+                "ERROR": 0,
+            }
+
+            print(
+                f"HANZ PREDICTIVE RADAR universe: {len(universe)} | "
+                "INTERNAL_ONLY=ON | dashboard=BLOCKED | "
+                "new BUY=BLOCKED until completed-bar reconfirmation",
+                flush=True,
+            )
+
+            for ticker in universe:
+                try:
+                    radar_state = scan_predictive_radar_symbol(ticker)
+                    radar_counts[radar_state] = (
+                        radar_counts.get(radar_state, 0) + 1
+                    )
+                except Exception as exc:
+                    radar_counts["ERROR"] += 1
+                    print(
+                        f"RADAR {ticker} failed: {exc}",
+                        flush=True,
+                    )
+
+            print(
+                "HANZ PREDICTIVE RADAR complete: "
+                + json.dumps(radar_counts)
+                + " | no signal / alert / push generated",
+                flush=True,
+            )
+
             quote_summary = refresh_swing_buy_intraday_prices()
             print(
                 "SWING intraday SWING_BUY price refresh complete: "
@@ -5147,7 +5625,8 @@ def main():
         f"Cycle={SWING_INTERVAL}s | "
         f"Portfolio monitor=ON | "
         f"IDX calendar gate=ON (Asia/Jakarta) | "
-        f"Early radar=ON | Reconfirm BUY=NEW DAILY BAR | "
+        f"Predictive radar=INTERNAL_INTRADAY | Dashboard=RECONFIRMED_ONLY | "
+        f"Reconfirm BUY=NEW COMPLETED DAILY BAR | "
         f"Chart backend=SUPABASE/{CHART_LOOKBACK_BARS} completed bars | "
         f"Real-money guard={'ON' if RISK_LIVE_GATE_ENABLED else 'OFF'} | "
         f"Intraday fallback=ON | "
