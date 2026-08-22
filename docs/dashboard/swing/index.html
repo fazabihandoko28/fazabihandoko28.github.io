@@ -223,6 +223,18 @@ button{cursor:pointer}
   color:#dbe4f0;font-size:11px;font-weight:800;cursor:pointer
 }
 .ranking-more-btn:hover{border-color:rgba(70,220,210,.45)}
+.volatility-warning{
+  margin-top:10px;padding:10px 12px;border-radius:11px;
+  font-size:11px;font-weight:900;line-height:1.45
+}
+.volatility-warning.high{
+  border:1px solid rgba(255,190,70,.42);
+  background:rgba(255,190,70,.11);color:#ffd784
+}
+.volatility-warning.extreme{
+  border:1px solid rgba(255,90,105,.48);
+  background:rgba(255,90,105,.13);color:#ff9aa5
+}
 
 
 .risk-box{
@@ -1785,13 +1797,48 @@ function signalStateClass(state){
 }
 
 
+function volatilityInfo(row){
+  const r=(row && row.risk_validation && typeof row.risk_validation==="object")
+    ? row.risk_validation : {};
+  const status=String(r.volatility_status || "NORMAL").toUpperCase();
+  return {
+    status,
+    warning:r.volatility_warning || (status==="EXTREME"
+      ? "EXTREME VOLATILITY — NOT SUITABLE FOR HANZ SWING"
+      : status==="HIGH"
+        ? "HIGH VOLATILITY — SWING RISK ELEVATED"
+        : "NORMAL VOLATILITY"),
+    reason:r.volatility_reason || "",
+    atr_pct:r.atr_pct,
+    gap_pct:r.gap_pct,
+    day_range_pct:r.day_range_pct,
+    extreme_move_days10:r.extreme_move_days10
+  };
+}
+
+function volatilityWarningHtml(row){
+  const v=volatilityInfo(row);
+  if(v.status!=="HIGH" && v.status!=="EXTREME") return "";
+  const cls=v.status==="EXTREME" ? "extreme" : "high";
+  const metrics=[
+    Number.isFinite(Number(v.atr_pct)) ? `ATR ${Number(v.atr_pct).toFixed(1)}%` : null,
+    Number.isFinite(Number(v.gap_pct)) ? `Gap ${Number(v.gap_pct)>=0?"+":""}${Number(v.gap_pct).toFixed(1)}%` : null,
+    Number.isFinite(Number(v.day_range_pct)) ? `Range ${Number(v.day_range_pct).toFixed(1)}%` : null
+  ].filter(Boolean).join(" · ");
+  return `<div class="volatility-warning ${cls}">⚠ ${safe(v.warning)}${metrics?` · ${safe(metrics)}`:""}${v.reason?`<div style="margin-top:4px;font-weight:700">${safe(v.reason)}</div>`:""}</div>`;
+}
+
 function finalDecision(row){
   const state=String(row?.state || "").toUpperCase();
   const gate=String(row?.risk_gate || row?.risk_validation?.gate || "MONITOR").toUpperCase();
   const momentum=String(row?.risk_validation?.momentum_status || "").toUpperCase();
+  const volatility=volatilityInfo(row).status;
 
   if(state==="MOMENTUM_BROKEN" || momentum==="BROKEN"){
     return {label:"AVOID",cls:"state-broken",detail:"Momentum/breakout damage veto"};
+  }
+  if(volatility==="EXTREME"){
+    return {label:"AVOID",cls:"state-broken",detail:"Extreme volatility is not suitable for HANZ Swing"};
   }
   if(state==="SWING_BUY" && ["ELIGIBLE","CAUTION"].includes(gate)){
     return {label:"BUY",cls:"state-buy",detail:gate==="CAUTION" ? "Buy signal with caution" : "Actionable reconfirmed buy"};
@@ -1890,6 +1937,8 @@ function riskHtml(row){
     <div class="risk-grid">
       <div><span>MARKET REGIME</span><strong>${safe(r.market_regime || row?.market_regime || "—")}</strong></div>
       <div><span>MOMENTUM</span><strong>${safe(r.momentum_status || "—")}</strong></div>
+      <div><span>VOLATILITY</span><strong>${safe(r.volatility_status || "NORMAL")} · ATR ${Number.isFinite(Number(r.atr_pct)) ? Number(r.atr_pct).toFixed(1)+"%" : "—"}</strong></div>
+      <div><span>GAP / DAY RANGE</span><strong>${pctText(r.gap_pct)} / ${pctText(r.day_range_pct)}</strong></div>
       <div><span>1D / 3D / 5D</span><strong>${pctText(r.ret1_pct)} / ${pctText(r.ret3_pct)} / ${pctText(r.ret5_pct)}</strong></div>
       <div><span>FAILED BREAKOUT</span><strong>${r.failed_breakout ? "YES" : "NO"}</strong></div>
       <div><span>LIQUIDITY</span><strong>${safe(r.liquidity_grade || "—")} · ${compactIDR(r.avg_value20)}</strong></div>
@@ -1968,7 +2017,7 @@ function renderRanking(rows){
       <div class="rank-no">#${index+1}</div>
       <div class="rank-symbol">${safe(row.ticker)}<div style="margin-top:3px"><span class="state-chip ${decision.cls}">FINAL ${safe(decision.label)}</span> <span class="state-chip ${signalStateClass(row.state)}">${safe(signalStateLabel(row.state))}</span></div></div>
       <div class="rank-track"><div style="width:${score*10}%"></div></div>
-      <div class="rank-score">Setup ${score}/10 · ${safe(row.risk_gate || "MONITOR")} · R${row.risk_score ?? "—"}</div>
+      <div class="rank-score">Setup ${score}/10 · ${safe(row.risk_gate || "MONITOR")} · R${row.risk_score ?? "—"}${volatilityInfo(row).status!=="NORMAL" ? ` · VOL ${safe(volatilityInfo(row).status)}` : ""}</div>
     </div>`;
   }).join("");
 
@@ -2016,6 +2065,7 @@ function renderOpportunities(rows){
         <div class="level target"><span>DYNAMIC T2</span><strong>${price(row.target_2)}</strong></div>
         <div class="level confirm"><span>QUALITY</span><strong>Swing ${row.score ?? "—"}/10 · D${row.discount_score==null?"—":Number(row.discount_score).toFixed(0)} · F${row.fundamental_score==null?"—":Number(row.fundamental_score).toFixed(0)}</strong></div>
       </div>
+      ${volatilityWarningHtml(row)}
       ${whyHtml(row)}
       ${riskHtml(row)}
       <button class="chart-btn" type="button" data-chart-ticker="${safe(row.ticker)}">📈 VIEW CHART + HANZ LEVELS</button>
@@ -2046,6 +2096,7 @@ function renderLiveSignalMonitor(rows){
           <span class="state-chip ${signalStateClass(row.state)}">${safe(signalStateLabel(row.state))}</span>
         </div>
       </div>
+      ${volatilityWarningHtml(row)}
       <div class="sig-score"><span>Final decision</span><strong>${safe(decision.label)} · ${safe(decision.detail)}</strong></div>
       <div class="sig-score"><span>Setup score</span><strong>${row.score ?? "—"}/10</strong></div>
       <div class="sig-score"><span>Discount score</span><strong>${row.discount_score==null?"—":Number(row.discount_score).toFixed(0)+"/100"} · ${safe(row.discount_confidence || "—")}</strong></div>
