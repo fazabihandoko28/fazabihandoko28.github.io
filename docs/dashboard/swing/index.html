@@ -657,7 +657,7 @@ th{color:var(--muted)}
       <div class="section-head">
         <div>
           <h2>HANZ Signal Ranking</h2>
-          <p>Top 5 · Highest-priority HANZ radar progress · confirmed BUY remains clearly separated</p>
+          <p>Top 5 only · Highest-priority HANZ radar captures</p>
         </div>
         <span class="small-tag">SWING LIVE</span>
       </div>
@@ -2049,17 +2049,14 @@ async function loadWatchlist(){
   renderLiveSignalMonitor(rows);
 }
 
-let rankingExpanded=false;
-
 function renderRanking(rows){
   if(!rows.length){
     $("ranking").innerHTML='<div class="empty">No active HANZ swing signals.</div>';
     return;
   }
 
-  // Same behavior on desktop and mobile:
-  // show only the 5 highest-priority FINAL decisions by default.
-  const visibleRows=rankingExpanded ? rows : rows.slice(0,5);
+  // STRICT TOP 5: only the five highest-priority radar candidates are ever shown.
+  const visibleRows=rows.slice(0,5);
 
   const rankingHtml=visibleRows.map((row,index)=>{
     const score=Math.max(0,Math.min(10,Number(row.score || 0)));
@@ -2072,19 +2069,7 @@ function renderRanking(rows){
     </div>`;
   }).join("");
 
-  const moreHtml=rows.length>5
-    ? `<div class="ranking-more-wrap"><button id="rankingMoreBtn" class="ranking-more-btn">${rankingExpanded ? "Show Top 5" : `View All (${rows.length})`}</button></div>`
-    : "";
-
-  $("ranking").innerHTML=rankingHtml+moreHtml;
-
-  const btn=$("rankingMoreBtn");
-  if(btn){
-    btn.addEventListener("click",()=>{
-      rankingExpanded=!rankingExpanded;
-      renderRanking(rows);
-    });
-  }
+  $("ranking").innerHTML=rankingHtml;
 }
 
 function renderOpportunities(rows){
@@ -2092,7 +2077,7 @@ function renderOpportunities(rows){
     $("opportunityGrid").innerHTML='<div class="empty">No active HANZ swing candidates right now.</div>';
     return;
   }
-  $("opportunityGrid").innerHTML=rows.map(row=>{
+  $("opportunityGrid").innerHTML=rows.slice(0,5).map(row=>{
     const decision=finalDecision(row);
     return `
     <article class="opportunity">
@@ -2102,7 +2087,7 @@ function renderOpportunities(rows){
           <div class="op-source">HANZ SWING ENGINE · RADAR PROGRESS → COMPLETED-BAR RECONFIRMATION → ACTIONABLE BUY</div>
 <div style="margin-top:8px;padding:10px 12px;border:1px solid rgba(255,255,255,.12);border-radius:12px;font-size:12px;line-height:1.45">
   <strong>Radar Progress:</strong> Early Watch → Pre-Alert → Setup Ready / Radar Armed → Reconfirmed BUY.
-  Kandidat radar adalah <strong>progress kerja HANZ, bukan sinyal beli</strong>. Hanya RECONFIRMED BUY yang actionable.
+  Kandidat radar adalah <strong>progress kerja HANZ, bukan sinyal beli</strong>. Dashboard hanya menampilkan <strong>Top 5</strong> kandidat radar. Hanya RECONFIRMED BUY yang actionable.
 </div>
         </div>
         <div class="priority-ring">${row.score ?? "—"}</div>
@@ -2136,7 +2121,7 @@ function renderLiveSignalMonitor(rows){
     $("liveSignalMonitor").innerHTML='<div class="empty large-empty">No active HANZ swing signals right now.</div>';
     return;
   }
-  $("liveSignalMonitor").innerHTML=rows.map(row=>{
+  $("liveSignalMonitor").innerHTML=rows.slice(0,5).map(row=>{
     const score=Math.max(0,Math.min(10,Number(row.score || 0)));
     const decision=finalDecision(row);
     return `<article class="signal-card buy">
