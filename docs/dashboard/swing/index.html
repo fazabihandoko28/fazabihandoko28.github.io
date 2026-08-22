@@ -216,6 +216,14 @@ button{cursor:pointer}
 .state-pre{color:#9dc7ff;background:rgba(87,156,255,.11);border:1px solid rgba(87,156,255,.22)}
 .state-early{color:#c6b6ff;background:rgba(154,120,255,.11);border:1px solid rgba(154,120,255,.22)}
 .state-broken{color:#ff7b86;background:rgba(255,107,120,.13);border:1px solid rgba(255,107,120,.30)}
+.ranking-more-wrap{display:flex;justify-content:center;margin-top:10px}
+.ranking-more-btn{
+  min-height:36px;padding:0 14px;border-radius:10px;
+  border:1px solid var(--line);background:rgba(9,16,30,.72);
+  color:#dbe4f0;font-size:11px;font-weight:800;cursor:pointer
+}
+.ranking-more-btn:hover{border-color:rgba(70,220,210,.45)}
+
 
 .risk-box{
   margin-top:10px;padding:10px 11px;border:1px solid rgba(255,255,255,.08);
@@ -637,7 +645,7 @@ th{color:var(--muted)}
       <div class="section-head">
         <div>
           <h2>HANZ Signal Ranking</h2>
-          <p>Early Watch → Pre-Alert → Setup Ready → Reconfirmed Buy</p>
+          <p>Top 5 · Final decision first, then setup strength</p>
         </div>
         <span class="small-tag">SWING LIVE</span>
       </div>
@@ -1797,6 +1805,17 @@ function finalDecision(row){
   return {label:"WATCH",cls:"state-pre",detail:"Not actionable"};
 }
 
+function finalDecisionRank(row){
+  const label=String(finalDecision(row)?.label || "").toUpperCase();
+  return {
+    "BUY":5,
+    "WAIT":4,
+    "WATCH":3,
+    "NO BUY":2,
+    "AVOID":1
+  }[label] || 0;
+}
+
 function pctText(v){
   const n=Number(v);
   if(!Number.isFinite(n)) return "—";
@@ -1897,6 +1916,8 @@ async function loadWatchlist(){
   if(error) throw error;
 
   const rows=(data || []).sort((a,b)=>{
+    const fr=finalDecisionRank(b)-finalDecisionRank(a);
+    if(fr) return fr;
     const sr=signalStateRank(b.state)-signalStateRank(a.state);
     if(sr) return sr;
     return Number(b.score || 0)-Number(a.score || 0);
@@ -1928,12 +1949,19 @@ async function loadWatchlist(){
   renderLiveSignalMonitor(rows);
 }
 
+let rankingExpanded=false;
+
 function renderRanking(rows){
   if(!rows.length){
     $("ranking").innerHTML='<div class="empty">No active HANZ swing signals.</div>';
     return;
   }
-  $("ranking").innerHTML=rows.map((row,index)=>{
+
+  // Same behavior on desktop and mobile:
+  // show only the 5 highest-priority FINAL decisions by default.
+  const visibleRows=rankingExpanded ? rows : rows.slice(0,5);
+
+  const rankingHtml=visibleRows.map((row,index)=>{
     const score=Math.max(0,Math.min(10,Number(row.score || 0)));
     const decision=finalDecision(row);
     return `<div class="rank">
@@ -1943,6 +1971,20 @@ function renderRanking(rows){
       <div class="rank-score">Setup ${score}/10 · ${safe(row.risk_gate || "MONITOR")} · R${row.risk_score ?? "—"}</div>
     </div>`;
   }).join("");
+
+  const moreHtml=rows.length>5
+    ? `<div class="ranking-more-wrap"><button id="rankingMoreBtn" class="ranking-more-btn">${rankingExpanded ? "Show Top 5" : `View All (${rows.length})`}</button></div>`
+    : "";
+
+  $("ranking").innerHTML=rankingHtml+moreHtml;
+
+  const btn=$("rankingMoreBtn");
+  if(btn){
+    btn.addEventListener("click",()=>{
+      rankingExpanded=!rankingExpanded;
+      renderRanking(rows);
+    });
+  }
 }
 
 function renderOpportunities(rows){
