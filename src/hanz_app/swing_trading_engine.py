@@ -227,6 +227,16 @@ MAX_ZERO_VOLUME_DAYS_20 = int(
 MAX_ATR_PCT = float(
     os.getenv("HANZ_MAX_ATR_PCT", "12.0")
 )
+
+# Swing-specific volatility suitability.
+SWING_HIGH_ATR_PCT = float(os.getenv("HANZ_SWING_HIGH_ATR_PCT", "4.0"))
+SWING_EXTREME_ATR_PCT = float(os.getenv("HANZ_SWING_EXTREME_ATR_PCT", "7.0"))
+SWING_EXTREME_1D_MOVE_PCT = float(os.getenv("HANZ_SWING_EXTREME_1D_MOVE_PCT", "8.0"))
+SWING_HIGH_GAP_PCT = float(os.getenv("HANZ_SWING_HIGH_GAP_PCT", "4.0"))
+SWING_EXTREME_GAP_PCT = float(os.getenv("HANZ_SWING_EXTREME_GAP_PCT", "8.0"))
+SWING_HIGH_DAY_RANGE_PCT = float(os.getenv("HANZ_SWING_HIGH_DAY_RANGE_PCT", "8.0"))
+SWING_EXTREME_MOVE_DAYS_10 = int(os.getenv("HANZ_SWING_EXTREME_MOVE_DAYS_10", "2"))
+SWING_HIGH_VOL_SIZE_MULTIPLIER = float(os.getenv("HANZ_SWING_HIGH_VOL_SIZE_MULTIPLIER", "0.50"))
 MAX_ADV_PARTICIPATION_PCT = float(
     os.getenv("HANZ_MAX_ADV_PARTICIPATION_PCT", "0.50")
 )
@@ -833,6 +843,27 @@ def daily_metrics(df):
     if price not in (None, 0) and atr_now is not None:
         atr_pct = atr_now / price * 100
 
+    # Volatility diagnostics for a multi-day swing strategy.
+    prior_close = safe_float(close.iloc[-2]) if len(close) >= 2 else None
+    day_open = safe_float(df["Open"].iloc[-1])
+    day_high = safe_float(df["High"].iloc[-1])
+    day_low = safe_float(df["Low"].iloc[-1])
+
+    gap_pct = None
+    if prior_close not in (None, 0) and day_open is not None:
+        gap_pct = (day_open / prior_close - 1) * 100
+
+    day_range_pct = None
+    if price not in (None, 0) and day_high is not None and day_low is not None:
+        day_range_pct = (day_high - day_low) / abs(price) * 100
+
+    extreme_move_days10 = 0
+    if len(close) >= 11:
+        recent_ret = close.pct_change().iloc[-10:] * 100
+        extreme_move_days10 = int(
+            (recent_ret.abs() >= SWING_EXTREME_1D_MOVE_PCT).sum()
+        )
+
     ret1 = None
     if len(close) >= 2:
         base = safe_float(close.iloc[-2])
@@ -927,6 +958,9 @@ def daily_metrics(df):
         "median_value20": safe_float(median_value20.iloc[-1]),
         "zero_volume_days20": zero_volume_days20,
         "atr_pct": safe_float(atr_pct),
+        "gap_pct": safe_float(gap_pct),
+        "day_range_pct": safe_float(day_range_pct),
+        "extreme_move_days10": extreme_move_days10,
         "prior_high20": prior_high20,
         "prior_low20": prior_low20,
         "ret1_pct": safe_float(ret1),
@@ -1979,6 +2013,83 @@ def liquidity_validation(daily):
     }
 
 
+
+def swing_volatility_guard(daily):
+    """Classify whether current volatility is suitable for HANZ Swing."""
+    atr_pct = safe_float(daily.get("atr_pct"))
+    ret1_pct = safe_float(daily.get("ret1_pct"))
+    gap_pct = safe_float(daily.get("gap_pct"))
+    day_range_pct = safe_float(daily.get("day_range_pct"))
+    extreme_move_days10 = int(daily.get("extreme_move_days10") or 0)
+
+    extreme_reasons = []
+    high_reasons = []
+
+    if atr_pct is not None:
+        if atr_pct > SWING_EXTREME_ATR_PCT:
+            extreme_reasons.append(
+                f"ATR {atr_pct:.1f}% > {SWING_EXTREME_ATR_PCT:.1f}% swing limit."
+            )
+        elif atr_pct >= SWING_HIGH_ATR_PCT:
+            high_reasons.append(
+                f"ATR {atr_pct:.1f}% is elevated for swing trading."
+            )
+
+    if ret1_pct is not None and abs(ret1_pct) >= SWING_EXTREME_1D_MOVE_PCT:
+        extreme_reasons.append(
+            f"1D move {ret1_pct:+.1f}% is extreme for HANZ Swing."
+        )
+
+    if gap_pct is not None:
+        if abs(gap_pct) >= SWING_EXTREME_GAP_PCT:
+            extreme_reasons.append(f"Session gap {gap_pct:+.1f}% is extreme.")
+        elif abs(gap_pct) >= SWING_HIGH_GAP_PCT:
+            high_reasons.append(f"Session gap {gap_pct:+.1f}% is elevated.")
+
+    if day_range_pct is not None and day_range_pct >= SWING_HIGH_DAY_RANGE_PCT:
+        high_reasons.append(
+            f"Daily range {day_range_pct:.1f}% is wide for a swing setup."
+        )
+
+    if extreme_move_days10 >= SWING_EXTREME_MOVE_DAYS_10:
+        extreme_reasons.append(
+            f"{extreme_move_days10} sessions moved >=±{SWING_EXTREME_1D_MOVE_PCT:.0f}% "
+            f"within the last 10 trading days."
+        )
+
+    if extreme_reasons:
+        status = "EXTREME"
+        blocked = True
+        size_multiplier = 0.0
+        warning = "EXTREME VOLATILITY — NOT SUITABLE FOR HANZ SWING"
+        reasons = extreme_reasons + high_reasons
+    elif high_reasons:
+        status = "HIGH"
+        blocked = False
+        size_multiplier = max(0.0, min(1.0, SWING_HIGH_VOL_SIZE_MULTIPLIER))
+        warning = "HIGH VOLATILITY — SWING RISK ELEVATED"
+        reasons = high_reasons
+    else:
+        status = "NORMAL"
+        blocked = False
+        size_multiplier = 1.0
+        warning = "NORMAL VOLATILITY"
+        reasons = []
+
+    return {
+        "status": status,
+        "blocked": blocked,
+        "size_multiplier": size_multiplier,
+        "warning": warning,
+        "atr_pct": atr_pct,
+        "ret1_pct": ret1_pct,
+        "gap_pct": gap_pct,
+        "day_range_pct": day_range_pct,
+        "extreme_move_days10": extreme_move_days10,
+        "reason": " ".join(reasons),
+    }
+
+
 def real_money_validation(
     ticker,
     daily,
@@ -1993,6 +2104,7 @@ def real_money_validation(
     portfolio = context.get("portfolio") or {}
     performance = context.get("performance") or {}
     liquidity = liquidity_validation(daily)
+    volatility_guard = swing_volatility_guard(daily)
     momentum_guard = result.get("momentum_guard") or momentum_damage_guard(daily)
 
     entry = safe_float(levels.get("entry_price") or daily.get("price"))
@@ -2052,6 +2164,10 @@ def real_money_validation(
         blockers.append("MOMENTUM_BROKEN")
         if momentum_guard.get("failed_breakout"):
             blockers.append("FAILED_BREAKOUT")
+    elif volatility_guard.get("blocked"):
+        gate = "BLOCKED"
+        score = 0
+        blockers.append("EXTREME_VOLATILITY")
     elif result.get("state") != "SWING_BUY":
         gate = "MONITOR"
         score = 0
@@ -2149,6 +2265,12 @@ def real_money_validation(
         if performance.get("status") == "CAUTION":
             size_multiplier *= 0.5
 
+        volatility_size_multiplier = safe_float(
+            volatility_guard.get("size_multiplier")
+        )
+        if volatility_size_multiplier is not None:
+            size_multiplier *= volatility_size_multiplier
+
         risk_budget_idr = (
             ACCOUNT_CAPITAL_IDR
             * (RISK_PER_TRADE_PCT / 100.0)
@@ -2198,6 +2320,13 @@ def real_money_validation(
         "liquidity_grade": liquidity.get("grade"),
         "liquidity_pass": liquidity.get("pass"),
         "liquidity_reason": liquidity.get("reason"),
+        "volatility_status": volatility_guard.get("status"),
+        "volatility_warning": volatility_guard.get("warning"),
+        "volatility_reason": volatility_guard.get("reason"),
+        "volatility_size_multiplier": volatility_guard.get("size_multiplier"),
+        "gap_pct": volatility_guard.get("gap_pct"),
+        "day_range_pct": volatility_guard.get("day_range_pct"),
+        "extreme_move_days10": volatility_guard.get("extreme_move_days10"),
         "momentum_guard": momentum_guard,
         "momentum_status": (
             "BROKEN" if momentum_guard.get("blocked")
@@ -4748,6 +4877,8 @@ def scan_symbol(ticker, maintenance_mode=False):
         f"/{risk_validation.get('score')} "
         f"market={risk_validation.get('market_regime')} "
         f"liq={risk_validation.get('liquidity_grade')} "
+        f"vol={risk_validation.get('volatility_status')} "
+        f"atr={risk_validation.get('atr_pct')} "
         f"lots={risk_validation.get('suggested_lots')} "
         f"entry={levels.get('entry_low')}-{levels.get('entry_high')} "
         f"T1={levels.get('target_1')} "
@@ -5024,7 +5155,9 @@ def main():
         f"Portfolio risk cap={MAX_PORTFOLIO_RISK_PCT:.2f}% | "
         f"Costs={'CONFIGURED' if (BUY_FEE_PCT >= 0 and SELL_FEE_PCT >= 0 and SLIPPAGE_PCT >= 0) else 'PENDING'} | "
         f"Trailing={TRAILING_ATR_MULTIPLIER_T1:.1f}x/"
-        f"{TRAILING_ATR_MULTIPLIER_T2:.1f}x ATR",
+        f"{TRAILING_ATR_MULTIPLIER_T2:.1f}x ATR | "
+        f"Swing volatility=HIGH>={SWING_HIGH_ATR_PCT:.1f}%/"
+        f"EXTREME>{SWING_EXTREME_ATR_PCT:.1f}% ATR",
         flush=True,
     )
 
