@@ -109,6 +109,17 @@ INTRADAY_INTERVAL = os.getenv(
 INTRADAY_PERIOD = os.getenv(
     "HANZ_SWING_INTRADAY_PERIOD", "1d"
 )
+
+# Intraday provider fallback chain.
+# Primary remains 1m/1d for the freshest quote.
+# Fallbacks are only used when the primary call returns no usable market data.
+INTRADAY_FALLBACK_CHAIN = [
+    ("1m", "5d"),
+    ("2m", "5d"),
+    ("5m", "5d"),
+    ("15m", "5d"),
+]
+
 INTRADAY_STALE_MINUTES = int(
     os.getenv("HANZ_SWING_STALE_GUARD_MINUTES", "20")
 )
@@ -561,23 +572,15 @@ def download_frame(ticker, interval, period):
     return df
 
 
-def latest_intraday_quote(ticker):
+def _quote_from_intraday_frame(df, source):
     """
-    Return latest intraday Yahoo/yfinance quote plus provider-bar timestamp.
-    A quote older than INTRADAY_STALE_MINUTES during active use is rejected.
+    Convert a usable intraday frame into the standard HANZ quote payload.
+    The caller decides which provider/interval/period produced the frame.
     """
-    df = download_frame(
-        ticker,
-        INTRADAY_INTERVAL,
-        INTRADAY_PERIOD,
-    )
-
     price = safe_float(df["Close"].iloc[-1])
     bar_ts = pd.Timestamp(df.index[-1])
 
     if bar_ts.tzinfo is None:
-        # yfinance normally returns tz-aware intraday indexes; if not,
-        # interpret the timestamp in Jakarta time rather than pretending UTC.
         bar_ts = bar_ts.tz_localize(JAKARTA_TZ)
     else:
         bar_ts = bar_ts.tz_convert(JAKARTA_TZ)
@@ -599,7 +602,120 @@ def latest_intraday_quote(ticker):
         "age_minutes": round(age_minutes, 2),
         "fresh_by_age": fresh_by_age,
         "status": "OK" if fresh_by_age else "OLD_BAR",
+        "source": source,
     }
+
+
+def _ticker_history_frame(ticker, interval, period):
+    """
+    Secondary yfinance access path.
+    Uses Ticker.history() only when yf.download() failed for the same request.
+    """
+    symbol = normalize_ticker(ticker)
+
+    df = yf.Ticker(symbol).history(
+        interval=interval,
+        period=period,
+        auto_adjust=False,
+        actions=False,
+        prepost=False,
+        raise_errors=False,
+    )
+
+    if df is None or df.empty:
+        raise RuntimeError("No market data")
+
+    if isinstance(df.columns, pd.MultiIndex):
+        df.columns = [
+            col[0] if isinstance(col, tuple)
+            else col
+            for col in df.columns
+        ]
+
+    required = ["Open", "High", "Low", "Close"]
+    if not all(col in df.columns for col in required):
+        raise RuntimeError("Missing OHLC columns")
+
+    df = df.dropna(subset=required)
+
+    if df.empty:
+        raise RuntimeError("No usable bars")
+
+    return df
+
+
+def latest_intraday_quote(ticker):
+    """
+    Return the latest intraday quote with provider-bar timestamp.
+
+    Fallback policy:
+      1) Primary: configured interval/period (normally 1m/1d)
+      2) Same 1m interval with a wider 5d window
+      3) 2m/5d
+      4) 5m/5d
+      5) 15m/5d
+      6) For each failed yf.download request, try Ticker.history()
+
+    IMPORTANT:
+    - A fallback is used only when the preceding request has NO usable bars.
+    - An OLD_BAR is still returned as a valid last trade. The existing
+      adaptive feed-health logic decides whether it may overwrite stored price.
+    - We never substitute a daily close as an intraday quote.
+    """
+    attempts = [(INTRADAY_INTERVAL, INTRADAY_PERIOD)]
+
+    for item in INTRADAY_FALLBACK_CHAIN:
+        if item not in attempts:
+            attempts.append(item)
+
+    errors = []
+
+    for interval, period in attempts:
+        # Path A: yf.download()
+        try:
+            df = download_frame(
+                ticker,
+                interval,
+                period,
+            )
+            quote = _quote_from_intraday_frame(
+                df,
+                f"YF_DOWNLOAD_{interval}_{period}",
+            )
+            quote["fallback_used"] = (
+                interval != INTRADAY_INTERVAL
+                or period != INTRADAY_PERIOD
+            )
+            quote["attempt_errors"] = errors
+            return quote
+        except Exception as exc:
+            errors.append(
+                f"download {interval}/{period}: {exc}"
+            )
+
+        # Path B: Ticker.history()
+        try:
+            df = _ticker_history_frame(
+                ticker,
+                interval,
+                period,
+            )
+            quote = _quote_from_intraday_frame(
+                df,
+                f"YF_HISTORY_{interval}_{period}",
+            )
+            quote["fallback_used"] = True
+            quote["attempt_errors"] = errors
+            return quote
+        except Exception as exc:
+            errors.append(
+                f"history {interval}/{period}: {exc}"
+            )
+
+    raise RuntimeError(
+        "No market data after intraday fallback chain | "
+        + " | ".join(errors[-6:])
+    )
 
 
 def rsi(series, period=14):
@@ -717,6 +833,18 @@ def daily_metrics(df):
     if price not in (None, 0) and atr_now is not None:
         atr_pct = atr_now / price * 100
 
+    ret1 = None
+    if len(close) >= 2:
+        base = safe_float(close.iloc[-2])
+        if base not in (None, 0) and price is not None:
+            ret1 = (price / base - 1) * 100
+
+    ret3 = None
+    if len(close) >= 4:
+        base = safe_float(close.iloc[-4])
+        if base not in (None, 0) and price is not None:
+            ret3 = (price / base - 1) * 100
+
     ret5 = None
     if len(close) >= 6:
         base = safe_float(close.iloc[-6])
@@ -726,6 +854,30 @@ def daily_metrics(df):
                 / base
                 * 100
             )
+
+    recent_high_5d = safe_float(df["High"].iloc[-5:].max()) if len(df) >= 5 else None
+    recent_high_10d = safe_float(df["High"].iloc[-10:].max()) if len(df) >= 10 else None
+    drawdown_5d_high_pct = None
+    drawdown_10d_high_pct = None
+
+    if price is not None and recent_high_5d not in (None, 0):
+        drawdown_5d_high_pct = (recent_high_5d - price) / recent_high_5d * 100
+    if price is not None and recent_high_10d not in (None, 0):
+        drawdown_10d_high_pct = (recent_high_10d - price) / recent_high_10d * 100
+
+    down_volume_ratio_5d = None
+    if len(df) >= 6:
+        recent_close = df["Close"].iloc[-5:].astype(float)
+        recent_vol = df["Volume"].iloc[-5:].astype(float)
+        prev_close_5 = df["Close"].shift(1).iloc[-5:].astype(float)
+        down_mask = recent_close.values < prev_close_5.values
+        up_mask = recent_close.values >= prev_close_5.values
+        down_vol = float(recent_vol.values[down_mask].sum()) if down_mask.any() else 0.0
+        up_vol = float(recent_vol.values[up_mask].sum()) if up_mask.any() else 0.0
+        if up_vol > 0:
+            down_volume_ratio_5d = down_vol / up_vol
+        elif down_vol > 0:
+            down_volume_ratio_5d = 99.0
 
     lookback_52w = df.iloc[-252:] if len(df) >= 252 else df
     week52_high = safe_float(lookback_52w["High"].max())
@@ -777,7 +929,14 @@ def daily_metrics(df):
         "atr_pct": safe_float(atr_pct),
         "prior_high20": prior_high20,
         "prior_low20": prior_low20,
+        "ret1_pct": safe_float(ret1),
+        "ret3_pct": safe_float(ret3),
         "ret5_pct": safe_float(ret5),
+        "recent_high_5d": safe_float(recent_high_5d),
+        "recent_high_10d": safe_float(recent_high_10d),
+        "drawdown_5d_high_pct": safe_float(drawdown_5d_high_pct),
+        "drawdown_10d_high_pct": safe_float(drawdown_10d_high_pct),
+        "down_volume_ratio_5d": safe_float(down_volume_ratio_5d),
         "ema20_slope_5d_pct": safe_float(ema20_slope_5d_pct),
         "rsi_change_5d": safe_float(rsi_change_5d),
         "volume_accel_5d": safe_float(volume_accel_5d),
@@ -916,10 +1075,100 @@ def fetch_prior_monitor(ticker):
         "GET",
         "hanz_swing_signal_monitor"
         f"?ticker=eq.{encoded}"
-        "&select=ticker,state,score,daily_bar_at,updated_at"
+        "&select=ticker,state,score,price,breakout_level,daily_bar_at,updated_at"
         "&limit=1",
     ) or []
     return rows[0] if rows else None
+
+
+
+def momentum_damage_guard(daily, prior_monitor=None):
+    """Hard veto for failed breakouts and sharp short-term deterioration."""
+    price = safe_float(daily.get("price"))
+    ema20 = safe_float(daily.get("ema20"))
+    ret1 = safe_float(daily.get("ret1_pct"))
+    ret3 = safe_float(daily.get("ret3_pct"))
+    ret5 = safe_float(daily.get("ret5_pct"))
+    dd5 = safe_float(daily.get("drawdown_5d_high_pct"))
+    dd10 = safe_float(daily.get("drawdown_10d_high_pct"))
+    down_vol_ratio = safe_float(daily.get("down_volume_ratio_5d"))
+
+    prior_state = str((prior_monitor or {}).get("state") or "").upper()
+    prior_breakout = safe_float((prior_monitor or {}).get("breakout_level"))
+    prior_price = safe_float((prior_monitor or {}).get("price"))
+
+    reasons = []
+    severe = False
+    failed_breakout = False
+
+    if (
+        price is not None
+        and prior_breakout not in (None, 0)
+        and prior_state in {"SETUP_READY", "SWING_CONFIRMING", "SWING_BUY"}
+        and price < prior_breakout * 0.98
+    ):
+        failed_breakout = True
+        severe = True
+        reasons.append(
+            f"failed breakout: price {price:.2f} is >2% below prior trigger {prior_breakout:.2f}"
+        )
+
+    if ret5 is not None and ret5 <= -8.0:
+        severe = True
+        reasons.append(f"5-day momentum damaged ({ret5:.2f}%)")
+
+    if ret3 is not None and ret3 <= -6.0:
+        severe = True
+        reasons.append(f"3-day momentum damaged ({ret3:.2f}%)")
+
+    if dd10 is not None and dd10 >= 12.0:
+        severe = True
+        reasons.append(f"{dd10:.2f}% below 10-day high")
+
+    if (
+        price is not None
+        and ema20 is not None
+        and price < ema20
+        and ret5 is not None
+        and ret5 <= -5.0
+    ):
+        severe = True
+        reasons.append("price below EMA20 while 5-day momentum is negative")
+
+    if (
+        ret1 is not None
+        and ret1 <= -5.0
+        and down_vol_ratio is not None
+        and down_vol_ratio >= 1.5
+    ):
+        severe = True
+        reasons.append(
+            f"heavy downside pressure: 1D {ret1:.2f}% / down-volume ratio {down_vol_ratio:.2f}x"
+        )
+
+    caution = False
+    if not severe:
+        if ret5 is not None and ret5 <= -4.0:
+            caution = True
+            reasons.append(f"5-day momentum weakening ({ret5:.2f}%)")
+        if dd5 is not None and dd5 >= 7.0:
+            caution = True
+            reasons.append(f"{dd5:.2f}% below 5-day high")
+
+    return {
+        "blocked": severe,
+        "caution": caution,
+        "failed_breakout": failed_breakout,
+        "reasons": reasons,
+        "ret1_pct": ret1,
+        "ret3_pct": ret3,
+        "ret5_pct": ret5,
+        "drawdown_5d_high_pct": dd5,
+        "drawdown_10d_high_pct": dd10,
+        "down_volume_ratio_5d": down_vol_ratio,
+        "prior_breakout_level": prior_breakout,
+        "prior_price": prior_price,
+    }
 
 
 def apply_early_state_and_reconfirmation(
@@ -947,6 +1196,10 @@ def apply_early_state_and_reconfirmation(
         and bool(base_result.get("breakout"))
         and base_result.get("weekly_trend") == "BULLISH"
     )
+
+    momentum_guard = momentum_damage_guard(daily, prior_monitor)
+    if momentum_guard.get("blocked"):
+        raw_buy = False
 
     distance = safe_float(daily.get("breakout_distance_pct"))
     state = "NO_SETUP"
@@ -981,8 +1234,27 @@ def apply_early_state_and_reconfirmation(
         else:
             state = "SETUP_READY"
 
+    if momentum_guard.get("blocked"):
+        state = "MOMENTUM_BROKEN"
+    elif momentum_guard.get("caution") and state == "SWING_BUY":
+        state = "SETUP_READY"
+
     evidence = list(base_result.get("evidence") or [])
     evidence.extend(f"EARLY:{x}" for x in early["evidence"])
+
+    if momentum_guard.get("blocked"):
+        evidence.extend(
+            f"MOMENTUM_GUARD: {reason}"
+            for reason in momentum_guard.get("reasons", [])
+        )
+        evidence.append(
+            "FINAL_ACTION: BUY blocked until a fresh setup is reconfirmed"
+        )
+    elif momentum_guard.get("caution"):
+        evidence.extend(
+            f"MOMENTUM_CAUTION: {reason}"
+            for reason in momentum_guard.get("reasons", [])
+        )
 
     if raw_buy and state != "SWING_BUY":
         evidence.append(
@@ -999,6 +1271,12 @@ def apply_early_state_and_reconfirmation(
     out["early_evidence"] = early["evidence"]
     out["raw_buy_gate"] = raw_buy
     out["reconfirmed"] = state == "SWING_BUY"
+    out["momentum_guard"] = momentum_guard
+    out["final_action"] = (
+        "AVOID"
+        if state == "MOMENTUM_BROKEN"
+        else ("BUY" if state == "SWING_BUY" else "WAIT")
+    )
     out["evidence"] = evidence
     return out
 
@@ -1715,6 +1993,7 @@ def real_money_validation(
     portfolio = context.get("portfolio") or {}
     performance = context.get("performance") or {}
     liquidity = liquidity_validation(daily)
+    momentum_guard = result.get("momentum_guard") or momentum_damage_guard(daily)
 
     entry = safe_float(levels.get("entry_price") or daily.get("price"))
     stop = safe_float(levels.get("stop_loss"))
@@ -1767,7 +2046,13 @@ def real_money_validation(
     blockers = []
     cautions = []
 
-    if result.get("state") != "SWING_BUY":
+    if momentum_guard.get("blocked"):
+        gate = "BLOCKED"
+        score = 0
+        blockers.append("MOMENTUM_BROKEN")
+        if momentum_guard.get("failed_breakout"):
+            blockers.append("FAILED_BREAKOUT")
+    elif result.get("state") != "SWING_BUY":
         gate = "MONITOR"
         score = 0
     else:
@@ -1913,6 +2198,17 @@ def real_money_validation(
         "liquidity_grade": liquidity.get("grade"),
         "liquidity_pass": liquidity.get("pass"),
         "liquidity_reason": liquidity.get("reason"),
+        "momentum_guard": momentum_guard,
+        "momentum_status": (
+            "BROKEN" if momentum_guard.get("blocked")
+            else ("WEAKENING" if momentum_guard.get("caution") else "HEALTHY")
+        ),
+        "failed_breakout": bool(momentum_guard.get("failed_breakout")),
+        "ret1_pct": momentum_guard.get("ret1_pct"),
+        "ret3_pct": momentum_guard.get("ret3_pct"),
+        "ret5_pct": momentum_guard.get("ret5_pct"),
+        "drawdown_5d_high_pct": momentum_guard.get("drawdown_5d_high_pct"),
+        "drawdown_10d_high_pct": momentum_guard.get("drawdown_10d_high_pct"),
         "avg_value20": liquidity.get("avg_value20"),
         "median_value20": liquidity.get("median_value20"),
         "zero_volume_days20": liquidity.get("zero_volume_days20"),
@@ -3886,6 +4182,8 @@ def refresh_swing_buy_intraday_prices():
             "bar_at": q["bar_at"],
             "feed_status": feed_status,
             "updated": allow_update,
+            "source": q.get("source"),
+            "fallback_used": q.get("fallback_used", False),
         })
 
         if status == "OK":
@@ -3893,7 +4191,9 @@ def refresh_swing_buy_intraday_prices():
                 f"SWING QUOTE {clean} "
                 f"price={price_value} "
                 f"age={age:.1f}m "
-                f"bar={q['bar_at']} OK",
+                f"bar={q['bar_at']} "
+                f"source={q.get('source')} "
+                f"fallback={q.get('fallback_used', False)} OK",
                 flush=True,
             )
         elif status == "LAST_TRADE":
@@ -3901,7 +4201,9 @@ def refresh_swing_buy_intraday_prices():
                 f"SWING QUOTE {clean} "
                 f"price={price_value} "
                 f"age={age:.1f}m "
-                f"bar={q['bar_at']} LAST_TRADE "
+                f"bar={q['bar_at']} "
+                f"source={q.get('source')} "
+                f"fallback={q.get('fallback_used', False)} LAST_TRADE "
                 f"| feed={feed_status}; price accepted.",
                 flush=True,
             )
@@ -3910,6 +4212,8 @@ def refresh_swing_buy_intraday_prices():
                 f"SWING QUOTE {clean} STALE_FEED "
                 f"age={age:.1f}m "
                 f"bar={q['bar_at']} "
+                f"source={q.get('source')} "
+                f"fallback={q.get('fallback_used', False)} "
                 f"| feed={feed_status}; stored price NOT overwritten.",
                 flush=True,
             )
@@ -4615,6 +4919,7 @@ def run_cycle():
 
     counts = {
         "SWING_BUY": 0,
+        "MOMENTUM_BROKEN": 0,
         "SETUP_READY": 0,
         "PRE_ALERT": 0,
         "EARLY_WATCH": 0,
@@ -4665,6 +4970,7 @@ def main():
         f"Early radar=ON | Reconfirm BUY=NEW DAILY BAR | "
         f"Chart backend=SUPABASE/{CHART_LOOKBACK_BARS} completed bars | "
         f"Real-money guard={'ON' if RISK_LIVE_GATE_ENABLED else 'OFF'} | "
+        f"Intraday fallback=ON | "
         f"Risk/trade={RISK_PER_TRADE_PCT:.2f}% | "
         f"Portfolio risk cap={MAX_PORTFOLIO_RISK_PCT:.2f}% | "
         f"Costs={'CONFIGURED' if (BUY_FEE_PCT >= 0 and SELL_FEE_PCT >= 0 and SLIPPAGE_PCT >= 0) else 'PENDING'} | "
