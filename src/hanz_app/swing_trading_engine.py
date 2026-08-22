@@ -471,6 +471,12 @@ def normalize_ticker(ticker):
     ticker = str(ticker or "").strip().upper()
     if not ticker:
         return None
+
+    # Yahoo index symbols are already complete symbols.
+    # Example: IDX Composite is ^JKSE, NOT ^JKSE.JK.
+    if ticker.startswith("^"):
+        return ticker
+
     if not ticker.endswith(".JK"):
         ticker += ".JK"
     return ticker
@@ -2062,6 +2068,7 @@ def market_regime_context():
             "regime": regime,
             "score": score,
             "size_multiplier": multiplier,
+            "benchmark": normalize_ticker(MARKET_REGIME_TICKER),
             "price": price,
             "ema20": ema20,
             "ema50": ema50,
@@ -2077,6 +2084,7 @@ def market_regime_context():
             "regime": "UNKNOWN",
             "score": 0,
             "size_multiplier": 0.0,
+            "benchmark": normalize_ticker(MARKET_REGIME_TICKER),
             "reason": f"Market regime unavailable: {exc}",
         }
 
@@ -5636,7 +5644,8 @@ def main():
         f"Trailing={TRAILING_ATR_MULTIPLIER_T1:.1f}x/"
         f"{TRAILING_ATR_MULTIPLIER_T2:.1f}x ATR | "
         f"Swing volatility=HIGH>={SWING_HIGH_ATR_PCT:.1f}%/"
-        f"EXTREME>{SWING_EXTREME_ATR_PCT:.1f}% ATR",
+        f"EXTREME>{SWING_EXTREME_ATR_PCT:.1f}% ATR | "
+        f"Market benchmark={normalize_ticker(MARKET_REGIME_TICKER)}",
         flush=True,
     )
 
