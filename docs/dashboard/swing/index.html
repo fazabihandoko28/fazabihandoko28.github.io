@@ -1787,9 +1787,18 @@ function radarStageLabel(state){
     "RADAR_PRE_ALERT":"Predictive pre-alert",
     "SETUP_READY":"Setup ready — waiting reconfirmation",
     "RADAR_ARMED":"Radar armed — waiting completed-bar reconfirmation",
-    "SWING_BUY":"Reconfirmed actionable signal",
+    "SWING_BUY":"Technical reconfirmation complete",
     "MOMENTUM_BROKEN":"Setup invalidated"
   }[String(state || "").toUpperCase()] || String(state || "UNKNOWN").replaceAll("_"," ");
+}
+
+// V33: prevent a raw SWING_BUY engine state from being presented as an actionable BUY
+// when the final risk gate has not cleared it.
+function displaySignalStateLabel(row){
+  const state=String(row?.state || "").toUpperCase();
+  const decision=finalDecision(row);
+  if(state==="SWING_BUY" && decision.label!=="BUY") return "TECHNICALLY RECONFIRMED";
+  return signalStateLabel(state);
 }
 
 function signalStateRank(state){
@@ -1874,6 +1883,9 @@ function finalDecision(row){
   }
   if(state==="SWING_BUY" && ["BLOCKED","PAPER_ONLY"].includes(gate)){
     return {label:"NO BUY",cls:"state-broken",detail:`Risk gate ${gate}`};
+  }
+  if(state==="SWING_BUY"){
+    return {label:"WATCH",cls:"state-pre",detail:`Technical reconfirmation complete; waiting final risk clearance (${gate})`};
   }
   if(state==="SETUP_READY"){
     return {label:"WAIT",cls:"state-ready",detail:"Setup ready; reconfirmation required"};
@@ -2028,13 +2040,20 @@ async function loadWatchlist(){
     const top=confirmed[0] || topRadar || nonBroken[0] || rows[0];
     const topDecision=finalDecision(top);
     $("topCandidate").textContent=top.ticker;
+    const topState=String(top?.state || "").toUpperCase();
+    const topGate=String(top?.risk_gate || top?.risk_validation?.gate || "MONITOR").toUpperCase();
+    const topIsTechnicallyReconfirmed=topState==="SWING_BUY" && !confirmed.includes(top);
     $("topCandidateSub").textContent=confirmed.includes(top)
       ? `RECONFIRMED ${topDecision.label} · Score ${top.score ?? "—"}/10`
-      : `${radarStageLabel(top.state)} · Progress ${radarProgress(top.state)}% · Score ${top.score ?? "—"}/10 · NOT YET ACTIONABLE`;
+      : topIsTechnicallyReconfirmed
+        ? `Technical reconfirmation complete · Final ${topDecision.label} · Risk ${topGate} · Score ${top.score ?? "—"}/10 · NOT YET ACTIONABLE`
+        : `${radarStageLabel(top.state)} · Progress ${radarProgress(top.state)}% · Score ${top.score ?? "—"}/10 · NOT YET ACTIONABLE`;
     $("heroTopCandidate").textContent=top.ticker;
     $("heroTopSub").textContent=confirmed.includes(top)
       ? `RECONFIRMED ${topDecision.label} · Swing ${top.score ?? "—"}/10 · Risk ${top.risk_gate || "MONITOR"} · Discount ${top.discount_score==null?"PENDING":Number(top.discount_score).toFixed(0)+"/100"} · Fundamental ${top.fundamental_score==null?"PENDING":Number(top.fundamental_score).toFixed(0)+"/100"}`
-      : `${radarStageLabel(top.state)} · ${radarProgress(top.state)}% toward reconfirmation · Risk ${top.risk_gate || "MONITOR"} · NOT A BUY SIGNAL`;
+      : topIsTechnicallyReconfirmed
+        ? `Technical reconfirmation complete · Final risk clearance pending (${topGate}) · FINAL ${topDecision.label} · NOT A BUY SIGNAL`
+        : `${radarStageLabel(top.state)} · ${radarProgress(top.state)}% toward reconfirmation · Risk ${top.risk_gate || "MONITOR"} · NOT A BUY SIGNAL`;
     $("lastUpdate").textContent=formatTime(top.updated_at);
     $("lastUpdateDate").textContent=`${formatDate(top.updated_at)} · Last HANZ signal update`;
   }else{
@@ -2063,7 +2082,7 @@ function renderRanking(rows){
     const decision=finalDecision(row);
     return `<div class="rank">
       <div class="rank-no">#${index+1}</div>
-      <div class="rank-symbol">${safe(row.ticker)}<div style="margin-top:3px"><span class="state-chip ${decision.cls}">FINAL ${safe(decision.label)}</span> <span class="state-chip ${signalStateClass(row.state)}">${safe(signalStateLabel(row.state))}</span></div></div>
+      <div class="rank-symbol">${safe(row.ticker)}<div style="margin-top:3px"><span class="state-chip ${decision.cls}">FINAL ${safe(decision.label)}</span> <span class="state-chip ${signalStateClass(row.state)}">${safe(displaySignalStateLabel(row))}</span></div></div>
       <div class="rank-track"><div style="width:${score*10}%"></div></div>
       <div class="rank-score">Setup ${score}/10 · ${safe(row.risk_gate || "MONITOR")} · R${row.risk_score ?? "—"}${volatilityInfo(row).status!=="NORMAL" ? ` · VOL ${safe(volatilityInfo(row).status)}` : ""}</div>
     </div>`;
@@ -2094,7 +2113,7 @@ function renderOpportunities(rows){
       </div>
       <div style="margin-top:9px">
         <span class="state-chip ${decision.cls}">FINAL ${safe(decision.label)}</span>
-        <span class="state-chip ${signalStateClass(row.state)}">${safe(signalStateLabel(row.state))}</span>
+        <span class="state-chip ${signalStateClass(row.state)}">${safe(displaySignalStateLabel(row))}</span>
         <span class="state-chip state-buy">${safe((row.discount_label || "DISCOUNT N/A").replaceAll("_"," "))}</span>
       </div>
       <div class="levels">
@@ -2133,7 +2152,7 @@ function renderLiveSignalMonitor(rows){
         </div>
         <div>
           <span class="state-chip ${decision.cls}">FINAL ${safe(decision.label)}</span>
-          <span class="state-chip ${signalStateClass(row.state)}">${safe(signalStateLabel(row.state))}</span>
+          <span class="state-chip ${signalStateClass(row.state)}">${safe(displaySignalStateLabel(row))}</span>
         </div>
       </div>
       ${volatilityWarningHtml(row)}
@@ -2470,7 +2489,7 @@ async function openHanzChart(ticker){
 
   $("chartTicker").textContent=String(ticker || "—").toUpperCase();
   $("chartSubtitle").textContent=
-    `${signalStateLabel(row.state)} · Completed Daily Candles · HANZ Direct Renderer`;
+    `${displaySignalStateLabel(row)} · Completed Daily Candles · HANZ Direct Renderer`;
 
   $("chartLevelChips").innerHTML=[
     ["Current (Intraday/Last Trade)",price(row.price)],
@@ -2533,7 +2552,7 @@ async function openHanzChart(ticker){
     volumeLegend.style.display="flex";
 
     $("chartSubtitle").textContent=
-      `${signalStateLabel(row.state)} · Completed Daily Candles through ${chartPayload.sourceBarAt} · EMA20 / EMA50 · Volume`;
+      `${displaySignalStateLabel(row)} · Completed Daily Candles through ${chartPayload.sourceBarAt} · EMA20 / EMA50 · Volume`;
 
   }catch(error){
     console.error("HANZ direct chart error:",error);
