@@ -538,5 +538,55 @@
     "source": "YAHOO_FINANCE_RESEARCH_ONLY",
     "recorded_at": "2026-08-21T15:07:02.074378+00:00",
     "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "ADRO",
+    "status": "READY",
+    "signal_timestamp": "2026-08-24T00:00:00+00:00",
+    "signal_close": 2630.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-08-24T15:25:10.321579+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "TOWR",
+    "status": "READY",
+    "signal_timestamp": "2026-08-24T00:00:00+00:00",
+    "signal_close": 456.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-08-24T15:25:10.321609+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "AADI",
+    "status": "READY",
+    "signal_timestamp": "2026-08-24T00:00:00+00:00",
+    "signal_close": 10250.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-08-24T15:25:10.321621+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "TINS",
+    "status": "WAIT",
+    "signal_timestamp": "2026-08-24T00:00:00+00:00",
+    "signal_close": 4130.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-08-24T15:25:10.321631+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "SRTG",
+    "status": "WAIT",
+    "signal_timestamp": "2026-08-24T00:00:00+00:00",
+    "signal_close": 1935.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-08-24T15:25:10.321640+00:00",
+    "outcome": "PENDING"
   }
 ]
