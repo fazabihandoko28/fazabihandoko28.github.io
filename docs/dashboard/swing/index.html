@@ -2032,6 +2032,110 @@ function riskHtml(row){
 }
 
 
+/* V35 — BUY QUALITY RANKING
+   Top 5 is no longer "highest radar progress".
+   It ranks only candidates that still have credible BUY-quality evidence.
+   Hard-risk / broken-momentum names are excluded. Ranking is deterministic. */
+function hanzBuyQuality(row){
+  const state=String(row?.state || "").toUpperCase();
+  const r=(row && row.risk_validation && typeof row.risk_validation==="object")
+    ? row.risk_validation : {};
+  const gate=String(row?.risk_gate || r.gate || "MONITOR").toUpperCase();
+  const momentum=String(r.momentum_status || "").toUpperCase();
+  const volatility=String(r.volatility_status || volatilityInfo(row).status || "NORMAL").toUpperCase();
+  const setup=Math.max(0,Math.min(10,Number(row?.score || 0)));
+
+  // Hard veto: these must never occupy Top BUY Candidates.
+  if(state==="MOMENTUM_BROKEN" || momentum==="BROKEN")
+    return {qualified:false,total:0,reason:"Momentum broken"};
+  if(["BLOCKED","PAPER_ONLY"].includes(gate))
+    return {qualified:false,total:0,reason:`Risk ${gate}`};
+  if(volatility==="EXTREME")
+    return {qualified:false,total:0,reason:"Extreme volatility"};
+  if(r.failed_breakout===true)
+    return {qualified:false,total:0,reason:"Failed breakout"};
+
+  let total=0;
+  const parts={};
+
+  // Technical setup: 0–35
+  parts.setup=Math.round(setup*3.5);
+  total+=parts.setup;
+
+  // Signal maturity: 0–20
+  parts.maturity={
+    "SWING_BUY":20,
+    "RADAR_ARMED":17,
+    "SETUP_READY":15,
+    "RADAR_PRE_ALERT":11,
+    "PRE_ALERT":9,
+    "RADAR_WATCH":6,
+    "EARLY_WATCH":4
+  }[state] || 0;
+  total+=parts.maturity;
+
+  // Risk clearance: 0–15
+  parts.risk={ELIGIBLE:15,CAUTION:10,MONITOR:5}[gate] || 0;
+  total+=parts.risk;
+
+  // Daily + weekly trend: 0–10
+  parts.trend=0;
+  if(String(row?.daily_trend || "").toUpperCase()==="BULLISH") parts.trend+=5;
+  if(String(row?.weekly_trend || "").toUpperCase()==="BULLISH") parts.trend+=5;
+  total+=parts.trend;
+
+  // Breakout + momentum: 0–10
+  parts.momentum=0;
+  if(row?.breakout===true || r.breakout===true || r.breakout_confirmed===true) parts.momentum+=5;
+  if(["STRONG","BULLISH","HEALTHY","CONFIRMED"].includes(momentum)) parts.momentum+=5;
+  total+=parts.momentum;
+
+  // Liquidity: 0–5
+  const liq=String(r.liquidity_grade || "").toUpperCase();
+  parts.liquidity={"A+":5,A:5,"B+":4,B:3,C:1}[liq] || 0;
+  total+=parts.liquidity;
+
+  // Reward/risk: 0–5
+  const rr=Math.max(
+    Number(r.net_rr_target_1 || 0),
+    Number(r.rr_target_1 || 0),
+    Number(r.net_rr_target_2 || 0),
+    Number(r.rr_target_2 || 0)
+  );
+  parts.rr=rr>=2.5 ? 5 : rr>=2 ? 4 : rr>=1.5 ? 3 : rr>=1.2 ? 1 : 0;
+  total+=parts.rr;
+
+  total=Math.max(0,Math.min(100,Math.round(total)));
+
+  // Strong-candidate gate. A mature setup can qualify at 65;
+  // very early radar names need genuinely high technical quality.
+  const mature=["SWING_BUY","RADAR_ARMED","SETUP_READY"].includes(state);
+  const qualified=(mature && setup>=7 && total>=65) || (!mature && setup>=8 && total>=72);
+
+  return {qualified,total,parts,reason:qualified ? "Strong BUY-quality candidate" : "Below Top-5 BUY-quality threshold"};
+}
+
+function hanzBuyCompare(a,b){
+  const qa=hanzBuyQuality(a), qb=hanzBuyQuality(b);
+  if(qb.total!==qa.total) return qb.total-qa.total;
+
+  // Deterministic tie-breakers: actionable decision, setup, risk, then ticker.
+  const fd=finalDecisionRank(b)-finalDecisionRank(a);
+  if(fd) return fd;
+  const ss=Number(b?.score || 0)-Number(a?.score || 0);
+  if(ss) return ss;
+  const rg={ELIGIBLE:3,CAUTION:2,MONITOR:1,BLOCKED:0,PAPER_ONLY:0};
+  const ga=String(a?.risk_gate || a?.risk_validation?.gate || "MONITOR").toUpperCase();
+  const gb=String(b?.risk_gate || b?.risk_validation?.gate || "MONITOR").toUpperCase();
+  if((rg[gb]||0)!==(rg[ga]||0)) return (rg[gb]||0)-(rg[ga]||0);
+  return String(a?.ticker || "").localeCompare(String(b?.ticker || ""));
+}
+
+function buyQualitySummary(row){
+  const q=hanzBuyQuality(row);
+  return `BUY Quality ${q.total}/100`;
+}
+
 async function loadWatchlist(){
   const {data,error}=await supabase
     .from("hanz_swing_signal_monitor")
@@ -2041,15 +2145,11 @@ async function loadWatchlist(){
     .order("updated_at",{ascending:false});
   if(error) throw error;
 
-  const allRows=(data || []).sort((a,b)=>{
-    const rp=radarProgress(b.state)-radarProgress(a.state);
-    if(rp) return rp;
-    const fr=finalDecisionRank(b)-finalDecisionRank(a);
-    if(fr) return fr;
-    const sr=signalStateRank(b.state)-signalStateRank(a.state);
-    if(sr) return sr;
-    return Number(b.score || 0)-Number(a.score || 0);
-  });
+  const allRows=(data || []).slice().sort(hanzBuyCompare);
+
+  // V35: the public Top 5 is restricted to strong BUY-quality candidates.
+  // If fewer than five qualify, HANZ shows fewer rather than filling the list with weak names.
+  const strongRows=allRows.filter(row=>hanzBuyQuality(row).qualified).slice(0,5);
 
   const confirmed=allRows.filter(row=>{
     const state=String(row?.state || "").toUpperCase();
@@ -2061,7 +2161,7 @@ async function loadWatchlist(){
   });
 
   const radarRows=allRows.filter(row=>String(row?.state || "").toUpperCase()!=="SWING_BUY");
-  const rows=allRows;
+  const rows=strongRows;
 
   window.__hanzSignalRows=rows;
   window.__hanzConfirmedRows=confirmed;
@@ -2069,11 +2169,8 @@ async function loadWatchlist(){
   $("opportunityCount").textContent=confirmed.length;
 
   if(rows.length){
-    const nonBroken=rows.filter(r=>r.state!=="MOMENTUM_BROKEN");
-    const topRadar=radarRows
-      .filter(r=>r.state!=="MOMENTUM_BROKEN")
-      .sort((a,b)=>radarProgress(b.state)-radarProgress(a.state))[0];
-    const top=confirmed[0] || topRadar || nonBroken[0] || rows[0];
+    // V35: #1 is the highest BUY-quality candidate, not the newest timestamp/radar state.
+    const top=rows[0];
     const topDecision=finalDecision(top);
     $("topCandidate").textContent=top.ticker;
     const topState=String(top?.state || "").toUpperCase();
@@ -2094,9 +2191,9 @@ async function loadWatchlist(){
     $("lastUpdateDate").textContent=`${formatDate(top.updated_at)} · Last HANZ signal update`;
   }else{
     $("topCandidate").textContent="—";
-    $("topCandidateSub").textContent="No confirmed BUY yet — radar progress remains visible below";
+    $("topCandidateSub").textContent="No candidate currently clears the HANZ Top-5 BUY-quality threshold";
     $("heroTopCandidate").textContent="—";
-    $("heroTopSub").textContent="HANZ radar is working; candidates remain visible as progress until reconfirmed";
+    $("heroTopSub").textContent="HANZ is scanning, but no stock currently has strong enough combined BUY indicators";
   }
 
   renderRanking(rows);
@@ -2110,17 +2207,18 @@ function renderRanking(rows){
     return;
   }
 
-  // STRICT TOP 5: only the five highest-priority radar candidates are ever shown.
+  // V35: rows is already a deterministic strong BUY-quality Top 5.
   const visibleRows=rows.slice(0,5);
 
   const rankingHtml=visibleRows.map((row,index)=>{
     const score=Math.max(0,Math.min(10,Number(row.score || 0)));
     const decision=finalDecision(row);
+    const quality=hanzBuyQuality(row);
     return `<div class="rank">
       <div class="rank-no">#${index+1}</div>
       <div class="rank-symbol">${safe(row.ticker)}<div style="margin-top:3px"><span class="state-chip ${decision.cls}">FINAL ${safe(decision.label)}</span> <span class="state-chip ${signalStateClass(row.state)}">${safe(displaySignalStateLabel(row))}</span></div></div>
-      <div class="rank-track"><div style="width:${score*10}%"></div></div>
-      <div class="rank-score">Setup ${score}/10 · ${safe(row.risk_gate || "MONITOR")} · R${row.risk_score ?? "—"}${volatilityInfo(row).status!=="NORMAL" ? ` · VOL ${safe(volatilityInfo(row).status)}` : ""}</div>
+      <div class="rank-track"><div style="width:${quality.total}%"></div></div>
+      <div class="rank-score">BUY ${quality.total}/100 · Setup ${score}/10 · ${safe(row.risk_gate || "MONITOR")}${volatilityInfo(row).status!=="NORMAL" ? ` · VOL ${safe(volatilityInfo(row).status)}` : ""}</div>
     </div>`;
   }).join("");
 
@@ -2141,11 +2239,10 @@ function renderOpportunities(rows){
           <div class="op-symbol">${safe(row.ticker)}</div>
           <div class="op-source">HANZ SWING ENGINE · RADAR PROGRESS → COMPLETED-BAR RECONFIRMATION → ACTIONABLE BUY</div>
 <div style="margin-top:8px;padding:10px 12px;border:1px solid rgba(255,255,255,.12);border-radius:12px;font-size:12px;line-height:1.45">
-  <strong>Radar Progress:</strong> Early Watch → Pre-Alert → Setup Ready / Radar Armed → Reconfirmed BUY.
-  Kandidat radar adalah <strong>progress kerja HANZ, bukan sinyal beli</strong>. Dashboard hanya menampilkan <strong>Top 5</strong> kandidat radar. Hanya RECONFIRMED BUY yang actionable.
+  <strong>Top-5 Rule:</strong> hanya saham dengan kombinasi indikator BUY terkuat yang lolos quality gate. Ranking mempertimbangkan setup, maturity, risk gate, trend, breakout/momentum, liquidity dan reward/risk. <strong>Ranking tinggi bukan otomatis BUY</strong>; hanya FINAL BUY yang actionable.
 </div>
         </div>
-        <div class="priority-ring">${row.score ?? "—"}</div>
+        <div class="priority-ring">${hanzBuyQuality(row).total}</div>
       </div>
       <div style="margin-top:9px">
         <span class="state-chip ${decision.cls}">FINAL ${safe(decision.label)}</span>
@@ -2158,7 +2255,7 @@ function renderOpportunities(rows){
         <div class="level"><span>STOP LOSS</span><strong>${price(row.stop_loss)}</strong></div>
         <div class="level target"><span>DYNAMIC T1</span><strong>${price(row.target_1)}</strong></div>
         <div class="level target"><span>DYNAMIC T2</span><strong>${price(row.target_2)}</strong></div>
-        <div class="level confirm"><span>QUALITY</span><strong>Swing ${row.score ?? "—"}/10 · D${row.discount_score==null?"—":Number(row.discount_score).toFixed(0)} · F${row.fundamental_score==null?"—":Number(row.fundamental_score).toFixed(0)}</strong></div>
+        <div class="level confirm"><span>BUY QUALITY</span><strong>${hanzBuyQuality(row).total}/100 · Swing ${row.score ?? "—"}/10 · D${row.discount_score==null?"—":Number(row.discount_score).toFixed(0)} · F${row.fundamental_score==null?"—":Number(row.fundamental_score).toFixed(0)}</strong></div>
       </div>
       ${volatilityWarningHtml(row)}
       ${decisionGuidanceHtmlSafe(row)}
