@@ -610,7 +610,7 @@ th{color:var(--muted)}
     </div>
 
     <div class="hero-top">
-      <span>CURRENT TOP SWING CANDIDATE</span>
+      <span>CURRENT TOP CONFIRMED BUY</span>
       <strong id="heroTopCandidate">—</strong>
       <small id="heroTopSub">Waiting for HANZ scan</small>
     </div>
@@ -2060,121 +2060,125 @@ function hanzBuyQuality(row){
   const volatility=String(r.volatility_status || volatilityInfo(row).status || "NORMAL").toUpperCase();
   const setup=Math.max(0,Math.min(10,Number(row?.score || 0)));
 
-  // Hard vetoes: never allow these into Top 5 BUY candidates.
-  if(state==="MOMENTUM_BROKEN" || momentum==="BROKEN")
-    return {qualified:false,total:0,coverage:0,reason:"Momentum broken"};
-  if(["BLOCKED","PAPER_ONLY"].includes(gate))
-    return {qualified:false,total:0,coverage:0,reason:`Risk ${gate}`};
-  if(volatility==="EXTREME")
-    return {qualified:false,total:0,coverage:0,reason:"Extreme volatility"};
-  if(r.failed_breakout===true)
-    return {qualified:false,total:0,coverage:0,reason:"Failed breakout"};
+  const rvol=Number(row?.daily_rvol);
+  const turnover=Number(row?.turnover_value);
+  const dayRet=Number(row?.day_return_pct);
+  const closePos=Number(row?.close_position_pct);
+  const breakout=Boolean(row?.breakout);
 
-  let earned=0;
-  let possible=0;
+  // HARD MARKET-QUALITY VETOES.
+  if(state==="MOMENTUM_BROKEN" || momentum==="BROKEN")
+    return {qualified:false,total:0,coverage:100,reason:"Momentum broken"};
+  if(["BLOCKED","PAPER_ONLY"].includes(gate))
+    return {qualified:false,total:0,coverage:100,reason:`Risk ${gate}`};
+  if(volatility==="EXTREME")
+    return {qualified:false,total:0,coverage:100,reason:"Extreme volatility"};
+  if(r.failed_breakout===true)
+    return {qualified:false,total:0,coverage:100,reason:"Failed breakout"};
+
+  // Absolute liquidity guard. Rp 1B daily turnover is the minimum for Top-5 swing candidates.
+  if(Number.isFinite(turnover) && turnover < 1_000_000_000)
+    return {qualified:false,total:0,coverage:100,reason:"Daily turnover below Rp1B"};
+
+  // Strong same-day deterioration is not a Top-5 BUY candidate.
+  if(Number.isFinite(dayRet) && dayRet <= -2.0)
+    return {qualified:false,total:0,coverage:100,reason:"Current-day deterioration <= -2%"};
+
+  let earned=0, possible=0;
   const parts={};
 
-  // 1) Setup quality — always available, 40 pts.
-  possible+=40;
-  parts.setup=Math.round((setup/10)*40);
+  // Technical setup: 0-30.
+  possible+=30;
+  parts.setup=Math.round((setup/10)*30);
   earned+=parts.setup;
 
-  // 2) Signal maturity — always available, 20 pts.
-  possible+=20;
+  // Signal maturity: 0-15.
+  possible+=15;
   parts.maturity={
-    "SWING_BUY":20,
-    "SWING_CONFIRMING":18,
-    "RADAR_ARMED":17,
-    "SETUP_READY":15,
-    "SWING_WATCH":12,
-    "RADAR_PRE_ALERT":12,
-    "PRE_ALERT":10,
-    "RADAR_WATCH":7,
-    "EARLY_WATCH":5
+    "SWING_BUY":15,
+    "SWING_CONFIRMING":13,
+    "RADAR_ARMED":12,
+    "SETUP_READY":11,
+    "SWING_WATCH":9,
+    "RADAR_PRE_ALERT":8,
+    "PRE_ALERT":7,
+    "RADAR_WATCH":5,
+    "EARLY_WATCH":4
   }[state] || 0;
   earned+=parts.maturity;
 
-  // 3) Risk gate — always available, 15 pts.
-  possible+=15;
-  parts.risk={ELIGIBLE:15,CAUTION:11,MONITOR:7}[gate] || 0;
+  // Risk gate: 0-10.
+  possible+=10;
+  parts.risk={ELIGIBLE:10,CAUTION:7,MONITOR:4}[gate] || 0;
   earned+=parts.risk;
 
-  // 4) Trend — score only when fields exist (do NOT punish missing data).
+  // Relative volume: 0-15, only if available.
+  parts.rvol=0;
+  if(Number.isFinite(rvol)){
+    possible+=15;
+    const pts=rvol>=2.0?15:rvol>=1.5?13:rvol>=1.2?11:rvol>=1.0?8:rvol>=0.8?5:2;
+    parts.rvol=pts; earned+=pts;
+  }
+
+  // Current-day price action: 0-10.
+  parts.day=0;
+  if(Number.isFinite(dayRet)){
+    possible+=10;
+    const pts=dayRet>=4?10:dayRet>=2?9:dayRet>=1?7:dayRet>=0?5:dayRet>-2?2:0;
+    parts.day=pts; earned+=pts;
+  }
+
+  // Close quality: 0-10. Reward closes near the high.
+  parts.close=0;
+  if(Number.isFinite(closePos)){
+    possible+=10;
+    const pts=closePos>=85?10:closePos>=70?8:closePos>=50?6:closePos>=30?3:1;
+    parts.close=pts; earned+=pts;
+  }
+
+  // Trend: 0-5 each when available.
   parts.trend=0;
   const daily=String(row?.daily_trend || "").toUpperCase();
   const weekly=String(row?.weekly_trend || "").toUpperCase();
   if(daily){
     possible+=5;
-    if(daily==="BULLISH") { parts.trend+=5; earned+=5; }
-    else if(daily==="NEUTRAL") { parts.trend+=2; earned+=2; }
+    const pts=daily==="BULLISH"?5:daily==="NEUTRAL"?2:0;
+    parts.trend+=pts; earned+=pts;
   }
   if(weekly){
     possible+=5;
-    if(weekly==="BULLISH") { parts.trend+=5; earned+=5; }
-    else if(weekly==="NEUTRAL") { parts.trend+=2; earned+=2; }
+    const pts=weekly==="BULLISH"?5:weekly==="NEUTRAL"?2:0;
+    parts.trend+=pts; earned+=pts;
   }
 
-  // 5) Breakout evidence — only if field is present.
-  parts.breakout=0;
-  const breakoutKnown =
-    typeof row?.breakout==="boolean" ||
-    typeof r.breakout==="boolean" ||
-    typeof r.breakout_confirmed==="boolean";
-  if(breakoutKnown){
-    possible+=5;
-    const br = row?.breakout===true || r.breakout===true || r.breakout_confirmed===true;
-    if(br){ parts.breakout=5; earned+=5; }
-  }
+  // Breakout quality: 0-5.
+  possible+=5;
+  parts.breakout=breakout?5:0;
+  earned+=parts.breakout;
 
-  // 6) Momentum evidence — only if present.
-  parts.momentum=0;
-  if(momentum){
-    possible+=5;
-    if(["STRONG","BULLISH","HEALTHY","CONFIRMED"].includes(momentum)){
-      parts.momentum=5; earned+=5;
-    }else if(["NORMAL","NEUTRAL","OK"].includes(momentum)){
-      parts.momentum=2; earned+=2;
-    }
-  }
-
-  // 7) Liquidity — only if present.
-  const liq=String(r.liquidity_grade || "").toUpperCase();
-  parts.liquidity=0;
-  if(liq){
-    possible+=5;
-    const ls={"A+":5,A:5,"B+":4,B:3,C:1}[liq] || 0;
-    parts.liquidity=ls; earned+=ls;
-  }
-
-  // 8) Reward/risk — only if a valid R:R exists.
+  // Reward/risk: 0-5 if available.
   const rrVals=[
-    Number(r.net_rr_target_1),
-    Number(r.rr_target_1),
-    Number(r.net_rr_target_2),
-    Number(r.rr_target_2)
+    Number(row?.rr_target_1), Number(row?.rr_target_2),
+    Number(r.net_rr_target_1), Number(r.rr_target_1),
+    Number(r.net_rr_target_2), Number(r.rr_target_2)
   ].filter(Number.isFinite);
   parts.rr=0;
   if(rrVals.length){
     possible+=5;
     const rr=Math.max(...rrVals);
-    const pts=rr>=2.5 ? 5 : rr>=2 ? 4 : rr>=1.5 ? 3 : rr>=1.2 ? 1 : 0;
+    const pts=rr>=2.5?5:rr>=2?4:rr>=1.5?3:rr>=1.2?1:0;
     parts.rr=pts; earned+=pts;
   }
 
-  // Normalize to 100 based only on evidence HANZ actually has.
   const total=possible>0 ? Math.round((earned/possible)*100) : 0;
-  const coverage=Math.round((possible/100)*100);
+  const coverage=Math.min(100,Math.round((possible/100)*100));
 
-  // Core gate: must still have a genuinely good setup and no hard veto.
-  // No arbitrary penalty for missing optional fields.
-  const qualified=setup>=7 && total>=60;
+  // Top 5 must be genuinely strong. No weak fillers.
+  const qualified=setup>=7 && total>=62;
 
   return {
-    qualified,
-    total,
-    coverage,
-    parts,
-    reason:qualified ? "Strong BUY-quality candidate" : "Below BUY-quality threshold"
+    qualified,total,coverage,parts,
+    reason:qualified ? "Market-validated BUY-quality candidate" : "Below market-validated BUY threshold"
   };
 }
 function hanzBuyCompare(a,b){
@@ -2211,13 +2215,20 @@ async function loadWatchlist(){
 
   // V35: the public Top 5 is restricted to strong BUY-quality candidates.
   // If fewer than five qualify, HANZ shows fewer rather than filling the list with weak names.
-  const primaryRows=allRows.filter(row=>hanzBuyQuality(row).qualified);
-  const backupRows=allRows.filter(row=>{
-    const q=hanzBuyQuality(row);
-    const setup=Number(row?.score || 0);
-    return !q.qualified && q.total>=55 && setup>=7;
-  });
-  const strongRows=[...primaryRows,...backupRows].slice(0,5);
+  // V36.1 — CONFIRMED ACTIONABLE TOP 5 ONLY.
+  // Bullish / SWING_CONFIRMING / SWING_WATCH names stay in the monitor,
+  // but they are NOT promoted into the BUY ranking.
+  const strongRows=allRows
+    .filter(row=>{
+      const state=String(row?.state || "").toUpperCase();
+      const entry=String(row?.entry_status || "").toUpperCase();
+      const q=hanzBuyQuality(row);
+      const gate=String(row?.risk_gate || row?.risk_validation?.gate || "MONITOR").toUpperCase();
+      const riskOK=!["BLOCKED","PAPER_ONLY"].includes(gate);
+      return state==="SWING_BUY" && entry==="ENTRY_ZONE" && q.qualified && riskOK;
+    })
+    .sort(hanzBuyCompare)
+    .slice(0,5);
 
   const confirmed=allRows.filter(row=>{
     const state=String(row?.state || "").toUpperCase();
@@ -2225,7 +2236,8 @@ async function loadWatchlist(){
     const r=(row && row.risk_validation && typeof row.risk_validation==="object")
       ? row.risk_validation : {};
     const radarInternal=Boolean(r.radar_internal);
-    return state==="SWING_BUY" && decision.label==="BUY" && !radarInternal;
+    const entry=String(row?.entry_status || "").toUpperCase();
+    return state==="SWING_BUY" && entry==="ENTRY_ZONE" && decision.label==="BUY" && !radarInternal;
   });
 
   const radarRows=allRows.filter(row=>String(row?.state || "").toUpperCase()!=="SWING_BUY");
@@ -2259,9 +2271,9 @@ async function loadWatchlist(){
     $("lastUpdateDate").textContent=`${formatDate(top.updated_at)} · Last HANZ signal update`;
   }else{
     $("topCandidate").textContent="—";
-    $("topCandidateSub").textContent="No candidate currently clears the HANZ Top-5 BUY-quality threshold";
+    $("topCandidateSub").textContent="No stock currently clears the FINAL CONFIRMED BUY gate";
     $("heroTopCandidate").textContent="—";
-    $("heroTopSub").textContent="HANZ is scanning, but no stock currently has strong enough combined BUY indicators";
+    $("heroTopSub").textContent="HANZ is scanning. Bullish/watch candidates are withheld until the final entry, exhaustion, volume and risk gates confirm BUY.";
   }
 
   renderRanking(rows);
@@ -2286,7 +2298,7 @@ function renderRanking(rows){
       <div class="rank-no">#${index+1}</div>
       <div class="rank-symbol">${safe(row.ticker)}<div style="margin-top:3px"><span class="state-chip ${decision.cls}">FINAL ${safe(decision.label)}</span> <span class="state-chip ${signalStateClass(row.state)}">${safe(displaySignalStateLabel(row))}</span></div></div>
       <div class="rank-track"><div style="width:${quality.total}%"></div></div>
-      <div class="rank-score">BUY ${quality.total}/100 · Data ${quality.coverage}% · Setup ${score}/10 · ${safe(row.risk_gate || "MONITOR")}${volatilityInfo(row).status!=="NORMAL" ? ` · VOL ${safe(volatilityInfo(row).status)}` : ""}</div>
+      <div class="rank-score">BUY ${quality.total}/100 · Setup ${score}/10 · RVOL ${Number.isFinite(Number(row.daily_rvol))?Number(row.daily_rvol).toFixed(2)+"x":"—"} · Day ${Number.isFinite(Number(row.day_return_pct))?pctText(row.day_return_pct):"—"} · ${safe(row.risk_gate || "MONITOR")}${volatilityInfo(row).status!=="NORMAL" ? ` · VOL ${safe(volatilityInfo(row).status)}` : ""}</div>
     </div>`;
   }).join("");
 
@@ -2307,7 +2319,7 @@ function renderOpportunities(rows){
           <div class="op-symbol">${safe(row.ticker)}</div>
           <div class="op-source">HANZ SWING ENGINE · RADAR PROGRESS → COMPLETED-BAR RECONFIRMATION → ACTIONABLE BUY</div>
 <div style="margin-top:8px;padding:10px 12px;border:1px solid rgba(255,255,255,.12);border-radius:12px;font-size:12px;line-height:1.45">
-  <strong>Top-5 Rule:</strong> hanya saham dengan kombinasi indikator BUY terkuat yang lolos quality gate. Ranking mempertimbangkan setup, maturity, risk gate, trend, breakout/momentum, liquidity dan reward/risk; field yang belum tersedia tidak dihitung sebagai nilai nol. <strong>Ranking tinggi bukan otomatis BUY</strong>; hanya FINAL BUY yang actionable.
+  <strong>Top-5 Rule:</strong> hanya saham dengan kombinasi indikator BUY terkuat yang lolos quality gate. Top 5 hanya berisi SWING_BUY yang masih berada di ENTRY_ZONE dan lolos market-quality/risk gate. Saham yang bullish tetapi sudah extended, overheated, weak-close, atau menunggu pullback tidak masuk Top 5. <strong>Ranking tinggi bukan otomatis BUY</strong>; hanya FINAL BUY yang actionable.
 </div>
         </div>
         <div class="priority-ring">${hanzBuyQuality(row).total}</div>
@@ -2323,7 +2335,7 @@ function renderOpportunities(rows){
         <div class="level"><span>STOP LOSS</span><strong>${price(row.stop_loss)}</strong></div>
         <div class="level target"><span>DYNAMIC T1</span><strong>${price(row.target_1)}</strong></div>
         <div class="level target"><span>DYNAMIC T2</span><strong>${price(row.target_2)}</strong></div>
-        <div class="level confirm"><span>BUY QUALITY</span><strong>${hanzBuyQuality(row).total}/100 · Swing ${row.score ?? "—"}/10 · D${row.discount_score==null?"—":Number(row.discount_score).toFixed(0)} · F${row.fundamental_score==null?"—":Number(row.fundamental_score).toFixed(0)}</strong></div>
+        <div class="level confirm"><span>BUY QUALITY</span><strong>${hanzBuyQuality(row).total}/100 · Swing ${row.score ?? "—"}/10 · RVOL ${Number.isFinite(Number(row.daily_rvol))?Number(row.daily_rvol).toFixed(2)+"x":"—"} · Day ${Number.isFinite(Number(row.day_return_pct))?pctText(row.day_return_pct):"—"}</strong></div>
       </div>
       ${volatilityWarningHtml(row)}
       ${decisionGuidanceHtmlSafe(row)}
