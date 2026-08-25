@@ -62,51 +62,6 @@ MIN_BUY_SCORE = int(
     os.getenv("HANZ_SWING_MIN_BUY_SCORE", "8")
 )
 
-# V6 EARLY SIGNAL + RECONFIRMATION
-EARLY_WATCH_SCORE = int(os.getenv("HANZ_SWING_EARLY_WATCH_SCORE", "5"))
-PRE_ALERT_SCORE = int(os.getenv("HANZ_SWING_PRE_ALERT_SCORE", "7"))
-SETUP_READY_SCORE = int(os.getenv("HANZ_SWING_SETUP_READY_SCORE", "8"))
-EARLY_BREAKOUT_DISTANCE_PCT = float(
-    os.getenv("HANZ_SWING_EARLY_BREAKOUT_DISTANCE_PCT", "5.0")
-)
-SETUP_READY_BREAKOUT_DISTANCE_PCT = float(
-    os.getenv("HANZ_SWING_SETUP_READY_BREAKOUT_DISTANCE_PCT", "2.0")
-)
-
-# V8.5 Predictive Radar
-# Radar states are INTERNAL ONLY and must never be shown as user-facing BUY signals.
-RADAR_BASE_MIN_SCORE = int(os.getenv("HANZ_RADAR_BASE_MIN_SCORE", "4"))
-RADAR_WATCH_SCORE = int(os.getenv("HANZ_RADAR_WATCH_SCORE", "6"))
-RADAR_PRE_ALERT_SCORE = int(os.getenv("HANZ_RADAR_PRE_ALERT_SCORE", "8"))
-RADAR_ARMED_SCORE = int(os.getenv("HANZ_RADAR_ARMED_SCORE", "9"))
-RADAR_ARM_DISTANCE_PCT = float(os.getenv("HANZ_RADAR_ARM_DISTANCE_PCT", "2.5"))
-RADAR_MIN_VOLUME_PACE = float(os.getenv("HANZ_RADAR_MIN_VOLUME_PACE", "1.0"))
-RADAR_INTERVAL = os.getenv("HANZ_RADAR_INTRADAY_INTERVAL", "5m")
-RADAR_PERIOD = os.getenv("HANZ_RADAR_INTRADAY_PERIOD", "5d")
-
-
-# Chart persistence: completed daily candles are stored server-side in Supabase.
-# The dashboard never calls Yahoo Finance directly.
-CHART_LOOKBACK_BARS = int(
-    os.getenv("HANZ_SWING_CHART_LOOKBACK_BARS", "130")
-)
-CHART_STATES = {
-    "EARLY_WATCH",
-    "PRE_ALERT",
-    "SETUP_READY",
-    "SWING_BUY",
-}
-
-
-# If Yahoo daily bars lag, rebuild the latest completed IDX daily candle from
-# intraday data. This is server-side only; the browser still reads Supabase.
-CHART_REPAIR_INTRADAY_INTERVAL = os.getenv(
-    "HANZ_SWING_CHART_REPAIR_INTERVAL", "5m"
-)
-CHART_REPAIR_INTRADAY_PERIOD = os.getenv(
-    "HANZ_SWING_CHART_REPAIR_PERIOD", "5d"
-)
-
 MAX_SYMBOLS_PER_CYCLE = int(
     os.getenv("HANZ_SWING_MAX_SYMBOLS_PER_CYCLE", "220")
 )
@@ -120,17 +75,6 @@ INTRADAY_INTERVAL = os.getenv(
 INTRADAY_PERIOD = os.getenv(
     "HANZ_SWING_INTRADAY_PERIOD", "1d"
 )
-
-# Intraday provider fallback chain.
-# Primary remains 1m/1d for the freshest quote.
-# Fallbacks are only used when the primary call returns no usable market data.
-INTRADAY_FALLBACK_CHAIN = [
-    ("1m", "5d"),
-    ("2m", "5d"),
-    ("5m", "5d"),
-    ("15m", "5d"),
-]
-
 INTRADAY_STALE_MINUTES = int(
     os.getenv("HANZ_SWING_STALE_GUARD_MINUTES", "20")
 )
@@ -151,7 +95,6 @@ INTRADAY_FEED_HEALTH_FRESH_RATIO = float(
 # so the 200-stock scan does not hammer Yahoo analysis endpoints.
 DISCOUNT_ANALYST_STATES = {
     "SWING_CONFIRMING",
-    "SETUP_READY",
     "SWING_BUY",
 }
 DISCOUNT_ANALYST_DELAY_SECONDS = float(
@@ -164,7 +107,6 @@ DISCOUNT_ANALYST_DELAY_SECONDS = float(
 # SWING_CONFIRMING and SWING_BUY candidates.
 FUNDAMENTAL_STATES = {
     "SWING_CONFIRMING",
-    "SETUP_READY",
     "SWING_BUY",
 }
 FUNDAMENTAL_FETCH_DELAY_SECONDS = float(
@@ -180,99 +122,6 @@ TRAILING_ATR_MULTIPLIER_T1 = float(
 TRAILING_ATR_MULTIPLIER_T2 = float(
     os.getenv("HANZ_SWING_TRAILING_ATR_T2", "1.0")
 )
-
-
-# ============================================================
-# V8 REAL-MONEY GUARD
-#
-# Important:
-# - HANZ still produces its technical state (EARLY/PRE/READY/SWING_BUY).
-# - risk_gate is a separate execution-safety layer.
-# - No broker orders are sent by this engine.
-# - Account capital is intentionally NOT guessed. If it is not configured,
-#   SWING_BUY remains PAPER_ONLY for position sizing / execution purposes.
-# ============================================================
-
-RISK_LIVE_GATE_ENABLED = (
-    os.getenv("HANZ_RISK_LIVE_GATE_ENABLED", "1").strip() != "0"
-)
-
-ACCOUNT_CAPITAL_IDR = float(
-    os.getenv("HANZ_ACCOUNT_CAPITAL_IDR", "0")
-)
-RISK_PER_TRADE_PCT = float(
-    os.getenv("HANZ_RISK_PER_TRADE_PCT", "0.50")
-)
-MAX_PORTFOLIO_RISK_PCT = float(
-    os.getenv("HANZ_MAX_PORTFOLIO_RISK_PCT", "3.00")
-)
-MAX_POSITION_PCT = float(
-    os.getenv("HANZ_MAX_POSITION_PCT", "15.0")
-)
-MAX_OPEN_POSITIONS = int(
-    os.getenv("HANZ_MAX_OPEN_POSITIONS", "6")
-)
-MAX_SECTOR_EXPOSURE_PCT = float(
-    os.getenv("HANZ_MAX_SECTOR_EXPOSURE_PCT", "30.0")
-)
-
-# Broker costs differ by broker/account. HANZ deliberately does not guess them.
-# Configure all three before a signal can become ELIGIBLE for real-money use.
-BUY_FEE_PCT = float(
-    os.getenv("HANZ_BUY_FEE_PCT", "-1")
-)
-SELL_FEE_PCT = float(
-    os.getenv("HANZ_SELL_FEE_PCT", "-1")
-)
-SLIPPAGE_PCT = float(
-    os.getenv("HANZ_SLIPPAGE_PCT", "-1")
-)
-
-# HANZ defaults below are strategy guardrails, not IDX regulatory thresholds.
-MIN_AVG_DAILY_VALUE_IDR = float(
-    os.getenv("HANZ_MIN_AVG_DAILY_VALUE_IDR", "5000000000")
-)
-MAX_ZERO_VOLUME_DAYS_20 = int(
-    os.getenv("HANZ_MAX_ZERO_VOLUME_DAYS_20", "1")
-)
-MAX_ATR_PCT = float(
-    os.getenv("HANZ_MAX_ATR_PCT", "12.0")
-)
-
-# Swing-specific volatility suitability.
-SWING_HIGH_ATR_PCT = float(os.getenv("HANZ_SWING_HIGH_ATR_PCT", "4.0"))
-SWING_EXTREME_ATR_PCT = float(os.getenv("HANZ_SWING_EXTREME_ATR_PCT", "7.0"))
-SWING_EXTREME_1D_MOVE_PCT = float(os.getenv("HANZ_SWING_EXTREME_1D_MOVE_PCT", "8.0"))
-SWING_HIGH_GAP_PCT = float(os.getenv("HANZ_SWING_HIGH_GAP_PCT", "4.0"))
-SWING_EXTREME_GAP_PCT = float(os.getenv("HANZ_SWING_EXTREME_GAP_PCT", "8.0"))
-SWING_HIGH_DAY_RANGE_PCT = float(os.getenv("HANZ_SWING_HIGH_DAY_RANGE_PCT", "8.0"))
-SWING_EXTREME_MOVE_DAYS_10 = int(os.getenv("HANZ_SWING_EXTREME_MOVE_DAYS_10", "2"))
-SWING_HIGH_VOL_SIZE_MULTIPLIER = float(os.getenv("HANZ_SWING_HIGH_VOL_SIZE_MULTIPLIER", "0.50"))
-MAX_ADV_PARTICIPATION_PCT = float(
-    os.getenv("HANZ_MAX_ADV_PARTICIPATION_PCT", "0.50")
-)
-MIN_RR_T1 = float(
-    os.getenv("HANZ_MIN_RR_T1", "1.30")
-)
-MIN_RR_T2 = float(
-    os.getenv("HANZ_MIN_RR_T2", "2.00")
-)
-
-KILL_SWITCH_CONSECUTIVE_LOSSES = int(
-    os.getenv("HANZ_KILL_SWITCH_CONSECUTIVE_LOSSES", "4")
-)
-KILL_SWITCH_LOOKBACK_TRADES = int(
-    os.getenv("HANZ_KILL_SWITCH_LOOKBACK_TRADES", "10")
-)
-KILL_SWITCH_MIN_WIN_RATE_PCT = float(
-    os.getenv("HANZ_KILL_SWITCH_MIN_WIN_RATE_PCT", "35.0")
-)
-
-MARKET_REGIME_TICKER = os.getenv(
-    "HANZ_MARKET_REGIME_TICKER", "^JKSE"
-)
-
-_REAL_MONEY_CONTEXT = None
 
 FIREBASE_SERVICE_ACCOUNT_JSON = os.getenv(
     "FIREBASE_SERVICE_ACCOUNT_JSON", ""
@@ -471,12 +320,6 @@ def normalize_ticker(ticker):
     ticker = str(ticker or "").strip().upper()
     if not ticker:
         return None
-
-    # Yahoo index symbols are already complete symbols.
-    # Example: IDX Composite is ^JKSE, NOT ^JKSE.JK.
-    if ticker.startswith("^"):
-        return ticker
-
     if not ticker.endswith(".JK"):
         ticker += ".JK"
     return ticker
@@ -599,15 +442,23 @@ def download_frame(ticker, interval, period):
     return df
 
 
-def _quote_from_intraday_frame(df, source):
+def latest_intraday_quote(ticker):
     """
-    Convert a usable intraday frame into the standard HANZ quote payload.
-    The caller decides which provider/interval/period produced the frame.
+    Return latest intraday Yahoo/yfinance quote plus provider-bar timestamp.
+    A quote older than INTRADAY_STALE_MINUTES during active use is rejected.
     """
+    df = download_frame(
+        ticker,
+        INTRADAY_INTERVAL,
+        INTRADAY_PERIOD,
+    )
+
     price = safe_float(df["Close"].iloc[-1])
     bar_ts = pd.Timestamp(df.index[-1])
 
     if bar_ts.tzinfo is None:
+        # yfinance normally returns tz-aware intraday indexes; if not,
+        # interpret the timestamp in Jakarta time rather than pretending UTC.
         bar_ts = bar_ts.tz_localize(JAKARTA_TZ)
     else:
         bar_ts = bar_ts.tz_convert(JAKARTA_TZ)
@@ -629,120 +480,7 @@ def _quote_from_intraday_frame(df, source):
         "age_minutes": round(age_minutes, 2),
         "fresh_by_age": fresh_by_age,
         "status": "OK" if fresh_by_age else "OLD_BAR",
-        "source": source,
     }
-
-
-def _ticker_history_frame(ticker, interval, period):
-    """
-    Secondary yfinance access path.
-    Uses Ticker.history() only when yf.download() failed for the same request.
-    """
-    symbol = normalize_ticker(ticker)
-
-    df = yf.Ticker(symbol).history(
-        interval=interval,
-        period=period,
-        auto_adjust=False,
-        actions=False,
-        prepost=False,
-        raise_errors=False,
-    )
-
-    if df is None or df.empty:
-        raise RuntimeError("No market data")
-
-    if isinstance(df.columns, pd.MultiIndex):
-        df.columns = [
-            col[0] if isinstance(col, tuple)
-            else col
-            for col in df.columns
-        ]
-
-    required = ["Open", "High", "Low", "Close"]
-    if not all(col in df.columns for col in required):
-        raise RuntimeError("Missing OHLC columns")
-
-    df = df.dropna(subset=required)
-
-    if df.empty:
-        raise RuntimeError("No usable bars")
-
-    return df
-
-
-def latest_intraday_quote(ticker):
-    """
-    Return the latest intraday quote with provider-bar timestamp.
-
-    Fallback policy:
-      1) Primary: configured interval/period (normally 1m/1d)
-      2) Same 1m interval with a wider 5d window
-      3) 2m/5d
-      4) 5m/5d
-      5) 15m/5d
-      6) For each failed yf.download request, try Ticker.history()
-
-    IMPORTANT:
-    - A fallback is used only when the preceding request has NO usable bars.
-    - An OLD_BAR is still returned as a valid last trade. The existing
-      adaptive feed-health logic decides whether it may overwrite stored price.
-    - We never substitute a daily close as an intraday quote.
-    """
-    attempts = [(INTRADAY_INTERVAL, INTRADAY_PERIOD)]
-
-    for item in INTRADAY_FALLBACK_CHAIN:
-        if item not in attempts:
-            attempts.append(item)
-
-    errors = []
-
-    for interval, period in attempts:
-        # Path A: yf.download()
-        try:
-            df = download_frame(
-                ticker,
-                interval,
-                period,
-            )
-            quote = _quote_from_intraday_frame(
-                df,
-                f"YF_DOWNLOAD_{interval}_{period}",
-            )
-            quote["fallback_used"] = (
-                interval != INTRADAY_INTERVAL
-                or period != INTRADAY_PERIOD
-            )
-            quote["attempt_errors"] = errors
-            return quote
-        except Exception as exc:
-            errors.append(
-                f"download {interval}/{period}: {exc}"
-            )
-
-        # Path B: Ticker.history()
-        try:
-            df = _ticker_history_frame(
-                ticker,
-                interval,
-                period,
-            )
-            quote = _quote_from_intraday_frame(
-                df,
-                f"YF_HISTORY_{interval}_{period}",
-            )
-            quote["fallback_used"] = True
-            quote["attempt_errors"] = errors
-            return quote
-        except Exception as exc:
-            errors.append(
-                f"history {interval}/{period}: {exc}"
-            )
-
-    raise RuntimeError(
-        "No market data after intraday fallback chain | "
-        + " | ".join(errors[-6:])
-    )
 
 
 def rsi(series, period=14):
@@ -803,34 +541,6 @@ def daily_metrics(df):
 
     avg_vol20 = volume.rolling(20).mean()
 
-    traded_value = close * volume
-    avg_value20 = traded_value.rolling(20).mean()
-    median_value20 = traded_value.rolling(20).median()
-    zero_volume_days20 = int((volume.iloc[-20:] <= 0).sum())
-    atr_pct = None
-
-    ema20_slope_5d_pct = None
-    rsi_change_5d = None
-    volume_accel_5d = None
-
-    if len(df) >= 8:
-        ema20_base = safe_float(ema20.iloc[-6])
-        ema20_now = safe_float(ema20.iloc[-1])
-        if ema20_base not in (None, 0) and ema20_now is not None:
-            ema20_slope_5d_pct = (
-                (ema20_now - ema20_base) / abs(ema20_base) * 100
-            )
-
-        rsi_then = safe_float(rsi14.iloc[-6])
-        rsi_now = safe_float(rsi14.iloc[-1])
-        if rsi_then is not None and rsi_now is not None:
-            rsi_change_5d = rsi_now - rsi_then
-
-        recent_avg = safe_float(volume.iloc[-3:].mean())
-        prior_avg = safe_float(volume.iloc[-8:-3].mean())
-        if recent_avg is not None and prior_avg not in (None, 0):
-            volume_accel_5d = recent_avg / prior_avg
-
     last = len(df) - 1
     prior_high20 = safe_float(
         df["High"].iloc[
@@ -856,43 +566,6 @@ def daily_metrics(df):
         else None
     )
 
-    atr_now = safe_float(atr14.iloc[-1])
-    if price not in (None, 0) and atr_now is not None:
-        atr_pct = atr_now / price * 100
-
-    # Volatility diagnostics for a multi-day swing strategy.
-    prior_close = safe_float(close.iloc[-2]) if len(close) >= 2 else None
-    day_open = safe_float(df["Open"].iloc[-1])
-    day_high = safe_float(df["High"].iloc[-1])
-    day_low = safe_float(df["Low"].iloc[-1])
-
-    gap_pct = None
-    if prior_close not in (None, 0) and day_open is not None:
-        gap_pct = (day_open / prior_close - 1) * 100
-
-    day_range_pct = None
-    if price not in (None, 0) and day_high is not None and day_low is not None:
-        day_range_pct = (day_high - day_low) / abs(price) * 100
-
-    extreme_move_days10 = 0
-    if len(close) >= 11:
-        recent_ret = close.pct_change().iloc[-10:] * 100
-        extreme_move_days10 = int(
-            (recent_ret.abs() >= SWING_EXTREME_1D_MOVE_PCT).sum()
-        )
-
-    ret1 = None
-    if len(close) >= 2:
-        base = safe_float(close.iloc[-2])
-        if base not in (None, 0) and price is not None:
-            ret1 = (price / base - 1) * 100
-
-    ret3 = None
-    if len(close) >= 4:
-        base = safe_float(close.iloc[-4])
-        if base not in (None, 0) and price is not None:
-            ret3 = (price / base - 1) * 100
-
     ret5 = None
     if len(close) >= 6:
         base = safe_float(close.iloc[-6])
@@ -903,29 +576,26 @@ def daily_metrics(df):
                 * 100
             )
 
-    recent_high_5d = safe_float(df["High"].iloc[-5:].max()) if len(df) >= 5 else None
-    recent_high_10d = safe_float(df["High"].iloc[-10:].max()) if len(df) >= 10 else None
-    drawdown_5d_high_pct = None
-    drawdown_10d_high_pct = None
+    # V9 market-quality metrics used by HANZ Top-5 ranking.
+    prev_close = safe_float(close.iloc[-2]) if len(close) >= 2 else None
+    day_return_pct = None
+    if prev_close not in (None, 0) and price is not None:
+        day_return_pct = (price - prev_close) / prev_close * 100
 
-    if price is not None and recent_high_5d not in (None, 0):
-        drawdown_5d_high_pct = (recent_high_5d - price) / recent_high_5d * 100
-    if price is not None and recent_high_10d not in (None, 0):
-        drawdown_10d_high_pct = (recent_high_10d - price) / recent_high_10d * 100
+    day_high = safe_float(df["High"].iloc[-1])
+    day_low = safe_float(df["Low"].iloc[-1])
+    close_position_pct = None
+    if (
+        price is not None
+        and day_high is not None
+        and day_low is not None
+        and day_high > day_low
+    ):
+        close_position_pct = (price - day_low) / (day_high - day_low) * 100
 
-    down_volume_ratio_5d = None
-    if len(df) >= 6:
-        recent_close = df["Close"].iloc[-5:].astype(float)
-        recent_vol = df["Volume"].iloc[-5:].astype(float)
-        prev_close_5 = df["Close"].shift(1).iloc[-5:].astype(float)
-        down_mask = recent_close.values < prev_close_5.values
-        up_mask = recent_close.values >= prev_close_5.values
-        down_vol = float(recent_vol.values[down_mask].sum()) if down_mask.any() else 0.0
-        up_vol = float(recent_vol.values[up_mask].sum()) if up_mask.any() else 0.0
-        if up_vol > 0:
-            down_volume_ratio_5d = down_vol / up_vol
-        elif down_vol > 0:
-            down_volume_ratio_5d = 99.0
+    turnover_value = None
+    if price is not None and vol is not None:
+        turnover_value = price * vol
 
     lookback_52w = df.iloc[-252:] if len(df) >= 252 else df
     week52_high = safe_float(lookback_52w["High"].max())
@@ -951,12 +621,6 @@ def daily_metrics(df):
             * 100
         )
 
-    breakout_distance_pct = None
-    if price is not None and prior_high20 not in (None, 0):
-        breakout_distance_pct = (
-            (prior_high20 - price) / prior_high20 * 100
-        )
-
     return {
         "price": price,
         "open": safe_float(df["Open"].iloc[-1]),
@@ -971,27 +635,14 @@ def daily_metrics(df):
         "rsi14": safe_float(rsi14.iloc[-1]),
         "atr14": safe_float(atr14.iloc[-1]),
         "rvol20": safe_float(rvol),
-        "avg_value20": safe_float(avg_value20.iloc[-1]),
-        "median_value20": safe_float(median_value20.iloc[-1]),
-        "zero_volume_days20": zero_volume_days20,
-        "atr_pct": safe_float(atr_pct),
-        "gap_pct": safe_float(gap_pct),
-        "day_range_pct": safe_float(day_range_pct),
-        "extreme_move_days10": extreme_move_days10,
+        "volume": safe_float(vol),
+        "avg_volume20": safe_float(avg_vol),
+        "turnover_value": safe_float(turnover_value),
+        "day_return_pct": safe_float(day_return_pct),
+        "close_position_pct": safe_float(close_position_pct),
         "prior_high20": prior_high20,
         "prior_low20": prior_low20,
-        "ret1_pct": safe_float(ret1),
-        "ret3_pct": safe_float(ret3),
         "ret5_pct": safe_float(ret5),
-        "recent_high_5d": safe_float(recent_high_5d),
-        "recent_high_10d": safe_float(recent_high_10d),
-        "drawdown_5d_high_pct": safe_float(drawdown_5d_high_pct),
-        "drawdown_10d_high_pct": safe_float(drawdown_10d_high_pct),
-        "down_volume_ratio_5d": safe_float(down_volume_ratio_5d),
-        "ema20_slope_5d_pct": safe_float(ema20_slope_5d_pct),
-        "rsi_change_5d": safe_float(rsi_change_5d),
-        "volume_accel_5d": safe_float(volume_accel_5d),
-        "breakout_distance_pct": safe_float(breakout_distance_pct),
         "bar_at": pd.Timestamp(
             df.index[-1]
         ).isoformat(),
@@ -1015,598 +666,15 @@ def weekly_metrics(df):
 
     rsi14 = rsi(close, 14)
 
-    ema10_now = safe_float(ema10.iloc[-1])
-    ema20_now = safe_float(ema20.iloc[-1])
-    ema_spread_pct = None
-    ema_spread_change_4w = None
-
-    if ema20_now not in (None, 0) and ema10_now is not None:
-        ema_spread_pct = (
-            (ema10_now - ema20_now) / abs(ema20_now) * 100
-        )
-
-    if len(close) >= 5:
-        old_ema20 = safe_float(ema20.iloc[-5])
-        old_ema10 = safe_float(ema10.iloc[-5])
-        if old_ema20 not in (None, 0) and old_ema10 is not None:
-            old_spread = (
-                (old_ema10 - old_ema20) / abs(old_ema20) * 100
-            )
-            if ema_spread_pct is not None:
-                ema_spread_change_4w = ema_spread_pct - old_spread
-
     return {
         "price": safe_float(close.iloc[-1]),
-        "ema10": ema10_now,
-        "ema20": ema20_now,
+        "ema10": safe_float(ema10.iloc[-1]),
+        "ema20": safe_float(ema20.iloc[-1]),
         "rsi14": safe_float(rsi14.iloc[-1]),
-        "ema_spread_pct": safe_float(ema_spread_pct),
-        "ema_spread_change_4w": safe_float(ema_spread_change_4w),
         "bar_at": pd.Timestamp(
             df.index[-1]
         ).isoformat(),
     }
-
-
-
-
-def _completed_daily_frame_for_radar(daily_df):
-    """Keep radar baseline strictly on completed IDX daily candles."""
-    target = latest_completed_idx_date()
-    frame = daily_df.copy()
-    keep = [
-        pd.Timestamp(x).date() <= target
-        for x in frame.index
-    ]
-    frame = frame.loc[keep]
-    if len(frame) < 60:
-        raise RuntimeError("Insufficient completed daily history for radar")
-    return frame
-
-
-def _idx_session_progress_fraction(now=None):
-    """Approximate fraction of today's active IDX trading minutes completed."""
-    now = now or jakarta_now()
-    minute = now.hour * 60 + now.minute
-    friday = now.weekday() == 4
-
-    s1_start = 9 * 60
-    s1_end = 11 * 60 + 30 if friday else 12 * 60
-    s2_start = 14 * 60 if friday else 13 * 60 + 30
-    s2_end = 15 * 60 + 50
-
-    s1_len = max(0, s1_end - s1_start)
-    s2_len = max(0, s2_end - s2_start)
-    total = max(1, s1_len + s2_len)
-
-    if minute <= s1_start:
-        elapsed = 0
-    elif minute <= s1_end:
-        elapsed = minute - s1_start
-    elif minute < s2_start:
-        elapsed = s1_len
-    elif minute <= s2_end:
-        elapsed = s1_len + (minute - s2_start)
-    else:
-        elapsed = total
-
-    # Opening minutes are noisy; floor the denominator so volume pace
-    # is useful without exploding on the first few prints.
-    return max(0.15, min(1.0, elapsed / total))
-
-
-def intraday_radar_snapshot(ticker, completed_daily_df, daily):
-    """
-    Build a live, non-actionable radar snapshot from intraday bars.
-
-    The snapshot is used only to detect leading conditions BEFORE the
-    completed daily candle confirms them. It can arm a candidate, but it
-    can never create a SWING_BUY by itself.
-    """
-    attempts = [
-        (RADAR_INTERVAL, RADAR_PERIOD),
-        ("15m", "5d"),
-    ]
-    last_error = None
-    frame = None
-    source = None
-
-    for interval, period in attempts:
-        try:
-            candidate = download_frame(ticker, interval, period).copy()
-            if candidate is None or candidate.empty:
-                continue
-            frame = candidate
-            source = f"{interval}/{period}"
-            break
-        except Exception as exc:
-            last_error = exc
-
-    if frame is None or frame.empty:
-        raise RuntimeError(f"Radar intraday data unavailable: {last_error}")
-
-    idx = pd.DatetimeIndex(frame.index)
-    if idx.tz is None:
-        idx = idx.tz_localize(JAKARTA_TZ)
-    else:
-        idx = idx.tz_convert(JAKARTA_TZ)
-    frame.index = idx
-
-    today = jakarta_now().date()
-    today_frame = frame.loc[[x.date() == today for x in frame.index]].copy()
-    if today_frame.empty:
-        raise RuntimeError("No current-session intraday bars for predictive radar")
-
-    last_ts = pd.Timestamp(today_frame.index[-1])
-    age_minutes = max(
-        0.0,
-        (jakarta_now() - last_ts.to_pydatetime()).total_seconds() / 60.0,
-    )
-    fresh = age_minutes <= max(INTRADAY_STALE_MINUTES, 30)
-
-    current_price = safe_float(today_frame["Close"].iloc[-1])
-    day_open = safe_float(today_frame["Open"].iloc[0])
-    day_high = safe_float(today_frame["High"].max())
-    day_low = safe_float(today_frame["Low"].min())
-    volume_today = safe_float(today_frame["Volume"].fillna(0).sum()) or 0.0
-
-    prior_close = safe_float(daily.get("price"))
-    prior_high20 = safe_float(daily.get("prior_high20"))
-    ema20 = safe_float(daily.get("ema20"))
-
-    intraday_return_pct = None
-    gap_pct = None
-    breakout_distance_pct = None
-    day_range_pct = None
-
-    if current_price is not None and prior_close not in (None, 0):
-        intraday_return_pct = (current_price / prior_close - 1) * 100
-    if day_open is not None and prior_close not in (None, 0):
-        gap_pct = (day_open / prior_close - 1) * 100
-    if current_price is not None and prior_high20 not in (None, 0):
-        breakout_distance_pct = (
-            (prior_high20 - current_price) / prior_high20 * 100
-        )
-    if current_price not in (None, 0) and day_high is not None and day_low is not None:
-        day_range_pct = (day_high - day_low) / abs(current_price) * 100
-
-    avg_daily_volume20 = None
-    if len(completed_daily_df) >= 20:
-        avg_daily_volume20 = safe_float(
-            completed_daily_df["Volume"].astype(float).iloc[-20:].mean()
-        )
-
-    progress = _idx_session_progress_fraction()
-    projected_rvol = None
-    if avg_daily_volume20 not in (None, 0):
-        expected_volume_now = avg_daily_volume20 * progress
-        if expected_volume_now > 0:
-            projected_rvol = volume_today / expected_volume_now
-
-    last_30m_return_pct = None
-    intraday_volume_accel = None
-    if len(today_frame) >= 7:
-        base_price = safe_float(today_frame["Close"].iloc[-7])
-        if base_price not in (None, 0) and current_price is not None:
-            last_30m_return_pct = (
-                (current_price / base_price) - 1
-            ) * 100
-
-    if len(today_frame) >= 12:
-        recent_volume = safe_float(today_frame["Volume"].iloc[-6:].sum())
-        prior_volume = safe_float(today_frame["Volume"].iloc[-12:-6].sum())
-        if recent_volume is not None and prior_volume not in (None, 0):
-            intraday_volume_accel = recent_volume / prior_volume
-
-    return {
-        "fresh": fresh,
-        "age_minutes": round(age_minutes, 2),
-        "source": source,
-        "bar_at": last_ts.isoformat(),
-        "price": current_price,
-        "day_open": day_open,
-        "day_high": day_high,
-        "day_low": day_low,
-        "volume_today": volume_today,
-        "session_progress": round(progress, 4),
-        "projected_rvol": safe_float(projected_rvol),
-        "intraday_return_pct": safe_float(intraday_return_pct),
-        "gap_pct": safe_float(gap_pct),
-        "breakout_distance_pct": safe_float(breakout_distance_pct),
-        "day_range_pct": safe_float(day_range_pct),
-        "last_30m_return_pct": safe_float(last_30m_return_pct),
-        "intraday_volume_accel": safe_float(intraday_volume_accel),
-        "ema20": ema20,
-        "prior_high20": prior_high20,
-    }
-
-
-def predictive_radar_signal(daily, weekly, snapshot):
-    """
-    Leading-condition score.
-
-    Goal: identify improving structure BEFORE a textbook breakout becomes
-    obvious, while remaining explicitly NON-ACTIONABLE until post-close
-    completed-bar reconfirmation.
-    """
-    base = early_signal_score(daily, weekly)
-    score = int(base.get("score") or 0)
-    evidence = list(base.get("evidence") or [])
-
-    if not snapshot.get("fresh"):
-        return {
-            "state": "NO_SETUP",
-            "score": min(score, 10),
-            "evidence": evidence + [
-                f"RADAR_INTERNAL: stale intraday feed ({snapshot.get('age_minutes')}m)"
-            ],
-            "armed": False,
-        }
-
-    live_price = safe_float(snapshot.get("price"))
-    ema20 = safe_float(snapshot.get("ema20"))
-    distance = safe_float(snapshot.get("breakout_distance_pct"))
-    pace = safe_float(snapshot.get("projected_rvol"))
-    ret = safe_float(snapshot.get("intraday_return_pct"))
-    ret30 = safe_float(snapshot.get("last_30m_return_pct"))
-    vol_accel = safe_float(snapshot.get("intraday_volume_accel"))
-    weekly_spread = safe_float(weekly.get("ema_spread_pct"))
-    weekly_improve = safe_float(weekly.get("ema_spread_change_4w"))
-
-    if live_price is not None and ema20 is not None and live_price >= ema20:
-        score += 1
-        evidence.append("RADAR: live price holding above EMA20")
-
-    if distance is not None:
-        if -1.0 <= distance <= RADAR_ARM_DISTANCE_PCT:
-            score += 2
-            evidence.append(
-                f"RADAR: live price within {abs(distance):.2f}% of 20d trigger"
-            )
-        elif 0 <= distance <= EARLY_BREAKOUT_DISTANCE_PCT:
-            score += 1
-            evidence.append(
-                f"RADAR: approaching trigger ({distance:.2f}% away)"
-            )
-
-    if pace is not None:
-        if pace >= 1.50:
-            score += 2
-            evidence.append(f"RADAR: projected volume pace {pace:.2f}x")
-        elif pace >= 1.10:
-            score += 1
-            evidence.append(f"RADAR: projected volume pace {pace:.2f}x")
-
-    if ret is not None and 0.40 <= ret <= 5.0:
-        score += 1
-        evidence.append(f"RADAR: session momentum +{ret:.2f}%")
-
-    if ret30 is not None and ret30 >= 0.30:
-        score += 1
-        evidence.append(f"RADAR: 30m price acceleration +{ret30:.2f}%")
-
-    if vol_accel is not None and vol_accel >= 1.20:
-        score += 1
-        evidence.append(f"RADAR: intraday volume acceleration {vol_accel:.2f}x")
-
-    if (
-        (weekly_spread is not None and weekly_spread > 0)
-        or (weekly_improve is not None and weekly_improve > 0)
-    ):
-        score += 1
-        evidence.append("RADAR: weekly structure supportive")
-
-    score = min(score, 10)
-
-    state = "NO_SETUP"
-    if score >= RADAR_WATCH_SCORE:
-        state = "RADAR_WATCH"
-    if score >= RADAR_PRE_ALERT_SCORE:
-        state = "RADAR_PRE_ALERT"
-
-    armed = (
-        score >= RADAR_ARMED_SCORE
-        and distance is not None
-        and -1.0 <= distance <= RADAR_ARM_DISTANCE_PCT
-        and pace is not None
-        and pace >= RADAR_MIN_VOLUME_PACE
-    )
-    if armed:
-        state = "RADAR_ARMED"
-
-    evidence.append(
-        "RADAR_INTERNAL_ONLY: never actionable; waits for completed daily-bar reconfirmation"
-    )
-
-    return {
-        "state": state,
-        "score": score,
-        "evidence": evidence,
-        "armed": armed,
-    }
-
-
-def early_signal_score(daily, weekly):
-    """Leading score; never actionable by itself."""
-    score = 0
-    evidence = []
-
-    price = safe_float(daily.get("price"))
-    ema20 = safe_float(daily.get("ema20"))
-    rsi_d = safe_float(daily.get("rsi14"))
-    rsi_change = safe_float(daily.get("rsi_change_5d"))
-    ema_slope = safe_float(daily.get("ema20_slope_5d_pct"))
-    rvol = safe_float(daily.get("rvol20"))
-    vol_accel = safe_float(daily.get("volume_accel_5d"))
-    ret5 = safe_float(daily.get("ret5_pct"))
-    distance = safe_float(daily.get("breakout_distance_pct"))
-
-    weekly_rsi = safe_float(weekly.get("rsi14"))
-    weekly_spread = safe_float(weekly.get("ema_spread_pct"))
-    weekly_improve = safe_float(weekly.get("ema_spread_change_4w"))
-
-    if price is not None and ema20 is not None and price >= ema20:
-        score += 1
-        evidence.append("price holding/reclaiming EMA20")
-
-    if ema_slope is not None and ema_slope > 0:
-        score += 1
-        evidence.append(f"EMA20 5d slope +{ema_slope:.2f}%")
-
-    if rsi_d is not None and 45 <= rsi_d <= 68:
-        score += 1
-        evidence.append(f"daily RSI constructive {rsi_d:.1f}")
-
-    if rsi_change is not None and rsi_change >= 3:
-        score += 1
-        evidence.append(f"RSI improving +{rsi_change:.1f} in 5d")
-
-    if ret5 is not None and ret5 > 0:
-        score += 1
-        evidence.append(f"5d momentum +{ret5:.2f}%")
-
-    if (rvol is not None and rvol >= 1.0) or (
-        vol_accel is not None and vol_accel >= 1.20
-    ):
-        score += 1
-        evidence.append(
-            f"RVOL building {rvol:.2f}x"
-            if rvol is not None and rvol >= 1.0
-            else f"volume acceleration {vol_accel:.2f}x"
-        )
-
-    if distance is not None:
-        if -0.5 <= distance <= SETUP_READY_BREAKOUT_DISTANCE_PCT:
-            score += 2
-            evidence.append(f"within {abs(distance):.2f}% of 20d trigger")
-        elif 0 <= distance <= EARLY_BREAKOUT_DISTANCE_PCT:
-            score += 1
-            evidence.append(f"approaching 20d trigger ({distance:.2f}% away)")
-
-    if (
-        (weekly_spread is not None and weekly_spread > 0)
-        or (weekly_improve is not None and weekly_improve > 0)
-    ):
-        score += 1
-        evidence.append("weekly structure bullish/improving")
-
-    if weekly_rsi is not None and weekly_rsi >= 45:
-        score += 1
-        evidence.append(f"weekly RSI supportive {weekly_rsi:.1f}")
-
-    return {"score": min(score, 10), "evidence": evidence}
-
-
-def fetch_prior_monitor(ticker):
-    encoded = urllib.parse.quote(clean_ticker(ticker), safe="")
-    rows = supabase_request(
-        "GET",
-        "hanz_swing_signal_monitor"
-        f"?ticker=eq.{encoded}"
-        "&select=ticker,state,score,price,breakout_level,daily_bar_at,updated_at"
-        "&limit=1",
-    ) or []
-    return rows[0] if rows else None
-
-
-
-def momentum_damage_guard(daily, prior_monitor=None):
-    """Hard veto for failed breakouts and sharp short-term deterioration."""
-    price = safe_float(daily.get("price"))
-    ema20 = safe_float(daily.get("ema20"))
-    ret1 = safe_float(daily.get("ret1_pct"))
-    ret3 = safe_float(daily.get("ret3_pct"))
-    ret5 = safe_float(daily.get("ret5_pct"))
-    dd5 = safe_float(daily.get("drawdown_5d_high_pct"))
-    dd10 = safe_float(daily.get("drawdown_10d_high_pct"))
-    down_vol_ratio = safe_float(daily.get("down_volume_ratio_5d"))
-
-    prior_state = str((prior_monitor or {}).get("state") or "").upper()
-    prior_breakout = safe_float((prior_monitor or {}).get("breakout_level"))
-    prior_price = safe_float((prior_monitor or {}).get("price"))
-
-    reasons = []
-    severe = False
-    failed_breakout = False
-
-    if (
-        price is not None
-        and prior_breakout not in (None, 0)
-        and prior_state in {"SETUP_READY", "SWING_CONFIRMING", "SWING_BUY"}
-        and price < prior_breakout * 0.98
-    ):
-        failed_breakout = True
-        severe = True
-        reasons.append(
-            f"failed breakout: price {price:.2f} is >2% below prior trigger {prior_breakout:.2f}"
-        )
-
-    if ret5 is not None and ret5 <= -8.0:
-        severe = True
-        reasons.append(f"5-day momentum damaged ({ret5:.2f}%)")
-
-    if ret3 is not None and ret3 <= -6.0:
-        severe = True
-        reasons.append(f"3-day momentum damaged ({ret3:.2f}%)")
-
-    if dd10 is not None and dd10 >= 12.0:
-        severe = True
-        reasons.append(f"{dd10:.2f}% below 10-day high")
-
-    if (
-        price is not None
-        and ema20 is not None
-        and price < ema20
-        and ret5 is not None
-        and ret5 <= -5.0
-    ):
-        severe = True
-        reasons.append("price below EMA20 while 5-day momentum is negative")
-
-    if (
-        ret1 is not None
-        and ret1 <= -5.0
-        and down_vol_ratio is not None
-        and down_vol_ratio >= 1.5
-    ):
-        severe = True
-        reasons.append(
-            f"heavy downside pressure: 1D {ret1:.2f}% / down-volume ratio {down_vol_ratio:.2f}x"
-        )
-
-    caution = False
-    if not severe:
-        if ret5 is not None and ret5 <= -4.0:
-            caution = True
-            reasons.append(f"5-day momentum weakening ({ret5:.2f}%)")
-        if dd5 is not None and dd5 >= 7.0:
-            caution = True
-            reasons.append(f"{dd5:.2f}% below 5-day high")
-
-    return {
-        "blocked": severe,
-        "caution": caution,
-        "failed_breakout": failed_breakout,
-        "reasons": reasons,
-        "ret1_pct": ret1,
-        "ret3_pct": ret3,
-        "ret5_pct": ret5,
-        "drawdown_5d_high_pct": dd5,
-        "drawdown_10d_high_pct": dd10,
-        "down_volume_ratio_5d": down_vol_ratio,
-        "prior_breakout_level": prior_breakout,
-        "prior_price": prior_price,
-    }
-
-
-def apply_early_state_and_reconfirmation(
-    ticker, daily, weekly, base_result, prior_monitor
-):
-    """
-    EARLY_WATCH -> PRE_ALERT -> SETUP_READY -> SWING_BUY.
-
-    SWING_BUY is the only actionable BUY and requires the hard BUY gate to
-    persist into a NEW completed daily bar. Re-running the same candle can
-    never reconfirm a BUY.
-    """
-    early = early_signal_score(daily, weekly)
-    early_score = early["score"]
-
-    prior_state = str((prior_monitor or {}).get("state") or "")
-    prior_bar = str((prior_monitor or {}).get("daily_bar_at") or "")
-    current_bar = str(daily.get("bar_at") or "")
-    new_completed_bar = bool(
-        current_bar and prior_bar and current_bar != prior_bar
-    )
-
-    raw_buy = (
-        base_result.get("score", 0) >= MIN_BUY_SCORE
-        and bool(base_result.get("breakout"))
-        and base_result.get("weekly_trend") == "BULLISH"
-    )
-
-    momentum_guard = momentum_damage_guard(daily, prior_monitor)
-    if momentum_guard.get("blocked"):
-        raw_buy = False
-
-    distance = safe_float(daily.get("breakout_distance_pct"))
-    state = "NO_SETUP"
-
-    if early_score >= EARLY_WATCH_SCORE:
-        state = "EARLY_WATCH"
-
-    if (
-        early_score >= PRE_ALERT_SCORE
-        and distance is not None
-        and distance <= EARLY_BREAKOUT_DISTANCE_PCT
-    ):
-        state = "PRE_ALERT"
-
-    if (
-        early_score >= SETUP_READY_SCORE
-        and distance is not None
-        and distance <= SETUP_READY_BREAKOUT_DISTANCE_PCT
-        and base_result.get("score", 0) >= MIN_CONFIRM_SCORE
-    ):
-        state = "SETUP_READY"
-
-    if raw_buy:
-        previously_armed = prior_state in {
-            "RADAR_ARMED", "SETUP_READY", "SWING_CONFIRMING", "SWING_BUY"
-        }
-
-        if prior_state == "SWING_BUY":
-            state = "SWING_BUY"
-        elif previously_armed and new_completed_bar:
-            state = "SWING_BUY"
-        else:
-            state = "SETUP_READY"
-
-    if momentum_guard.get("blocked"):
-        state = "MOMENTUM_BROKEN"
-    elif momentum_guard.get("caution") and state == "SWING_BUY":
-        state = "SETUP_READY"
-
-    evidence = list(base_result.get("evidence") or [])
-    evidence.extend(f"EARLY:{x}" for x in early["evidence"])
-
-    if momentum_guard.get("blocked"):
-        evidence.extend(
-            f"MOMENTUM_GUARD: {reason}"
-            for reason in momentum_guard.get("reasons", [])
-        )
-        evidence.append(
-            "FINAL_ACTION: BUY blocked until a fresh setup is reconfirmed"
-        )
-    elif momentum_guard.get("caution"):
-        evidence.extend(
-            f"MOMENTUM_CAUTION: {reason}"
-            for reason in momentum_guard.get("reasons", [])
-        )
-
-    if raw_buy and state != "SWING_BUY":
-        evidence.append(
-            "RECONFIRM: hard BUY gate reached; waiting next completed daily bar"
-        )
-    elif state == "SWING_BUY":
-        evidence.append(
-            "RECONFIRM: hard BUY gate persisted on a new completed daily bar"
-        )
-
-    out = dict(base_result)
-    out["state"] = state
-    out["early_score"] = early_score
-    out["early_evidence"] = early["evidence"]
-    out["raw_buy_gate"] = raw_buy
-    out["reconfirmed"] = state == "SWING_BUY"
-    out["momentum_guard"] = momentum_guard
-    out["final_action"] = (
-        "AVOID"
-        if state == "MOMENTUM_BROKEN"
-        else ("BUY" if state == "SWING_BUY" else "WAIT")
-    )
-    out["evidence"] = evidence
-    return out
 
 
 def swing_score(daily, weekly):
@@ -1988,679 +1056,6 @@ def risk_levels(
         "target_mode": target_mode,
     }
 
-
-
-
-# ============================================================
-# V8 REAL-MONEY RISK / VALIDATION LAYER
-# ============================================================
-
-def _position_quantity(position):
-    qty = safe_float(position.get("quantity"))
-    if qty is not None and qty > 0:
-        return qty
-
-    lots = safe_float(position.get("lots"))
-    if lots is not None and lots > 0:
-        return lots * 100.0
-
-    return 0.0
-
-
-def market_regime_context():
-    """Classify the broad IDX market using IHSG completed daily structure."""
-    try:
-        df = download_frame(
-            MARKET_REGIME_TICKER,
-            DAILY_INTERVAL,
-            DAILY_PERIOD,
-        )
-
-        if len(df) < 60:
-            raise RuntimeError("Insufficient IHSG history")
-
-        close = df["Close"].astype(float)
-        price = safe_float(close.iloc[-1])
-        ema20 = safe_float(close.ewm(span=20, adjust=False).mean().iloc[-1])
-        ema50 = safe_float(close.ewm(span=50, adjust=False).mean().iloc[-1])
-        rsi14 = safe_float(rsi(close, 14).iloc[-1])
-
-        ret5 = None
-        if len(close) >= 6:
-            base = safe_float(close.iloc[-6])
-            if base not in (None, 0) and price is not None:
-                ret5 = (price / base - 1) * 100
-
-        if (
-            price is not None
-            and ema20 is not None
-            and ema50 is not None
-            and price > ema20 > ema50
-            and rsi14 is not None
-            and rsi14 >= 50
-            and (ret5 is None or ret5 > -2.0)
-        ):
-            regime = "GREEN"
-            score = 100
-            multiplier = 1.0
-            reason = "IHSG above EMA20/EMA50 with constructive momentum."
-        elif (
-            price is not None
-            and ema20 is not None
-            and ema50 is not None
-            and (
-                (price < ema50 and ema20 < ema50)
-                or (rsi14 is not None and rsi14 < 40)
-                or (ret5 is not None and ret5 <= -5.0)
-            )
-        ):
-            regime = "RED"
-            score = 20
-            multiplier = 0.0
-            reason = "IHSG risk-off structure; new real-money BUY blocked."
-        else:
-            regime = "YELLOW"
-            score = 60
-            multiplier = 0.5
-            reason = "IHSG mixed; only reduced-size/high-quality setups allowed."
-
-        return {
-            "regime": regime,
-            "score": score,
-            "size_multiplier": multiplier,
-            "benchmark": normalize_ticker(MARKET_REGIME_TICKER),
-            "price": price,
-            "ema20": ema20,
-            "ema50": ema50,
-            "rsi14": rsi14,
-            "ret5_pct": safe_float(ret5),
-            "bar_at": pd.Timestamp(df.index[-1]).isoformat(),
-            "reason": reason,
-        }
-
-    except Exception as exc:
-        # Fail closed for live-money gating.
-        return {
-            "regime": "UNKNOWN",
-            "score": 0,
-            "size_multiplier": 0.0,
-            "benchmark": normalize_ticker(MARKET_REGIME_TICKER),
-            "reason": f"Market regime unavailable: {exc}",
-        }
-
-
-def closed_trade_performance_context():
-    """Use manually closed real positions to create a simple system kill switch."""
-    try:
-        rows = supabase_request(
-            "GET",
-            "hanz_swing_portfolio"
-            "?status=eq.CLOSED"
-            "&realized_pnl_pct=not.is.null"
-            "&select=ticker,realized_pnl_pct,closed_at"
-            "&order=closed_at.desc"
-            "&limit=20",
-        ) or []
-    except Exception as exc:
-        return {
-            "status": "UNKNOWN",
-            "trade_count": 0,
-            "reason": f"Closed-trade history unavailable: {exc}",
-        }
-
-    pnls = []
-    for row in rows:
-        value = safe_float(row.get("realized_pnl_pct"))
-        if value is not None:
-            pnls.append(value)
-
-    if not pnls:
-        return {
-            "status": "WARMUP",
-            "trade_count": 0,
-            "consecutive_losses": 0,
-            "win_rate_pct": None,
-            "avg_pnl_pct": None,
-            "reason": "No closed real-money trade history yet.",
-        }
-
-    consecutive_losses = 0
-    for pnl in pnls:
-        if pnl < 0:
-            consecutive_losses += 1
-        else:
-            break
-
-    sample = pnls[:max(1, KILL_SWITCH_LOOKBACK_TRADES)]
-    wins = sum(1 for x in sample if x > 0)
-    win_rate = wins / len(sample) * 100
-    avg_pnl = sum(sample) / len(sample)
-
-    status = "NORMAL"
-    reason = "Recent closed-trade performance is within guardrails."
-
-    if consecutive_losses >= KILL_SWITCH_CONSECUTIVE_LOSSES:
-        status = "LOCKED"
-        reason = (
-            f"{consecutive_losses} consecutive losing trades reached "
-            f"the kill-switch limit."
-        )
-    elif (
-        len(sample) >= KILL_SWITCH_LOOKBACK_TRADES
-        and win_rate < KILL_SWITCH_MIN_WIN_RATE_PCT
-        and avg_pnl < 0
-    ):
-        status = "LOCKED"
-        reason = (
-            f"Rolling {len(sample)}-trade performance is negative "
-            f"(win rate {win_rate:.1f}%, avg {avg_pnl:.2f}%)."
-        )
-    elif consecutive_losses >= max(2, KILL_SWITCH_CONSECUTIVE_LOSSES - 1):
-        status = "CAUTION"
-        reason = (
-            f"{consecutive_losses} consecutive losses; "
-            "position size should be reduced."
-        )
-
-    return {
-        "status": status,
-        "trade_count": len(pnls),
-        "consecutive_losses": consecutive_losses,
-        "win_rate_pct": round(win_rate, 2),
-        "avg_pnl_pct": round(avg_pnl, 3),
-        "reason": reason,
-    }
-
-
-def portfolio_risk_context():
-    positions = fetch_swing_portfolio()
-    total_risk_idr = 0.0
-    total_market_value_idr = 0.0
-
-    ticker_list = []
-    for position in positions:
-        ticker = clean_ticker(position.get("ticker"))
-        if ticker:
-            ticker_list.append(ticker)
-
-        qty = _position_quantity(position)
-        avg_buy = safe_float(position.get("avg_buy"))
-        stop = safe_float(position.get("stop_loss"))
-
-        if qty > 0 and avg_buy is not None:
-            total_market_value_idr += qty * avg_buy
-
-        if (
-            qty > 0
-            and avg_buy is not None
-            and stop is not None
-            and avg_buy > stop
-        ):
-            total_risk_idr += qty * (avg_buy - stop)
-
-    sectors = {}
-    if ticker_list:
-        try:
-            encoded = ",".join(
-                urllib.parse.quote(t, safe="")
-                for t in sorted(set(ticker_list))
-            )
-            rows = supabase_request(
-                "GET",
-                "hanz_swing_signal_monitor"
-                f"?ticker=in.({encoded})"
-                "&select=ticker,sector",
-            ) or []
-            sectors = {
-                clean_ticker(row.get("ticker")): row.get("sector")
-                for row in rows
-            }
-        except Exception:
-            sectors = {}
-
-    sector_market_value = {}
-    for position in positions:
-        ticker = clean_ticker(position.get("ticker"))
-        sector = sectors.get(ticker) or "UNKNOWN"
-        qty = _position_quantity(position)
-        avg_buy = safe_float(position.get("avg_buy"))
-        if qty > 0 and avg_buy is not None:
-            sector_market_value[sector] = (
-                sector_market_value.get(sector, 0.0)
-                + qty * avg_buy
-            )
-
-    portfolio_risk_pct = None
-    if ACCOUNT_CAPITAL_IDR > 0:
-        portfolio_risk_pct = total_risk_idr / ACCOUNT_CAPITAL_IDR * 100
-
-    return {
-        "open_positions": len(positions),
-        "total_risk_idr": round(total_risk_idr, 2),
-        "total_market_value_idr": round(total_market_value_idr, 2),
-        "portfolio_risk_pct": safe_float(portfolio_risk_pct),
-        "sector_market_value": sector_market_value,
-    }
-
-
-def build_real_money_context():
-    return {
-        "market": market_regime_context(),
-        "portfolio": portfolio_risk_context(),
-        "performance": closed_trade_performance_context(),
-        "account_capital_idr": ACCOUNT_CAPITAL_IDR,
-    }
-
-
-def liquidity_validation(daily):
-    avg_value = safe_float(daily.get("avg_value20"))
-    median_value = safe_float(daily.get("median_value20"))
-    zero_days = int(daily.get("zero_volume_days20") or 0)
-    atr_pct = safe_float(daily.get("atr_pct"))
-
-    reasons = []
-    passed = True
-    score = 100
-
-    if avg_value is None or avg_value < MIN_AVG_DAILY_VALUE_IDR:
-        passed = False
-        score -= 50
-        reasons.append(
-            f"20d avg traded value below HANZ minimum "
-            f"Rp{MIN_AVG_DAILY_VALUE_IDR:,.0f}."
-        )
-    else:
-        reasons.append(
-            f"20d avg traded value Rp{avg_value:,.0f}."
-        )
-
-    if zero_days > MAX_ZERO_VOLUME_DAYS_20:
-        passed = False
-        score -= 30
-        reasons.append(
-            f"{zero_days} zero-volume days in last 20 sessions."
-        )
-
-    if atr_pct is not None and atr_pct > MAX_ATR_PCT:
-        passed = False
-        score -= 25
-        reasons.append(
-            f"ATR {atr_pct:.1f}% exceeds HANZ volatility guard."
-        )
-
-    if not passed:
-        grade = "FAIL"
-    elif avg_value is not None and avg_value >= MIN_AVG_DAILY_VALUE_IDR * 5:
-        grade = "A"
-    elif avg_value is not None and avg_value >= MIN_AVG_DAILY_VALUE_IDR * 2:
-        grade = "B"
-    else:
-        grade = "C"
-
-    return {
-        "pass": passed,
-        "grade": grade,
-        "score": max(0, min(100, score)),
-        "avg_value20": avg_value,
-        "median_value20": median_value,
-        "zero_volume_days20": zero_days,
-        "atr_pct": atr_pct,
-        "reason": " ".join(reasons),
-    }
-
-
-
-def swing_volatility_guard(daily):
-    """Classify whether current volatility is suitable for HANZ Swing."""
-    atr_pct = safe_float(daily.get("atr_pct"))
-    ret1_pct = safe_float(daily.get("ret1_pct"))
-    gap_pct = safe_float(daily.get("gap_pct"))
-    day_range_pct = safe_float(daily.get("day_range_pct"))
-    extreme_move_days10 = int(daily.get("extreme_move_days10") or 0)
-
-    extreme_reasons = []
-    high_reasons = []
-
-    if atr_pct is not None:
-        if atr_pct > SWING_EXTREME_ATR_PCT:
-            extreme_reasons.append(
-                f"ATR {atr_pct:.1f}% > {SWING_EXTREME_ATR_PCT:.1f}% swing limit."
-            )
-        elif atr_pct >= SWING_HIGH_ATR_PCT:
-            high_reasons.append(
-                f"ATR {atr_pct:.1f}% is elevated for swing trading."
-            )
-
-    if ret1_pct is not None and abs(ret1_pct) >= SWING_EXTREME_1D_MOVE_PCT:
-        extreme_reasons.append(
-            f"1D move {ret1_pct:+.1f}% is extreme for HANZ Swing."
-        )
-
-    if gap_pct is not None:
-        if abs(gap_pct) >= SWING_EXTREME_GAP_PCT:
-            extreme_reasons.append(f"Session gap {gap_pct:+.1f}% is extreme.")
-        elif abs(gap_pct) >= SWING_HIGH_GAP_PCT:
-            high_reasons.append(f"Session gap {gap_pct:+.1f}% is elevated.")
-
-    if day_range_pct is not None and day_range_pct >= SWING_HIGH_DAY_RANGE_PCT:
-        high_reasons.append(
-            f"Daily range {day_range_pct:.1f}% is wide for a swing setup."
-        )
-
-    if extreme_move_days10 >= SWING_EXTREME_MOVE_DAYS_10:
-        extreme_reasons.append(
-            f"{extreme_move_days10} sessions moved >=±{SWING_EXTREME_1D_MOVE_PCT:.0f}% "
-            f"within the last 10 trading days."
-        )
-
-    if extreme_reasons:
-        status = "EXTREME"
-        blocked = True
-        size_multiplier = 0.0
-        warning = "EXTREME VOLATILITY — NOT SUITABLE FOR HANZ SWING"
-        reasons = extreme_reasons + high_reasons
-    elif high_reasons:
-        status = "HIGH"
-        blocked = False
-        size_multiplier = max(0.0, min(1.0, SWING_HIGH_VOL_SIZE_MULTIPLIER))
-        warning = "HIGH VOLATILITY — SWING RISK ELEVATED"
-        reasons = high_reasons
-    else:
-        status = "NORMAL"
-        blocked = False
-        size_multiplier = 1.0
-        warning = "NORMAL VOLATILITY"
-        reasons = []
-
-    return {
-        "status": status,
-        "blocked": blocked,
-        "size_multiplier": size_multiplier,
-        "warning": warning,
-        "atr_pct": atr_pct,
-        "ret1_pct": ret1_pct,
-        "gap_pct": gap_pct,
-        "day_range_pct": day_range_pct,
-        "extreme_move_days10": extreme_move_days10,
-        "reason": " ".join(reasons),
-    }
-
-
-def real_money_validation(
-    ticker,
-    daily,
-    result,
-    levels,
-    fundamental,
-    context,
-):
-    """Independent execution gate. Technical SWING_BUY is preserved."""
-    context = context or build_real_money_context()
-    market = context.get("market") or {}
-    portfolio = context.get("portfolio") or {}
-    performance = context.get("performance") or {}
-    liquidity = liquidity_validation(daily)
-    volatility_guard = swing_volatility_guard(daily)
-    momentum_guard = result.get("momentum_guard") or momentum_damage_guard(daily)
-
-    entry = safe_float(levels.get("entry_price") or daily.get("price"))
-    stop = safe_float(levels.get("stop_loss"))
-    target1 = safe_float(levels.get("target_1"))
-    target2 = safe_float(levels.get("target_2"))
-
-    stop_distance_pct = None
-    risk_per_share = None
-    rr1 = None
-    rr2 = None
-    net_rr1 = None
-    net_rr2 = None
-
-    costs_configured = (
-        BUY_FEE_PCT >= 0
-        and SELL_FEE_PCT >= 0
-        and SLIPPAGE_PCT >= 0
-    )
-
-    if (
-        entry not in (None, 0)
-        and stop is not None
-        and entry > stop
-    ):
-        risk_per_share = entry - stop
-        stop_distance_pct = risk_per_share / entry * 100
-        if target1 is not None and target1 > entry:
-            rr1 = (target1 - entry) / risk_per_share
-        if target2 is not None and target2 > entry:
-            rr2 = (target2 - entry) / risk_per_share
-
-        if costs_configured:
-            buy_cost_rate = (BUY_FEE_PCT + SLIPPAGE_PCT) / 100.0
-            sell_cost_rate = (SELL_FEE_PCT + SLIPPAGE_PCT) / 100.0
-
-            effective_entry = entry * (1.0 + buy_cost_rate)
-            effective_stop = stop * (1.0 - sell_cost_rate)
-            effective_risk = effective_entry - effective_stop
-
-            if effective_risk > 0:
-                if target1 is not None and target1 > entry:
-                    effective_t1 = target1 * (1.0 - sell_cost_rate)
-                    net_rr1 = (effective_t1 - effective_entry) / effective_risk
-                if target2 is not None and target2 > entry:
-                    effective_t2 = target2 * (1.0 - sell_cost_rate)
-                    net_rr2 = (effective_t2 - effective_entry) / effective_risk
-
-    gate = "MONITOR"
-    score = 100
-    blockers = []
-    cautions = []
-
-    if momentum_guard.get("blocked"):
-        gate = "BLOCKED"
-        score = 0
-        blockers.append("MOMENTUM_BROKEN")
-        if momentum_guard.get("failed_breakout"):
-            blockers.append("FAILED_BREAKOUT")
-    elif volatility_guard.get("blocked"):
-        gate = "BLOCKED"
-        score = 0
-        blockers.append("EXTREME_VOLATILITY")
-    elif result.get("state") != "SWING_BUY":
-        gate = "MONITOR"
-        score = 0
-    else:
-        if not liquidity.get("pass"):
-            blockers.append("LIQUIDITY")
-
-        if market.get("regime") in {"RED", "UNKNOWN"}:
-            blockers.append("MARKET_REGIME")
-        elif market.get("regime") == "YELLOW":
-            cautions.append("MARKET_YELLOW")
-            score -= 15
-
-        if performance.get("status") == "LOCKED":
-            blockers.append("KILL_SWITCH")
-        elif performance.get("status") in {"CAUTION", "WARMUP", "UNKNOWN"}:
-            cautions.append(f"PERFORMANCE_{performance.get('status')}")
-            score -= 10
-
-        if risk_per_share is None or risk_per_share <= 0:
-            blockers.append("INVALID_STOP")
-        else:
-            if stop_distance_pct is not None and stop_distance_pct > 12.0:
-                blockers.append("STOP_TOO_WIDE")
-            elif stop_distance_pct is not None and stop_distance_pct < 1.0:
-                cautions.append("STOP_VERY_TIGHT")
-                score -= 10
-
-        if not costs_configured:
-            cautions.append("TRADING_COSTS_NOT_CONFIGURED")
-            score -= 10
-
-        rr1_for_gate = net_rr1 if costs_configured else rr1
-        rr2_for_gate = net_rr2 if costs_configured else rr2
-
-        if rr1_for_gate is None or rr1_for_gate < MIN_RR_T1:
-            blockers.append("RR_T1")
-        if rr2_for_gate is None or rr2_for_gate < MIN_RR_T2:
-            blockers.append("RR_T2")
-
-        portfolio_risk_pct = safe_float(portfolio.get("portfolio_risk_pct"))
-        if (
-            portfolio_risk_pct is not None
-            and portfolio_risk_pct >= MAX_PORTFOLIO_RISK_PCT
-        ):
-            blockers.append("PORTFOLIO_RISK_LIMIT")
-
-        if int(portfolio.get("open_positions") or 0) >= MAX_OPEN_POSITIONS:
-            blockers.append("MAX_OPEN_POSITIONS")
-
-        sector = fundamental.get("sector") or "UNKNOWN"
-        sector_value = safe_float(
-            (portfolio.get("sector_market_value") or {}).get(sector)
-        ) or 0.0
-        sector_exposure_pct = None
-        if ACCOUNT_CAPITAL_IDR > 0:
-            sector_exposure_pct = sector_value / ACCOUNT_CAPITAL_IDR * 100
-            if sector != "UNKNOWN" and sector_exposure_pct >= MAX_SECTOR_EXPOSURE_PCT:
-                blockers.append("SECTOR_CONCENTRATION")
-
-        if blockers:
-            gate = "BLOCKED"
-            score -= 50
-        elif ACCOUNT_CAPITAL_IDR <= 0 or not costs_configured:
-            gate = "PAPER_ONLY"
-            if ACCOUNT_CAPITAL_IDR <= 0:
-                cautions.append("ACCOUNT_CAPITAL_NOT_CONFIGURED")
-            if not costs_configured and "TRADING_COSTS_NOT_CONFIGURED" not in cautions:
-                cautions.append("TRADING_COSTS_NOT_CONFIGURED")
-            score -= 20
-        elif cautions:
-            gate = "CAUTION"
-        else:
-            gate = "ELIGIBLE"
-
-    score -= max(0, 100 - int(liquidity.get("score") or 0)) * 0.35
-    score = int(max(0, min(100, round(score))))
-
-    # Position sizing
-    suggested_lots = None
-    suggested_shares = None
-    suggested_position_idr = None
-    risk_budget_idr = None
-
-    if (
-        result.get("state") == "SWING_BUY"
-        and ACCOUNT_CAPITAL_IDR > 0
-        and risk_per_share not in (None, 0)
-        and entry not in (None, 0)
-        and gate in {"ELIGIBLE", "CAUTION"}
-    ):
-        size_multiplier = safe_float(market.get("size_multiplier"))
-        if size_multiplier is None:
-            size_multiplier = 0.0
-        if performance.get("status") == "CAUTION":
-            size_multiplier *= 0.5
-
-        volatility_size_multiplier = safe_float(
-            volatility_guard.get("size_multiplier")
-        )
-        if volatility_size_multiplier is not None:
-            size_multiplier *= volatility_size_multiplier
-
-        risk_budget_idr = (
-            ACCOUNT_CAPITAL_IDR
-            * (RISK_PER_TRADE_PCT / 100.0)
-            * size_multiplier
-        )
-
-        shares_by_risk = int(risk_budget_idr // risk_per_share)
-
-        max_position_idr = ACCOUNT_CAPITAL_IDR * (MAX_POSITION_PCT / 100.0)
-        shares_by_position = int(max_position_idr // entry)
-
-        avg_value = safe_float(liquidity.get("avg_value20"))
-        shares_by_liquidity = shares_by_position
-        if avg_value not in (None, 0):
-            max_liq_value = avg_value * (MAX_ADV_PARTICIPATION_PCT / 100.0)
-            shares_by_liquidity = int(max_liq_value // entry)
-
-        shares = min(
-            shares_by_risk,
-            shares_by_position,
-            shares_by_liquidity,
-        )
-        lots = max(0, shares // 100)
-
-        if lots > 0:
-            suggested_lots = lots
-            suggested_shares = lots * 100
-            suggested_position_idr = suggested_shares * entry
-
-    actionable = (
-        result.get("state") == "SWING_BUY"
-        and (
-            (not RISK_LIVE_GATE_ENABLED)
-            or gate == "ELIGIBLE"
-        )
-    )
-
-    return {
-        "gate": gate,
-        "score": score,
-        "actionable": actionable,
-        "blockers": blockers,
-        "cautions": cautions,
-        "market_regime": market.get("regime"),
-        "market_reason": market.get("reason"),
-        "market_score": market.get("score"),
-        "liquidity_grade": liquidity.get("grade"),
-        "liquidity_pass": liquidity.get("pass"),
-        "liquidity_reason": liquidity.get("reason"),
-        "volatility_status": volatility_guard.get("status"),
-        "volatility_warning": volatility_guard.get("warning"),
-        "volatility_reason": volatility_guard.get("reason"),
-        "volatility_size_multiplier": volatility_guard.get("size_multiplier"),
-        "gap_pct": volatility_guard.get("gap_pct"),
-        "day_range_pct": volatility_guard.get("day_range_pct"),
-        "extreme_move_days10": volatility_guard.get("extreme_move_days10"),
-        "momentum_guard": momentum_guard,
-        "momentum_status": (
-            "BROKEN" if momentum_guard.get("blocked")
-            else ("WEAKENING" if momentum_guard.get("caution") else "HEALTHY")
-        ),
-        "failed_breakout": bool(momentum_guard.get("failed_breakout")),
-        "ret1_pct": momentum_guard.get("ret1_pct"),
-        "ret3_pct": momentum_guard.get("ret3_pct"),
-        "ret5_pct": momentum_guard.get("ret5_pct"),
-        "drawdown_5d_high_pct": momentum_guard.get("drawdown_5d_high_pct"),
-        "drawdown_10d_high_pct": momentum_guard.get("drawdown_10d_high_pct"),
-        "avg_value20": liquidity.get("avg_value20"),
-        "median_value20": liquidity.get("median_value20"),
-        "zero_volume_days20": liquidity.get("zero_volume_days20"),
-        "atr_pct": liquidity.get("atr_pct"),
-        "stop_distance_pct": safe_float(stop_distance_pct),
-        "rr_target_1": safe_float(rr1),
-        "rr_target_2": safe_float(rr2),
-        "net_rr_target_1": safe_float(net_rr1),
-        "net_rr_target_2": safe_float(net_rr2),
-        "costs_configured": costs_configured,
-        "buy_fee_pct": BUY_FEE_PCT if BUY_FEE_PCT >= 0 else None,
-        "sell_fee_pct": SELL_FEE_PCT if SELL_FEE_PCT >= 0 else None,
-        "slippage_pct": SLIPPAGE_PCT if SLIPPAGE_PCT >= 0 else None,
-        "risk_per_share": safe_float(risk_per_share),
-        "risk_budget_idr": safe_float(risk_budget_idr),
-        "suggested_lots": suggested_lots,
-        "suggested_shares": suggested_shares,
-        "suggested_position_idr": safe_float(suggested_position_idr),
-        "portfolio_risk_pct": portfolio.get("portfolio_risk_pct"),
-        "open_positions": portfolio.get("open_positions"),
-        "kill_switch": performance.get("status"),
-        "kill_switch_reason": performance.get("reason"),
-        "performance_win_rate_pct": performance.get("win_rate_pct"),
-        "performance_avg_pnl_pct": performance.get("avg_pnl_pct"),
-        "account_capital_configured": ACCOUNT_CAPITAL_IDR > 0,
-        "generated_at": now_iso(),
-    }
 
 
 # ============================================================
@@ -4607,8 +3002,6 @@ def refresh_swing_buy_intraday_prices():
             "bar_at": q["bar_at"],
             "feed_status": feed_status,
             "updated": allow_update,
-            "source": q.get("source"),
-            "fallback_used": q.get("fallback_used", False),
         })
 
         if status == "OK":
@@ -4616,9 +3009,7 @@ def refresh_swing_buy_intraday_prices():
                 f"SWING QUOTE {clean} "
                 f"price={price_value} "
                 f"age={age:.1f}m "
-                f"bar={q['bar_at']} "
-                f"source={q.get('source')} "
-                f"fallback={q.get('fallback_used', False)} OK",
+                f"bar={q['bar_at']} OK",
                 flush=True,
             )
         elif status == "LAST_TRADE":
@@ -4626,9 +3017,7 @@ def refresh_swing_buy_intraday_prices():
                 f"SWING QUOTE {clean} "
                 f"price={price_value} "
                 f"age={age:.1f}m "
-                f"bar={q['bar_at']} "
-                f"source={q.get('source')} "
-                f"fallback={q.get('fallback_used', False)} LAST_TRADE "
+                f"bar={q['bar_at']} LAST_TRADE "
                 f"| feed={feed_status}; price accepted.",
                 flush=True,
             )
@@ -4637,8 +3026,6 @@ def refresh_swing_buy_intraday_prices():
                 f"SWING QUOTE {clean} STALE_FEED "
                 f"age={age:.1f}m "
                 f"bar={q['bar_at']} "
-                f"source={q.get('source')} "
-                f"fallback={q.get('fallback_used', False)} "
                 f"| feed={feed_status}; stored price NOT overwritten.",
                 flush=True,
             )
@@ -4659,217 +3046,6 @@ def refresh_swing_buy_intraday_prices():
     }
 
 
-
-
-def latest_completed_idx_date(now=None):
-    """
-    Return the latest IDX trading date whose daily candle should be complete.
-    Before today's close, this is the previous trading day. After POST_CLOSE,
-    it is today.
-    """
-    now = now or jakarta_now()
-    market = idx_market_session(now)
-
-    if market.get("is_trading_day") and market.get("allow_final_scan"):
-        return now.date()
-
-    return previous_idx_trading_day(now.date())
-
-
-def intraday_to_daily_frame(ticker):
-    """
-    Aggregate recent intraday bars into Jakarta-date OHLCV daily bars.
-    Used only to repair a missing/stale latest completed daily candle.
-    """
-    df = download_frame(
-        ticker,
-        CHART_REPAIR_INTRADAY_INTERVAL,
-        CHART_REPAIR_INTRADAY_PERIOD,
-    ).copy()
-
-    if df.empty:
-        return df
-
-    idx = pd.DatetimeIndex(df.index)
-    if idx.tz is None:
-        idx = idx.tz_localize(JAKARTA_TZ)
-    else:
-        idx = idx.tz_convert(JAKARTA_TZ)
-
-    df.index = idx
-    df["_date"] = idx.date
-
-    grouped = df.groupby("_date", sort=True).agg(
-        {
-            "Open": "first",
-            "High": "max",
-            "Low": "min",
-            "Close": "last",
-            "Volume": "sum",
-        }
-    )
-    grouped.index = pd.to_datetime(grouped.index)
-    return grouped
-
-
-def ensure_latest_completed_daily_bar(ticker, daily_df):
-    """
-    Repair stale Yahoo 1d history when the latest completed IDX session is
-    missing. We never fabricate a candle: the repair happens only when recent
-    intraday bars contain the exact completed trading date.
-    """
-    frame = daily_df.copy()
-    target_date = latest_completed_idx_date()
-
-    last_date = pd.Timestamp(frame.index[-1]).date()
-    if last_date >= target_date:
-        return frame, {
-            "target_date": target_date.isoformat(),
-            "source": "DAILY",
-            "repaired": False,
-            "last_date": last_date.isoformat(),
-        }
-
-    intraday_daily = intraday_to_daily_frame(ticker)
-    if intraday_daily is None or intraday_daily.empty:
-        raise RuntimeError(
-            f"Latest completed candle missing: daily={last_date}, "
-            f"target={target_date}, intraday repair unavailable"
-        )
-
-    repair_row = None
-    for idx, row in intraday_daily.iterrows():
-        if pd.Timestamp(idx).date() == target_date:
-            repair_row = row
-            break
-
-    if repair_row is None:
-        available = [
-            pd.Timestamp(x).date().isoformat()
-            for x in intraday_daily.index
-        ]
-        raise RuntimeError(
-            f"Latest completed candle missing: daily={last_date}, "
-            f"target={target_date}, intraday dates={available}"
-        )
-
-    repair_ts = pd.Timestamp(target_date)
-    replacement = pd.DataFrame(
-        [{
-            "Open": safe_float(repair_row["Open"]),
-            "High": safe_float(repair_row["High"]),
-            "Low": safe_float(repair_row["Low"]),
-            "Close": safe_float(repair_row["Close"]),
-            "Volume": safe_float(repair_row["Volume"]),
-        }],
-        index=[repair_ts],
-    )
-
-    # Remove any duplicate date, append repaired candle, and preserve ordering.
-    keep = [
-        pd.Timestamp(x).date() != target_date
-        for x in frame.index
-    ]
-    frame = frame.loc[keep]
-    frame = pd.concat([frame, replacement]).sort_index()
-
-    return frame, {
-        "target_date": target_date.isoformat(),
-        "source": "INTRADAY_AGGREGATED",
-        "repaired": True,
-        "last_date": target_date.isoformat(),
-    }
-
-
-def chart_candles_from_daily_df(daily_df, limit=None):
-    """
-    Serialize completed daily OHLCV bars already downloaded by the engine.
-
-    Full universe scans only run after the IDX final-scan gate opens, so the
-    last daily bar used here is a completed bar. No browser-side Yahoo request
-    is required later.
-    """
-    limit = max(60, int(limit or CHART_LOOKBACK_BARS))
-    frame = daily_df.tail(limit).copy()
-
-    candles = []
-    for idx, row in frame.iterrows():
-        o = safe_float(row.get("Open"))
-        h = safe_float(row.get("High"))
-        l = safe_float(row.get("Low"))
-        c = safe_float(row.get("Close"))
-        v = safe_float(row.get("Volume"))
-
-        if None in (o, h, l, c):
-            continue
-
-        ts = pd.Timestamp(idx)
-        if ts.tzinfo is not None:
-            ts = ts.tz_convert(JAKARTA_TZ)
-
-        candles.append({
-            "time": ts.date().isoformat(),
-            "open": o,
-            "high": h,
-            "low": l,
-            "close": c,
-            "volume": int(v) if v is not None else 0,
-        })
-
-    return candles
-
-
-def upsert_chart_data(ticker, daily_df, result):
-    """
-    Persist chart data only for active HANZ signal states.
-    One compact JSON row per ticker keeps dashboard reads fast and avoids CORS.
-    """
-    state = str(result.get("state") or "")
-    if state not in CHART_STATES:
-        return {"stored": False, "reason": "inactive_state"}
-
-    repaired_df, freshness = ensure_latest_completed_daily_bar(
-        ticker,
-        daily_df,
-    )
-
-    candles = chart_candles_from_daily_df(repaired_df)
-    if len(candles) < 60:
-        raise RuntimeError(
-            f"Insufficient chart candles for {clean_ticker(ticker)}"
-        )
-
-    if candles[-1]["time"] != freshness["target_date"]:
-        raise RuntimeError(
-            f"Chart freshness check failed for {clean_ticker(ticker)}: "
-            f"last={candles[-1]['time']} target={freshness['target_date']}"
-        )
-
-    payload = {
-        "ticker": clean_ticker(ticker),
-        "state": state,
-        "source_bar_at": candles[-1]["time"],
-        "candles": candles,
-        "updated_at": now_iso(),
-    }
-
-    supabase_request(
-        "POST",
-        "hanz_swing_chart_data?on_conflict=ticker",
-        payload,
-        prefer="resolution=merge-duplicates,return=minimal",
-    )
-
-    return {
-        "stored": True,
-        "bars": len(candles),
-        "source_bar_at": candles[-1]["time"],
-        "target_date": freshness["target_date"],
-        "bar_source": freshness["source"],
-        "repaired": freshness["repaired"],
-    }
-
-
 def upsert_monitor(
     ticker,
     daily,
@@ -4878,7 +3054,6 @@ def upsert_monitor(
     levels,
     discount,
     fundamental,
-    risk_validation,
 ):
     payload = {
         "ticker": clean_ticker(ticker),
@@ -4890,6 +3065,11 @@ def upsert_monitor(
         "daily_rsi": daily["rsi14"],
         "weekly_rsi": weekly["rsi14"],
         "daily_rvol": daily["rvol20"],
+        "daily_volume": daily.get("volume"),
+        "avg_volume20": daily.get("avg_volume20"),
+        "turnover_value": daily.get("turnover_value"),
+        "day_return_pct": daily.get("day_return_pct"),
+        "close_position_pct": daily.get("close_position_pct"),
         "breakout": result["breakout"],
         "breakout_level": daily["prior_high20"],
         "entry_price": levels.get("entry_price"),
@@ -4935,10 +3115,6 @@ def upsert_monitor(
         "operating_margin_pct": fundamental.get("operating_margin_pct"),
         "pe_ratio": fundamental.get("pe_ratio"),
         "pb_ratio": fundamental.get("pb_ratio"),
-        "market_regime": risk_validation.get("market_regime"),
-        "risk_gate": risk_validation.get("gate"),
-        "risk_score": risk_validation.get("score"),
-        "risk_validation": risk_validation,
         "evidence": "; ".join(
             result["evidence"]
         ),
@@ -5018,154 +3194,54 @@ def insert_swing_signal(
     )
 
 
-
-def scan_predictive_radar_symbol(ticker):
+def confirmed_buy_gate(daily, result, levels):
     """
-    Intraday predictive radar.
+    Final HANZ BUY gate.
 
-    Writes INTERNAL radar states to the monitor table so the next completed
-    daily bar can reconfirm them. It never inserts a signal, sends a push,
-    or creates a user-facing BUY.
+    A bullish / breakout stock is NOT automatically actionable.
+    BUY requires:
+      - core state already SWING_BUY
+      - price is inside a usable ENTRY_ZONE (not WAIT_PULLBACK)
+      - no obvious exhaustion / failed-close signature
+      - acceptable momentum without late-stage chase
     """
-    daily_df_raw = download_frame(
-        ticker,
-        DAILY_INTERVAL,
-        DAILY_PERIOD,
-    )
-    daily_df = _completed_daily_frame_for_radar(daily_df_raw)
+    if result.get("state") != "SWING_BUY":
+        return False, "Core swing state not SWING_BUY"
 
-    weekly_df = download_frame(
-        ticker,
-        WEEKLY_INTERVAL,
-        WEEKLY_PERIOD,
-    )
+    entry_status = str(levels.get("entry_status") or "").upper()
+    if entry_status != "ENTRY_ZONE":
+        return False, f"Entry not actionable: {entry_status or 'UNKNOWN'}"
 
-    daily = daily_metrics(daily_df)
-    weekly = weekly_metrics(weekly_df)
-    prior_monitor = fetch_prior_monitor(ticker)
-    prior_state = str((prior_monitor or {}).get("state") or "").upper()
+    rsi_d = safe_float(daily.get("rsi14"))
+    ret5 = safe_float(daily.get("ret5_pct"))
+    day_ret = safe_float(daily.get("day_return_pct"))
+    close_pos = safe_float(daily.get("close_position_pct"))
+    rvol = safe_float(daily.get("rvol20"))
 
-    # Never let the internal radar overwrite an already confirmed BUY or a
-    # safety-broken state during the live session.
-    if prior_state in {"SWING_BUY", "MOMENTUM_BROKEN"}:
-        return "PRESERVE_ACTIVE"
+    # Avoid late-stage / overheated entries.
+    if rsi_d is not None and rsi_d > 74:
+        return False, f"Daily RSI overheated ({rsi_d:.1f})"
+    if ret5 is not None and ret5 > 14:
+        return False, f"5-day move too extended (+{ret5:.1f}%)"
+    if day_ret is not None and day_ret > 7:
+        return False, f"Single-day move too extended (+{day_ret:.1f}%)"
 
-    baseline = early_signal_score(daily, weekly)
+    # A breakout that closes weak after intraday strength can be distribution/exhaustion.
     if (
-        int(baseline.get("score") or 0) < RADAR_BASE_MIN_SCORE
-        and not prior_state.startswith("RADAR_")
-        and prior_state not in {"EARLY_WATCH", "PRE_ALERT", "SETUP_READY"}
+        close_pos is not None
+        and close_pos < 45
+        and day_ret is not None
+        and day_ret > 0
     ):
-        return "NO_RADAR"
+        return False, f"Weak close after strength ({close_pos:.0f}% of day range)"
 
-    snapshot = intraday_radar_snapshot(
-        ticker,
-        daily_df,
-        daily,
-    )
-    radar = predictive_radar_signal(
-        daily,
-        weekly,
-        snapshot,
-    )
+    # Confirm participation. If RVOL is available, do not confirm a breakout on very weak volume.
+    if rvol is not None and rvol < 0.80:
+        return False, f"Volume confirmation weak (RVOL {rvol:.2f}x)"
 
-    base_result = swing_score(
-        daily,
-        weekly,
-    )
+    return True, "Confirmed actionable BUY"
 
-    result = {
-        **base_result,
-        "state": radar["state"],
-        "score": radar["score"],
-        "early_score": baseline.get("score", 0),
-        "raw_buy_gate": False,
-        "reconfirmed": False,
-        "evidence": radar["evidence"],
-    }
-
-    # Use live price only for provisional internal risk/entry diagnostics.
-    # daily_bar_at remains the last COMPLETED daily candle so post-close can
-    # prove that a new completed candle exists.
-    radar_daily = dict(daily)
-    if safe_float(snapshot.get("price")) is not None:
-        radar_daily["price"] = safe_float(snapshot.get("price"))
-    if safe_float(snapshot.get("projected_rvol")) is not None:
-        radar_daily["rvol20"] = safe_float(snapshot.get("projected_rvol"))
-    if safe_float(snapshot.get("intraday_return_pct")) is not None:
-        radar_daily["ret1_pct"] = safe_float(snapshot.get("intraday_return_pct"))
-    if safe_float(snapshot.get("gap_pct")) is not None:
-        radar_daily["gap_pct"] = safe_float(snapshot.get("gap_pct"))
-    if safe_float(snapshot.get("day_range_pct")) is not None:
-        radar_daily["day_range_pct"] = safe_float(snapshot.get("day_range_pct"))
-    if safe_float(snapshot.get("breakout_distance_pct")) is not None:
-        radar_daily["breakout_distance_pct"] = safe_float(
-            snapshot.get("breakout_distance_pct")
-        )
-
-    fundamental = fundamental_intelligence_v1({})
-    discount = discount_intelligence_v2(
-        ticker,
-        radar_daily,
-        weekly,
-        result,
-        {},
-        fundamental,
-    )
-    levels = risk_levels(
-        radar_daily,
-        result=result,
-        discount=discount,
-        fundamental=fundamental,
-    )
-    risk_validation = real_money_validation(
-        ticker,
-        radar_daily,
-        result,
-        levels,
-        fundamental,
-        _REAL_MONEY_CONTEXT,
-    )
-    risk_validation["radar_internal"] = True
-    risk_validation["radar_state"] = radar["state"]
-    risk_validation["radar_score"] = radar["score"]
-    risk_validation["radar_armed"] = bool(radar.get("armed"))
-    risk_validation["radar_snapshot"] = snapshot
-    risk_validation["dashboard_eligible"] = False
-    risk_validation["reconfirmation_required"] = True
-
-    # If a previously armed radar loses the setup before close, clear it.
-    # NO_SETUP is internal and is hidden by the dashboard.
-    upsert_monitor(
-        ticker,
-        radar_daily,
-        weekly,
-        result,
-        levels,
-        discount,
-        fundamental,
-        risk_validation,
-    )
-
-    print(
-        f"RADAR {clean_ticker(ticker)} "
-        f"{radar['state']} score={radar['score']}/10 "
-        f"base={baseline.get('score', 0)}/10 "
-        f"price={snapshot.get('price')} "
-        f"dist={snapshot.get('breakout_distance_pct')}% "
-        f"pace={snapshot.get('projected_rvol')}x "
-        f"ret={snapshot.get('intraday_return_pct')}% "
-        f"30m={snapshot.get('last_30m_return_pct')}% "
-        f"volacc={snapshot.get('intraday_volume_accel')}x "
-        f"fresh={snapshot.get('fresh')} "
-        f"INTERNAL_ONLY=TRUE",
-        flush=True,
-    )
-
-    return radar["state"]
-
-
-def scan_symbol(ticker, maintenance_mode=False):
+def scan_symbol(ticker):
     daily_df = download_frame(
         ticker,
         DAILY_INTERVAL,
@@ -5181,18 +3257,9 @@ def scan_symbol(ticker, maintenance_mode=False):
     daily = daily_metrics(daily_df)
     weekly = weekly_metrics(weekly_df)
 
-    base_result = swing_score(
+    result = swing_score(
         daily,
         weekly,
-    )
-
-    prior_monitor = fetch_prior_monitor(ticker)
-    result = apply_early_state_and_reconfirmation(
-        ticker,
-        daily,
-        weekly,
-        base_result,
-        prior_monitor,
     )
 
     company_intel = {
@@ -5241,59 +3308,28 @@ def scan_symbol(ticker, maintenance_mode=False):
         fundamental=fundamental,
     )
 
-    risk_validation = real_money_validation(
+    # V9.1: SWING_BUY means "confirmed and actionable now", not merely bullish.
+    # Extended / overheated / weak-close setups are downgraded to SWING_CONFIRMING.
+    buy_ok, buy_gate_reason = confirmed_buy_gate(daily, result, levels)
+    result["buy_gate_reason"] = buy_gate_reason
+    result["actionable_buy"] = bool(buy_ok)
+    if result.get("state") == "SWING_BUY" and not buy_ok:
+        result["state"] = "SWING_CONFIRMING"
+        result["evidence"].append(f"BUY GATE HOLD: {buy_gate_reason}")
+    elif buy_ok:
+        result["evidence"].append("FINAL BUY GATE: confirmed actionable entry")
+
+    upsert_monitor(
         ticker,
         daily,
+        weekly,
         result,
         levels,
+        discount,
         fundamental,
-        _REAL_MONEY_CONTEXT,
     )
 
-    # Off-market maintenance mode may DOWNGRADE stale states, but must never
-    # create/upgrade an actionable BUY while IDX is closed.
-    prior_state = str((prior_monitor or {}).get("state") or "").upper()
-    maintenance_write = True
-    if maintenance_mode:
-        if result.get("state") == "SWING_BUY":
-            # Never write/upgrade BUY while the market is closed.
-            maintenance_write = False
-        elif result.get("state") != "MOMENTUM_BROKEN":
-            # Only persist safety downgrades during closed-market maintenance.
-            maintenance_write = False
-
-    if maintenance_write:
-        upsert_monitor(
-            ticker,
-            daily,
-            weekly,
-            result,
-            levels,
-            discount,
-            fundamental,
-            risk_validation,
-        )
-
-    chart_summary = {"stored": False}
-    if result.get("state") in CHART_STATES:
-        try:
-            chart_summary = upsert_chart_data(
-                ticker,
-                daily_df,
-                result,
-            )
-        except Exception as exc:
-            # Chart persistence must never break the signal engine.
-            print(
-                f"SWING CHART {clean_ticker(ticker)} failed: {exc}",
-                flush=True,
-            )
-
-    if (
-        not maintenance_mode
-        and result["state"] == "SWING_BUY"
-        and risk_validation.get("actionable")
-    ):
+    if result["state"] == "SWING_BUY":
         insert_swing_signal(
             ticker,
             daily,
@@ -5305,24 +3341,10 @@ def scan_symbol(ticker, maintenance_mode=False):
         f"SWING {clean_ticker(ticker)} "
         f"{result['state']} "
         f"score={result['score']}/10 "
-        f"early={result.get('early_score', 0)}/10 "
-        f"raw_buy={result.get('raw_buy_gate', False)} "
-        f"reconfirmed={result.get('reconfirmed', False)} "
-        f"chart={chart_summary.get('stored', False)}"
-        f"/{chart_summary.get('bars', 0)}bars"
-        f"/{chart_summary.get('source_bar_at', '—')}"
-        f"/{chart_summary.get('bar_source', '—')} "
         f"discount={discount['discount_score']}/100 "
         f"{discount['discount_label']} "
         f"fundamental={fundamental.get('fundamental_score')}/100 "
         f"{fundamental.get('fundamental_label')} "
-        f"risk={risk_validation.get('gate')}"
-        f"/{risk_validation.get('score')} "
-        f"market={risk_validation.get('market_regime')} "
-        f"liq={risk_validation.get('liquidity_grade')} "
-        f"vol={risk_validation.get('volatility_status')} "
-        f"atr={risk_validation.get('atr_pct')} "
-        f"lots={risk_validation.get('suggested_lots')} "
         f"entry={levels.get('entry_low')}-{levels.get('entry_high')} "
         f"T1={levels.get('target_1')} "
         f"T2={levels.get('target_2')} "
@@ -5331,89 +3353,6 @@ def scan_symbol(ticker, maintenance_mode=False):
     )
 
     return result["state"]
-
-
-
-def backfill_active_chart_cache():
-    """
-    Keep chart cache available even when the market is closed.
-
-    Only active HANZ signal rows are considered. A ticker is downloaded only
-    when its chart cache is missing or older than the monitor's completed
-    daily_bar_at. This makes manual after-hours runs useful without repeatedly
-    hammering Yahoo/yfinance every scheduled hour.
-    """
-    state_filter = ",".join(sorted(CHART_STATES))
-    monitor_rows = supabase_request(
-        "GET",
-        "hanz_swing_signal_monitor"
-        f"?state=in.({state_filter})"
-        "&select=ticker,state,daily_bar_at"
-        "&order=score.desc",
-    ) or []
-
-    summary = {
-        "active": len(monitor_rows),
-        "backfilled": 0,
-        "already_current": 0,
-        "failed": 0,
-    }
-
-    for row in monitor_rows:
-        ticker = clean_ticker(row.get("ticker"))
-        state = str(row.get("state") or "")
-        monitor_bar = str(row.get("daily_bar_at") or "")[:10]
-        target_bar = latest_completed_idx_date().isoformat()
-
-        if not ticker or state not in CHART_STATES:
-            continue
-
-        try:
-            encoded = urllib.parse.quote(ticker, safe="")
-            cached = supabase_request(
-                "GET",
-                "hanz_swing_chart_data"
-                f"?ticker=eq.{encoded}"
-                "&select=ticker,source_bar_at"
-                "&limit=1",
-            ) or []
-
-            cached_bar = (
-                str(cached[0].get("source_bar_at") or "")[:10]
-                if cached else ""
-            )
-
-            # Cache is current only when it reaches the latest completed IDX
-            # trading date. A stale monitor row must not allow an old chart cache
-            # (for example Aug 14 when Aug 18 is completed) to be accepted.
-            if cached_bar and cached_bar >= target_bar:
-                summary["already_current"] += 1
-                continue
-
-            daily_df = download_frame(
-                ticker,
-                DAILY_INTERVAL,
-                DAILY_PERIOD,
-            )
-
-            result = {"state": state}
-            stored = upsert_chart_data(
-                ticker,
-                daily_df,
-                result,
-            )
-
-            if stored.get("stored"):
-                summary["backfilled"] += 1
-
-        except Exception as exc:
-            summary["failed"] += 1
-            print(
-                f"SWING CHART BACKFILL {ticker} failed: {exc}",
-                flush=True,
-            )
-
-    return summary
 
 
 def run_cycle():
@@ -5437,113 +3376,18 @@ def run_cycle():
         flush=True,
     )
 
-    # Chart cache maintenance is independent of BUY generation.
-    # It is safe to run after hours because it uses completed daily candles
-    # and only fills missing/stale chart cache rows.
-    try:
-        chart_cache_summary = backfill_active_chart_cache()
-        print(
-            "SWING CHART CACHE: "
-            + json.dumps(chart_cache_summary),
-            flush=True,
-        )
-    except Exception as exc:
-        print(
-            f"SWING CHART CACHE unavailable: {exc}",
-            flush=True,
-        )
-
     if not market["is_trading_day"]:
-        # CLOSED-MARKET MAINTENANCE RE-EVALUATION
-        # Recalculate the watch universe from the latest completed candles so
-        # stale BUY/setup rows can be SAFETY-DOWNGRADED (for example to
-        # MOMENTUM_BROKEN). This path is deliberately one-way: it does not
-        # create a new BUY, portfolio trigger, alert, or push.
-        global _REAL_MONEY_CONTEXT
-        _REAL_MONEY_CONTEXT = build_real_money_context()
-
-        universe = fetch_universe()
-        maintenance_counts = {
-            "MOMENTUM_BROKEN": 0,
-            "UNCHANGED_OR_NOT_WRITTEN": 0,
-            "ERROR": 0,
-        }
-
         print(
-            f"SWING CLOSED-MARKET MAINTENANCE universe: {len(universe)} | "
-            "downgrade-only=ON | new BUY=BLOCKED | portfolio/alert/push=BLOCKED",
-            flush=True,
-        )
-
-        for ticker in universe:
-            try:
-                state = scan_symbol(ticker, maintenance_mode=True)
-                if state == "MOMENTUM_BROKEN":
-                    maintenance_counts["MOMENTUM_BROKEN"] += 1
-                else:
-                    maintenance_counts["UNCHANGED_OR_NOT_WRITTEN"] += 1
-            except Exception as exc:
-                maintenance_counts["ERROR"] += 1
-                print(
-                    f"SWING MAINTENANCE {ticker} failed: {exc}",
-                    flush=True,
-                )
-
-        print(
-            "SWING CLOSED-MARKET MAINTENANCE complete: "
-            + json.dumps(maintenance_counts)
-            + " | No new signal, portfolio trigger, alert or push.",
+            "SWING cycle skipped: IDX is not a trading day. "
+            "No new signal, portfolio trigger, alert or push.",
             flush=True,
         )
         return
 
-    # During active sessions / lunch:
-    # 1) run INTERNAL predictive radar on the universe;
-    # 2) monitor existing portfolio risk.
-    # The radar can arm candidates early, but can NEVER create a user-facing BUY.
-    # User-facing BUY still waits for post-close completed-bar reconfirmation.
+    # During active sessions / lunch, only monitor portfolio risk.
+    # Universe SWING_BUY generation waits for the completed daily bar.
     if not market["allow_final_scan"]:
         if market["allow_portfolio_monitor"]:
-            _REAL_MONEY_CONTEXT = build_real_money_context()
-
-            universe = fetch_universe()
-            radar_counts = {
-                "RADAR_ARMED": 0,
-                "RADAR_PRE_ALERT": 0,
-                "RADAR_WATCH": 0,
-                "NO_SETUP": 0,
-                "NO_RADAR": 0,
-                "PRESERVE_ACTIVE": 0,
-                "ERROR": 0,
-            }
-
-            print(
-                f"HANZ PREDICTIVE RADAR universe: {len(universe)} | "
-                "INTERNAL_ONLY=ON | dashboard=BLOCKED | "
-                "new BUY=BLOCKED until completed-bar reconfirmation",
-                flush=True,
-            )
-
-            for ticker in universe:
-                try:
-                    radar_state = scan_predictive_radar_symbol(ticker)
-                    radar_counts[radar_state] = (
-                        radar_counts.get(radar_state, 0) + 1
-                    )
-                except Exception as exc:
-                    radar_counts["ERROR"] += 1
-                    print(
-                        f"RADAR {ticker} failed: {exc}",
-                        flush=True,
-                    )
-
-            print(
-                "HANZ PREDICTIVE RADAR complete: "
-                + json.dumps(radar_counts)
-                + " | no signal / alert / push generated",
-                flush=True,
-            )
-
             quote_summary = refresh_swing_buy_intraday_prices()
             print(
                 "SWING intraday SWING_BUY price refresh complete: "
@@ -5568,14 +3412,6 @@ def run_cycle():
             )
         return
 
-    _REAL_MONEY_CONTEXT = build_real_money_context()
-
-    print(
-        "HANZ REAL-MONEY CONTEXT: "
-        + json.dumps(_REAL_MONEY_CONTEXT, default=str),
-        flush=True,
-    )
-
     universe = fetch_universe()
 
     print(
@@ -5585,10 +3421,6 @@ def run_cycle():
 
     counts = {
         "SWING_BUY": 0,
-        "MOMENTUM_BROKEN": 0,
-        "SETUP_READY": 0,
-        "PRE_ALERT": 0,
-        "EARLY_WATCH": 0,
         "SWING_CONFIRMING": 0,
         "SWING_WATCH": 0,
         "NO_SETUP": 0,
@@ -5633,19 +3465,8 @@ def main():
         f"Cycle={SWING_INTERVAL}s | "
         f"Portfolio monitor=ON | "
         f"IDX calendar gate=ON (Asia/Jakarta) | "
-        f"Predictive radar=INTERNAL_INTRADAY | Dashboard=RECONFIRMED_ONLY | "
-        f"Reconfirm BUY=NEW COMPLETED DAILY BAR | "
-        f"Chart backend=SUPABASE/{CHART_LOOKBACK_BARS} completed bars | "
-        f"Real-money guard={'ON' if RISK_LIVE_GATE_ENABLED else 'OFF'} | "
-        f"Intraday fallback=ON | "
-        f"Risk/trade={RISK_PER_TRADE_PCT:.2f}% | "
-        f"Portfolio risk cap={MAX_PORTFOLIO_RISK_PCT:.2f}% | "
-        f"Costs={'CONFIGURED' if (BUY_FEE_PCT >= 0 and SELL_FEE_PCT >= 0 and SLIPPAGE_PCT >= 0) else 'PENDING'} | "
         f"Trailing={TRAILING_ATR_MULTIPLIER_T1:.1f}x/"
-        f"{TRAILING_ATR_MULTIPLIER_T2:.1f}x ATR | "
-        f"Swing volatility=HIGH>={SWING_HIGH_ATR_PCT:.1f}%/"
-        f"EXTREME>{SWING_EXTREME_ATR_PCT:.1f}% ATR | "
-        f"Market benchmark={normalize_ticker(MARKET_REGIME_TICKER)}",
+        f"{TRAILING_ATR_MULTIPLIER_T2:.1f}x ATR",
         flush=True,
     )
 
