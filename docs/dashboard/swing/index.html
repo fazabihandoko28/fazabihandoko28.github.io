@@ -1764,7 +1764,7 @@ async function initAuth(){
 }
 
 /* SHARED HANZ SIGNALS */
-const HANZ_SIGNAL_STATES=["SWING_BUY","RADAR_ARMED","RADAR_PRE_ALERT","RADAR_WATCH","SETUP_READY","PRE_ALERT","EARLY_WATCH","MOMENTUM_BROKEN"];
+const HANZ_SIGNAL_STATES=["SWING_BUY","SWING_CONFIRMING","SWING_WATCH","RADAR_ARMED","RADAR_PRE_ALERT","RADAR_WATCH","SETUP_READY","PRE_ALERT","EARLY_WATCH","MOMENTUM_BROKEN"];
 
 function radarProgress(state){
   return {
@@ -1772,6 +1772,8 @@ function radarProgress(state){
     "RADAR_WATCH":30,
     "PRE_ALERT":45,
     "RADAR_PRE_ALERT":55,
+    "SWING_WATCH":55,
+    "SWING_CONFIRMING":75,
     "SETUP_READY":70,
     "RADAR_ARMED":80,
     "SWING_BUY":100,
@@ -1803,8 +1805,11 @@ function displaySignalStateLabel(row){
 
 function signalStateRank(state){
   return {
-    "SWING_BUY":5,
+    "SWING_BUY":7,
+    "SWING_CONFIRMING":6,
+    "RADAR_ARMED":5,
     "SETUP_READY":4,
+    "SWING_WATCH":3,
     "PRE_ALERT":3,
     "EARLY_WATCH":2,
     "MOMENTUM_BROKEN":1
@@ -1814,6 +1819,8 @@ function signalStateRank(state){
 function signalStateLabel(state){
   return {
     "SWING_BUY":"RECONFIRMED BUY",
+    "SWING_CONFIRMING":"SWING CONFIRMING",
+    "SWING_WATCH":"SWING WATCH",
     "RADAR_ARMED":"RADAR ARMED",
     "RADAR_PRE_ALERT":"RADAR PRE-ALERT",
     "RADAR_WATCH":"RADAR WATCH",
@@ -1827,6 +1834,8 @@ function signalStateLabel(state){
 function signalStateClass(state){
   return {
     "SWING_BUY":"state-buy",
+    "SWING_CONFIRMING":"state-ready",
+    "SWING_WATCH":"state-pre",
     "MOMENTUM_BROKEN":"state-broken",
     "SETUP_READY":"state-ready",
     "PRE_ALERT":"state-pre",
@@ -1887,8 +1896,14 @@ function finalDecision(row){
   if(state==="SWING_BUY"){
     return {label:"WATCH",cls:"state-pre",detail:`Technical reconfirmation complete; waiting final risk clearance (${gate})`};
   }
-  if(state==="SETUP_READY"){
+  if(state==="SWING_CONFIRMING"){
+    return {label:"WAIT",cls:"state-ready",detail:"Strong swing setup; confirmation gate not fully passed"};
+  }
+  if(state==="SETUP_READY" || state==="RADAR_ARMED"){
     return {label:"WAIT",cls:"state-ready",detail:"Setup ready; reconfirmation required"};
+  }
+  if(state==="SWING_WATCH"){
+    return {label:"WATCH",cls:"state-pre",detail:"Promising swing setup; more confirmation required"};
   }
   return {label:"WATCH",cls:"state-pre",detail:"Not actionable"};
 }
@@ -2068,8 +2083,10 @@ function hanzBuyQuality(row){
   possible+=20;
   parts.maturity={
     "SWING_BUY":20,
+    "SWING_CONFIRMING":18,
     "RADAR_ARMED":17,
     "SETUP_READY":15,
+    "SWING_WATCH":12,
     "RADAR_PRE_ALERT":12,
     "PRE_ALERT":10,
     "RADAR_WATCH":7,
