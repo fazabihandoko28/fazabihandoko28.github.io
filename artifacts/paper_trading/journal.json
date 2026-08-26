@@ -588,5 +588,55 @@
     "source": "YAHOO_FINANCE_RESEARCH_ONLY",
     "recorded_at": "2026-08-24T15:25:10.321640+00:00",
     "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "TOWR",
+    "status": "READY",
+    "signal_timestamp": "2026-08-26T00:00:00+00:00",
+    "signal_close": 474.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-08-26T14:12:02.096747+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "ICBP",
+    "status": "READY",
+    "signal_timestamp": "2026-08-26T00:00:00+00:00",
+    "signal_close": 7850.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-08-26T14:12:02.096783+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "JPFA",
+    "status": "WAIT",
+    "signal_timestamp": "2026-08-26T00:00:00+00:00",
+    "signal_close": 2140.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-08-26T14:12:02.096795+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "PGEO",
+    "status": "WAIT",
+    "signal_timestamp": "2026-08-26T00:00:00+00:00",
+    "signal_close": 1005.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-08-26T14:12:02.096807+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "ELSA",
+    "status": "WAIT",
+    "signal_timestamp": "2026-08-26T00:00:00+00:00",
+    "signal_close": 675.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-08-26T14:12:02.096817+00:00",
+    "outcome": "PENDING"
   }
 ]
