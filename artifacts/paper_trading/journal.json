@@ -638,5 +638,55 @@
     "source": "YAHOO_FINANCE_RESEARCH_ONLY",
     "recorded_at": "2026-08-26T14:12:02.096817+00:00",
     "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "ADRO",
+    "status": "READY",
+    "signal_timestamp": "2026-08-27T00:00:00+00:00",
+    "signal_close": 2700.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-08-27T23:01:47.147241+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "GJTL",
+    "status": "READY",
+    "signal_timestamp": "2026-08-27T00:00:00+00:00",
+    "signal_close": 1445.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-08-27T23:01:47.147267+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "ICBP",
+    "status": "READY",
+    "signal_timestamp": "2026-08-27T00:00:00+00:00",
+    "signal_close": 7950.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-08-27T23:01:47.147312+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "ERAA",
+    "status": "READY",
+    "signal_timestamp": "2026-08-27T00:00:00+00:00",
+    "signal_close": 496.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-08-27T23:01:47.147328+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "JPFA",
+    "status": "WAIT",
+    "signal_timestamp": "2026-08-27T00:00:00+00:00",
+    "signal_close": 2210.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-08-27T23:01:47.147337+00:00",
+    "outcome": "PENDING"
   }
 ]
