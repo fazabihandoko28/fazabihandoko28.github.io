@@ -450,26 +450,90 @@ th{color:var(--muted)}
   .opportunity-grid,.portfolio-grid{grid-template-columns:1fr}
 }
 @media(max-width:700px){
-  .app{padding:10px 10px 90px}
-  .engine-pill{display:none}.header{min-height:58px;margin-bottom:9px}
-  .logo{width:41px;height:41px}.brand strong{font-size:15px}.user-info{display:none}
-  .hero{padding:19px;border-radius:21px}.hero-content{display:block}.hero h1{font-size:28px}
-  .hero-top{width:100%;min-width:0;margin-top:17px}
+  html,body{overflow-x:hidden}
+  .app{padding:10px 10px calc(96px + env(safe-area-inset-bottom))}
+
+  /* Mobile header: never hide account or primary controls. */
+  .header{
+    min-height:0;margin-bottom:9px;display:grid;grid-template-columns:1fr;gap:9px;align-items:stretch
+  }
+  .brand{min-width:0}
+  .logo{width:41px;height:41px;flex:0 0 41px}
+  .brand strong{font-size:15px}.brand span{font-size:9px;white-space:normal}
+  .header-actions{
+    width:100%;display:grid;grid-template-columns:minmax(0,1.65fr) 44px minmax(82px,1fr);gap:7px;align-items:stretch
+  }
+  .live-pill{min-width:0;min-height:44px;padding:0 10px;justify-content:flex-start;overflow:hidden}
+  .live-pill #engineLabel{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #refreshButton{min-width:44px;width:44px;padding:0;font-size:17px}
+  #loginButton{min-height:44px;width:100%;font-size:11px}
+  #pushButton,#copyFidButton{min-height:44px;white-space:nowrap}
+  .user-area{grid-column:3;min-width:0;width:100%;display:none!important;align-items:stretch;gap:6px}
+  .user-area[style*="display: flex"],.user-area[style*="display:flex"]{display:flex!important}
+  .user-info{display:block!important;min-width:0;flex:1;text-align:left;padding:5px 0}
+  .user-info strong,.user-info span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .user-info strong{font-size:9px}.user-info span{font-size:7px}
+  #logoutButton{min-height:44px;flex:0 0 auto;padding:0 9px}
+
+  /* If push/FID controls become visible, give them a full row rather than clipping. */
+  #pushButton:not([style*="display:none"]),#copyFidButton:not([style*="display:none"]){grid-column:span 1}
+
+  #marketStatusStrip{
+    position:sticky!important;top:0!important;z-index:120!important;padding:8px 9px!important;gap:5px!important;
+    font-size:9px!important;line-height:1.35
+  }
+  #marketStatusStrip>div{width:100%;gap:6px!important;justify-content:space-between}
+  #marketStatusStrip span,#marketStatusStrip strong{white-space:nowrap}
+
+  .hero{padding:17px;border-radius:21px;min-height:0}
+  .hero-content{display:block}.hero h1{font-size:26px}.hero p{font-size:10px}
+  .hero-top{width:100%;min-width:0;margin-top:15px;padding:13px}.hero-top strong{font-size:22px}
   .kpis{grid-template-columns:1fr 1fr;gap:7px}.kpi{min-height:94px;padding:12px}.kpi strong{font-size:20px}
   .desktop-nav{display:none}
+
+  .section-head{align-items:flex-start;flex-wrap:wrap;gap:9px}
+  .section-head>div:first-child{min-width:0;flex:1 1 190px}
+  .section-head .primary-btn,.section-head .secondary-btn{min-height:42px}
+  #addPositionButton{flex:1 1 135px}
+
   .mobile-nav{
     position:fixed;left:0;right:0;bottom:0;z-index:200;display:grid;
     grid-template-columns:repeat(5,1fr);
     padding:7px max(6px,env(safe-area-inset-right)) calc(7px + env(safe-area-inset-bottom)) max(6px,env(safe-area-inset-left));
-    border-top:1px solid var(--line);background:rgba(5,9,20,.94);backdrop-filter:blur(18px)
+    border-top:1px solid var(--line);background:rgba(5,9,20,.96);backdrop-filter:blur(18px)
   }
-  .mobile-nav button{border:none;padding:5px 1px;background:transparent;color:#66768c;font-size:8px}
+  .mobile-nav button{min-height:48px;border:none;padding:5px 1px;background:transparent;color:#66768c;font-size:8px}
   .mobile-nav button.active{color:var(--green)}
   .mobile-nav b{display:block;margin-bottom:3px;font-size:16px}
+
+  .opportunity,.portfolio-card,.card{padding:13px}
+  .levels,.risk-grid,.sig-trends,.sig-meta{grid-template-columns:1fr 1fr}
+  .portfolio-main{grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
+  .portfolio-main>div,.portfolio-levels>div,.trail-grid>div{padding:8px 6px;min-width:0}
+  .portfolio-main strong,.portfolio-levels strong,.trail-grid strong{overflow-wrap:anywhere}
   .portfolio-levels{grid-template-columns:1fr 1fr}
   .trail-grid{grid-template-columns:1fr 1fr}
+  .position-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+  .position-actions button{min-height:40px}
+
+  .table-shell{max-width:100%;-webkit-overflow-scrolling:touch}
+  table{min-width:620px}
+
+  .modal{align-items:flex-start;padding:calc(10px + env(safe-area-inset-top)) 10px calc(16px + env(safe-area-inset-bottom));overflow-y:auto}
+  .modal-box,.modal-wide,.chart-modal-card{width:100%;max-height:none;margin:auto 0}
   .form-grid{grid-template-columns:1fr}.full-width{grid-column:auto}
-  .toast{left:10px;right:10px;bottom:82px;max-width:none}
+  .field input,.field textarea{font-size:16px} /* prevents iOS focus zoom */
+  .auth-submit,.position-submit{min-height:46px;font-size:11px}
+  .x-btn,.chart-close{min-width:42px;min-height:42px}
+  .toast{left:10px;right:10px;bottom:calc(82px + env(safe-area-inset-bottom));max-width:none}
+}
+
+@media(max-width:430px){
+  .header-actions{grid-template-columns:minmax(0,1fr) 44px minmax(78px,.8fr)}
+  .live-pill{font-size:8px}.secondary-btn,.primary-btn{font-size:9px}
+  .kpis{grid-template-columns:1fr 1fr}
+  .kpi span{font-size:7px}.kpi small{font-size:8px}
+  .hero h1{font-size:23px}
 }
 
 /* LIVE SIGNAL MONITOR */
