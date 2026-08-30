@@ -1,8 +1,9 @@
 
 import json
 import math
-# HANZ ENTRY QUALITY FIX — V8.7
-# Adds no-chase execution guard and exposes entry-location quality to dashboard.
+# HANZ BOOK-ALIGNED DOCTRINE — V9.0
+# Source hierarchy: market/trend -> structure/location -> setup/trigger -> volume -> risk.
+# Adds explicit Pardo-style research validation gate before any real-money actionability.
 import os
 import time
 import urllib.parse
@@ -63,6 +64,16 @@ MIN_CONFIRM_SCORE = int(
 MIN_BUY_SCORE = int(
     os.getenv("HANZ_SWING_MIN_BUY_SCORE", "8")
 )
+
+# Pardo-style validation gate. Historical optimization alone is not enough.
+# HANZ remains research/paper-only until walk-forward validation has been
+# completed outside the live signal engine and these values are explicitly set.
+STRATEGY_WFA_VALIDATED = os.getenv("HANZ_STRATEGY_WFA_VALIDATED", "0") == "1"
+STRATEGY_WFE = safe_wfe_env = os.getenv("HANZ_STRATEGY_WFE", "").strip()
+STRATEGY_OOS_TRADES = int(os.getenv("HANZ_STRATEGY_OOS_TRADES", "0") or 0)
+STRATEGY_WF_WINDOWS = int(os.getenv("HANZ_STRATEGY_WF_WINDOWS", "0") or 0)
+STRATEGY_OOS_EXPECTANCY_R = os.getenv("HANZ_STRATEGY_OOS_EXPECTANCY_R", "").strip()
+STRATEGY_VALIDATED_AT = os.getenv("HANZ_STRATEGY_VALIDATED_AT", "").strip()
 
 # V6 EARLY SIGNAL + RECONFIRMATION
 EARLY_WATCH_SCORE = int(os.getenv("HANZ_SWING_EARLY_WATCH_SCORE", "5"))
@@ -959,6 +970,39 @@ def daily_metrics(df):
             (prior_high20 - price) / prior_high20 * 100
         )
 
+    # Operational market-structure translation of HH/HL vs LH/LL.
+    # This is a HANZ implementation choice inspired by the supplied market-
+    # structure material; the 20-bar comparison window is not claimed as a
+    # literal book rule and must later be validated empirically.
+    structure_state = "UNKNOWN"
+    if len(df) >= 41:
+        recent = df.iloc[-20:]
+        previous = df.iloc[-40:-20]
+        recent_high = safe_float(recent["High"].max())
+        recent_low = safe_float(recent["Low"].min())
+        previous_high = safe_float(previous["High"].max())
+        previous_low = safe_float(previous["Low"].min())
+        if None not in (recent_high, recent_low, previous_high, previous_low):
+            if recent_high > previous_high and recent_low > previous_low:
+                structure_state = "BULLISH_HH_HL"
+            elif recent_high < previous_high and recent_low < previous_low:
+                structure_state = "BEARISH_LH_LL"
+            else:
+                structure_state = "MIXED"
+
+    candle_range = None
+    candle_body_pct_range = None
+    close_location = None
+    candle_context = "NEUTRAL"
+    if None not in (day_open, day_high, day_low, price) and day_high > day_low:
+        candle_range = day_high - day_low
+        candle_body_pct_range = abs(price - day_open) / candle_range * 100
+        close_location = (price - day_low) / candle_range
+        if price > day_open:
+            candle_context = "BULLISH_CANDLE"
+        elif price < day_open:
+            candle_context = "BEARISH_CANDLE"
+
     return {
         "price": price,
         "open": safe_float(df["Open"].iloc[-1]),
@@ -994,6 +1038,10 @@ def daily_metrics(df):
         "rsi_change_5d": safe_float(rsi_change_5d),
         "volume_accel_5d": safe_float(volume_accel_5d),
         "breakout_distance_pct": safe_float(breakout_distance_pct),
+        "structure_state": structure_state,
+        "candle_context": candle_context,
+        "candle_body_pct_range": safe_float(candle_body_pct_range),
+        "close_location": safe_float(close_location),
         "bar_at": pd.Timestamp(
             df.index[-1]
         ).isoformat(),
@@ -1521,11 +1569,9 @@ def apply_early_state_and_reconfirmation(
         current_bar and prior_bar and current_bar != prior_bar
     )
 
-    raw_buy = (
-        base_result.get("score", 0) >= MIN_BUY_SCORE
-        and bool(base_result.get("breakout"))
-        and base_result.get("weekly_trend") == "BULLISH"
-    )
+    # Final BUY trigger comes from the explicit doctrine hierarchy, not from
+    # score alone. Score remains descriptive/ranking evidence.
+    raw_buy = bool(base_result.get("hard_buy_gate"))
 
     momentum_guard = momentum_damage_guard(daily, prior_monitor)
     if momentum_guard.get("blocked"):
@@ -1612,109 +1658,98 @@ def apply_early_state_and_reconfirmation(
 
 
 def swing_score(daily, weekly):
+    """Book-aligned final technical hierarchy.
+
+    Indicators provide evidence; they do not independently create a BUY.
+    Final trigger follows MARKET/TREND -> STRUCTURE/LOCATION -> TRIGGER ->
+    VOLUME confirmation. Risk and execution quality are evaluated later.
+    """
     score = 0
     evidence = []
 
-    price = daily["price"]
+    price = daily.get("price")
+    ema20 = daily.get("ema20")
+    ema50 = daily.get("ema50")
+    weekly_ema10 = weekly.get("ema10")
+    weekly_ema20 = weekly.get("ema20")
+    structure = str(daily.get("structure_state") or "UNKNOWN").upper()
 
     daily_trend = (
-        daily["ema20"] is not None
-        and daily["ema50"] is not None
-        and daily["ema20"] > daily["ema50"]
+        ema20 is not None and ema50 is not None and ema20 > ema50
     )
-
     weekly_trend = (
-        weekly["ema10"] is not None
-        and weekly["ema20"] is not None
-        and weekly["ema10"] > weekly["ema20"]
+        weekly_ema10 is not None and weekly_ema20 is not None
+        and weekly_ema10 > weekly_ema20
     )
+    above_ema20 = price is not None and ema20 is not None and price > ema20
 
     breakout = (
         price is not None
-        and daily["prior_high20"] is not None
-        and price > daily["prior_high20"]
+        and daily.get("prior_high20") is not None
+        and price > daily.get("prior_high20")
     )
-
     near_breakout = False
-    if (
-        price is not None
-        and daily["prior_high20"] not in (None, 0)
-    ):
-        gap = (
-            daily["prior_high20"] - price
-        ) / daily["prior_high20"] * 100
-        near_breakout = 0 <= gap <= 3.0
+    if price is not None and daily.get("prior_high20") not in (None, 0):
+        gap = (daily.get("prior_high20") - price) / daily.get("prior_high20") * 100
+        near_breakout = 0 <= gap <= SETUP_READY_BREAKOUT_DISTANCE_PCT
 
-    if (
-        price is not None
-        and daily["ema20"] is not None
-        and price > daily["ema20"]
-    ):
-        score += 1
-        evidence.append("price above daily EMA20")
+    rvol = safe_float(daily.get("rvol20"))
+    volume_confirm = rvol is not None and rvol >= 1.0
 
-    if daily_trend:
-        score += 1
-        evidence.append("daily EMA20 above EMA50")
+    structure_ok = structure != "BEARISH_LH_LL"
+    trend_context = weekly_trend and daily_trend and above_ema20
+    location_ok = breakout or near_breakout
+    hard_buy_gate = trend_context and structure_ok and breakout and volume_confirm
 
+    # Descriptive score only. It helps ranking/diagnostics but cannot override
+    # a missing layer of the hierarchy above.
     if weekly_trend:
-        score += 2
-        evidence.append("weekly EMA10 above EMA20")
-
-    rsi_d = daily["rsi14"]
-    if rsi_d is not None and 50 <= rsi_d <= 72:
-        score += 1
-        evidence.append(f"daily RSI {rsi_d:.1f}")
-
-    rsi_w = weekly["rsi14"]
-    if rsi_w is not None and 50 <= rsi_w <= 75:
-        score += 1
-        evidence.append(f"weekly RSI {rsi_w:.1f}")
-
-    rvol = daily["rvol20"] or 0
-    if rvol >= 1.2:
-        score += 1
-        evidence.append(f"daily RVOL {rvol:.2f}x")
-
+        score += 2; evidence.append("weekly trend bullish")
+    if daily_trend:
+        score += 2; evidence.append("daily trend bullish")
+    if above_ema20:
+        score += 1; evidence.append("price above daily EMA20")
+    if structure == "BULLISH_HH_HL":
+        score += 2; evidence.append("market structure HH/HL")
+    elif structure == "MIXED":
+        score += 1; evidence.append("market structure mixed")
+    elif structure == "BEARISH_LH_LL":
+        evidence.append("market structure LH/LL veto")
     if breakout:
-        score += 2
-        evidence.append("20-day breakout")
+        score += 2; evidence.append("price trigger: 20-day breakout")
     elif near_breakout:
-        score += 1
-        evidence.append("within 3% of 20-day breakout")
+        score += 1; evidence.append("location: near 20-day breakout")
+    if volume_confirm:
+        score += 1; evidence.append(f"volume confirms vs 20D average ({rvol:.2f}x)")
+    elif rvol is not None:
+        evidence.append(f"volume not confirming yet ({rvol:.2f}x)")
 
-    ret5 = daily["ret5_pct"]
-    if ret5 is not None and ret5 > 0:
-        score += 1
-        evidence.append(f"5-day momentum +{ret5:.2f}%")
+    # RSI/candlestick are contextual evidence only, consistent with using
+    # indicators/candles as confirmation rather than standalone signals.
+    rsi_d = safe_float(daily.get("rsi14"))
+    if rsi_d is not None:
+        evidence.append(f"context RSI14 {rsi_d:.1f}")
+    candle = str(daily.get("candle_context") or "NEUTRAL")
+    evidence.append(f"candle context {candle}")
 
     state = "NO_SETUP"
-
-    if (
-        score >= MIN_BUY_SCORE
-        and breakout
-        and weekly_trend
-    ):
+    if hard_buy_gate:
         state = "SWING_BUY"
-    elif score >= MIN_CONFIRM_SCORE:
+    elif trend_context and structure_ok and location_ok:
         state = "SWING_CONFIRMING"
-    elif score >= MIN_WATCH_SCORE:
+    elif trend_context and structure_ok:
         state = "SWING_WATCH"
 
     return {
         "score": min(score, 10),
         "state": state,
-        "daily_trend": (
-            "BULLISH"
-            if daily_trend
-            else "NOT_BULLISH"
-        ),
-        "weekly_trend": (
-            "BULLISH"
-            if weekly_trend
-            else "NOT_BULLISH"
-        ),
+        "daily_trend": "BULLISH" if daily_trend else "NOT_BULLISH",
+        "weekly_trend": "BULLISH" if weekly_trend else "NOT_BULLISH",
+        "structure_state": structure,
         "breakout": breakout,
+        "near_breakout": near_breakout,
+        "volume_confirm": volume_confirm,
+        "hard_buy_gate": hard_buy_gate,
         "evidence": evidence,
     }
 
@@ -2463,6 +2498,25 @@ def real_money_validation(
     blockers = []
     cautions = []
 
+    try:
+        wfe_value = float(STRATEGY_WFE) if STRATEGY_WFE else None
+    except Exception:
+        wfe_value = None
+    try:
+        oos_expectancy_r = float(STRATEGY_OOS_EXPECTANCY_R) if STRATEGY_OOS_EXPECTANCY_R else None
+    except Exception:
+        oos_expectancy_r = None
+
+    strategy_validation = {
+        "wfa_validated": STRATEGY_WFA_VALIDATED,
+        "wfe": wfe_value,
+        "oos_trades": STRATEGY_OOS_TRADES,
+        "wf_windows": STRATEGY_WF_WINDOWS,
+        "oos_expectancy_r": oos_expectancy_r,
+        "validated_at": STRATEGY_VALIDATED_AT or None,
+        "status": "VALIDATED" if STRATEGY_WFA_VALIDATED else "RESEARCH_ONLY",
+    }
+
     if momentum_guard.get("blocked"):
         gate = "BLOCKED"
         score = 0
@@ -2540,6 +2594,10 @@ def real_money_validation(
         if blockers:
             gate = "BLOCKED"
             score -= 50
+        elif not STRATEGY_WFA_VALIDATED:
+            gate = "RESEARCH_ONLY"
+            cautions.append("STRATEGY_WFA_NOT_VALIDATED")
+            score -= 25
         elif ACCOUNT_CAPITAL_IDR <= 0 or not costs_configured:
             gate = "PAPER_ONLY"
             if ACCOUNT_CAPITAL_IDR <= 0:
@@ -2612,6 +2670,7 @@ def real_money_validation(
     actionable = (
         result.get("state") == "SWING_BUY"
         and entry_status != "WAIT_PULLBACK"
+        and STRATEGY_WFA_VALIDATED
         and (
             (not RISK_LIVE_GATE_ENABLED)
             or gate == "ELIGIBLE"
@@ -2625,6 +2684,10 @@ def real_money_validation(
         "entry_status": entry_status or None,
         "entry_note": entry_note,
         "do_not_chase": entry_status == "WAIT_PULLBACK",
+        "strategy_validation": strategy_validation,
+        "structure_state": result.get("structure_state") or daily.get("structure_state"),
+        "candle_context": daily.get("candle_context"),
+        "daily_rvol": daily.get("rvol20"),
         "blockers": blockers,
         "cautions": cautions,
         "market_regime": market.get("regime"),
@@ -5272,17 +5335,39 @@ def scan_symbol(ticker, maintenance_mode=False):
         _REAL_MONEY_CONTEXT,
     )
 
-    # Off-market maintenance mode may DOWNGRADE stale states, but must never
-    # create/upgrade an actionable BUY while IDX is closed.
+    # V8.8 OFF-MARKET CANDIDATE REFRESH
+    #
+    # Root cause fixed:
+    # Earlier weekend/holiday maintenance recomputed the full universe but only
+    # persisted MOMENTUM_BROKEN.  That meant a newly attractive Friday setup
+    # (for example a fresh breakout/retest candidate) could not enter the monitor
+    # table until the next trading-day post-close run.  The dashboard could
+    # therefore collapse to a single old candidate even though several valid
+    # completed-bar setups existed.
+    #
+    # Safe behavior now:
+    # - Refresh ALL monitor states from the latest completed daily bar while IDX
+    #   is closed, so Top-5 opportunity ranking is current on weekends/holidays.
+    # - Never create a NEW actionable SWING_BUY off-market.  A symbol that would
+    #   newly qualify as SWING_BUY is published as SETUP_READY instead.
+    # - Existing previously-confirmed SWING_BUY may remain SWING_BUY so the
+    #   dashboard can continue monitoring it; no signal/alert/order is created
+    #   because maintenance_mode blocks execution side effects below.
     prior_state = str((prior_monitor or {}).get("state") or "").upper()
     maintenance_write = True
-    if maintenance_mode:
-        if result.get("state") == "SWING_BUY":
-            # Never write/upgrade BUY while the market is closed.
-            maintenance_write = False
-        elif result.get("state") != "MOMENTUM_BROKEN":
-            # Only persist safety downgrades during closed-market maintenance.
-            maintenance_write = False
+    if maintenance_mode and result.get("state") == "SWING_BUY" and prior_state != "SWING_BUY":
+        result = dict(result)
+        result["state"] = "SETUP_READY"
+        result["reconfirmed"] = False
+        result["final_action"] = "WAIT"
+        result["evidence"] = list(result.get("evidence") or []) + [
+            "OFF_MARKET: latest completed-bar setup refreshed; new BUY waits for next trading-session reconfirmation"
+        ]
+        # Recalculate the independent execution gate against the downgraded
+        # display state so it cannot look actionable while the exchange is shut.
+        risk_validation = real_money_validation(
+            ticker, daily, result, levels, fundamental, _REAL_MONEY_CONTEXT
+        )
 
     if maintenance_write:
         upsert_monitor(
@@ -5476,34 +5561,41 @@ def run_cycle():
         )
 
     if not market["is_trading_day"]:
-        # CLOSED-MARKET MAINTENANCE RE-EVALUATION
-        # Recalculate the watch universe from the latest completed candles so
-        # stale BUY/setup rows can be SAFETY-DOWNGRADED (for example to
-        # MOMENTUM_BROKEN). This path is deliberately one-way: it does not
-        # create a new BUY, portfolio trigger, alert, or push.
+        # CLOSED-MARKET COMPLETED-BAR REFRESH (V8.8)
+        # Recalculate the ENTIRE enabled universe from the latest completed
+        # candles and refresh monitor states used by the dashboard.  This keeps
+        # weekend/holiday Top-5 candidates current.  It still cannot create a
+        # new actionable BUY, portfolio trigger, alert, push, or signal row.
         global _REAL_MONEY_CONTEXT
         _REAL_MONEY_CONTEXT = build_real_money_context()
 
         universe = fetch_universe()
         maintenance_counts = {
+            "SWING_BUY_EXISTING": 0,
+            "SETUP_READY": 0,
+            "PRE_ALERT": 0,
+            "EARLY_WATCH": 0,
             "MOMENTUM_BROKEN": 0,
-            "UNCHANGED_OR_NOT_WRITTEN": 0,
+            "NO_SETUP": 0,
+            "OTHER": 0,
             "ERROR": 0,
         }
 
         print(
-            f"SWING CLOSED-MARKET MAINTENANCE universe: {len(universe)} | "
-            "downgrade-only=ON | new BUY=BLOCKED | portfolio/alert/push=BLOCKED",
+            f"SWING CLOSED-MARKET REFRESH universe: {len(universe)} | "
+            "candidate-refresh=ON | new BUY=BLOCKED | portfolio/alert/push=BLOCKED",
             flush=True,
         )
 
         for ticker in universe:
             try:
                 state = scan_symbol(ticker, maintenance_mode=True)
-                if state == "MOMENTUM_BROKEN":
-                    maintenance_counts["MOMENTUM_BROKEN"] += 1
+                if state == "SWING_BUY":
+                    maintenance_counts["SWING_BUY_EXISTING"] += 1
+                elif state in maintenance_counts:
+                    maintenance_counts[state] += 1
                 else:
-                    maintenance_counts["UNCHANGED_OR_NOT_WRITTEN"] += 1
+                    maintenance_counts["OTHER"] += 1
             except Exception as exc:
                 maintenance_counts["ERROR"] += 1
                 print(
@@ -5512,9 +5604,9 @@ def run_cycle():
                 )
 
         print(
-            "SWING CLOSED-MARKET MAINTENANCE complete: "
+            "SWING CLOSED-MARKET REFRESH complete: "
             + json.dumps(maintenance_counts)
-            + " | No new signal, portfolio trigger, alert or push.",
+            + " | Monitor refreshed from completed bars; no new BUY signal, portfolio trigger, alert or push.",
             flush=True,
         )
         return
@@ -5645,7 +5737,7 @@ def run_cycle():
 
 def main():
     print(
-        "HANZ SWING / WEEKLY ENGINE START",
+        "HANZ SWING / WEEKLY ENGINE START — V8.8 OFF-MARKET CANDIDATE REFRESH",
         flush=True,
     )
 
