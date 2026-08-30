@@ -1764,7 +1764,7 @@ async function initAuth(){
 }
 
 /* SHARED HANZ SIGNALS */
-const HANZ_SIGNAL_STATES=["SWING_BUY","RADAR_ARMED","RADAR_PRE_ALERT","RADAR_WATCH","SETUP_READY","PRE_ALERT","EARLY_WATCH","MOMENTUM_BROKEN"];
+const HANZ_SIGNAL_STATES=["SWING_BUY","SWING_CONFIRMING","SWING_WATCH","RADAR_ARMED","RADAR_PRE_ALERT","RADAR_WATCH","SETUP_READY","PRE_ALERT","EARLY_WATCH","MOMENTUM_BROKEN"];
 
 function radarProgress(state){
   return {
@@ -1803,8 +1803,11 @@ function displaySignalStateLabel(row){
 
 function signalStateRank(state){
   return {
-    "SWING_BUY":5,
+    "SWING_BUY":7,
+    "SWING_CONFIRMING":6,
+    "RADAR_ARMED":5,
     "SETUP_READY":4,
+    "SWING_WATCH":3,
     "PRE_ALERT":3,
     "EARLY_WATCH":2,
     "MOMENTUM_BROKEN":1
@@ -1814,6 +1817,8 @@ function signalStateRank(state){
 function signalStateLabel(state){
   return {
     "SWING_BUY":"RECONFIRMED BUY",
+    "SWING_CONFIRMING":"SWING CONFIRMING",
+    "SWING_WATCH":"SWING WATCH",
     "RADAR_ARMED":"RADAR ARMED",
     "RADAR_PRE_ALERT":"RADAR PRE-ALERT",
     "RADAR_WATCH":"RADAR WATCH",
@@ -1827,6 +1832,8 @@ function signalStateLabel(state){
 function signalStateClass(state){
   return {
     "SWING_BUY":"state-buy",
+    "SWING_CONFIRMING":"state-ready",
+    "SWING_WATCH":"state-pre",
     "MOMENTUM_BROKEN":"state-broken",
     "SETUP_READY":"state-ready",
     "PRE_ALERT":"state-pre",
@@ -2169,8 +2176,10 @@ async function loadWatchlist(){
       const volatility=String(r.volatility_status || volatilityInfo(row).status || "NORMAL").toUpperCase();
       const entryStatus=String(row?.entry_status || r.entry_status || "").toUpperCase();
       const setup=Number(row?.score || 0);
+      const state=String(row?.state || "").toUpperCase();
+      const monitorable=["SWING_CONFIRMING","SWING_WATCH","RADAR_ARMED","RADAR_PRE_ALERT","RADAR_WATCH","SETUP_READY","PRE_ALERT","EARLY_WATCH"].includes(state);
       return gate!=="BLOCKED" && momentum!=="BROKEN" && volatility!=="EXTREME"
-        && entryStatus!=="WAIT_PULLBACK" && q.total>=40;
+        && entryStatus!=="WAIT_PULLBACK" && monitorable;
     });
     addRows(intactFallback);
   }
@@ -2182,7 +2191,9 @@ async function loadWatchlist(){
       const r=(row && row.risk_validation && typeof row.risk_validation==="object") ? row.risk_validation : {};
       const gate=String(row?.risk_gate || r.gate || "MONITOR").toUpperCase();
       const entryStatus=String(row?.entry_status || r.entry_status || "").toUpperCase();
-      return gate!=="BLOCKED" && entryStatus==="WAIT_PULLBACK" && q.total>=45;
+      const state=String(row?.state || "").toUpperCase();
+      const monitorable=["SWING_BUY","SWING_CONFIRMING","SWING_WATCH","RADAR_ARMED","RADAR_PRE_ALERT","RADAR_WATCH","SETUP_READY","PRE_ALERT","EARLY_WATCH"].includes(state);
+      return gate!=="BLOCKED" && entryStatus==="WAIT_PULLBACK" && monitorable;
     });
     addRows(pullbackFallback);
   }
