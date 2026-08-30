@@ -1,7 +1,7 @@
 
 import json
 import math
-# HANZ BOOK-ALIGNED DOCTRINE — V9.0
+# HANZ BOOK-ALIGNED DOCTRINE — V10.0
 # Source hierarchy: market/trend -> structure/location -> setup/trigger -> volume -> risk.
 # Adds explicit Pardo-style research validation gate before any real-money actionability.
 import os
@@ -74,6 +74,18 @@ STRATEGY_OOS_TRADES = int(os.getenv("HANZ_STRATEGY_OOS_TRADES", "0") or 0)
 STRATEGY_WF_WINDOWS = int(os.getenv("HANZ_STRATEGY_WF_WINDOWS", "0") or 0)
 STRATEGY_OOS_EXPECTANCY_R = os.getenv("HANZ_STRATEGY_OOS_EXPECTANCY_R", "").strip()
 STRATEGY_VALIDATED_AT = os.getenv("HANZ_STRATEGY_VALIDATED_AT", "").strip()
+STRATEGY_DOF_REMAINING_PCT = os.getenv("HANZ_STRATEGY_DOF_REMAINING_PCT", "").strip()
+STRATEGY_OOS_MAX_DD_R = os.getenv("HANZ_STRATEGY_OOS_MAX_DD_R", "").strip()
+STRATEGY_PROFITABLE_WF_PCT = os.getenv("HANZ_STRATEGY_PROFITABLE_WF_PCT", "").strip()
+STRATEGY_MAX_TRADE_PROFIT_SHARE_PCT = os.getenv("HANZ_STRATEGY_MAX_TRADE_PROFIT_SHARE_PCT", "").strip()
+# HANZ implementation policies used to operationalize the supplied Pardo material.
+# The book supports 30–50 trades as an adequate minimum and >=90% remaining DOF;
+# exact WFE / profitable-window / concentration cutoffs remain configurable research policy.
+MIN_WFA_OOS_TRADES = int(os.getenv("HANZ_MIN_WFA_OOS_TRADES", "30"))
+MIN_DOF_REMAINING_PCT = float(os.getenv("HANZ_MIN_DOF_REMAINING_PCT", "90"))
+MIN_WFE_RATIO = float(os.getenv("HANZ_MIN_WFE_RATIO", "0.50"))
+MIN_PROFITABLE_WF_PCT = float(os.getenv("HANZ_MIN_PROFITABLE_WF_PCT", "50"))
+MAX_SINGLE_TRADE_PROFIT_SHARE_PCT = float(os.getenv("HANZ_MAX_SINGLE_TRADE_PROFIT_SHARE_PCT", "35"))
 
 # V6 EARLY SIGNAL + RECONFIRMATION
 EARLY_WATCH_SCORE = int(os.getenv("HANZ_SWING_EARLY_WATCH_SCORE", "5"))
@@ -795,6 +807,94 @@ def atr(df, period=14):
     ).mean()
 
 
+def _swing_pivots(df, left=2, right=2):
+    """Return confirmed local swing highs/lows using only completed bars.
+
+    HANZ operationalization of HH/HL/LH/LL. The pivot width is an implementation
+    parameter, not a literal rule from the supplied books, and must be validated.
+    """
+    highs=[]; lows=[]
+    if df is None or len(df) < left + right + 5:
+        return highs, lows
+    h=df["High"].astype(float).reset_index(drop=True)
+    l=df["Low"].astype(float).reset_index(drop=True)
+    for i in range(left, len(df)-right):
+        hv=float(h.iloc[i]); lv=float(l.iloc[i])
+        if hv >= float(h.iloc[i-left:i+right+1].max()):
+            highs.append((i,hv))
+        if lv <= float(l.iloc[i-left:i+right+1].min()):
+            lows.append((i,lv))
+    return highs, lows
+
+
+def _structure_from_pivots(df):
+    highs,lows=_swing_pivots(df,2,2)
+    out={
+        "state":"UNKNOWN","last_swing_high":None,"prev_swing_high":None,
+        "last_swing_low":None,"prev_swing_low":None,
+    }
+    if len(highs)>=2:
+        out["prev_swing_high"]=safe_float(highs[-2][1]); out["last_swing_high"]=safe_float(highs[-1][1])
+    if len(lows)>=2:
+        out["prev_swing_low"]=safe_float(lows[-2][1]); out["last_swing_low"]=safe_float(lows[-1][1])
+    if None not in (out["last_swing_high"],out["prev_swing_high"],out["last_swing_low"],out["prev_swing_low"]):
+        hh=out["last_swing_high"]>out["prev_swing_high"]
+        hl=out["last_swing_low"]>out["prev_swing_low"]
+        lh=out["last_swing_high"]<out["prev_swing_high"]
+        ll=out["last_swing_low"]<out["prev_swing_low"]
+        if hh and hl: out["state"]="BULLISH_HH_HL"
+        elif lh and ll: out["state"]="BEARISH_LH_LL"
+        else: out["state"]="MIXED"
+    return out
+
+
+def _candle_context(df):
+    """Contextual candlestick evidence; never a standalone BUY trigger."""
+    if df is None or len(df)<2:
+        return {"name":"NEUTRAL","bullish":False,"bearish":False}
+    o=float(df["Open"].iloc[-1]); h=float(df["High"].iloc[-1]); l=float(df["Low"].iloc[-1]); c=float(df["Close"].iloc[-1])
+    po=float(df["Open"].iloc[-2]); pc=float(df["Close"].iloc[-2])
+    rng=max(h-l,1e-12); body=abs(c-o); upper=h-max(o,c); lower=min(o,c)-l
+    bull_engulf=(c>o and pc<po and o<=pc and c>=po)
+    bear_engulf=(c<o and pc>po and o>=pc and c<=po)
+    hammer=(c>=o and lower>=2*max(body,1e-12) and upper<=max(body,1e-12))
+    shooting=(c<=o and upper>=2*max(body,1e-12) and lower<=max(body,1e-12))
+    strong_bull=(c>o and (c-l)/rng>=0.75 and body/rng>=0.5)
+    strong_bear=(c<o and (h-c)/rng>=0.75 and body/rng>=0.5)
+    if bull_engulf: name="BULLISH_ENGULFING"
+    elif hammer: name="HAMMER_REJECTION"
+    elif bear_engulf: name="BEARISH_ENGULFING"
+    elif shooting: name="SHOOTING_STAR_REJECTION"
+    elif strong_bull: name="STRONG_BULL_CLOSE"
+    elif strong_bear: name="STRONG_BEAR_CLOSE"
+    elif c>o: name="BULLISH_CANDLE"
+    elif c<o: name="BEARISH_CANDLE"
+    else: name="NEUTRAL"
+    return {"name":name,"bullish":name in {"BULLISH_ENGULFING","HAMMER_REJECTION","STRONG_BULL_CLOSE","BULLISH_CANDLE"},"bearish":name in {"BEARISH_ENGULFING","SHOOTING_STAR_REJECTION","STRONG_BEAR_CLOSE","BEARISH_CANDLE"}}
+
+
+def _strategy_validation_evidence():
+    def f(v):
+        try: return float(v) if str(v).strip() else None
+        except Exception: return None
+    wfe=f(STRATEGY_WFE); exp=f(STRATEGY_OOS_EXPECTANCY_R); dof=f(STRATEGY_DOF_REMAINING_PCT)
+    dd=f(STRATEGY_OOS_MAX_DD_R); profitable=f(STRATEGY_PROFITABLE_WF_PCT); concentration=f(STRATEGY_MAX_TRADE_PROFIT_SHARE_PCT)
+    checks={
+        "flag": bool(STRATEGY_WFA_VALIDATED),
+        "wfe": wfe is not None and wfe >= MIN_WFE_RATIO,
+        "oos_trades": STRATEGY_OOS_TRADES >= MIN_WFA_OOS_TRADES,
+        "wf_windows": STRATEGY_WF_WINDOWS > 1,
+        "expectancy": exp is not None and exp > 0,
+        "dof": dof is not None and dof >= MIN_DOF_REMAINING_PCT,
+        "drawdown_recorded": dd is not None and dd >= 0,
+        "window_consistency": profitable is not None and profitable >= MIN_PROFITABLE_WF_PCT,
+        "profit_concentration": concentration is not None and concentration <= MAX_SINGLE_TRADE_PROFIT_SHARE_PCT,
+        "validated_at": bool(STRATEGY_VALIDATED_AT),
+    }
+    passed=all(checks.values())
+    return {"passed":passed,"checks":checks,"wfe":wfe,"oos_trades":STRATEGY_OOS_TRADES,"wf_windows":STRATEGY_WF_WINDOWS,"oos_expectancy_r":exp,"dof_remaining_pct":dof,"oos_max_dd_r":dd,"profitable_wf_pct":profitable,"max_trade_profit_share_pct":concentration,"validated_at":STRATEGY_VALIDATED_AT or None}
+
+
 def daily_metrics(df):
     if len(df) < 60:
         raise RuntimeError(
@@ -970,38 +1070,32 @@ def daily_metrics(df):
             (prior_high20 - price) / prior_high20 * 100
         )
 
-    # Operational market-structure translation of HH/HL vs LH/LL.
-    # This is a HANZ implementation choice inspired by the supplied market-
-    # structure material; the 20-bar comparison window is not claimed as a
-    # literal book rule and must later be validated empirically.
-    structure_state = "UNKNOWN"
-    if len(df) >= 41:
-        recent = df.iloc[-20:]
-        previous = df.iloc[-40:-20]
-        recent_high = safe_float(recent["High"].max())
-        recent_low = safe_float(recent["Low"].min())
-        previous_high = safe_float(previous["High"].max())
-        previous_low = safe_float(previous["Low"].min())
-        if None not in (recent_high, recent_low, previous_high, previous_low):
-            if recent_high > previous_high and recent_low > previous_low:
-                structure_state = "BULLISH_HH_HL"
-            elif recent_high < previous_high and recent_low < previous_low:
-                structure_state = "BEARISH_LH_LL"
-            else:
-                structure_state = "MIXED"
+    # Price-action structure from confirmed local swing pivots.
+    structure_info = _structure_from_pivots(df)
+    structure_state = structure_info.get("state", "UNKNOWN")
+    last_swing_high = structure_info.get("last_swing_high")
+    prev_swing_high = structure_info.get("prev_swing_high")
+    last_swing_low = structure_info.get("last_swing_low")
+    prev_swing_low = structure_info.get("prev_swing_low")
 
+    candle_info = _candle_context(df)
+    candle_context = candle_info.get("name", "NEUTRAL")
     candle_range = None
     candle_body_pct_range = None
     close_location = None
-    candle_context = "NEUTRAL"
     if None not in (day_open, day_high, day_low, price) and day_high > day_low:
         candle_range = day_high - day_low
         candle_body_pct_range = abs(price - day_open) / candle_range * 100
         close_location = (price - day_low) / candle_range
-        if price > day_open:
-            candle_context = "BULLISH_CANDLE"
-        elif price < day_open:
-            candle_context = "BEARISH_CANDLE"
+
+    # Setup-location diagnostics used later by the two setup families.
+    ema20_distance_atr = None
+    swing_high_distance_atr = None
+    if atr_now not in (None, 0) and price is not None:
+        if safe_float(ema20.iloc[-1]) is not None:
+            ema20_distance_atr = abs(price - safe_float(ema20.iloc[-1])) / atr_now
+        if last_swing_high is not None:
+            swing_high_distance_atr = abs(price - last_swing_high) / atr_now
 
     return {
         "price": price,
@@ -1039,6 +1133,12 @@ def daily_metrics(df):
         "volume_accel_5d": safe_float(volume_accel_5d),
         "breakout_distance_pct": safe_float(breakout_distance_pct),
         "structure_state": structure_state,
+        "last_swing_high": safe_float(last_swing_high),
+        "prev_swing_high": safe_float(prev_swing_high),
+        "last_swing_low": safe_float(last_swing_low),
+        "prev_swing_low": safe_float(prev_swing_low),
+        "ema20_distance_atr": safe_float(ema20_distance_atr),
+        "swing_high_distance_atr": safe_float(swing_high_distance_atr),
         "candle_context": candle_context,
         "candle_body_pct_range": safe_float(candle_body_pct_range),
         "close_location": safe_float(close_location),
@@ -1658,100 +1758,81 @@ def apply_early_state_and_reconfirmation(
 
 
 def swing_score(daily, weekly):
-    """Book-aligned final technical hierarchy.
+    """Book-guided hierarchy with two explicit setup families.
 
-    Indicators provide evidence; they do not independently create a BUY.
-    Final trigger follows MARKET/TREND -> STRUCTURE/LOCATION -> TRIGGER ->
-    VOLUME confirmation. Risk and execution quality are evaluated later.
+    MARKET/TREND -> STRUCTURE -> LOCATION -> SETUP -> PRICE TRIGGER -> VOLUME -> RISK.
+    Indicators/candles are contextual; score cannot override a failed hierarchy layer.
     """
-    score = 0
-    evidence = []
+    evidence=[]; score=0
+    price=safe_float(daily.get("price")); ema20=safe_float(daily.get("ema20")); ema50=safe_float(daily.get("ema50"))
+    weekly_ema10=safe_float(weekly.get("ema10")); weekly_ema20=safe_float(weekly.get("ema20"))
+    structure=str(daily.get("structure_state") or "UNKNOWN").upper()
+    last_high=safe_float(daily.get("last_swing_high")); last_low=safe_float(daily.get("last_swing_low"))
+    prior_high20=safe_float(daily.get("prior_high20")); atr14=safe_float(daily.get("atr14")); rvol=safe_float(daily.get("rvol20"))
+    candle=str(daily.get("candle_context") or "NEUTRAL").upper()
+    ret1=safe_float(daily.get("ret1_pct"))
 
-    price = daily.get("price")
-    ema20 = daily.get("ema20")
-    ema50 = daily.get("ema50")
-    weekly_ema10 = weekly.get("ema10")
-    weekly_ema20 = weekly.get("ema20")
-    structure = str(daily.get("structure_state") or "UNKNOWN").upper()
+    daily_trend=ema20 is not None and ema50 is not None and ema20>ema50
+    weekly_trend=weekly_ema10 is not None and weekly_ema20 is not None and weekly_ema10>weekly_ema20
+    trend_context=daily_trend and weekly_trend
+    structure_ok=structure in {"BULLISH_HH_HL","MIXED"}
 
-    daily_trend = (
-        ema20 is not None and ema50 is not None and ema20 > ema50
-    )
-    weekly_trend = (
-        weekly_ema10 is not None and weekly_ema20 is not None
-        and weekly_ema10 > weekly_ema20
-    )
-    above_ema20 = price is not None and ema20 is not None and price > ema20
+    # Family A: fresh breakout / continuation.
+    breakout_level=max([x for x in (prior_high20,last_high) if x is not None], default=None)
+    breakout=price is not None and breakout_level is not None and price>breakout_level
+    near_breakout=False
+    if price is not None and breakout_level not in (None,0):
+        dist=(breakout_level-price)/breakout_level*100
+        near_breakout=0<=dist<=SETUP_READY_BREAKOUT_DISTANCE_PCT
+    breakout_volume_ok=rvol is not None and rvol>=1.0
+    breakout_trigger=bool(breakout and ret1 is not None and ret1>0)
 
-    breakout = (
-        price is not None
-        and daily.get("prior_high20") is not None
-        and price > daily.get("prior_high20")
-    )
-    near_breakout = False
-    if price is not None and daily.get("prior_high20") not in (None, 0):
-        gap = (daily.get("prior_high20") - price) / daily.get("prior_high20") * 100
-        near_breakout = 0 <= gap <= SETUP_READY_BREAKOUT_DISTANCE_PCT
+    # Family B: pullback/retest within an existing uptrend.
+    # Location is near EMA20 or a prior swing-high support zone, scaled by ATR.
+    near_ema20=False; near_retest=False
+    if price is not None and atr14 not in (None,0):
+        if ema20 is not None: near_ema20=abs(price-ema20)<=0.75*atr14
+        if last_high is not None: near_retest=abs(price-last_high)<=0.75*atr14 or (price>=last_high and price-last_high<=0.75*atr14)
+    pullback_location=trend_context and structure_ok and (near_ema20 or near_retest)
+    bullish_candle=candle in {"BULLISH_ENGULFING","HAMMER_REJECTION","STRONG_BULL_CLOSE","BULLISH_CANDLE"}
+    pullback_trigger=bool(pullback_location and bullish_candle and ret1 is not None and ret1>=0)
+    # Pullback volume behavior: contraction is acceptable; expansion on the reversal is welcome.
+    pullback_volume_ok=rvol is None or rvol<=1.20 or (pullback_trigger and rvol>=1.0)
 
-    rvol = safe_float(daily.get("rvol20"))
-    volume_confirm = rvol is not None and rvol >= 1.0
+    setup_family="NONE"; hard_buy_gate=False; location_ok=False; trigger_confirmed=False; volume_confirm=False
+    if trend_context and structure_ok and breakout_trigger and breakout_volume_ok:
+        setup_family="BREAKOUT"; hard_buy_gate=True; location_ok=True; trigger_confirmed=True; volume_confirm=True
+    elif trend_context and structure_ok and pullback_trigger and pullback_volume_ok:
+        setup_family="PULLBACK_RETEST"; hard_buy_gate=True; location_ok=True; trigger_confirmed=True; volume_confirm=True
+    elif trend_context and structure_ok and (near_breakout or pullback_location):
+        setup_family="BREAKOUT" if near_breakout else "PULLBACK_RETEST"; location_ok=True
 
-    structure_ok = structure != "BEARISH_LH_LL"
-    trend_context = weekly_trend and daily_trend and above_ema20
-    location_ok = breakout or near_breakout
-    hard_buy_gate = trend_context and structure_ok and breakout and volume_confirm
-
-    # Descriptive score only. It helps ranking/diagnostics but cannot override
-    # a missing layer of the hierarchy above.
-    if weekly_trend:
-        score += 2; evidence.append("weekly trend bullish")
-    if daily_trend:
-        score += 2; evidence.append("daily trend bullish")
-    if above_ema20:
-        score += 1; evidence.append("price above daily EMA20")
-    if structure == "BULLISH_HH_HL":
-        score += 2; evidence.append("market structure HH/HL")
-    elif structure == "MIXED":
-        score += 1; evidence.append("market structure mixed")
-    elif structure == "BEARISH_LH_LL":
-        evidence.append("market structure LH/LL veto")
-    if breakout:
-        score += 2; evidence.append("price trigger: 20-day breakout")
-    elif near_breakout:
-        score += 1; evidence.append("location: near 20-day breakout")
-    if volume_confirm:
-        score += 1; evidence.append(f"volume confirms vs 20D average ({rvol:.2f}x)")
-    elif rvol is not None:
-        evidence.append(f"volume not confirming yet ({rvol:.2f}x)")
-
-    # RSI/candlestick are contextual evidence only, consistent with using
-    # indicators/candles as confirmation rather than standalone signals.
-    rsi_d = safe_float(daily.get("rsi14"))
-    if rsi_d is not None:
-        evidence.append(f"context RSI14 {rsi_d:.1f}")
-    candle = str(daily.get("candle_context") or "NEUTRAL")
+    if weekly_trend: score+=2; evidence.append("weekly trend bullish")
+    if daily_trend: score+=2; evidence.append("daily trend bullish")
+    if structure=="BULLISH_HH_HL": score+=2; evidence.append("confirmed swing structure HH/HL")
+    elif structure=="MIXED": score+=1; evidence.append("mixed swing structure; no LH/LL veto")
+    elif structure=="BEARISH_LH_LL": evidence.append("confirmed swing structure LH/LL veto")
+    if setup_family=="BREAKOUT":
+        evidence.append("setup family BREAKOUT")
+        if breakout_trigger: score+=2; evidence.append("price trigger: closes through resistance/swing high")
+        elif near_breakout: score+=1; evidence.append("location: near resistance trigger")
+        if breakout_volume_ok: score+=1; evidence.append(f"breakout volume confirms ({rvol:.2f}x)")
+    elif setup_family=="PULLBACK_RETEST":
+        evidence.append("setup family PULLBACK_RETEST")
+        if near_ema20: evidence.append("location: pullback near EMA20 dynamic support")
+        if near_retest: evidence.append("location: retest near prior swing-high support")
+        if pullback_trigger: score+=2; evidence.append(f"bullish price/candle trigger: {candle}")
+        if pullback_volume_ok: score+=1; evidence.append("pullback volume behavior acceptable")
+    rsi_d=safe_float(daily.get("rsi14"))
+    if rsi_d is not None: evidence.append(f"context RSI14 {rsi_d:.1f}")
     evidence.append(f"candle context {candle}")
 
-    state = "NO_SETUP"
-    if hard_buy_gate:
-        state = "SWING_BUY"
-    elif trend_context and structure_ok and location_ok:
-        state = "SWING_CONFIRMING"
-    elif trend_context and structure_ok:
-        state = "SWING_WATCH"
+    state="NO_SETUP"
+    if hard_buy_gate: state="SWING_BUY"
+    elif trend_context and structure_ok and location_ok: state="SWING_CONFIRMING"
+    elif trend_context and structure_ok: state="SWING_WATCH"
 
-    return {
-        "score": min(score, 10),
-        "state": state,
-        "daily_trend": "BULLISH" if daily_trend else "NOT_BULLISH",
-        "weekly_trend": "BULLISH" if weekly_trend else "NOT_BULLISH",
-        "structure_state": structure,
-        "breakout": breakout,
-        "near_breakout": near_breakout,
-        "volume_confirm": volume_confirm,
-        "hard_buy_gate": hard_buy_gate,
-        "evidence": evidence,
-    }
+    return {"score":min(score,10),"state":state,"daily_trend":"BULLISH" if daily_trend else "NOT_BULLISH","weekly_trend":"BULLISH" if weekly_trend else "NOT_BULLISH","structure_state":structure,"setup_family":setup_family,"breakout":breakout,"near_breakout":near_breakout,"pullback_location":pullback_location,"trigger_confirmed":trigger_confirmed,"volume_confirm":volume_confirm,"hard_buy_gate":hard_buy_gate,"evidence":evidence}
 
 
 def risk_levels(
@@ -1777,7 +1858,8 @@ def risk_levels(
     price = safe_float(daily.get("price"))
     atr14 = safe_float(daily.get("atr14"))
     prior_low20 = safe_float(daily.get("prior_low20"))
-    breakout_level = safe_float(daily.get("prior_high20"))
+    swing_low = safe_float(daily.get("last_swing_low"))
+    breakout_level = safe_float(daily.get("last_swing_high")) or safe_float(daily.get("prior_high20"))
     ema20 = safe_float(daily.get("ema20"))
     week52_high = safe_float(daily.get("week52_high"))
 
@@ -1810,13 +1892,11 @@ def risk_levels(
     # -------------------------
     atr_stop = price - (2.0 * atr14)
 
-    if prior_low20 is None:
+    support_candidates = [x for x in (prior_low20, swing_low) if x is not None and x < price]
+    if not support_candidates:
         stop = atr_stop
     else:
-        stop = max(
-            atr_stop,
-            prior_low20,
-        )
+        stop = max([atr_stop] + support_candidates)
 
     if stop >= price:
         stop = atr_stop
@@ -1829,12 +1909,15 @@ def risk_levels(
     entry_low = price - (0.40 * atr14)
     entry_high = price + (0.25 * atr14)
 
-    if breakout_level is not None:
-        # Do not set the lower edge below the confirmed breakout area.
-        entry_low = max(
-            entry_low,
-            breakout_level,
-        )
+    setup_family = str(result.get("setup_family") or "").upper()
+    if breakout_level is not None and setup_family == "BREAKOUT":
+        # For breakout setups, keep the lower edge around the reclaimed resistance.
+        entry_low = max(entry_low, breakout_level)
+    elif setup_family == "PULLBACK_RETEST" and ema20 is not None:
+        # Pullback entries are centered around dynamic/structural support, not forced above breakout.
+        entry_price = max(ema20, min(price, entry_price))
+        entry_low = min(entry_low, entry_price - 0.20 * atr14)
+        entry_high = max(entry_high, entry_price + 0.30 * atr14)
 
     # Detect an overextended breakout so HANZ can say "wait pullback"
     # instead of encouraging a chase above the ideal swing zone.
@@ -2045,239 +2128,28 @@ def _position_quantity(position):
 
 
 def market_regime_context():
-    """Classify the broad IDX market using IHSG completed daily structure."""
+    """Broad IDX regime: price structure first, indicators as confirmation."""
     try:
-        df = download_frame(
-            MARKET_REGIME_TICKER,
-            DAILY_INTERVAL,
-            DAILY_PERIOD,
-        )
-
-        if len(df) < 60:
-            raise RuntimeError("Insufficient IHSG history")
-
-        close = df["Close"].astype(float)
-        price = safe_float(close.iloc[-1])
-        ema20 = safe_float(close.ewm(span=20, adjust=False).mean().iloc[-1])
-        ema50 = safe_float(close.ewm(span=50, adjust=False).mean().iloc[-1])
-        rsi14 = safe_float(rsi(close, 14).iloc[-1])
-
-        ret5 = None
-        if len(close) >= 6:
-            base = safe_float(close.iloc[-6])
-            if base not in (None, 0) and price is not None:
-                ret5 = (price / base - 1) * 100
-
-        if (
-            price is not None
-            and ema20 is not None
-            and ema50 is not None
-            and price > ema20 > ema50
-            and rsi14 is not None
-            and rsi14 >= 50
-            and (ret5 is None or ret5 > -2.0)
-        ):
-            regime = "GREEN"
-            score = 100
-            multiplier = 1.0
-            reason = "IHSG above EMA20/EMA50 with constructive momentum."
-        elif (
-            price is not None
-            and ema20 is not None
-            and ema50 is not None
-            and (
-                (price < ema50 and ema20 < ema50)
-                or (rsi14 is not None and rsi14 < 40)
-                or (ret5 is not None and ret5 <= -5.0)
-            )
-        ):
-            regime = "RED"
-            score = 20
-            multiplier = 0.0
-            reason = "IHSG risk-off structure; new real-money BUY blocked."
+        df=download_frame(MARKET_REGIME_TICKER,DAILY_INTERVAL,DAILY_PERIOD)
+        if len(df)<80: raise RuntimeError("Insufficient IHSG history")
+        close=df["Close"].astype(float); price=safe_float(close.iloc[-1])
+        structure=_structure_from_pivots(df).get("state","UNKNOWN")
+        ema20=safe_float(close.ewm(span=20,adjust=False).mean().iloc[-1]); ema50=safe_float(close.ewm(span=50,adjust=False).mean().iloc[-1]); rsi14=safe_float(rsi(close,14).iloc[-1])
+        ret5=None
+        if len(close)>=6:
+            base=safe_float(close.iloc[-6]); ret5=(price/base-1)*100 if base not in (None,0) and price is not None else None
+        bullish_structure=structure=="BULLISH_HH_HL"; bearish_structure=structure=="BEARISH_LH_LL"
+        trend_confirm=price is not None and ema20 is not None and ema50 is not None and price>ema20>ema50
+        weak_confirm=price is not None and ema50 is not None and price<ema50
+        if bullish_structure and trend_confirm and (ret5 is None or ret5>-3):
+            regime="GREEN"; score=100; multiplier=1.0; reason="IHSG confirmed HH/HL structure with EMA trend confirmation."
+        elif bearish_structure and (weak_confirm or (ret5 is not None and ret5<=-5)):
+            regime="RED"; score=20; multiplier=0.0; reason="IHSG confirmed LH/LL structure with weak trend confirmation; new real-money BUY blocked."
         else:
-            regime = "YELLOW"
-            score = 60
-            multiplier = 0.5
-            reason = "IHSG mixed; only reduced-size/high-quality setups allowed."
-
-        return {
-            "regime": regime,
-            "score": score,
-            "size_multiplier": multiplier,
-            "benchmark": normalize_ticker(MARKET_REGIME_TICKER),
-            "price": price,
-            "ema20": ema20,
-            "ema50": ema50,
-            "rsi14": rsi14,
-            "ret5_pct": safe_float(ret5),
-            "bar_at": pd.Timestamp(df.index[-1]).isoformat(),
-            "reason": reason,
-        }
-
+            regime="YELLOW"; score=60; multiplier=0.5; reason="IHSG structure/trend mixed; only reduced-size high-quality setups allowed."
+        return {"regime":regime,"score":score,"size_multiplier":multiplier,"reason":reason,"benchmark":MARKET_REGIME_TICKER,"structure_state":structure,"price":price,"ema20":ema20,"ema50":ema50,"rsi14":rsi14,"ret5_pct":ret5}
     except Exception as exc:
-        # Fail closed for live-money gating.
-        return {
-            "regime": "UNKNOWN",
-            "score": 0,
-            "size_multiplier": 0.0,
-            "benchmark": normalize_ticker(MARKET_REGIME_TICKER),
-            "reason": f"Market regime unavailable: {exc}",
-        }
-
-
-def closed_trade_performance_context():
-    """Use manually closed real positions to create a simple system kill switch."""
-    try:
-        rows = supabase_request(
-            "GET",
-            "hanz_swing_portfolio"
-            "?status=eq.CLOSED"
-            "&realized_pnl_pct=not.is.null"
-            "&select=ticker,realized_pnl_pct,closed_at"
-            "&order=closed_at.desc"
-            "&limit=20",
-        ) or []
-    except Exception as exc:
-        return {
-            "status": "UNKNOWN",
-            "trade_count": 0,
-            "reason": f"Closed-trade history unavailable: {exc}",
-        }
-
-    pnls = []
-    for row in rows:
-        value = safe_float(row.get("realized_pnl_pct"))
-        if value is not None:
-            pnls.append(value)
-
-    if not pnls:
-        return {
-            "status": "WARMUP",
-            "trade_count": 0,
-            "consecutive_losses": 0,
-            "win_rate_pct": None,
-            "avg_pnl_pct": None,
-            "reason": "No closed real-money trade history yet.",
-        }
-
-    consecutive_losses = 0
-    for pnl in pnls:
-        if pnl < 0:
-            consecutive_losses += 1
-        else:
-            break
-
-    sample = pnls[:max(1, KILL_SWITCH_LOOKBACK_TRADES)]
-    wins = sum(1 for x in sample if x > 0)
-    win_rate = wins / len(sample) * 100
-    avg_pnl = sum(sample) / len(sample)
-
-    status = "NORMAL"
-    reason = "Recent closed-trade performance is within guardrails."
-
-    if consecutive_losses >= KILL_SWITCH_CONSECUTIVE_LOSSES:
-        status = "LOCKED"
-        reason = (
-            f"{consecutive_losses} consecutive losing trades reached "
-            f"the kill-switch limit."
-        )
-    elif (
-        len(sample) >= KILL_SWITCH_LOOKBACK_TRADES
-        and win_rate < KILL_SWITCH_MIN_WIN_RATE_PCT
-        and avg_pnl < 0
-    ):
-        status = "LOCKED"
-        reason = (
-            f"Rolling {len(sample)}-trade performance is negative "
-            f"(win rate {win_rate:.1f}%, avg {avg_pnl:.2f}%)."
-        )
-    elif consecutive_losses >= max(2, KILL_SWITCH_CONSECUTIVE_LOSSES - 1):
-        status = "CAUTION"
-        reason = (
-            f"{consecutive_losses} consecutive losses; "
-            "position size should be reduced."
-        )
-
-    return {
-        "status": status,
-        "trade_count": len(pnls),
-        "consecutive_losses": consecutive_losses,
-        "win_rate_pct": round(win_rate, 2),
-        "avg_pnl_pct": round(avg_pnl, 3),
-        "reason": reason,
-    }
-
-
-def portfolio_risk_context():
-    positions = fetch_swing_portfolio()
-    total_risk_idr = 0.0
-    total_market_value_idr = 0.0
-
-    ticker_list = []
-    for position in positions:
-        ticker = clean_ticker(position.get("ticker"))
-        if ticker:
-            ticker_list.append(ticker)
-
-        qty = _position_quantity(position)
-        avg_buy = safe_float(position.get("avg_buy"))
-        stop = safe_float(position.get("stop_loss"))
-
-        if qty > 0 and avg_buy is not None:
-            total_market_value_idr += qty * avg_buy
-
-        if (
-            qty > 0
-            and avg_buy is not None
-            and stop is not None
-            and avg_buy > stop
-        ):
-            total_risk_idr += qty * (avg_buy - stop)
-
-    sectors = {}
-    if ticker_list:
-        try:
-            encoded = ",".join(
-                urllib.parse.quote(t, safe="")
-                for t in sorted(set(ticker_list))
-            )
-            rows = supabase_request(
-                "GET",
-                "hanz_swing_signal_monitor"
-                f"?ticker=in.({encoded})"
-                "&select=ticker,sector",
-            ) or []
-            sectors = {
-                clean_ticker(row.get("ticker")): row.get("sector")
-                for row in rows
-            }
-        except Exception:
-            sectors = {}
-
-    sector_market_value = {}
-    for position in positions:
-        ticker = clean_ticker(position.get("ticker"))
-        sector = sectors.get(ticker) or "UNKNOWN"
-        qty = _position_quantity(position)
-        avg_buy = safe_float(position.get("avg_buy"))
-        if qty > 0 and avg_buy is not None:
-            sector_market_value[sector] = (
-                sector_market_value.get(sector, 0.0)
-                + qty * avg_buy
-            )
-
-    portfolio_risk_pct = None
-    if ACCOUNT_CAPITAL_IDR > 0:
-        portfolio_risk_pct = total_risk_idr / ACCOUNT_CAPITAL_IDR * 100
-
-    return {
-        "open_positions": len(positions),
-        "total_risk_idr": round(total_risk_idr, 2),
-        "total_market_value_idr": round(total_market_value_idr, 2),
-        "portfolio_risk_pct": safe_float(portfolio_risk_pct),
-        "sector_market_value": sector_market_value,
-    }
+        return {"regime":"UNKNOWN","score":0,"size_multiplier":0.0,"reason":f"IHSG regime unavailable: {exc}","benchmark":MARKET_REGIME_TICKER,"structure_state":"UNKNOWN"}
 
 
 def build_real_money_context():
@@ -2507,15 +2379,8 @@ def real_money_validation(
     except Exception:
         oos_expectancy_r = None
 
-    strategy_validation = {
-        "wfa_validated": STRATEGY_WFA_VALIDATED,
-        "wfe": wfe_value,
-        "oos_trades": STRATEGY_OOS_TRADES,
-        "wf_windows": STRATEGY_WF_WINDOWS,
-        "oos_expectancy_r": oos_expectancy_r,
-        "validated_at": STRATEGY_VALIDATED_AT or None,
-        "status": "VALIDATED" if STRATEGY_WFA_VALIDATED else "RESEARCH_ONLY",
-    }
+    strategy_validation = _strategy_validation_evidence()
+    strategy_validation["status"] = "VALIDATED" if strategy_validation.get("passed") else "RESEARCH_ONLY"
 
     if momentum_guard.get("blocked"):
         gate = "BLOCKED"
@@ -2594,9 +2459,10 @@ def real_money_validation(
         if blockers:
             gate = "BLOCKED"
             score -= 50
-        elif not STRATEGY_WFA_VALIDATED:
+        elif not strategy_validation.get("passed"):
             gate = "RESEARCH_ONLY"
-            cautions.append("STRATEGY_WFA_NOT_VALIDATED")
+            failed_checks = [k for k,v in (strategy_validation.get("checks") or {}).items() if not v]
+            cautions.append("STRATEGY_VALIDATION_FAIL:" + ",".join(failed_checks))
             score -= 25
         elif ACCOUNT_CAPITAL_IDR <= 0 or not costs_configured:
             gate = "PAPER_ONLY"
@@ -2670,7 +2536,7 @@ def real_money_validation(
     actionable = (
         result.get("state") == "SWING_BUY"
         and entry_status != "WAIT_PULLBACK"
-        and STRATEGY_WFA_VALIDATED
+        and strategy_validation.get("passed")
         and (
             (not RISK_LIVE_GATE_ENABLED)
             or gate == "ELIGIBLE"
@@ -2686,6 +2552,10 @@ def real_money_validation(
         "do_not_chase": entry_status == "WAIT_PULLBACK",
         "strategy_validation": strategy_validation,
         "structure_state": result.get("structure_state") or daily.get("structure_state"),
+        "setup_family": result.get("setup_family"),
+        "trigger_confirmed": result.get("trigger_confirmed"),
+        "volume_confirm": result.get("volume_confirm"),
+        "pullback_location": result.get("pullback_location"),
         "candle_context": daily.get("candle_context"),
         "daily_rvol": daily.get("rvol20"),
         "blockers": blockers,
