@@ -2046,172 +2046,55 @@ function riskHtml(row){
 }
 
 
-/* V37 — BOOK-ALIGNED DOCTRINE / VALIDATION-AWARE RANKING
+/* V38 — BOOK-ALIGNED DOCTRINE / VALIDATION-AWARE RANKING
    Top 5 is no longer "highest radar progress".
    It ranks only candidates that still have credible BUY-quality evidence.
    Hard-risk / broken-momentum names are excluded. Ranking is deterministic. */
 function hanzBuyQuality(row){
   const state=String(row?.state || "").toUpperCase();
-  const r=(row && row.risk_validation && typeof row.risk_validation==="object")
-    ? row.risk_validation : {};
+  const r=(row && row.risk_validation && typeof row.risk_validation==="object") ? row.risk_validation : {};
   const gate=String(row?.risk_gate || r.gate || "MONITOR").toUpperCase();
   const momentum=String(r.momentum_status || "").toUpperCase();
   const volatility=String(r.volatility_status || volatilityInfo(row).status || "NORMAL").toUpperCase();
   const entryStatus=String(row?.entry_status || r.entry_status || "").toUpperCase();
-  const setup=Math.max(0,Math.min(10,Number(row?.score || 0)));
-
-  // Hard vetoes: damaged setup / unsafe execution never becomes a BUY-quality candidate.
-  if(state==="MOMENTUM_BROKEN" || momentum==="BROKEN")
-    return {qualified:false,total:0,coverage:0,reason:"Momentum broken"};
-  // PAPER_ONLY is an execution/configuration status, not proof that the
-  // technical opportunity is poor.  Keep it rankable, but finalDecision()
-  // still blocks real-money BUY.  Only true BLOCKED risk is removed.
-  if(gate==="BLOCKED")
-    return {qualified:false,total:0,coverage:0,reason:`Risk ${gate}`};
-  if(volatility==="EXTREME")
-    return {qualified:false,total:0,coverage:0,reason:"Extreme volatility"};
-  if(r.failed_breakout===true)
-    return {qualified:false,total:0,coverage:0,reason:"Failed breakout"};
-
-  let earned=0;
-  let possible=0;
-  const parts={};
-
-  // V37 doctrine: MARKET/TREND -> STRUCTURE/LOCATION -> SETUP/TRIGGER -> VOLUME -> RISK.
-  // Setup score is important, but it can no longer dominate entry quality.
-  possible+=12;
-  parts.setup=Math.round((setup/10)*12);
-  earned+=parts.setup;
-
-  // Signal maturity: confirmed/reconfirmed setups get preference, but not enough
-  // to outrank a much cleaner entry location.
-  possible+=10;
-  parts.maturity={
-    "SWING_BUY":10,
-    "RADAR_ARMED":8,
-    "SETUP_READY":8,
-    "RADAR_PRE_ALERT":6,
-    "PRE_ALERT":5,
-    "RADAR_WATCH":3,
-    "EARLY_WATCH":2
-  }[state] || 0;
-  earned+=parts.maturity;
-
-  // Risk gate.
-  possible+=10;
-  parts.risk={ELIGIBLE:10,CAUTION:8,MONITOR:5,PAPER_ONLY:5,RESEARCH_ONLY:5}[gate] || 0;
-  earned+=parts.risk;
-
-  // ENTRY LOCATION — intentionally heavy. A great stock at a bad price must
-  // rank below a fresh/retestable setup. Existing V8.6 risk_levels() supplies
-  // ENTRY_ZONE vs WAIT_PULLBACK without requiring a SQL change.
-  parts.entry=0;
-  if(entryStatus){
-    possible+=20;
-    if(entryStatus==="ENTRY_ZONE") parts.entry=20;
-    else if(entryStatus==="WAIT_PULLBACK") parts.entry=2;
-    else if(entryStatus==="NO_DATA") parts.entry=0;
-    earned+=parts.entry;
-  }
-
-  // MARKET STRUCTURE comes before indicators in the decision hierarchy.
-  // The engine stores a coarse operational HH/HL vs LH/LL classification.
   const structure=String(r.structure_state || row?.structure_state || "").toUpperCase();
-  parts.structure=0;
-  if(structure){
-    possible+=15;
-    if(structure==="BULLISH_HH_HL") parts.structure=15;
-    else if(structure==="MIXED") parts.structure=7;
-    else if(structure==="BEARISH_LH_LL") parts.structure=0;
-    earned+=parts.structure;
-  }
-
-  // Trend context.
-  parts.trend=0;
+  const setupFamily=String(r.setup_family || row?.setup_family || "NONE").toUpperCase();
   const daily=String(row?.daily_trend || "").toUpperCase();
   const weekly=String(row?.weekly_trend || "").toUpperCase();
-  if(daily){
-    possible+=5;
-    if(daily==="BULLISH") { parts.trend+=5; earned+=5; }
-    else if(daily==="NEUTRAL") { parts.trend+=2; earned+=2; }
-  }
-  if(weekly){
-    possible+=5;
-    if(weekly==="BULLISH") { parts.trend+=5; earned+=5; }
-    else if(weekly==="NEUTRAL") { parts.trend+=2; earned+=2; }
-  }
+  const trigger=Boolean(r.trigger_confirmed ?? row?.trigger_confirmed);
+  const volumeOk=Boolean(r.volume_confirm ?? row?.volume_confirm);
+  const setup=Math.max(0,Math.min(10,Number(row?.score || 0)));
 
-  // FRESH BREAKOUT + VOLUME EXPANSION. This is the V37 trigger/volume layer that
-  // should lift names such as a fresh PTBA-style breakout above an already
-  // stretched AUTO-style move.
-  parts.triggerVolume=0;
-  const breakoutKnown=typeof row?.breakout==="boolean";
-  const rvol=Number(row?.daily_rvol ?? r.daily_rvol);
-  if(breakoutKnown || Number.isFinite(rvol)){
-    possible+=15;
-    if(row?.breakout===true){
-      if(Number.isFinite(rvol) && rvol>=1.50) parts.triggerVolume=15;
-      else if(Number.isFinite(rvol) && rvol>=1.00) parts.triggerVolume=11;
-      else parts.triggerVolume=5;
-    }else if(Number.isFinite(rvol) && rvol>=1.00){
-      parts.triggerVolume=4;
-    }
-    earned+=parts.triggerVolume;
-  }
+  // Book-guided eligibility hierarchy. Weighted score ranks only names that survive it.
+  if(state==="MOMENTUM_BROKEN" || momentum==="BROKEN")
+    return {qualified:false,total:0,coverage:100,parts:{},reason:"Momentum/setup damaged"};
+  if(gate==="BLOCKED" || volatility==="EXTREME" || r.failed_breakout===true)
+    return {qualified:false,total:0,coverage:100,parts:{},reason:"Execution/risk veto"};
+  if(structure==="BEARISH_LH_LL")
+    return {qualified:false,total:0,coverage:100,parts:{},reason:"Bearish LH/LL structure"};
+  if(daily!=="BULLISH" || weekly!=="BULLISH")
+    return {qualified:false,total:0,coverage:100,parts:{},reason:"Trend hierarchy not aligned"};
+  if(!["BREAKOUT","PULLBACK_RETEST"].includes(setupFamily))
+    return {qualified:false,total:0,coverage:100,parts:{},reason:"No defined setup family"};
+  if(entryStatus==="WAIT_PULLBACK")
+    return {qualified:false,total:0,coverage:100,parts:{},reason:"GOOD STOCK — BAD ENTRY; wait pullback"};
 
-  // Healthy momentum evidence, without rewarding a merely huge 5D run.
-  parts.momentum=0;
-  if(momentum){
-    possible+=3;
-    if(["STRONG","BULLISH","HEALTHY","CONFIRMED"].includes(momentum)) parts.momentum=3;
-    else if(["NORMAL","NEUTRAL","OK"].includes(momentum)) parts.momentum=1;
-    earned+=parts.momentum;
-  }
+  let total=0; const parts={};
+  // Hierarchy has already qualified the candidate; these are tie-breakers only.
+  parts.structure=structure==="BULLISH_HH_HL"?20:10; total+=parts.structure;
+  parts.setup=setupFamily==="PULLBACK_RETEST"?18:16; total+=parts.setup;
+  parts.trigger=trigger?20:(state==="SETUP_READY"||state==="SWING_CONFIRMING"?10:0); total+=parts.trigger;
+  parts.volume=volumeOk?12:4; total+=parts.volume;
+  parts.entry=entryStatus==="ENTRY_ZONE"?15:8; total+=parts.entry;
+  parts.maturity={SWING_BUY:10,SETUP_READY:8,RADAR_ARMED:7,SWING_CONFIRMING:6,RADAR_PRE_ALERT:5,PRE_ALERT:4,RADAR_WATCH:3,SWING_WATCH:3,EARLY_WATCH:2}[state]||0; total+=parts.maturity;
+  const rr=[Number(r.net_rr_target_1),Number(r.rr_target_1),Number(r.net_rr_target_2),Number(r.rr_target_2)].filter(Number.isFinite);
+  parts.rr=rr.length?(Math.max(...rr)>=2?5:Math.max(...rr)>=1.3?3:0):0; total+=parts.rr;
+  // Setup score is diagnostic only and deliberately capped to 5 points.
+  parts.diagnostic=Math.round((setup/10)*5); total+=parts.diagnostic;
 
-  // Liquidity.
-  const liq=String(r.liquidity_grade || "").toUpperCase();
-  parts.liquidity=0;
-  if(liq){
-    possible+=3;
-    const ls={"A+":3,A:3,"B+":2.5,B:2,C:0.5}[liq] || 0;
-    parts.liquidity=ls; earned+=ls;
-  }
-
-  // Reward/risk is a final tie-break quality component.
-  const rrVals=[
-    Number(r.net_rr_target_1), Number(r.rr_target_1),
-    Number(r.net_rr_target_2), Number(r.rr_target_2)
-  ].filter(Number.isFinite);
-  parts.rr=0;
-  if(rrVals.length){
-    possible+=2;
-    const rr=Math.max(...rrVals);
-    parts.rr=rr>=2 ? 2 : rr>=1.5 ? 1 : 0;
-    earned+=parts.rr;
-  }
-
-  let total=possible>0 ? Math.round((earned/possible)*100) : 0;
-
-  // Secondary no-chase penalty for older rows that do not yet contain
-  // entry_status. This is deliberately a ranking penalty, not a new trading
-  // threshold: V8.7 engine entry_status remains the execution authority.
-  const rsi=Number(row?.daily_rsi ?? r.daily_rsi);
-  const ret5=Number(r.ret5_pct);
-  if(!entryStatus && Number.isFinite(rsi) && rsi>=76) total=Math.max(0,total-8);
-  if(!entryStatus && Number.isFinite(ret5) && ret5>=12) total=Math.max(0,total-6);
-
-  const coverage=Math.round((possible/100)*100);
-  // qualified means technically strong enough for the opportunity list;
-  // it does NOT override the execution gate.  WAIT_PULLBACK stays non-primary
-  // so a stretched stock cannot crowd out a cleaner entry.
-  const qualified=entryStatus!=="WAIT_PULLBACK" && structure!=="BEARISH_LH_LL" && total>=60;
-
-  return {
-    qualified,total,coverage,parts,
-    reason:entryStatus==="WAIT_PULLBACK"
-      ? "Strong stock, but entry is extended — wait pullback"
-      : (qualified ? "Strong BUY-quality candidate" : "Below BUY-quality threshold")
-  };
+  const qualified=total>=50;
+  return {qualified,total:Math.min(100,total),coverage:100,parts,
+    reason:qualified?`${setupFamily.replaceAll("_"," ")} hierarchy qualified`:`Below post-gate ranking threshold`};
 }
 function hanzBuyCompare(a,b){
   const qa=hanzBuyQuality(a), qb=hanzBuyQuality(b);
@@ -2323,7 +2206,7 @@ async function loadWatchlist(){
     displayed:rows.length,
     tickers:rows.map(r=>r.ticker)
   };
-  console.info("HANZ V37 Top5 diagnostics", window.__hanzDiagnostics);
+  console.info("HANZ V38 Top5 diagnostics", window.__hanzDiagnostics);
 
   window.__hanzSignalRows=rows;
   window.__hanzConfirmedRows=confirmed;
