@@ -610,7 +610,7 @@ th{color:var(--muted)}
     </div>
 
     <div class="hero-top">
-      <span>CURRENT TOP CONFIRMED BUY</span>
+      <span>CURRENT TOP SWING CANDIDATE</span>
       <strong id="heroTopCandidate">—</strong>
       <small id="heroTopSub">Waiting for HANZ scan</small>
     </div>
@@ -1764,7 +1764,7 @@ async function initAuth(){
 }
 
 /* SHARED HANZ SIGNALS */
-const HANZ_SIGNAL_STATES=["SWING_BUY","SWING_CONFIRMING","SWING_WATCH","RADAR_ARMED","RADAR_PRE_ALERT","RADAR_WATCH","SETUP_READY","PRE_ALERT","EARLY_WATCH","MOMENTUM_BROKEN"];
+const HANZ_SIGNAL_STATES=["SWING_BUY","RADAR_ARMED","RADAR_PRE_ALERT","RADAR_WATCH","SETUP_READY","PRE_ALERT","EARLY_WATCH","MOMENTUM_BROKEN"];
 
 function radarProgress(state){
   return {
@@ -1772,8 +1772,6 @@ function radarProgress(state){
     "RADAR_WATCH":30,
     "PRE_ALERT":45,
     "RADAR_PRE_ALERT":55,
-    "SWING_WATCH":55,
-    "SWING_CONFIRMING":75,
     "SETUP_READY":70,
     "RADAR_ARMED":80,
     "SWING_BUY":100,
@@ -1805,11 +1803,8 @@ function displaySignalStateLabel(row){
 
 function signalStateRank(state){
   return {
-    "SWING_BUY":7,
-    "SWING_CONFIRMING":6,
-    "RADAR_ARMED":5,
+    "SWING_BUY":5,
     "SETUP_READY":4,
-    "SWING_WATCH":3,
     "PRE_ALERT":3,
     "EARLY_WATCH":2,
     "MOMENTUM_BROKEN":1
@@ -1819,8 +1814,6 @@ function signalStateRank(state){
 function signalStateLabel(state){
   return {
     "SWING_BUY":"RECONFIRMED BUY",
-    "SWING_CONFIRMING":"SWING CONFIRMING",
-    "SWING_WATCH":"SWING WATCH",
     "RADAR_ARMED":"RADAR ARMED",
     "RADAR_PRE_ALERT":"RADAR PRE-ALERT",
     "RADAR_WATCH":"RADAR WATCH",
@@ -1834,8 +1827,6 @@ function signalStateLabel(state){
 function signalStateClass(state){
   return {
     "SWING_BUY":"state-buy",
-    "SWING_CONFIRMING":"state-ready",
-    "SWING_WATCH":"state-pre",
     "MOMENTUM_BROKEN":"state-broken",
     "SETUP_READY":"state-ready",
     "PRE_ALERT":"state-pre",
@@ -1880,12 +1871,16 @@ function finalDecision(row){
   const gate=String(row?.risk_gate || row?.risk_validation?.gate || "MONITOR").toUpperCase();
   const momentum=String(row?.risk_validation?.momentum_status || "").toUpperCase();
   const volatility=volatilityInfo(row).status;
+  const entryStatus=String(row?.entry_status || row?.risk_validation?.entry_status || "").toUpperCase();
 
   if(state==="MOMENTUM_BROKEN" || momentum==="BROKEN"){
     return {label:"AVOID",cls:"state-broken",detail:"Momentum/breakout damage veto"};
   }
   if(volatility==="EXTREME"){
     return {label:"AVOID",cls:"state-broken",detail:"Extreme volatility is not suitable for HANZ Swing"};
+  }
+  if(state==="SWING_BUY" && entryStatus==="WAIT_PULLBACK"){
+    return {label:"WAIT",cls:"state-ready",detail:"GOOD STOCK — BAD ENTRY: breakout is extended; wait for pullback/retest"};
   }
   if(state==="SWING_BUY" && ["ELIGIBLE","CAUTION"].includes(gate)){
     return {label:"BUY",cls:"state-buy",detail:gate==="CAUTION" ? "Buy signal with caution" : "Actionable reconfirmed buy"};
@@ -1896,14 +1891,8 @@ function finalDecision(row){
   if(state==="SWING_BUY"){
     return {label:"WATCH",cls:"state-pre",detail:`Technical reconfirmation complete; waiting final risk clearance (${gate})`};
   }
-  if(state==="SWING_CONFIRMING"){
-    return {label:"WAIT",cls:"state-ready",detail:"Strong swing setup; confirmation gate not fully passed"};
-  }
-  if(state==="SETUP_READY" || state==="RADAR_ARMED"){
+  if(state==="SETUP_READY"){
     return {label:"WAIT",cls:"state-ready",detail:"Setup ready; reconfirmation required"};
-  }
-  if(state==="SWING_WATCH"){
-    return {label:"WATCH",cls:"state-pre",detail:"Promising swing setup; more confirmation required"};
   }
   return {label:"WATCH",cls:"state-pre",detail:"Not actionable"};
 }
@@ -1916,8 +1905,11 @@ function decisionGuidanceHtmlSafe(row){
   let why="Candidate is still under HANZ review and is not actionable yet.";
   let next="Wait for completed-bar reconfirmation and final risk clearance before acting.";
 
-  if(d.label==="BUY"){
-    why="Technical reconfirmation and final risk gate are cleared.";
+  if(d.label==="WAIT" && String(row?.entry_status || row?.risk_validation?.entry_status || "").toUpperCase()==="WAIT_PULLBACK"){
+    why="Technical setup is valid, but the current price is too extended from the preferred entry location.";
+    next="Do not chase. Wait for a controlled pullback/retest into the displayed entry zone and require the setup to remain intact.";
+  }else if(d.label==="BUY"){
+    why="Technical reconfirmation, entry-location check and final risk gate are cleared.";
     next="Actionable BUY: follow the displayed entry zone, stop-loss, target and position-risk rules.";
   }else if(state==="SWING_BUY" && gate==="MONITOR"){
     why="Technical reconfirmation is complete, but final risk clearance is still MONITOR.";
@@ -2047,7 +2039,7 @@ function riskHtml(row){
 }
 
 
-/* V35 — BUY QUALITY RANKING
+/* V36 — ENTRY QUALITY / FRESH BREAKOUT RANKING
    Top 5 is no longer "highest radar progress".
    It ranks only candidates that still have credible BUY-quality evidence.
    Hard-risk / broken-momentum names are excluded. Ranking is deterministic. */
@@ -2058,127 +2050,142 @@ function hanzBuyQuality(row){
   const gate=String(row?.risk_gate || r.gate || "MONITOR").toUpperCase();
   const momentum=String(r.momentum_status || "").toUpperCase();
   const volatility=String(r.volatility_status || volatilityInfo(row).status || "NORMAL").toUpperCase();
+  const entryStatus=String(row?.entry_status || r.entry_status || "").toUpperCase();
   const setup=Math.max(0,Math.min(10,Number(row?.score || 0)));
 
-  const rvol=Number(row?.daily_rvol);
-  const turnover=Number(row?.turnover_value);
-  const dayRet=Number(row?.day_return_pct);
-  const closePos=Number(row?.close_position_pct);
-  const breakout=Boolean(row?.breakout);
-
-  // HARD MARKET-QUALITY VETOES.
+  // Hard vetoes: damaged setup / unsafe execution never becomes a BUY-quality candidate.
   if(state==="MOMENTUM_BROKEN" || momentum==="BROKEN")
-    return {qualified:false,total:0,coverage:100,reason:"Momentum broken"};
+    return {qualified:false,total:0,coverage:0,reason:"Momentum broken"};
   if(["BLOCKED","PAPER_ONLY"].includes(gate))
-    return {qualified:false,total:0,coverage:100,reason:`Risk ${gate}`};
+    return {qualified:false,total:0,coverage:0,reason:`Risk ${gate}`};
   if(volatility==="EXTREME")
-    return {qualified:false,total:0,coverage:100,reason:"Extreme volatility"};
+    return {qualified:false,total:0,coverage:0,reason:"Extreme volatility"};
   if(r.failed_breakout===true)
-    return {qualified:false,total:0,coverage:100,reason:"Failed breakout"};
+    return {qualified:false,total:0,coverage:0,reason:"Failed breakout"};
 
-  // Absolute liquidity guard. Rp 1B daily turnover is the minimum for Top-5 swing candidates.
-  if(Number.isFinite(turnover) && turnover < 1_000_000_000)
-    return {qualified:false,total:0,coverage:100,reason:"Daily turnover below Rp1B"};
-
-  // Strong same-day deterioration is not a Top-5 BUY candidate.
-  if(Number.isFinite(dayRet) && dayRet <= -2.0)
-    return {qualified:false,total:0,coverage:100,reason:"Current-day deterioration <= -2%"};
-
-  let earned=0, possible=0;
+  let earned=0;
+  let possible=0;
   const parts={};
 
-  // Technical setup: 0-30.
-  possible+=30;
-  parts.setup=Math.round((setup/10)*30);
+  // V36 doctrine: MARKET/TREND -> LOCATION -> SETUP/TRIGGER -> VOLUME -> RISK.
+  // Setup score is important, but it can no longer dominate entry quality.
+  possible+=20;
+  parts.setup=Math.round((setup/10)*20);
   earned+=parts.setup;
 
-  // Signal maturity: 0-15.
+  // Signal maturity: confirmed/reconfirmed setups get preference, but not enough
+  // to outrank a much cleaner entry location.
   possible+=15;
   parts.maturity={
     "SWING_BUY":15,
-    "SWING_CONFIRMING":13,
-    "RADAR_ARMED":12,
-    "SETUP_READY":11,
-    "SWING_WATCH":9,
-    "RADAR_PRE_ALERT":8,
-    "PRE_ALERT":7,
+    "RADAR_ARMED":13,
+    "SETUP_READY":12,
+    "RADAR_PRE_ALERT":9,
+    "PRE_ALERT":8,
     "RADAR_WATCH":5,
     "EARLY_WATCH":4
   }[state] || 0;
   earned+=parts.maturity;
 
-  // Risk gate: 0-10.
-  possible+=10;
-  parts.risk={ELIGIBLE:10,CAUTION:7,MONITOR:4}[gate] || 0;
+  // Risk gate.
+  possible+=15;
+  parts.risk={ELIGIBLE:15,CAUTION:11,MONITOR:7}[gate] || 0;
   earned+=parts.risk;
 
-  // Relative volume: 0-15, only if available.
-  parts.rvol=0;
-  if(Number.isFinite(rvol)){
-    possible+=15;
-    const pts=rvol>=2.0?15:rvol>=1.5?13:rvol>=1.2?11:rvol>=1.0?8:rvol>=0.8?5:2;
-    parts.rvol=pts; earned+=pts;
+  // ENTRY LOCATION — intentionally heavy. A great stock at a bad price must
+  // rank below a fresh/retestable setup. Existing V8.6 risk_levels() supplies
+  // ENTRY_ZONE vs WAIT_PULLBACK without requiring a SQL change.
+  parts.entry=0;
+  if(entryStatus){
+    possible+=20;
+    if(entryStatus==="ENTRY_ZONE") parts.entry=20;
+    else if(entryStatus==="WAIT_PULLBACK") parts.entry=2;
+    else if(entryStatus==="NO_DATA") parts.entry=0;
+    earned+=parts.entry;
   }
 
-  // Current-day price action: 0-10.
-  parts.day=0;
-  if(Number.isFinite(dayRet)){
-    possible+=10;
-    const pts=dayRet>=4?10:dayRet>=2?9:dayRet>=1?7:dayRet>=0?5:dayRet>-2?2:0;
-    parts.day=pts; earned+=pts;
-  }
-
-  // Close quality: 0-10. Reward closes near the high.
-  parts.close=0;
-  if(Number.isFinite(closePos)){
-    possible+=10;
-    const pts=closePos>=85?10:closePos>=70?8:closePos>=50?6:closePos>=30?3:1;
-    parts.close=pts; earned+=pts;
-  }
-
-  // Trend: 0-5 each when available.
+  // Trend context.
   parts.trend=0;
   const daily=String(row?.daily_trend || "").toUpperCase();
   const weekly=String(row?.weekly_trend || "").toUpperCase();
   if(daily){
     possible+=5;
-    const pts=daily==="BULLISH"?5:daily==="NEUTRAL"?2:0;
-    parts.trend+=pts; earned+=pts;
+    if(daily==="BULLISH") { parts.trend+=5; earned+=5; }
+    else if(daily==="NEUTRAL") { parts.trend+=2; earned+=2; }
   }
   if(weekly){
     possible+=5;
-    const pts=weekly==="BULLISH"?5:weekly==="NEUTRAL"?2:0;
-    parts.trend+=pts; earned+=pts;
+    if(weekly==="BULLISH") { parts.trend+=5; earned+=5; }
+    else if(weekly==="NEUTRAL") { parts.trend+=2; earned+=2; }
   }
 
-  // Breakout quality: 0-5.
-  possible+=5;
-  parts.breakout=breakout?5:0;
-  earned+=parts.breakout;
+  // FRESH BREAKOUT + VOLUME EXPANSION. This is the main V36 change that
+  // should lift names such as a fresh PTBA-style breakout above an already
+  // stretched AUTO-style move.
+  parts.triggerVolume=0;
+  const breakoutKnown=typeof row?.breakout==="boolean";
+  const rvol=Number(row?.daily_rvol ?? r.daily_rvol);
+  if(breakoutKnown || Number.isFinite(rvol)){
+    possible+=10;
+    if(row?.breakout===true){
+      if(Number.isFinite(rvol) && rvol>=1.50) parts.triggerVolume=10;
+      else if(Number.isFinite(rvol) && rvol>=1.20) parts.triggerVolume=8;
+      else parts.triggerVolume=5;
+    }else if(Number.isFinite(rvol) && rvol>=1.50){
+      parts.triggerVolume=3;
+    }
+    earned+=parts.triggerVolume;
+  }
 
-  // Reward/risk: 0-5 if available.
+  // Healthy momentum evidence, without rewarding a merely huge 5D run.
+  parts.momentum=0;
+  if(momentum){
+    possible+=5;
+    if(["STRONG","BULLISH","HEALTHY","CONFIRMED"].includes(momentum)) parts.momentum=5;
+    else if(["NORMAL","NEUTRAL","OK"].includes(momentum)) parts.momentum=2;
+    earned+=parts.momentum;
+  }
+
+  // Liquidity.
+  const liq=String(r.liquidity_grade || "").toUpperCase();
+  parts.liquidity=0;
+  if(liq){
+    possible+=3;
+    const ls={"A+":3,A:3,"B+":2.5,B:2,C:0.5}[liq] || 0;
+    parts.liquidity=ls; earned+=ls;
+  }
+
+  // Reward/risk is a final tie-break quality component.
   const rrVals=[
-    Number(row?.rr_target_1), Number(row?.rr_target_2),
     Number(r.net_rr_target_1), Number(r.rr_target_1),
     Number(r.net_rr_target_2), Number(r.rr_target_2)
   ].filter(Number.isFinite);
   parts.rr=0;
   if(rrVals.length){
-    possible+=5;
+    possible+=2;
     const rr=Math.max(...rrVals);
-    const pts=rr>=2.5?5:rr>=2?4:rr>=1.5?3:rr>=1.2?1:0;
-    parts.rr=pts; earned+=pts;
+    parts.rr=rr>=2 ? 2 : rr>=1.5 ? 1 : 0;
+    earned+=parts.rr;
   }
 
-  const total=possible>0 ? Math.round((earned/possible)*100) : 0;
-  const coverage=Math.min(100,Math.round((possible/100)*100));
+  let total=possible>0 ? Math.round((earned/possible)*100) : 0;
 
-  // Top 5 must be genuinely strong. No weak fillers.
-  const qualified=setup>=7 && total>=62;
+  // Secondary no-chase penalty for older rows that do not yet contain
+  // entry_status. This is deliberately a ranking penalty, not a new trading
+  // threshold: V8.7 engine entry_status remains the execution authority.
+  const rsi=Number(row?.daily_rsi ?? r.daily_rsi);
+  const ret5=Number(r.ret5_pct);
+  if(!entryStatus && Number.isFinite(rsi) && rsi>=76) total=Math.max(0,total-8);
+  if(!entryStatus && Number.isFinite(ret5) && ret5>=12) total=Math.max(0,total-6);
+
+  const coverage=Math.round((possible/100)*100);
+  const qualified=entryStatus!=="WAIT_PULLBACK" && setup>=7 && total>=60;
 
   return {
     qualified,total,coverage,parts,
-    reason:qualified ? "Market-validated BUY-quality candidate" : "Below market-validated BUY threshold"
+    reason:entryStatus==="WAIT_PULLBACK"
+      ? "Strong stock, but entry is extended — wait pullback"
+      : (qualified ? "Strong BUY-quality candidate" : "Below BUY-quality threshold")
   };
 }
 function hanzBuyCompare(a,b){
@@ -2215,20 +2222,14 @@ async function loadWatchlist(){
 
   // V35: the public Top 5 is restricted to strong BUY-quality candidates.
   // If fewer than five qualify, HANZ shows fewer rather than filling the list with weak names.
-  // V36.1 — CONFIRMED ACTIONABLE TOP 5 ONLY.
-  // Bullish / SWING_CONFIRMING / SWING_WATCH names stay in the monitor,
-  // but they are NOT promoted into the BUY ranking.
-  const strongRows=allRows
-    .filter(row=>{
-      const state=String(row?.state || "").toUpperCase();
-      const entry=String(row?.entry_status || "").toUpperCase();
-      const q=hanzBuyQuality(row);
-      const gate=String(row?.risk_gate || row?.risk_validation?.gate || "MONITOR").toUpperCase();
-      const riskOK=!["BLOCKED","PAPER_ONLY"].includes(gate);
-      return state==="SWING_BUY" && entry==="ENTRY_ZONE" && q.qualified && riskOK;
-    })
-    .sort(hanzBuyCompare)
-    .slice(0,5);
+  const primaryRows=allRows.filter(row=>hanzBuyQuality(row).qualified);
+  const backupRows=allRows.filter(row=>{
+    const q=hanzBuyQuality(row);
+    const setup=Number(row?.score || 0);
+    const entryStatus=String(row?.entry_status || row?.risk_validation?.entry_status || "").toUpperCase();
+    return !q.qualified && entryStatus!=="WAIT_PULLBACK" && q.total>=55 && setup>=7;
+  });
+  const strongRows=[...primaryRows,...backupRows].slice(0,5);
 
   const confirmed=allRows.filter(row=>{
     const state=String(row?.state || "").toUpperCase();
@@ -2236,8 +2237,7 @@ async function loadWatchlist(){
     const r=(row && row.risk_validation && typeof row.risk_validation==="object")
       ? row.risk_validation : {};
     const radarInternal=Boolean(r.radar_internal);
-    const entry=String(row?.entry_status || "").toUpperCase();
-    return state==="SWING_BUY" && entry==="ENTRY_ZONE" && decision.label==="BUY" && !radarInternal;
+    return state==="SWING_BUY" && decision.label==="BUY" && !radarInternal;
   });
 
   const radarRows=allRows.filter(row=>String(row?.state || "").toUpperCase()!=="SWING_BUY");
@@ -2271,9 +2271,9 @@ async function loadWatchlist(){
     $("lastUpdateDate").textContent=`${formatDate(top.updated_at)} · Last HANZ signal update`;
   }else{
     $("topCandidate").textContent="—";
-    $("topCandidateSub").textContent="No stock currently clears the FINAL CONFIRMED BUY gate";
+    $("topCandidateSub").textContent="No candidate currently clears the HANZ Top-5 BUY-quality threshold";
     $("heroTopCandidate").textContent="—";
-    $("heroTopSub").textContent="HANZ is scanning. Bullish/watch candidates are withheld until the final entry, exhaustion, volume and risk gates confirm BUY.";
+    $("heroTopSub").textContent="HANZ is scanning, but no stock currently has strong enough combined BUY indicators";
   }
 
   renderRanking(rows);
@@ -2298,7 +2298,7 @@ function renderRanking(rows){
       <div class="rank-no">#${index+1}</div>
       <div class="rank-symbol">${safe(row.ticker)}<div style="margin-top:3px"><span class="state-chip ${decision.cls}">FINAL ${safe(decision.label)}</span> <span class="state-chip ${signalStateClass(row.state)}">${safe(displaySignalStateLabel(row))}</span></div></div>
       <div class="rank-track"><div style="width:${quality.total}%"></div></div>
-      <div class="rank-score">BUY ${quality.total}/100 · Setup ${score}/10 · RVOL ${Number.isFinite(Number(row.daily_rvol))?Number(row.daily_rvol).toFixed(2)+"x":"—"} · Day ${Number.isFinite(Number(row.day_return_pct))?pctText(row.day_return_pct):"—"} · ${safe(row.risk_gate || "MONITOR")}${volatilityInfo(row).status!=="NORMAL" ? ` · VOL ${safe(volatilityInfo(row).status)}` : ""}</div>
+      <div class="rank-score">BUY ${quality.total}/100 · Data ${quality.coverage}% · Setup ${score}/10 · ${safe(row.risk_gate || "MONITOR")}${volatilityInfo(row).status!=="NORMAL" ? ` · VOL ${safe(volatilityInfo(row).status)}` : ""}</div>
     </div>`;
   }).join("");
 
@@ -2319,7 +2319,7 @@ function renderOpportunities(rows){
           <div class="op-symbol">${safe(row.ticker)}</div>
           <div class="op-source">HANZ SWING ENGINE · RADAR PROGRESS → COMPLETED-BAR RECONFIRMATION → ACTIONABLE BUY</div>
 <div style="margin-top:8px;padding:10px 12px;border:1px solid rgba(255,255,255,.12);border-radius:12px;font-size:12px;line-height:1.45">
-  <strong>Top-5 Rule:</strong> hanya saham dengan kombinasi indikator BUY terkuat yang lolos quality gate. Top 5 hanya berisi SWING_BUY yang masih berada di ENTRY_ZONE dan lolos market-quality/risk gate. Saham yang bullish tetapi sudah extended, overheated, weak-close, atau menunggu pullback tidak masuk Top 5. <strong>Ranking tinggi bukan otomatis BUY</strong>; hanya FINAL BUY yang actionable.
+  <strong>Top-5 Rule:</strong> hanya saham dengan kombinasi indikator BUY terkuat yang lolos quality gate. Ranking mempertimbangkan entry location/no-chase, fresh breakout + volume expansion, setup, maturity, risk gate, trend, momentum, liquidity dan reward/risk; field yang belum tersedia tidak dihitung sebagai nilai nol. <strong>Ranking tinggi bukan otomatis BUY</strong>; hanya FINAL BUY yang actionable.
 </div>
         </div>
         <div class="priority-ring">${hanzBuyQuality(row).total}</div>
@@ -2335,7 +2335,7 @@ function renderOpportunities(rows){
         <div class="level"><span>STOP LOSS</span><strong>${price(row.stop_loss)}</strong></div>
         <div class="level target"><span>DYNAMIC T1</span><strong>${price(row.target_1)}</strong></div>
         <div class="level target"><span>DYNAMIC T2</span><strong>${price(row.target_2)}</strong></div>
-        <div class="level confirm"><span>BUY QUALITY</span><strong>${hanzBuyQuality(row).total}/100 · Swing ${row.score ?? "—"}/10 · RVOL ${Number.isFinite(Number(row.daily_rvol))?Number(row.daily_rvol).toFixed(2)+"x":"—"} · Day ${Number.isFinite(Number(row.day_return_pct))?pctText(row.day_return_pct):"—"}</strong></div>
+        <div class="level confirm"><span>BUY QUALITY</span><strong>${hanzBuyQuality(row).total}/100 · Swing ${row.score ?? "—"}/10 · D${row.discount_score==null?"—":Number(row.discount_score).toFixed(0)} · F${row.fundamental_score==null?"—":Number(row.fundamental_score).toFixed(0)}</strong></div>
       </div>
       ${volatilityWarningHtml(row)}
       ${decisionGuidanceHtmlSafe(row)}
