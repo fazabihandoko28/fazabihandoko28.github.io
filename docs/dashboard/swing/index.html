@@ -2178,10 +2178,10 @@ async function loadWatchlist(){
   if(strongRows.length<5){
     const pullbackFallback=allRows.filter(row=>{
       if(used.has(String(row?.ticker || ""))) return false;
+      const q=hanzBuyQuality(row);
       const r=(row && row.risk_validation && typeof row.risk_validation==="object") ? row.risk_validation : {};
       const gate=String(row?.risk_gate || r.gate || "MONITOR").toUpperCase();
       const entryStatus=String(row?.entry_status || r.entry_status || "").toUpperCase();
-      const setup=Number(row?.score || 0);
       return gate!=="BLOCKED" && entryStatus==="WAIT_PULLBACK" && q.total>=45;
     });
     addRows(pullbackFallback);
