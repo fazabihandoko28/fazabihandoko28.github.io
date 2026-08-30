@@ -445,6 +445,8 @@ th{color:var(--muted)}
 }
 .toast.show{opacity:1;transform:translateY(0)}.toast.error{color:#ffabb2}
 
+#copyFidButton{display:none!important}
+
 @media(max-width:900px){
   .layout{grid-template-columns:1fr}
   .opportunity-grid,.portfolio-grid{grid-template-columns:1fr}
@@ -467,16 +469,28 @@ th{color:var(--muted)}
   .live-pill #engineLabel{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   #refreshButton{min-width:44px;width:44px;padding:0;font-size:17px}
   #loginButton{min-height:44px;width:100%;font-size:11px}
-  #pushButton,#copyFidButton{min-height:44px;white-space:nowrap}
-  .user-area{grid-column:3;min-width:0;width:100%;display:none!important;align-items:stretch;gap:6px}
-  .user-area[style*="display: flex"],.user-area[style*="display:flex"]{display:flex!important}
-  .user-info{display:block!important;min-width:0;flex:1;text-align:left;padding:5px 0}
-  .user-info strong,.user-info span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .user-info strong{font-size:9px}.user-info span{font-size:7px}
-  #logoutButton{min-height:44px;flex:0 0 auto;padding:0 9px}
+  #pushButton{min-height:44px;white-space:nowrap}
+  #copyFidButton{display:none!important}
+  .user-area{grid-column:1 / -1;grid-row:2;min-width:0;width:100%;display:none!important;align-items:center;gap:8px;
+    min-height:52px;padding:7px 8px 7px 12px;border:1px solid var(--line);border-radius:12px;background:rgba(5,12,24,.42)}
+  .user-area[style*="display: flex"],.user-area[style*="display:flex"]{
+    display:grid!important;grid-template-columns:minmax(0,1fr) auto;align-items:center
+  }
+  .user-info{display:block!important;min-width:0;width:100%;text-align:left!important;padding:0!important;visibility:visible!important;opacity:1!important}
+  .user-info strong,.user-info span{display:block!important;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .user-info strong{font-size:11px!important;line-height:1.2;color:#f4f8ff!important;font-weight:800!important}
+  .user-info span{font-size:8px!important;line-height:1.2;margin-top:3px;color:var(--muted)!important}
+  #logoutButton{min-height:40px;flex:0 0 auto;padding:0 12px}
 
-  /* If push/FID controls become visible, give them a full row rather than clipping. */
-  #pushButton:not([style*="display:none"]),#copyFidButton:not([style*="display:none"]){grid-column:span 1}
+  /* Mobile layout matched to the approved phone screenshot:
+     row 1 = Market / Refresh / Push, row 2 = Account / Logout. */
+  .live-pill{grid-column:1;grid-row:1}
+  #refreshButton{grid-column:2;grid-row:1}
+  #pushButton:not([style*="display:none"]){
+    grid-column:3;grid-row:1;width:100%;min-height:44px;justify-content:center;
+    font-size:10px;letter-spacing:.15px;padding:0 8px
+  }
+  #loginButton{grid-column:1 / -1;grid-row:2;width:100%}
 
   #marketStatusStrip{
     position:sticky!important;top:0!important;z-index:120!important;padding:8px 9px!important;gap:5px!important;
@@ -1308,7 +1322,7 @@ function renderPushState(){
   }
 
   btn.style.display="inline-flex";
-  if(fidBtn) fidBtn.style.display="inline-flex";
+  if(fidBtn) fidBtn.style.display="none";
 
   if(!("Notification" in window)){
     btn.textContent="🔕 Unsupported";
@@ -1325,7 +1339,8 @@ function renderPushState(){
   }
 
   if(pushDisabledByUser()){
-    btn.textContent="🔕 Push OFF — tap to enable";
+    btn.textContent="🔕 Push OFF";
+    btn.title="Tap to enable HANZ push notifications";
     return;
   }
 
@@ -1335,12 +1350,14 @@ function renderPushState(){
   // syncPushIfAlreadyGranted() will refresh the Firebase registration
   // in the background after login.
   if(Notification.permission === "granted"){
-    btn.textContent="🔔 Push ON — tap to disable";
+    btn.textContent="🔔 Push ON";
+    btn.title="Tap to disable HANZ push notifications";
     btn.classList.add("push-on");
     return;
   }
 
   btn.textContent="🔔 Enable Push";
+  btn.title="Enable HANZ push notifications";
 }
 
 async function upsertPushDevice(installationId){
@@ -1787,6 +1804,8 @@ function renderAuthState(){
     $("userArea").style.display="flex";
     $("userName").textContent=displayName;
     $("userEmail").textContent=currentUser.email || "";
+    $("userName").title=displayName;
+    $("userEmail").title=currentUser.email || "";
     $("addPositionButton").disabled=false;
     $("portfolioLocked").style.display="none";
     renderPushState();
