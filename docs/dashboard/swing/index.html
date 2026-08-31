@@ -3592,14 +3592,32 @@ window.addEventListener("DOMContentLoaded",async ()=>{
   $("signupTab").addEventListener("click",()=>setAuthMode("signup"));
   $("forgotPasswordButton").addEventListener("click",async ()=>{
     const button=$("forgotPasswordButton");
-    button.disabled=true;
+    const email=$("authEmail").value.trim();
+
     $("authMessage").textContent="";
+
+    if(!email){
+      $("authEmail").focus();
+      $("authMessage").innerHTML=
+        `<div class="auth-error">Enter your registered email first, then tap Forgot password?</div>`;
+      return;
+    }
+
+    button.disabled=true;
+    const originalText=button.textContent;
+    button.textContent="Sending reset email…";
+
     try{
       await requestPasswordReset();
+      button.textContent="Reset email sent ✓";
     }catch(error){
+      button.textContent=originalText;
       $("authMessage").innerHTML=`<div class="auth-error">${safe(error.message)}</div>`;
     }finally{
-      button.disabled=false;
+      setTimeout(()=>{
+        button.disabled=false;
+        button.textContent=originalText;
+      },1800);
     }
   });
   $("positionAutoTrailing").addEventListener("change",updateTrailingFieldState);
