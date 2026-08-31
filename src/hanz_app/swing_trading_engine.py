@@ -2883,14 +2883,30 @@ def insert_swing_alert(
             flush=True,
         )
 
+        # Make the phone notification immediately identify the portfolio stock.
+        push_ticker = clean_ticker(ticker)
+        push_event = alert_type.replace("_", " ")
+        avg_buy = safe_float(position.get("avg_buy"))
+        last_price = safe_float(position.get("last_price"))
+        pnl_pct = safe_float(position.get("last_pnl_pct"))
+
+        context_bits = []
+        if avg_buy is not None:
+            context_bits.append(f"Buy {avg_buy:.2f}")
+        if last_price is not None:
+            context_bits.append(f"Last {last_price:.2f}")
+        if pnl_pct is not None:
+            context_bits.append(f"P/L {pnl_pct:+.2f}%")
+
+        push_body = f"{push_event} — {message}"
+        if context_bits:
+            push_body += " | " + " | ".join(context_bits)
+
         send_selective_push(
             ticker=ticker,
             alert_type=alert_type,
-            title=(
-                f"{clean_ticker(ticker)} — "
-                f"{alert_type.replace('_', ' ')}"
-            ),
-            message=message,
+            title=f"HANZ • {push_ticker}",
+            message=push_body,
             user_id=user_id,
             portfolio_id=portfolio_id,
         )
