@@ -418,6 +418,14 @@ th{color:var(--muted)}
 }
 .auth-link:hover{text-decoration:underline}
 .auth-link:disabled{opacity:.55;cursor:not-allowed}
+.password-wrap{position:relative}
+.password-wrap input{padding-right:44px}
+.password-toggle{
+  position:absolute;right:12px;top:50%;transform:translateY(-50%);
+  border:0;background:transparent;color:var(--muted);
+  cursor:pointer;font-size:17px;line-height:1;padding:4px
+}
+.password-toggle:hover{color:var(--text)}
 
 /* AUTO TRAILING TOGGLE */
 .toggle-row{
@@ -947,14 +955,20 @@ th{color:var(--muted)}
 
       <div class="field">
         <label id="authPasswordLabel">PASSWORD</label>
-        <input id="authPassword" type="password" autocomplete="current-password" required minlength="6" placeholder="Minimum 6 characters">
+        <div class="password-wrap">
+          <input id="authPassword" type="password" autocomplete="current-password" required minlength="6" placeholder="Minimum 6 characters">
+          <button id="authPasswordToggle" type="button" class="password-toggle" aria-label="Show password" title="Show password">👁</button>
+        </div>
       </div>
 
       <button id="forgotPasswordButton" type="button" class="auth-link">Forgot password?</button>
 
       <div id="recoveryConfirmWrap" class="field" style="display:none">
         <label>CONFIRM NEW PASSWORD</label>
-        <input id="authPasswordConfirm" type="password" autocomplete="new-password" minlength="6" placeholder="Repeat new password">
+        <div class="password-wrap">
+          <input id="authPasswordConfirm" type="password" autocomplete="new-password" minlength="6" placeholder="Repeat new password">
+          <button id="authPasswordConfirmToggle" type="button" class="password-toggle" aria-label="Show password" title="Show password">👁</button>
+        </div>
       </div>
 
       <button id="authSubmit" type="submit" class="auth-submit">Login to HANZ</button>
@@ -1740,6 +1754,19 @@ function openAuth(mode="login"){
 function closeAuth(){
   $("authModal").classList.remove("show");
   $("authMessage").textContent = "";
+}
+
+function bindPasswordToggle(inputId,buttonId){
+  const input=$(inputId);
+  const button=$(buttonId);
+  if(!input || !button) return;
+  button.addEventListener("click",()=>{
+    const showing=input.type==="text";
+    input.type=showing ? "password" : "text";
+    button.textContent=showing ? "👁" : "🙈";
+    button.setAttribute("aria-label",showing ? "Show password" : "Hide password");
+    button.title=showing ? "Show password" : "Hide password";
+  });
 }
 
 function setAuthMode(mode){
@@ -3590,6 +3617,8 @@ window.addEventListener("DOMContentLoaded",async ()=>{
   $("closePositionModalButton").addEventListener("click",closePositionModal);
   $("loginTab").addEventListener("click",()=>setAuthMode("login"));
   $("signupTab").addEventListener("click",()=>setAuthMode("signup"));
+  bindPasswordToggle("authPassword","authPasswordToggle");
+  bindPasswordToggle("authPasswordConfirm","authPasswordConfirmToggle");
   $("forgotPasswordButton").addEventListener("click",async ()=>{
     const button=$("forgotPasswordButton");
     const email=$("authEmail").value.trim();
