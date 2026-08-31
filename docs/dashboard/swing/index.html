@@ -412,6 +412,12 @@ th{color:var(--muted)}
   background:linear-gradient(135deg,var(--green),var(--cyan));color:#04120d;font-size:10px;font-weight:950
 }
 .auth-message{margin-top:10px;font-size:9px;line-height:1.5}.auth-error{color:#ff8993}.auth-success{color:var(--green)}
+.auth-link{
+  display:block;margin:-3px 0 11px auto;padding:0;border:none;background:transparent;
+  color:var(--blue);font-size:9px;font-weight:800;cursor:pointer
+}
+.auth-link:hover{text-decoration:underline}
+.auth-link:disabled{opacity:.55;cursor:not-allowed}
 
 /* AUTO TRAILING TOGGLE */
 .toggle-row{
@@ -940,8 +946,15 @@ th{color:var(--muted)}
       </div>
 
       <div class="field">
-        <label>PASSWORD</label>
+        <label id="authPasswordLabel">PASSWORD</label>
         <input id="authPassword" type="password" autocomplete="current-password" required minlength="6" placeholder="Minimum 6 characters">
+      </div>
+
+      <button id="forgotPasswordButton" type="button" class="auth-link">Forgot password?</button>
+
+      <div id="recoveryConfirmWrap" class="field" style="display:none">
+        <label>CONFIRM NEW PASSWORD</label>
+        <input id="authPasswordConfirm" type="password" autocomplete="new-password" minlength="6" placeholder="Repeat new password">
       </div>
 
       <button id="authSubmit" type="submit" class="auth-submit">Login to HANZ</button>
@@ -1731,12 +1744,32 @@ function closeAuth(){
 
 function setAuthMode(mode){
   const loginMode = mode === "login";
+  const signupMode = mode === "signup";
+  const recoveryMode = mode === "recovery";
+
   $("loginTab").classList.toggle("active",loginMode);
-  $("signupTab").classList.toggle("active",!loginMode);
-  $("signupNameWrap").style.display = loginMode ? "none" : "block";
-  $("authSubmit").textContent = loginMode ? "Login to HANZ" : "Create HANZ Account";
+  $("signupTab").classList.toggle("active",signupMode);
+  $("authModal").querySelector(".auth-tabs").style.display = recoveryMode ? "none" : "grid";
+  $("signupNameWrap").style.display = signupMode ? "block" : "none";
+
+  $("authEmail").closest(".field").style.display = recoveryMode ? "none" : "block";
+  $("authPasswordLabel").textContent = recoveryMode ? "NEW PASSWORD" : "PASSWORD";
+  $("authPassword").autocomplete = recoveryMode ? "new-password" : "current-password";
+  $("authPassword").placeholder = recoveryMode ? "Minimum 6 characters" : "Minimum 6 characters";
+  $("recoveryConfirmWrap").style.display = recoveryMode ? "block" : "none";
+  $("forgotPasswordButton").style.display = loginMode ? "block" : "none";
+
+  $("authSubmit").textContent = recoveryMode
+    ? "Update Password"
+    : (loginMode ? "Login to HANZ" : "Create HANZ Account");
+
   $("authForm").dataset.mode = mode;
   $("authMessage").textContent = "";
+
+  if(recoveryMode){
+    $("authPassword").value = "";
+    $("authPasswordConfirm").value = "";
+  }
 }
 
 async function signUp(){
@@ -1763,6 +1796,41 @@ async function signUp(){
 
   $("authMessage").innerHTML =
     `<div class="auth-success">Account created. Check <strong>${safe(email)}</strong> and confirm your email.</div>`;
+}
+
+async function requestPasswordReset(){
+  const email = $("authEmail").value.trim();
+  if(!email) throw new Error("Enter your email first.");
+
+  const redirectTo = window.location.origin + "/dashboard/swing/";
+
+  const {error} = await supabase.auth.resetPasswordForEmail(email,{
+    redirectTo
+  });
+  if(error) throw error;
+
+  $("authMessage").innerHTML =
+    `<div class="auth-success">Password reset link sent to <strong>${safe(email)}</strong>. Check your inbox.</div>`;
+}
+
+async function updateRecoveredPassword(){
+  const password = $("authPassword").value;
+  const confirmPassword = $("authPasswordConfirm").value;
+
+  if(password.length < 6) throw new Error("Password must contain at least 6 characters.");
+  if(password !== confirmPassword) throw new Error("Passwords do not match.");
+
+  const {error} = await supabase.auth.updateUser({password});
+  if(error) throw error;
+
+  $("authMessage").innerHTML =
+    `<div class="auth-success">Password updated successfully. You can continue using HANZ.</div>`;
+
+  setTimeout(()=>{
+    closeAuth();
+    renderAuthState();
+    notify("Password updated.");
+  },900);
 }
 
 async function login(){
@@ -1833,6 +1901,12 @@ async function initAuth(){
     currentSession=session;
     currentUser=session?.user || null;
     renderAuthState();
+
+    if(_event==="PASSWORD_RECOVERY"){
+      openAuth("recovery");
+      $("authMessage").innerHTML =
+        `<div class="auth-success">Enter a new password for your HANZ account.</div>`;
+    }
 
     if(currentUser){
       setTimeout(async ()=>{
@@ -3516,6 +3590,18 @@ window.addEventListener("DOMContentLoaded",async ()=>{
   $("closePositionModalButton").addEventListener("click",closePositionModal);
   $("loginTab").addEventListener("click",()=>setAuthMode("login"));
   $("signupTab").addEventListener("click",()=>setAuthMode("signup"));
+  $("forgotPasswordButton").addEventListener("click",async ()=>{
+    const button=$("forgotPasswordButton");
+    button.disabled=true;
+    $("authMessage").textContent="";
+    try{
+      await requestPasswordReset();
+    }catch(error){
+      $("authMessage").innerHTML=`<div class="auth-error">${safe(error.message)}</div>`;
+    }finally{
+      button.disabled=false;
+    }
+  });
   $("positionAutoTrailing").addEventListener("change",updateTrailingFieldState);
 
   $("authForm").addEventListener("submit",async event=>{
@@ -3526,6 +3612,7 @@ window.addEventListener("DOMContentLoaded",async ()=>{
 
     try{
       if(event.currentTarget.dataset.mode==="signup") await signUp();
+      else if(event.currentTarget.dataset.mode==="recovery") await updateRecoveredPassword();
       else await login();
     }catch(error){
       $("authMessage").innerHTML=`<div class="auth-error">${safe(error.message)}</div>`;
