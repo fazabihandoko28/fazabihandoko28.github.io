@@ -688,5 +688,55 @@
     "source": "YAHOO_FINANCE_RESEARCH_ONLY",
     "recorded_at": "2026-08-27T23:01:47.147337+00:00",
     "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "BNGA",
+    "status": "WAIT",
+    "signal_timestamp": "2026-08-28T00:00:00+00:00",
+    "signal_close": 1695.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-08-31T19:34:26.322648+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "MAPA",
+    "status": "WAIT",
+    "signal_timestamp": "2026-08-28T00:00:00+00:00",
+    "signal_close": 725.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-08-31T19:34:26.322674+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "ARNA",
+    "status": "WAIT",
+    "signal_timestamp": "2026-08-28T00:00:00+00:00",
+    "signal_close": 490.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-08-31T19:34:26.322691+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "INDY",
+    "status": "WAIT",
+    "signal_timestamp": "2026-08-28T00:00:00+00:00",
+    "signal_close": 2830.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-08-31T19:34:26.322702+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "JPFA",
+    "status": "WAIT",
+    "signal_timestamp": "2026-08-28T00:00:00+00:00",
+    "signal_close": 2170.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-08-31T19:34:26.322712+00:00",
+    "outcome": "PENDING"
   }
 ]
