@@ -3272,23 +3272,62 @@ async function savePosition(event){
     payload.trailing_active=false;
   }
 
+  // Supabase schema-safe writer. Older HANZ databases may not yet have
+  // recently added optional portfolio columns. Instead of blocking a position
+  // save, retry without only the missing optional column and keep the user
+  // informed that the DB migration is still recommended.
+  const optionalSchemaColumns=new Set([
+    "initial_risk_per_share",
+    "initial_risk_amount",
+    "peak_price",
+    "trailing_atr_multiplier",
+    "trailing_activated_at",
+    "last_trailing_update_at",
+    "trailing_active"
+  ]);
+
+  const missingSchemaColumn=error=>{
+    const message=String(error?.message || "");
+    const match=message.match(/Could not find the ['"]([^'"]+)['"] column/i);
+    return match ? match[1] : null;
+  };
+
+  const writeWithSchemaCompatibility=async(mode,rowPayload)=>{
+    const working={...rowPayload};
+    const skipped=[];
+
+    for(let attempt=0; attempt<10; attempt++){
+      let query=supabase.from("hanz_swing_portfolio");
+      const result=(mode==="update")
+        ? await query.update(working).eq("id",editPositionId)
+        : await query.insert(working);
+
+      if(!result.error) return {skipped};
+
+      const missing=missingSchemaColumn(result.error);
+      if(missing && optionalSchemaColumns.has(missing) && Object.prototype.hasOwnProperty.call(working,missing)){
+        delete working[missing];
+        skipped.push(missing);
+        console.warn(`HANZ portfolio DB compatibility: skipped missing optional column ${missing}.`);
+        continue;
+      }
+      throw result.error;
+    }
+    throw new Error("Portfolio save could not resolve database schema compatibility.");
+  };
+
   try{
     if(editPositionId){
-      const {error}=await supabase
-        .from("hanz_swing_portfolio")
-        .update(payload)
-        .eq("id",editPositionId);
-      if(error) throw error;
-      notify(`${ticker} updated.`);
+      const {skipped}=await writeWithSchemaCompatibility("update",payload);
+      notify(skipped.length ? `${ticker} updated. DB migration recommended.` : `${ticker} updated.`);
     }else{
       payload.user_id=currentUser.id;
       payload.status="OPEN";
       payload.signal="MONITOR";
       payload.opened_at=new Date().toISOString();
 
-      const {error}=await supabase.from("hanz_swing_portfolio").insert(payload);
-      if(error) throw error;
-      notify(`${ticker} added to portfolio.`);
+      const {skipped}=await writeWithSchemaCompatibility("insert",payload);
+      notify(skipped.length ? `${ticker} added. DB migration recommended.` : `${ticker} added to portfolio.`);
     }
 
     closePositionModal();
