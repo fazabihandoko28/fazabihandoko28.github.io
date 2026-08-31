@@ -308,12 +308,14 @@ PUSH_DASHBOARD_URL = os.getenv(
     "https://fazabihandoko28.github.io/dashboard/swing/",
 )
 
-# Push remains intentionally quiet. TARGET_1/TARGET_2 are stored as
-# dashboard alerts but do not create push notifications.
+# Production portfolio push events.
+# Device delivery has been validated end-to-end via HANZ FID self-heal test.
 PUSH_ALERT_TYPES = {
-    "STOP_LOSS",
+    "TARGET_1_REACHED",
+    "TARGET_2_REACHED",
     "TRAILING_ACTIVATED",
     "PROTECT_PROFIT",
+    "STOP_LOSS",
     "CONFIRMED_SELL",
 }
 
@@ -2112,7 +2114,9 @@ def risk_levels(
 
 
 # ============================================================
-# V8 REAL-MONEY RISK / VALIDATION LAYER
+# V10.1 REAL-MONEY RISK / VALIDATION LAYER
+# Restores portfolio_risk_context() and closed_trade_performance_context()
+# accidentally omitted during V10.0 book-guided refactor.
 # ============================================================
 
 def _position_quantity(position):
@@ -2151,6 +2155,158 @@ def market_regime_context():
     except Exception as exc:
         return {"regime":"UNKNOWN","score":0,"size_multiplier":0.0,"reason":f"IHSG regime unavailable: {exc}","benchmark":MARKET_REGIME_TICKER,"structure_state":"UNKNOWN"}
 
+
+def closed_trade_performance_context():
+    """Use manually closed real positions to create a simple system kill switch."""
+    try:
+        rows = supabase_request(
+            "GET",
+            "hanz_swing_portfolio"
+            "?status=eq.CLOSED"
+            "&realized_pnl_pct=not.is.null"
+            "&select=ticker,realized_pnl_pct,closed_at"
+            "&order=closed_at.desc"
+            "&limit=20",
+        ) or []
+    except Exception as exc:
+        return {
+            "status": "UNKNOWN",
+            "trade_count": 0,
+            "reason": f"Closed-trade history unavailable: {exc}",
+        }
+
+    pnls = []
+    for row in rows:
+        value = safe_float(row.get("realized_pnl_pct"))
+        if value is not None:
+            pnls.append(value)
+
+    if not pnls:
+        return {
+            "status": "WARMUP",
+            "trade_count": 0,
+            "consecutive_losses": 0,
+            "win_rate_pct": None,
+            "avg_pnl_pct": None,
+            "reason": "No closed real-money trade history yet.",
+        }
+
+    consecutive_losses = 0
+    for pnl in pnls:
+        if pnl < 0:
+            consecutive_losses += 1
+        else:
+            break
+
+    sample = pnls[:max(1, KILL_SWITCH_LOOKBACK_TRADES)]
+    wins = sum(1 for x in sample if x > 0)
+    win_rate = wins / len(sample) * 100
+    avg_pnl = sum(sample) / len(sample)
+
+    status = "NORMAL"
+    reason = "Recent closed-trade performance is within guardrails."
+
+    if consecutive_losses >= KILL_SWITCH_CONSECUTIVE_LOSSES:
+        status = "LOCKED"
+        reason = (
+            f"{consecutive_losses} consecutive losing trades reached "
+            f"the kill-switch limit."
+        )
+    elif (
+        len(sample) >= KILL_SWITCH_LOOKBACK_TRADES
+        and win_rate < KILL_SWITCH_MIN_WIN_RATE_PCT
+        and avg_pnl < 0
+    ):
+        status = "LOCKED"
+        reason = (
+            f"Rolling {len(sample)}-trade performance is negative "
+            f"(win rate {win_rate:.1f}%, avg {avg_pnl:.2f}%)."
+        )
+    elif consecutive_losses >= max(2, KILL_SWITCH_CONSECUTIVE_LOSSES - 1):
+        status = "CAUTION"
+        reason = (
+            f"{consecutive_losses} consecutive losses; "
+            "position size should be reduced."
+        )
+
+    return {
+        "status": status,
+        "trade_count": len(pnls),
+        "consecutive_losses": consecutive_losses,
+        "win_rate_pct": round(win_rate, 2),
+        "avg_pnl_pct": round(avg_pnl, 3),
+        "reason": reason,
+    }
+
+def portfolio_risk_context():
+    positions = fetch_swing_portfolio()
+    total_risk_idr = 0.0
+    total_market_value_idr = 0.0
+
+    ticker_list = []
+    for position in positions:
+        ticker = clean_ticker(position.get("ticker"))
+        if ticker:
+            ticker_list.append(ticker)
+
+        qty = _position_quantity(position)
+        avg_buy = safe_float(position.get("avg_buy"))
+        stop = safe_float(position.get("stop_loss"))
+
+        if qty > 0 and avg_buy is not None:
+            total_market_value_idr += qty * avg_buy
+
+        if (
+            qty > 0
+            and avg_buy is not None
+            and stop is not None
+            and avg_buy > stop
+        ):
+            total_risk_idr += qty * (avg_buy - stop)
+
+    sectors = {}
+    if ticker_list:
+        try:
+            encoded = ",".join(
+                urllib.parse.quote(t, safe="")
+                for t in sorted(set(ticker_list))
+            )
+            rows = supabase_request(
+                "GET",
+                "hanz_swing_signal_monitor"
+                f"?ticker=in.({encoded})"
+                "&select=ticker,sector",
+            ) or []
+            sectors = {
+                clean_ticker(row.get("ticker")): row.get("sector")
+                for row in rows
+            }
+        except Exception:
+            sectors = {}
+
+    sector_market_value = {}
+    for position in positions:
+        ticker = clean_ticker(position.get("ticker"))
+        sector = sectors.get(ticker) or "UNKNOWN"
+        qty = _position_quantity(position)
+        avg_buy = safe_float(position.get("avg_buy"))
+        if qty > 0 and avg_buy is not None:
+            sector_market_value[sector] = (
+                sector_market_value.get(sector, 0.0)
+                + qty * avg_buy
+            )
+
+    portfolio_risk_pct = None
+    if ACCOUNT_CAPITAL_IDR > 0:
+        portfolio_risk_pct = total_risk_idr / ACCOUNT_CAPITAL_IDR * 100
+
+    return {
+        "open_positions": len(positions),
+        "total_risk_idr": round(total_risk_idr, 2),
+        "total_market_value_idr": round(total_market_value_idr, 2),
+        "portfolio_risk_pct": safe_float(portfolio_risk_pct),
+        "sector_market_value": sector_market_value,
+    }
 
 def build_real_money_context():
     return {
@@ -5607,7 +5763,7 @@ def run_cycle():
 
 def main():
     print(
-        "HANZ SWING / WEEKLY ENGINE START — V8.8 OFF-MARKET CANDIDATE REFRESH",
+        "HANZ SWING / WEEKLY ENGINE START — V10.1 BOOK-GUIDED + PORTFOLIO FIX",
         flush=True,
     )
 
