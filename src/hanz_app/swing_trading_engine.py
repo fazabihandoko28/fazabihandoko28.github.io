@@ -98,6 +98,32 @@ SETUP_READY_BREAKOUT_DISTANCE_PCT = float(
     os.getenv("HANZ_SWING_SETUP_READY_BREAKOUT_DISTANCE_PCT", "2.0")
 )
 
+# V10.4 EARLY CONFIRMED BUY research hypotheses.
+# These are explicit/testable parameters, not claims of validated IDX edge.
+EARLY_SUPPORT_ATR = float(
+    os.getenv("HANZ_EARLY_SUPPORT_ATR", "1.25")
+)
+EARLY_EMA20_MIN_SLOPE_5D_PCT = float(
+    os.getenv("HANZ_EARLY_EMA20_MIN_SLOPE_5D_PCT", "-0.50")
+)
+EARLY_MAX_RET3_PCT = float(
+    os.getenv("HANZ_EARLY_MAX_RET3_PCT", "5.0")
+)
+EARLY_MAX_RET5_PCT = float(
+    os.getenv("HANZ_EARLY_MAX_RET5_PCT", "8.0")
+)
+EARLY_MAX_DOWN_VOLUME_RATIO_5D = float(
+    os.getenv("HANZ_EARLY_MAX_DOWN_VOLUME_RATIO_5D", "1.25")
+)
+EARLY_MIN_CLOSE_LOCATION = float(
+    os.getenv("HANZ_EARLY_MIN_CLOSE_LOCATION", "0.60")
+)
+EARLY_WEEKLY_EMA_TOLERANCE = float(
+    os.getenv("HANZ_EARLY_WEEKLY_EMA_TOLERANCE", "0.97")
+)
+
+BUY_STATES = {"SWING_BUY", "EARLY_CONFIRMED_BUY"}
+
 # V8.5 Predictive Radar
 # Radar states are INTERNAL ONLY and must never be shown as user-facing BUY signals.
 RADAR_BASE_MIN_SCORE = int(os.getenv("HANZ_RADAR_BASE_MIN_SCORE", "4"))
@@ -119,6 +145,7 @@ CHART_STATES = {
     "EARLY_WATCH",
     "PRE_ALERT",
     "SETUP_READY",
+    "EARLY_CONFIRMED_BUY",
     "SWING_BUY",
 }
 
@@ -177,6 +204,7 @@ INTRADAY_FEED_HEALTH_FRESH_RATIO = float(
 DISCOUNT_ANALYST_STATES = {
     "SWING_CONFIRMING",
     "SETUP_READY",
+    "EARLY_CONFIRMED_BUY",
     "SWING_BUY",
 }
 DISCOUNT_ANALYST_DELAY_SECONDS = float(
@@ -190,6 +218,7 @@ DISCOUNT_ANALYST_DELAY_SECONDS = float(
 FUNDAMENTAL_STATES = {
     "SWING_CONFIRMING",
     "SETUP_READY",
+    "EARLY_CONFIRMED_BUY",
     "SWING_BUY",
 }
 FUNDAMENTAL_FETCH_DELAY_SECONDS = float(
@@ -958,6 +987,15 @@ def daily_metrics(df):
         ].min()
     )
 
+    # Minor structure for early-entry confirmation.
+    # Excludes the current bar to avoid look-ahead.
+    prior_high3 = safe_float(
+        df["High"].iloc[max(0, last - 3):last].max()
+    )
+    prior_low10 = safe_float(
+        df["Low"].iloc[max(0, last - 10):last].min()
+    )
+
     price = safe_float(close.iloc[-1])
     vol = safe_float(volume.iloc[-1])
     avg_vol = safe_float(avg_vol20.iloc[-1])
@@ -1122,6 +1160,8 @@ def daily_metrics(df):
         "extreme_move_days10": extreme_move_days10,
         "prior_high20": prior_high20,
         "prior_low20": prior_low20,
+        "prior_high3": prior_high3,
+        "prior_low10": prior_low10,
         "ret1_pct": safe_float(ret1),
         "ret3_pct": safe_float(ret3),
         "ret5_pct": safe_float(ret5),
@@ -1655,29 +1695,32 @@ def apply_early_state_and_reconfirmation(
     ticker, daily, weekly, base_result, prior_monitor
 ):
     """
-    EARLY_WATCH -> PRE_ALERT -> SETUP_READY -> SWING_BUY.
+    Progressive confirmation:
+      EARLY_WATCH -> PRE_ALERT -> SETUP_READY
+      -> EARLY_CONFIRMED_BUY (early reversal family)
+      -> or SWING_BUY (trend continuation family)
 
-    SWING_BUY is the only actionable BUY and requires the hard BUY gate to
-    persist into a NEW completed daily bar. Re-running the same candle can
-    never reconfirm a BUY.
+    A BUY still requires a NEW completed daily bar after the setup was armed.
+    The difference in V10.4 is that EARLY_REVERSAL does not wait for a full
+    EMA20>EMA50 + weekly EMA10>EMA20 trend before it can confirm.
     """
     early = early_signal_score(daily, weekly)
     early_score = early["score"]
 
-    prior_state = str((prior_monitor or {}).get("state") or "")
+    prior_state = str((prior_monitor or {}).get("state") or "").upper()
     prior_bar = str((prior_monitor or {}).get("daily_bar_at") or "")
     current_bar = str(daily.get("bar_at") or "")
     new_completed_bar = bool(
         current_bar and prior_bar and current_bar != prior_bar
     )
 
-    # Final BUY trigger comes from the explicit doctrine hierarchy, not from
-    # score alone. Score remains descriptive/ranking evidence.
     raw_buy = bool(base_result.get("hard_buy_gate"))
+    early_raw_buy = bool(base_result.get("early_buy_gate"))
 
     momentum_guard = momentum_damage_guard(daily, prior_monitor)
     if momentum_guard.get("blocked"):
         raw_buy = False
+        early_raw_buy = False
 
     distance = safe_float(daily.get("breakout_distance_pct"))
     state = "NO_SETUP"
@@ -1692,7 +1735,16 @@ def apply_early_state_and_reconfirmation(
     ):
         state = "PRE_ALERT"
 
+    # Early-reversal setups can become READY based on location/structure,
+    # even when still farther from the 20-day breakout level.
     if (
+        base_result.get("setup_family") == "EARLY_REVERSAL"
+        and base_result.get("early_location_ok")
+        and base_result.get("early_structure_ok")
+        and base_result.get("score", 0) >= max(5, MIN_CONFIRM_SCORE - 1)
+    ):
+        state = "SETUP_READY"
+    elif (
         early_score >= SETUP_READY_SCORE
         and distance is not None
         and distance <= SETUP_READY_BREAKOUT_DISTANCE_PCT
@@ -1701,20 +1753,40 @@ def apply_early_state_and_reconfirmation(
         state = "SETUP_READY"
 
     if raw_buy:
-        previously_armed = prior_state in {
-            "RADAR_ARMED", "SETUP_READY", "SWING_CONFIRMING", "SWING_BUY"
-        }
-
-        if prior_state == "SWING_BUY":
-            state = "SWING_BUY"
-        elif previously_armed and new_completed_bar:
-            state = "SWING_BUY"
+        if early_raw_buy:
+            previously_armed = prior_state in {
+                "EARLY_WATCH",
+                "PRE_ALERT",
+                "RADAR_PRE_ALERT",
+                "RADAR_ARMED",
+                "SETUP_READY",
+                "SWING_CONFIRMING",
+                "EARLY_CONFIRMED_BUY",
+            }
+            if prior_state == "EARLY_CONFIRMED_BUY":
+                state = "EARLY_CONFIRMED_BUY"
+            elif previously_armed and new_completed_bar:
+                state = "EARLY_CONFIRMED_BUY"
+            else:
+                state = "SETUP_READY"
         else:
-            state = "SETUP_READY"
+            previously_armed = prior_state in {
+                "RADAR_ARMED",
+                "SETUP_READY",
+                "SWING_CONFIRMING",
+                "SWING_BUY",
+                "EARLY_CONFIRMED_BUY",
+            }
+            if prior_state == "SWING_BUY":
+                state = "SWING_BUY"
+            elif previously_armed and new_completed_bar:
+                state = "SWING_BUY"
+            else:
+                state = "SETUP_READY"
 
     if momentum_guard.get("blocked"):
         state = "MOMENTUM_BROKEN"
-    elif momentum_guard.get("caution") and state == "SWING_BUY":
+    elif momentum_guard.get("caution") and state in BUY_STATES:
         state = "SETUP_READY"
 
     evidence = list(base_result.get("evidence") or [])
@@ -1734,13 +1806,17 @@ def apply_early_state_and_reconfirmation(
             for reason in momentum_guard.get("reasons", [])
         )
 
-    if raw_buy and state != "SWING_BUY":
+    if raw_buy and state not in BUY_STATES:
         evidence.append(
-            "RECONFIRM: hard BUY gate reached; waiting next completed daily bar"
+            "RECONFIRM: BUY hierarchy passed; waiting next completed daily bar"
+        )
+    elif state == "EARLY_CONFIRMED_BUY":
+        evidence.append(
+            "RECONFIRM: early bullish transition persisted on a new completed daily bar before full trend expansion"
         )
     elif state == "SWING_BUY":
         evidence.append(
-            "RECONFIRM: hard BUY gate persisted on a new completed daily bar"
+            "RECONFIRM: trend-continuation BUY gate persisted on a new completed daily bar"
         )
 
     out = dict(base_result)
@@ -1748,93 +1824,372 @@ def apply_early_state_and_reconfirmation(
     out["early_score"] = early_score
     out["early_evidence"] = early["evidence"]
     out["raw_buy_gate"] = raw_buy
-    out["reconfirmed"] = state == "SWING_BUY"
+    out["reconfirmed"] = state in BUY_STATES
     out["momentum_guard"] = momentum_guard
     out["final_action"] = (
         "AVOID"
         if state == "MOMENTUM_BROKEN"
-        else ("BUY" if state == "SWING_BUY" else "WAIT")
+        else ("BUY" if state in BUY_STATES else "WAIT")
     )
     out["evidence"] = evidence
     return out
 
 
 def swing_score(daily, weekly):
-    """Book-guided hierarchy with two explicit setup families.
+    """Book-guided hierarchy with three explicit setup families.
 
-    MARKET/TREND -> STRUCTURE -> LOCATION -> SETUP -> PRICE TRIGGER -> VOLUME -> RISK.
-    Indicators/candles are contextual; score cannot override a failed hierarchy layer.
+    1) EARLY_REVERSAL:
+       accumulation/base -> location -> structure shift -> price/candle trigger
+       -> volume/selling-pressure check -> risk.
+       Full EMA bullish alignment is NOT required.
+
+    2) BREAKOUT:
+       established bullish context -> fresh resistance break -> volume.
+
+    3) PULLBACK_RETEST:
+       established bullish context -> support/retest location -> reversal trigger.
+
+    Candles/indicators are contextual. No candle alone can create a BUY.
+    V10.4 early thresholds are research hypotheses and must be validated on IDX.
     """
-    evidence=[]; score=0
-    price=safe_float(daily.get("price")); ema20=safe_float(daily.get("ema20")); ema50=safe_float(daily.get("ema50"))
-    weekly_ema10=safe_float(weekly.get("ema10")); weekly_ema20=safe_float(weekly.get("ema20"))
-    structure=str(daily.get("structure_state") or "UNKNOWN").upper()
-    last_high=safe_float(daily.get("last_swing_high")); last_low=safe_float(daily.get("last_swing_low"))
-    prior_high20=safe_float(daily.get("prior_high20")); atr14=safe_float(daily.get("atr14")); rvol=safe_float(daily.get("rvol20"))
-    candle=str(daily.get("candle_context") or "NEUTRAL").upper()
-    ret1=safe_float(daily.get("ret1_pct"))
+    evidence = []
+    score = 0
 
-    daily_trend=ema20 is not None and ema50 is not None and ema20>ema50
-    weekly_trend=weekly_ema10 is not None and weekly_ema20 is not None and weekly_ema10>weekly_ema20
-    trend_context=daily_trend and weekly_trend
-    structure_ok=structure in {"BULLISH_HH_HL","MIXED"}
+    price = safe_float(daily.get("price"))
+    ema20 = safe_float(daily.get("ema20"))
+    ema50 = safe_float(daily.get("ema50"))
+    ema20_slope = safe_float(daily.get("ema20_slope_5d_pct"))
+    weekly_ema10 = safe_float(weekly.get("ema10"))
+    weekly_ema20 = safe_float(weekly.get("ema20"))
+    weekly_rsi = safe_float(weekly.get("rsi14"))
 
-    # Family A: fresh breakout / continuation.
-    breakout_level=max([x for x in (prior_high20,last_high) if x is not None], default=None)
-    breakout=price is not None and breakout_level is not None and price>breakout_level
-    near_breakout=False
-    if price is not None and breakout_level not in (None,0):
-        dist=(breakout_level-price)/breakout_level*100
-        near_breakout=0<=dist<=SETUP_READY_BREAKOUT_DISTANCE_PCT
-    breakout_volume_ok=rvol is not None and rvol>=1.0
-    breakout_trigger=bool(breakout and ret1 is not None and ret1>0)
+    structure = str(daily.get("structure_state") or "UNKNOWN").upper()
+    last_high = safe_float(daily.get("last_swing_high"))
+    last_low = safe_float(daily.get("last_swing_low"))
+    prev_low = safe_float(daily.get("prev_swing_low"))
 
-    # Family B: pullback/retest within an existing uptrend.
-    # Location is near EMA20 or a prior swing-high support zone, scaled by ATR.
-    near_ema20=False; near_retest=False
-    if price is not None and atr14 not in (None,0):
-        if ema20 is not None: near_ema20=abs(price-ema20)<=0.75*atr14
-        if last_high is not None: near_retest=abs(price-last_high)<=0.75*atr14 or (price>=last_high and price-last_high<=0.75*atr14)
-    pullback_location=trend_context and structure_ok and (near_ema20 or near_retest)
-    bullish_candle=candle in {"BULLISH_ENGULFING","HAMMER_REJECTION","STRONG_BULL_CLOSE","BULLISH_CANDLE"}
-    pullback_trigger=bool(pullback_location and bullish_candle and ret1 is not None and ret1>=0)
-    # Pullback volume behavior: contraction is acceptable; expansion on the reversal is welcome.
-    pullback_volume_ok=rvol is None or rvol<=1.20 or (pullback_trigger and rvol>=1.0)
+    prior_high20 = safe_float(daily.get("prior_high20"))
+    prior_low20 = safe_float(daily.get("prior_low20"))
+    prior_high3 = safe_float(daily.get("prior_high3"))
+    prior_low10 = safe_float(daily.get("prior_low10"))
+    atr14 = safe_float(daily.get("atr14"))
+    rvol = safe_float(daily.get("rvol20"))
+    down_vol_ratio = safe_float(daily.get("down_volume_ratio_5d"))
+    close_location = safe_float(daily.get("close_location"))
+    candle = str(daily.get("candle_context") or "NEUTRAL").upper()
+    ret1 = safe_float(daily.get("ret1_pct"))
+    ret3 = safe_float(daily.get("ret3_pct"))
+    ret5 = safe_float(daily.get("ret5_pct"))
 
-    setup_family="NONE"; hard_buy_gate=False; location_ok=False; trigger_confirmed=False; volume_confirm=False
-    if trend_context and structure_ok and breakout_trigger and breakout_volume_ok:
-        setup_family="BREAKOUT"; hard_buy_gate=True; location_ok=True; trigger_confirmed=True; volume_confirm=True
+    bullish_candle = candle in {
+        "BULLISH_ENGULFING",
+        "HAMMER_REJECTION",
+        "STRONG_BULL_CLOSE",
+        "BULLISH_CANDLE",
+    }
+
+    daily_trend = (
+        ema20 is not None
+        and ema50 is not None
+        and ema20 > ema50
+    )
+    weekly_trend = (
+        weekly_ema10 is not None
+        and weekly_ema20 is not None
+        and weekly_ema10 > weekly_ema20
+    )
+    trend_context = daily_trend and weekly_trend
+    structure_ok = structure in {"BULLISH_HH_HL", "MIXED"}
+
+    # ------------------------------------------------------------
+    # Family 0: EARLY REVERSAL / ACCUMULATION TRANSITION
+    # ------------------------------------------------------------
+    # Goal: confirm a bullish transition BEFORE full trend expansion,
+    # without guessing a bottom.
+    support_candidates = [
+        x for x in (last_low, prior_low10, prior_low20, ema20)
+        if x is not None and price is not None and x <= price
+    ]
+    support_distance_atr = None
+    if support_candidates and atr14 not in (None, 0) and price is not None:
+        support_distance_atr = min(
+            abs(price - s) / atr14 for s in support_candidates
+        )
+    near_support = (
+        support_distance_atr is not None
+        and support_distance_atr <= EARLY_SUPPORT_ATR
+    )
+
+    higher_low = (
+        last_low is not None
+        and prev_low is not None
+        and last_low > prev_low
+    )
+    mixed_or_improving_structure = (
+        structure == "MIXED"
+        or higher_low
+    )
+
+    # Minor CHoCH proxy: close through the previous 3-session high,
+    # which is deliberately earlier than the 20-day breakout gate.
+    minor_structure_break = (
+        price is not None
+        and prior_high3 is not None
+        and price > prior_high3
+        and ret1 is not None
+        and ret1 >= 0
+    )
+
+    trigger_quality = (
+        bullish_candle
+        and (minor_structure_break or higher_low)
+        and (
+            close_location is None
+            or close_location >= EARLY_MIN_CLOSE_LOCATION
+        )
+    )
+
+    selling_pressure_easing = (
+        down_vol_ratio is None
+        or down_vol_ratio <= EARLY_MAX_DOWN_VOLUME_RATIO_5D
+    )
+
+    ema_flattening = (
+        ema20_slope is None
+        or ema20_slope >= EARLY_EMA20_MIN_SLOPE_5D_PCT
+    )
+
+    weekly_not_broken = (
+        weekly_ema10 is None
+        or weekly_ema20 is None
+        or weekly_ema10 >= weekly_ema20 * EARLY_WEEKLY_EMA_TOLERANCE
+        or (weekly_rsi is not None and weekly_rsi >= 45)
+    )
+
+    not_extended = (
+        (ret3 is None or ret3 <= EARLY_MAX_RET3_PCT)
+        and (ret5 is None or ret5 <= EARLY_MAX_RET5_PCT)
+        and (
+            prior_high20 is None
+            or price is None
+            or price <= prior_high20
+        )
+    )
+
+    early_location_ok = near_support and not_extended
+    early_structure_ok = mixed_or_improving_structure
+    early_volume_ok = selling_pressure_easing
+    early_buy_gate = all([
+        early_location_ok,
+        early_structure_ok,
+        trigger_quality,
+        early_volume_ok,
+        ema_flattening,
+        weekly_not_broken,
+    ])
+
+    # ------------------------------------------------------------
+    # Family A: fresh breakout / continuation
+    # ------------------------------------------------------------
+    breakout_level = max(
+        [x for x in (prior_high20, last_high) if x is not None],
+        default=None,
+    )
+    breakout = (
+        price is not None
+        and breakout_level is not None
+        and price > breakout_level
+    )
+    near_breakout = False
+    if price is not None and breakout_level not in (None, 0):
+        dist = (breakout_level - price) / breakout_level * 100
+        near_breakout = (
+            0 <= dist <= SETUP_READY_BREAKOUT_DISTANCE_PCT
+        )
+
+    breakout_volume_ok = rvol is not None and rvol >= 1.0
+    breakout_trigger = bool(
+        breakout
+        and ret1 is not None
+        and ret1 > 0
+    )
+
+    # ------------------------------------------------------------
+    # Family B: pullback/retest inside an established uptrend
+    # ------------------------------------------------------------
+    near_ema20 = False
+    near_retest = False
+    if price is not None and atr14 not in (None, 0):
+        if ema20 is not None:
+            near_ema20 = abs(price - ema20) <= 0.75 * atr14
+        if last_high is not None:
+            near_retest = (
+                abs(price - last_high) <= 0.75 * atr14
+                or (
+                    price >= last_high
+                    and price - last_high <= 0.75 * atr14
+                )
+            )
+
+    pullback_location = (
+        trend_context
+        and structure_ok
+        and (near_ema20 or near_retest)
+    )
+    pullback_trigger = bool(
+        pullback_location
+        and bullish_candle
+        and ret1 is not None
+        and ret1 >= 0
+    )
+    pullback_volume_ok = (
+        rvol is None
+        or rvol <= 1.20
+        or (pullback_trigger and rvol >= 1.0)
+    )
+
+    setup_family = "NONE"
+    hard_buy_gate = False
+    location_ok = False
+    trigger_confirmed = False
+    volume_confirm = False
+
+    # EARLY_REVERSAL is intentionally evaluated first because HANZ should
+    # prefer a valid asymmetric entry before the stock becomes extended.
+    if early_buy_gate:
+        setup_family = "EARLY_REVERSAL"
+        hard_buy_gate = True
+        location_ok = True
+        trigger_confirmed = True
+        volume_confirm = True
+    elif trend_context and structure_ok and breakout_trigger and breakout_volume_ok:
+        setup_family = "BREAKOUT"
+        hard_buy_gate = True
+        location_ok = True
+        trigger_confirmed = True
+        volume_confirm = True
     elif trend_context and structure_ok and pullback_trigger and pullback_volume_ok:
-        setup_family="PULLBACK_RETEST"; hard_buy_gate=True; location_ok=True; trigger_confirmed=True; volume_confirm=True
+        setup_family = "PULLBACK_RETEST"
+        hard_buy_gate = True
+        location_ok = True
+        trigger_confirmed = True
+        volume_confirm = True
+    elif early_location_ok and early_structure_ok:
+        setup_family = "EARLY_REVERSAL"
+        location_ok = True
     elif trend_context and structure_ok and (near_breakout or pullback_location):
-        setup_family="BREAKOUT" if near_breakout else "PULLBACK_RETEST"; location_ok=True
+        setup_family = "BREAKOUT" if near_breakout else "PULLBACK_RETEST"
+        location_ok = True
 
-    if weekly_trend: score+=2; evidence.append("weekly trend bullish")
-    if daily_trend: score+=2; evidence.append("daily trend bullish")
-    if structure=="BULLISH_HH_HL": score+=2; evidence.append("confirmed swing structure HH/HL")
-    elif structure=="MIXED": score+=1; evidence.append("mixed swing structure; no LH/LL veto")
-    elif structure=="BEARISH_LH_LL": evidence.append("confirmed swing structure LH/LL veto")
-    if setup_family=="BREAKOUT":
+    # Diagnostic score: hierarchy still controls permission.
+    if weekly_trend:
+        score += 2
+        evidence.append("weekly trend bullish")
+    elif weekly_not_broken:
+        score += 1
+        evidence.append("weekly context not broken; full uptrend not required for early reversal")
+
+    if daily_trend:
+        score += 2
+        evidence.append("daily trend bullish")
+    elif ema_flattening:
+        score += 1
+        evidence.append("EMA20 flattening / downside momentum slowing")
+
+    if structure == "BULLISH_HH_HL":
+        score += 2
+        evidence.append("confirmed swing structure HH/HL")
+    elif structure == "MIXED":
+        score += 1
+        evidence.append("mixed structure: transition zone")
+    elif structure == "BEARISH_LH_LL":
+        evidence.append("confirmed LH/LL structure; early BUY requires evidence of improvement")
+
+    if setup_family == "EARLY_REVERSAL":
+        evidence.append("setup family EARLY_REVERSAL / accumulation transition")
+        if near_support:
+            score += 1
+            evidence.append(
+                f"early location near support ({support_distance_atr:.2f} ATR)"
+            )
+        if higher_low:
+            score += 1
+            evidence.append("structure shift: higher low detected")
+        if minor_structure_break:
+            score += 2
+            evidence.append("minor CHoCH proxy: close above prior 3-session high")
+        if bullish_candle:
+            score += 1
+            evidence.append(f"contextual bullish trigger: {candle}")
+        if selling_pressure_easing:
+            score += 1
+            evidence.append("selling pressure/volume not expanding")
+        if not_extended:
+            evidence.append("early entry condition: price expansion not yet extended")
+
+    elif setup_family == "BREAKOUT":
         evidence.append("setup family BREAKOUT")
-        if breakout_trigger: score+=2; evidence.append("price trigger: closes through resistance/swing high")
-        elif near_breakout: score+=1; evidence.append("location: near resistance trigger")
-        if breakout_volume_ok: score+=1; evidence.append(f"breakout volume confirms ({rvol:.2f}x)")
-    elif setup_family=="PULLBACK_RETEST":
+        if breakout_trigger:
+            score += 2
+            evidence.append("price trigger: closes through resistance/swing high")
+        elif near_breakout:
+            score += 1
+            evidence.append("location: near resistance trigger")
+        if breakout_volume_ok:
+            score += 1
+            evidence.append(f"breakout volume confirms ({rvol:.2f}x)")
+
+    elif setup_family == "PULLBACK_RETEST":
         evidence.append("setup family PULLBACK_RETEST")
-        if near_ema20: evidence.append("location: pullback near EMA20 dynamic support")
-        if near_retest: evidence.append("location: retest near prior swing-high support")
-        if pullback_trigger: score+=2; evidence.append(f"bullish price/candle trigger: {candle}")
-        if pullback_volume_ok: score+=1; evidence.append("pullback volume behavior acceptable")
-    rsi_d=safe_float(daily.get("rsi14"))
-    if rsi_d is not None: evidence.append(f"context RSI14 {rsi_d:.1f}")
+        if near_ema20:
+            evidence.append("location: pullback near EMA20 dynamic support")
+        if near_retest:
+            evidence.append("location: retest near prior swing-high support")
+        if pullback_trigger:
+            score += 2
+            evidence.append(f"bullish price/candle trigger: {candle}")
+        if pullback_volume_ok:
+            score += 1
+            evidence.append("pullback volume behavior acceptable")
+
+    rsi_d = safe_float(daily.get("rsi14"))
+    if rsi_d is not None:
+        evidence.append(f"context RSI14 {rsi_d:.1f}")
     evidence.append(f"candle context {candle}")
 
-    state="NO_SETUP"
-    if hard_buy_gate: state="SWING_BUY"
-    elif trend_context and structure_ok and location_ok: state="SWING_CONFIRMING"
-    elif trend_context and structure_ok: state="SWING_WATCH"
+    state = "NO_SETUP"
+    if hard_buy_gate:
+        # Final reconfirmation state is assigned by
+        # apply_early_state_and_reconfirmation().
+        state = "SWING_BUY"
+    elif setup_family == "EARLY_REVERSAL" and location_ok:
+        state = "SWING_CONFIRMING"
+    elif trend_context and structure_ok and location_ok:
+        state = "SWING_CONFIRMING"
+    elif trend_context and structure_ok:
+        state = "SWING_WATCH"
 
-    return {"score":min(score,10),"state":state,"daily_trend":"BULLISH" if daily_trend else "NOT_BULLISH","weekly_trend":"BULLISH" if weekly_trend else "NOT_BULLISH","structure_state":structure,"setup_family":setup_family,"breakout":breakout,"near_breakout":near_breakout,"pullback_location":pullback_location,"trigger_confirmed":trigger_confirmed,"volume_confirm":volume_confirm,"hard_buy_gate":hard_buy_gate,"evidence":evidence}
+    return {
+        "score": min(score, 10),
+        "state": state,
+        "daily_trend": "BULLISH" if daily_trend else "NOT_BULLISH",
+        "weekly_trend": "BULLISH" if weekly_trend else "NOT_BULLISH",
+        "structure_state": structure,
+        "setup_family": setup_family,
+        "breakout": breakout,
+        "near_breakout": near_breakout,
+        "pullback_location": pullback_location,
+        "early_location_ok": early_location_ok,
+        "early_structure_ok": early_structure_ok,
+        "early_buy_gate": early_buy_gate,
+        "minor_structure_break": minor_structure_break,
+        "higher_low": higher_low,
+        "support_distance_atr": safe_float(support_distance_atr),
+        "trigger_confirmed": trigger_confirmed,
+        "volume_confirm": volume_confirm,
+        "hard_buy_gate": hard_buy_gate,
+        "evidence": evidence,
+    }
 
 
 def risk_levels(
@@ -1920,6 +2275,12 @@ def risk_levels(
         entry_price = max(ema20, min(price, entry_price))
         entry_low = min(entry_low, entry_price - 0.20 * atr14)
         entry_high = max(entry_high, entry_price + 0.30 * atr14)
+    elif setup_family == "EARLY_REVERSAL":
+        # Early confirmation should keep the proposed entry near the base.
+        # Never move the entry upward toward a later breakout.
+        entry_price = price
+        entry_low = price - (0.35 * atr14)
+        entry_high = price + (0.15 * atr14)
 
     # Detect an overextended breakout so HANZ can say "wait pullback"
     # instead of encouraging a chase above the ideal swing zone.
@@ -2642,7 +3003,7 @@ def real_money_validation(
     risk_budget_idr = None
 
     if (
-        result.get("state") == "SWING_BUY"
+        result.get("state") in BUY_STATES
         and ACCOUNT_CAPITAL_IDR > 0
         and risk_per_share not in (None, 0)
         and entry not in (None, 0)
@@ -2690,7 +3051,7 @@ def real_money_validation(
             suggested_position_idr = suggested_shares * entry
 
     actionable = (
-        result.get("state") == "SWING_BUY"
+        result.get("state") in BUY_STATES
         and entry_status != "WAIT_PULLBACK"
         and strategy_validation.get("passed")
         and (
@@ -2712,6 +3073,12 @@ def real_money_validation(
         "trigger_confirmed": result.get("trigger_confirmed"),
         "volume_confirm": result.get("volume_confirm"),
         "pullback_location": result.get("pullback_location"),
+        "early_location_ok": result.get("early_location_ok"),
+        "early_structure_ok": result.get("early_structure_ok"),
+        "early_buy_gate": result.get("early_buy_gate"),
+        "minor_structure_break": result.get("minor_structure_break"),
+        "higher_low": result.get("higher_low"),
+        "support_distance_atr": result.get("support_distance_atr"),
         "candle_context": daily.get("candle_context"),
         "daily_rvol": daily.get("rvol20"),
         "blockers": blockers,
@@ -4470,7 +4837,7 @@ def discount_intelligence_v2(
 
         if (
             discount_score >= 75
-            and result.get("state") == "SWING_BUY"
+            and result.get("state") in BUY_STATES
             and analyst_upside_pct is not None
             and analyst_upside_pct > 0
         ):
@@ -5092,7 +5459,12 @@ def insert_swing_signal(
     result,
     levels,
 ):
-    # Only log actionable SWING_BUY transition.
+    # Log only actionable confirmed BUY transitions.
+    signal_type = (
+        "EARLY_CONFIRMED_BUY"
+        if result.get("state") == "EARLY_CONFIRMED_BUY"
+        else "SWING_BUY"
+    )
     ticker_encoded = urllib.parse.quote(
         clean_ticker(ticker), safe=""
     )
@@ -5101,7 +5473,7 @@ def insert_swing_signal(
         "GET",
         "hanz_swing_signals"
         f"?ticker=eq.{ticker_encoded}"
-        "&signal_type=eq.SWING_BUY"
+        f"&signal_type=eq.{signal_type}"
         "&select=id,created_at"
         "&order=created_at.desc"
         "&limit=1",
@@ -5118,7 +5490,7 @@ def insert_swing_signal(
 
     payload = {
         "ticker": clean_ticker(ticker),
-        "signal_type": "SWING_BUY",
+        "signal_type": signal_type,
         "price": daily["price"],
         "entry_price": levels.get("entry_price"),
         "entry_low": levels.get("entry_low"),
@@ -5397,7 +5769,7 @@ def scan_symbol(ticker, maintenance_mode=False):
     #   because maintenance_mode blocks execution side effects below.
     prior_state = str((prior_monitor or {}).get("state") or "").upper()
     maintenance_write = True
-    if maintenance_mode and result.get("state") == "SWING_BUY" and prior_state != "SWING_BUY":
+    if maintenance_mode and result.get("state") in BUY_STATES and prior_state not in BUY_STATES:
         result = dict(result)
         result["state"] = "SETUP_READY"
         result["reconfirmed"] = False
@@ -5440,7 +5812,7 @@ def scan_symbol(ticker, maintenance_mode=False):
 
     if (
         not maintenance_mode
-        and result["state"] == "SWING_BUY"
+        and result["state"] in BUY_STATES
         and risk_validation.get("actionable")
     ):
         insert_swing_signal(
@@ -5632,7 +6004,7 @@ def run_cycle():
         for ticker in universe:
             try:
                 state = scan_symbol(ticker, maintenance_mode=True)
-                if state == "SWING_BUY":
+                if state in BUY_STATES:
                     maintenance_counts["SWING_BUY_EXISTING"] += 1
                 elif state in maintenance_counts:
                     maintenance_counts[state] += 1
@@ -5779,7 +6151,7 @@ def run_cycle():
 
 def main():
     print(
-        "HANZ SWING / WEEKLY ENGINE START — V10.1 BOOK-GUIDED + PORTFOLIO FIX",
+        "HANZ SWING / WEEKLY ENGINE START — V10.4 EARLY-CONFIRMED BUY + PORTFOLIO PUSH",
         flush=True,
     )
 
