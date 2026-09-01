@@ -738,5 +738,55 @@
     "source": "YAHOO_FINANCE_RESEARCH_ONLY",
     "recorded_at": "2026-08-31T19:34:26.322712+00:00",
     "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "CMRY",
+    "status": "READY",
+    "signal_timestamp": "2026-08-31T00:00:00+00:00",
+    "signal_close": 4830.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-09-01T17:23:16.704425+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "BBNI",
+    "status": "READY",
+    "signal_timestamp": "2026-08-31T00:00:00+00:00",
+    "signal_close": 3860.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-09-01T17:23:16.704454+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "INDF",
+    "status": "READY",
+    "signal_timestamp": "2026-08-31T00:00:00+00:00",
+    "signal_close": 7500.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-09-01T17:23:16.704466+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "ITMG",
+    "status": "READY",
+    "signal_timestamp": "2026-08-31T00:00:00+00:00",
+    "signal_close": 26050.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-09-01T17:23:16.704477+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "ADRO",
+    "status": "READY",
+    "signal_timestamp": "2026-08-31T00:00:00+00:00",
+    "signal_close": 2840.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-09-01T17:23:16.704485+00:00",
+    "outcome": "PENDING"
   }
 ]
