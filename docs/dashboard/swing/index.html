@@ -1959,7 +1959,7 @@ async function initAuth(){
 }
 
 /* SHARED HANZ SIGNALS */
-const HANZ_SIGNAL_STATES=["SWING_BUY","SWING_CONFIRMING","SWING_WATCH","RADAR_ARMED","RADAR_PRE_ALERT","RADAR_WATCH","SETUP_READY","PRE_ALERT","EARLY_WATCH","MOMENTUM_BROKEN"];
+const HANZ_SIGNAL_STATES=["EARLY_CONFIRMED_BUY","SWING_BUY","SWING_CONFIRMING","SWING_WATCH","RADAR_ARMED","RADAR_PRE_ALERT","RADAR_WATCH","SETUP_READY","PRE_ALERT","EARLY_WATCH","MOMENTUM_BROKEN"];
 
 function radarProgress(state){
   return {
@@ -1969,6 +1969,7 @@ function radarProgress(state){
     "RADAR_PRE_ALERT":55,
     "SETUP_READY":70,
     "RADAR_ARMED":80,
+    "EARLY_CONFIRMED_BUY":95,
     "SWING_BUY":100,
     "MOMENTUM_BROKEN":0
   }[String(state || "").toUpperCase()] ?? 0;
@@ -1982,7 +1983,8 @@ function radarStageLabel(state){
     "RADAR_PRE_ALERT":"Predictive pre-alert",
     "SETUP_READY":"Setup ready — waiting reconfirmation",
     "RADAR_ARMED":"Radar armed — waiting completed-bar reconfirmation",
-    "SWING_BUY":"Technical reconfirmation complete",
+    "EARLY_CONFIRMED_BUY":"Early bullish transition confirmed before full expansion",
+    "SWING_BUY":"Trend-continuation reconfirmation complete",
     "MOMENTUM_BROKEN":"Setup invalidated"
   }[String(state || "").toUpperCase()] || String(state || "UNKNOWN").replaceAll("_"," ");
 }
@@ -1992,12 +1994,15 @@ function radarStageLabel(state){
 function displaySignalStateLabel(row){
   const state=String(row?.state || "").toUpperCase();
   const decision=finalDecision(row);
-  if(state==="SWING_BUY" && decision.label!=="BUY") return "TECHNICALLY RECONFIRMED";
+  if(["SWING_BUY","EARLY_CONFIRMED_BUY"].includes(state) && decision.label!=="BUY"){
+    return state==="EARLY_CONFIRMED_BUY" ? "EARLY TECHNICAL CONFIRMATION" : "TECHNICALLY RECONFIRMED";
+  }
   return signalStateLabel(state);
 }
 
 function signalStateRank(state){
   return {
+    "EARLY_CONFIRMED_BUY":8,
     "SWING_BUY":7,
     "SWING_CONFIRMING":6,
     "RADAR_ARMED":5,
@@ -2011,6 +2016,7 @@ function signalStateRank(state){
 
 function signalStateLabel(state){
   return {
+    "EARLY_CONFIRMED_BUY":"EARLY CONFIRMED BUY",
     "SWING_BUY":"RECONFIRMED BUY",
     "SWING_CONFIRMING":"SWING CONFIRMING",
     "SWING_WATCH":"SWING WATCH",
@@ -2026,6 +2032,7 @@ function signalStateLabel(state){
 
 function signalStateClass(state){
   return {
+    "EARLY_CONFIRMED_BUY":"state-buy",
     "SWING_BUY":"state-buy",
     "SWING_CONFIRMING":"state-ready",
     "SWING_WATCH":"state-pre",
@@ -2081,19 +2088,26 @@ function finalDecision(row){
   if(volatility==="EXTREME"){
     return {label:"AVOID",cls:"state-broken",detail:"Extreme volatility is not suitable for HANZ Swing"};
   }
-  if(state==="SWING_BUY" && entryStatus==="WAIT_PULLBACK"){
-    return {label:"WAIT",cls:"state-ready",detail:"GOOD STOCK — BAD ENTRY: breakout is extended; wait for pullback/retest"};
+  if(["SWING_BUY","EARLY_CONFIRMED_BUY"].includes(state) && entryStatus==="WAIT_PULLBACK"){
+    return {label:"WAIT",cls:"state-ready",detail:"GOOD STOCK — BAD ENTRY: price is extended from preferred entry; wait for pullback/retest"};
   }
-  if(state==="SWING_BUY" && ["ELIGIBLE","CAUTION"].includes(gate)){
-    return {label:"BUY",cls:"state-buy",detail:gate==="CAUTION" ? "Buy signal with caution" : "Actionable reconfirmed buy"};
+  if(["SWING_BUY","EARLY_CONFIRMED_BUY"].includes(state) && ["ELIGIBLE","CAUTION"].includes(gate)){
+    const early=state==="EARLY_CONFIRMED_BUY";
+    return {
+      label:"BUY",
+      cls:"state-buy",
+      detail:gate==="CAUTION"
+        ? (early ? "Early confirmed BUY with caution" : "Buy signal with caution")
+        : (early ? "Actionable early confirmed BUY near pre-expansion location" : "Actionable reconfirmed buy")
+    };
   }
-  if(state==="SWING_BUY" && gate==="RESEARCH_ONLY"){
+  if(["SWING_BUY","EARLY_CONFIRMED_BUY"].includes(state) && gate==="RESEARCH_ONLY"){
     return {label:"PAPER ONLY",cls:"state-ready",detail:"Technical signal is reconfirmed, but the strategy has not yet passed walk-forward validation"};
   }
-  if(state==="SWING_BUY" && ["BLOCKED","PAPER_ONLY"].includes(gate)){
+  if(["SWING_BUY","EARLY_CONFIRMED_BUY"].includes(state) && ["BLOCKED","PAPER_ONLY"].includes(gate)){
     return {label:"NO BUY",cls:"state-broken",detail:`Risk gate ${gate}`};
   }
-  if(state==="SWING_BUY"){
+  if(["SWING_BUY","EARLY_CONFIRMED_BUY"].includes(state)){
     return {label:"WATCH",cls:"state-pre",detail:`Technical reconfirmation complete; waiting final risk clearance (${gate})`};
   }
   if(state==="SETUP_READY"){
@@ -2116,7 +2130,7 @@ function decisionGuidanceHtmlSafe(row){
   }else if(d.label==="BUY"){
     why="Technical reconfirmation, entry-location check and final risk gate are cleared.";
     next="Actionable BUY: follow the displayed entry zone, stop-loss, target and position-risk rules.";
-  }else if(state==="SWING_BUY" && gate==="MONITOR"){
+  }else if(["SWING_BUY","EARLY_CONFIRMED_BUY"].includes(state) && gate==="MONITOR"){
     why="Technical reconfirmation is complete, but final risk clearance is still MONITOR.";
     next="Risk gate must clear to ELIGIBLE or CAUTION while momentum remains intact.";
   }else if(gate==="RESEARCH_ONLY"){
@@ -2234,6 +2248,8 @@ function riskHtml(row){
       <div><span>GAP / DAY RANGE</span><strong>${pctText(r.gap_pct)} / ${pctText(r.day_range_pct)}</strong></div>
       <div><span>1D / 3D / 5D</span><strong>${pctText(r.ret1_pct)} / ${pctText(r.ret3_pct)} / ${pctText(r.ret5_pct)}</strong></div>
       <div><span>FAILED BREAKOUT</span><strong>${r.failed_breakout ? "YES" : "NO"}</strong></div>
+      <div><span>EARLY LOCATION</span><strong>${r.early_location_ok ? "SUPPORTIVE" : "—"}</strong></div>
+      <div><span>MINOR STRUCTURE SHIFT</span><strong>${r.minor_structure_break || r.higher_low ? "CONFIRMED" : "—"}</strong></div>
       <div><span>LIQUIDITY</span><strong>${safe(r.liquidity_grade || "—")} · ${compactIDR(r.avg_value20)}</strong></div>
       <div><span>RISK SCORE</span><strong>${row?.risk_score ?? r.score ?? "—"}/100</strong></div>
       <div><span>STOP DISTANCE</span><strong>${Number.isFinite(Number(r.stop_distance_pct)) ? Number(r.stop_distance_pct).toFixed(2)+"%" : "—"}</strong></div>
@@ -2288,7 +2304,7 @@ function hanzBuyQuality(row){
   parts.trigger=trigger?20:(state==="SETUP_READY"||state==="SWING_CONFIRMING"?10:0); total+=parts.trigger;
   parts.volume=volumeOk?12:4; total+=parts.volume;
   parts.entry=entryStatus==="ENTRY_ZONE"?15:8; total+=parts.entry;
-  parts.maturity={SWING_BUY:10,SETUP_READY:8,RADAR_ARMED:7,SWING_CONFIRMING:6,RADAR_PRE_ALERT:5,PRE_ALERT:4,RADAR_WATCH:3,SWING_WATCH:3,EARLY_WATCH:2}[state]||0; total+=parts.maturity;
+  parts.maturity={EARLY_CONFIRMED_BUY:12,SWING_BUY:10,SETUP_READY:8,RADAR_ARMED:7,SWING_CONFIRMING:6,RADAR_PRE_ALERT:5,PRE_ALERT:4,RADAR_WATCH:3,SWING_WATCH:3,EARLY_WATCH:2}[state]||0; total+=parts.maturity;
   const rr=[Number(r.net_rr_target_1),Number(r.rr_target_1),Number(r.net_rr_target_2),Number(r.rr_target_2)].filter(Number.isFinite);
   parts.rr=rr.length?(Math.max(...rr)>=2?5:Math.max(...rr)>=1.3?3:0):0; total+=parts.rr;
   // Setup score is diagnostic only and deliberately capped to 5 points.
@@ -2387,7 +2403,7 @@ async function loadWatchlist(){
       const gate=String(row?.risk_gate || r.gate || "MONITOR").toUpperCase();
       const entryStatus=String(row?.entry_status || r.entry_status || "").toUpperCase();
       const state=String(row?.state || "").toUpperCase();
-      const monitorable=["SWING_BUY","SWING_CONFIRMING","SWING_WATCH","RADAR_ARMED","RADAR_PRE_ALERT","RADAR_WATCH","SETUP_READY","PRE_ALERT","EARLY_WATCH"].includes(state);
+      const monitorable=["EARLY_CONFIRMED_BUY","SWING_BUY","SWING_CONFIRMING","SWING_WATCH","RADAR_ARMED","RADAR_PRE_ALERT","RADAR_WATCH","SETUP_READY","PRE_ALERT","EARLY_WATCH"].includes(state);
       return gate!=="BLOCKED" && entryStatus==="WAIT_PULLBACK" && monitorable;
     });
     addRows(pullbackFallback);
@@ -2399,10 +2415,10 @@ async function loadWatchlist(){
     const r=(row && row.risk_validation && typeof row.risk_validation==="object")
       ? row.risk_validation : {};
     const radarInternal=Boolean(r.radar_internal);
-    return state==="SWING_BUY" && decision.label==="BUY" && !radarInternal;
+    return ["SWING_BUY","EARLY_CONFIRMED_BUY"].includes(state) && decision.label==="BUY" && !radarInternal;
   });
 
-  const radarRows=allRows.filter(row=>String(row?.state || "").toUpperCase()!=="SWING_BUY");
+  const radarRows=allRows.filter(row=>!["SWING_BUY","EARLY_CONFIRMED_BUY"].includes(String(row?.state || "").toUpperCase()));
   const rows=strongRows.slice(0,5);
 
   window.__hanzDiagnostics={
@@ -2426,7 +2442,7 @@ async function loadWatchlist(){
     $("topCandidate").textContent=top.ticker;
     const topState=String(top?.state || "").toUpperCase();
     const topGate=String(top?.risk_gate || top?.risk_validation?.gate || "MONITOR").toUpperCase();
-    const topIsTechnicallyReconfirmed=topState==="SWING_BUY" && !confirmed.includes(top);
+    const topIsTechnicallyReconfirmed=["SWING_BUY","EARLY_CONFIRMED_BUY"].includes(topState) && !confirmed.includes(top);
     $("topCandidateSub").textContent=confirmed.includes(top)
       ? `RECONFIRMED ${topDecision.label} · Score ${top.score ?? "—"}/10`
       : topIsTechnicallyReconfirmed
