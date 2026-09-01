@@ -2955,15 +2955,6 @@ async function openHanzChart(ticker){
     const chartPayload=await supabaseDailyCandles(ticker);
     const candles=chartPayload.candles;
 
-    if(hanzChartInstance){
-      try{ hanzChartInstance.remove(); }catch(_){}
-      hanzChartInstance=null;
-    }
-    if(hanzVolumeChartInstance){
-      try{ hanzVolumeChartInstance.remove(); }catch(_){}
-      hanzVolumeChartInstance=null;
-    }
-
     chartBox.innerHTML="";
     volumeBox.innerHTML="";
 
