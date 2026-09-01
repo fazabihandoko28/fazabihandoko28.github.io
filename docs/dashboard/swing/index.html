@@ -159,6 +159,13 @@ button{cursor:pointer}
   display:grid;grid-template-columns:28px 65px 1fr 40px;gap:9px;align-items:center;
   padding:9px;border-radius:12px;background:rgba(4,10,21,.48)
 }
+.rank{cursor:pointer;transition:border-color .16s ease,background .16s ease,transform .16s ease;border:1px solid transparent}
+.rank:hover{border-color:rgba(77,163,255,.28);background:rgba(77,163,255,.06)}
+.rank.monitor-selected{border-color:rgba(40,224,162,.42);background:rgba(40,224,162,.07)}
+.rank:active{transform:scale(.995)}
+.monitor-hidden{display:none!important}
+.monitor-selected-label{font-size:8px;color:var(--green);font-weight:900;letter-spacing:.5px}
+
 .rank-no{color:#62728a;font-size:9px}.rank-symbol{font-size:11px;font-weight:900}
 .rank-track{height:5px;background:#18243a;border-radius:999px;overflow:hidden}
 .rank-track div{height:100%;background:linear-gradient(90deg,var(--green),var(--blue))}
@@ -771,21 +778,24 @@ th{color:var(--muted)}
     </article>
   </div>
 
-  <article class="card" style="margin-top:12px">
+  <article id="signalMonitorCard" class="card monitor-hidden" style="margin-top:12px">
     <div class="section-head">
       <div>
-        <h2>HANZ Signal Monitor</h2>
-        <p>Early radar + reconfirmed BUY · Daily + Weekly intelligence</p>
+        <h2>HANZ Stock Monitor</h2>
+        <p id="signalMonitorSubtitle">Selected Top-5 stock · Daily + Weekly intelligence</p>
       </div>
-      <span class="small-tag">BUY ONLY</span>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span id="monitorSelectedTicker" class="monitor-selected-label">—</span>
+        <button id="closeSignalMonitor" type="button" class="secondary-btn" style="padding:7px 9px">✕</button>
+      </div>
     </div>
 
     <div id="liveSignalMonitor" class="live-monitor-grid">
-      <div class="empty large-empty">Waiting for confirmed SWING BUY data...</div>
+      <div class="empty large-empty">Click one of the Top 5 stocks above to open its monitor.</div>
     </div>
 
     <div class="monitor-note">
-      Only SWING BUY is displayed. WATCH and CONFIRMING stay internal to the engine.
+      Monitor appears only for the Top-5 stock you select. Click another Top-5 stock to switch.
     </div>
   </article>
 
@@ -1130,6 +1140,7 @@ let currentUser = null;
 let currentSession = null;
 let portfolioRows = [];
 let editPositionId = null;
+let selectedMonitorTicker = null;
 
 let firebaseMessaging = null;
 let pushServiceWorkerRegistration = null;
@@ -2438,7 +2449,7 @@ async function loadWatchlist(){
 
   renderRanking(rows);
   renderOpportunities(rows);
-  renderLiveSignalMonitor(rows);
+  syncSelectedSignalMonitor(rows);
 }
 
 function renderRanking(rows){
@@ -2454,7 +2465,9 @@ function renderRanking(rows){
     const score=Math.max(0,Math.min(10,Number(row.score || 0)));
     const decision=finalDecision(row);
     const quality=hanzBuyQuality(row);
-    return `<div class="rank">
+    const selected = selectedMonitorTicker &&
+      String(selectedMonitorTicker).toUpperCase()===String(row.ticker).toUpperCase();
+    return `<div class="rank${selected ? " monitor-selected" : ""}" data-monitor-ticker="${safe(row.ticker)}" role="button" tabindex="0" aria-label="Open ${safe(row.ticker)} stock monitor">
       <div class="rank-no">#${index+1}</div>
       <div class="rank-symbol">${safe(row.ticker)}<div style="margin-top:3px"><span class="state-chip ${decision.cls}">FINAL ${safe(decision.label)}</span> <span class="state-chip ${signalStateClass(row.state)}">${safe(displaySignalStateLabel(row))}</span></div></div>
       <div class="rank-track"><div style="width:${quality.total}%"></div></div>
@@ -2463,6 +2476,17 @@ function renderRanking(rows){
   }).join("");
 
   $("ranking").innerHTML=rankingHtml;
+
+  $("ranking").querySelectorAll("[data-monitor-ticker]").forEach(el=>{
+    const open=()=>openSignalMonitor(el.dataset.monitorTicker);
+    el.addEventListener("click",open);
+    el.addEventListener("keydown",event=>{
+      if(event.key==="Enter" || event.key===" "){
+        event.preventDefault();
+        open();
+      }
+    });
+  });
 }
 
 function renderOpportunities(rows){
@@ -2510,14 +2534,17 @@ function renderOpportunities(rows){
 }
 
 function renderLiveSignalMonitor(rows){
-  if(!rows.length){
-    $("liveSignalMonitor").innerHTML='<div class="empty large-empty">No active HANZ swing signals right now.</div>';
+  const ticker=String(selectedMonitorTicker || "").toUpperCase();
+  const row=(rows || []).find(r=>String(r?.ticker || "").toUpperCase()===ticker);
+
+  if(!row){
+    $("liveSignalMonitor").innerHTML='<div class="empty large-empty">Selected stock is no longer in the current Top 5.</div>';
     return;
   }
-  $("liveSignalMonitor").innerHTML=rows.slice(0,5).map(row=>{
+
     const score=Math.max(0,Math.min(10,Number(row.score || 0)));
     const decision=finalDecision(row);
-    return `<article class="signal-card buy">
+    const cardHtml=`<article class="signal-card buy">
       <div class="sig-head">
         <div>
           <div class="sig-ticker">${safe(row.ticker)}</div>
@@ -2553,14 +2580,52 @@ function renderLiveSignalMonitor(rows){
       <div class="sig-evidence"><strong>Fundamental:</strong> ${safe(row.fundamental_reason || "Fundamental data unavailable")}</div>
       <div class="sig-evidence"><strong>Discount:</strong> ${safe(row.discount_reason || "")}</div>
     </article>`;
-  }).join("");
+  
+  $("liveSignalMonitor").innerHTML=cardHtml;
 }
 
+function openSignalMonitor(ticker){
+  const rows=[...(window.__hanzSignalRows || [])].slice(0,5);
+  const row=rows.find(r=>String(r?.ticker || "").toUpperCase()===String(ticker || "").toUpperCase());
+  if(!row) return;
 
+  selectedMonitorTicker=row.ticker;
+  $("signalMonitorCard").classList.remove("monitor-hidden");
+  $("monitorSelectedTicker").textContent=String(row.ticker || "").toUpperCase();
+  $("signalMonitorSubtitle").textContent=`${String(row.ticker || "").toUpperCase()} · selected from HANZ Top 5 · Daily + Weekly intelligence`;
 
-/* V16 OPEN-SOURCE STOCK CHART */
-let hanzChartInstance=null;
-let hanzVolumeChartInstance=null;
+  renderRanking(rows);
+  renderLiveSignalMonitor(rows);
+
+  $("signalMonitorCard").scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+function closeSignalMonitor(){
+  selectedMonitorTicker=null;
+  $("signalMonitorCard").classList.add("monitor-hidden");
+  $("monitorSelectedTicker").textContent="—";
+  renderRanking([...(window.__hanzSignalRows || [])]);
+}
+
+function syncSelectedSignalMonitor(rows){
+  if(!selectedMonitorTicker){
+    $("signalMonitorCard").classList.add("monitor-hidden");
+    return;
+  }
+
+  const stillTop5=(rows || []).slice(0,5).some(
+    r=>String(r?.ticker || "").toUpperCase()===String(selectedMonitorTicker).toUpperCase()
+  );
+
+  if(!stillTop5){
+    closeSignalMonitor();
+    return;
+  }
+
+  $("signalMonitorCard").classList.remove("monitor-hidden");
+  $("monitorSelectedTicker").textContent=String(selectedMonitorTicker).toUpperCase();
+  renderLiveSignalMonitor(rows);
+}
 
 function emaPoints(candles,period){
   const k=2/(period+1);
@@ -3617,6 +3682,7 @@ window.addEventListener("DOMContentLoaded",async ()=>{
   $("closePositionModalButton").addEventListener("click",closePositionModal);
   $("loginTab").addEventListener("click",()=>setAuthMode("login"));
   $("signupTab").addEventListener("click",()=>setAuthMode("signup"));
+  $("closeSignalMonitor").addEventListener("click",closeSignalMonitor);
   bindPasswordToggle("authPassword","authPasswordToggle");
   bindPasswordToggle("authPasswordConfirm","authPasswordConfirmToggle");
   $("forgotPasswordButton").addEventListener("click",async ()=>{
