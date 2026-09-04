@@ -405,6 +405,13 @@ th{color:var(--muted)}
 @media(max-width:700px){.live-monitor-grid{grid-template-columns:1fr}}
 
 
+
+.foreign-flow-box{margin-top:9px;padding:10px;border-radius:11px;background:rgba(2,8,17,.43);border:1px solid var(--line)}
+.foreign-flow-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.foreign-flow-head span{color:var(--muted);font-size:7px;letter-spacing:.5px}
+.foreign-flow-head strong{font-size:8px}
+.foreign-flow-meta{margin-top:6px;color:var(--muted);font-size:7px;line-height:1.45}
+.ff-buy{color:var(--green)!important}.ff-watch{color:var(--yellow)!important}.ff-sell{color:var(--red)!important}.ff-neutral{color:#aab7c8!important}
 .quality-legend{font-size:8px;color:var(--muted);margin-top:8px;line-height:1.5}
 </style>
 </head>
@@ -451,7 +458,7 @@ th{color:var(--muted)}
       <small>HANZ INTELLIGENCE NETWORK</small>
       <h1>Swing opportunities.<br>Personal portfolio intelligence.</h1>
       <p>
-        Confirmed SWING BUY scanning with private per-user swing portfolio monitoring,
+        Confirmed BUY scanning (Early Confirmed + Swing) with private per-user swing portfolio monitoring,
         risk levels, targets, alerts and automatic trailing-stop management.
       </p>
     </div>
@@ -466,7 +473,7 @@ th{color:var(--muted)}
 
 <section class="kpis">
   <article class="kpi">
-    <span>SWING BUY</span>
+    <span>CONFIRMED BUY</span>
     <strong id="opportunityCount">—</strong>
     <small>Confirmed swing candidates</small>
   </article>
@@ -503,8 +510,8 @@ th{color:var(--muted)}
     <article class="card">
       <div class="section-head">
         <div>
-          <h2>SWING BUY Ranking</h2>
-          <p>Confirmed Daily + Weekly setups</p>
+          <h2>HANZ BUY Ranking</h2>
+          <p>Early-confirmed + trend-confirmed setups · foreign-flow adjusted ranking</p>
         </div>
         <span class="small-tag">SWING LIVE</span>
       </div>
@@ -529,10 +536,10 @@ th{color:var(--muted)}
   <article class="card" style="margin-top:12px">
     <div class="section-head">
       <div>
-        <h2>SWING BUY Monitor</h2>
-        <p>Only confirmed SWING BUY · Daily setup + Weekly confirmation</p>
+        <h2>Confirmed BUY Monitor</h2>
+        <p>EARLY CONFIRMED BUY + SWING BUY · foreign flow shown as confirmation / warning</p>
       </div>
-      <span class="small-tag">BUY ONLY</span>
+      <span class="small-tag">CONFIRMED ONLY</span>
     </div>
 
     <div id="liveSignalMonitor" class="live-monitor-grid">
@@ -540,7 +547,7 @@ th{color:var(--muted)}
     </div>
 
     <div class="monitor-note">
-      Only SWING BUY is displayed. WATCH and CONFIRMING stay internal to the engine.
+      Only confirmed BUY states are displayed. WATCH / CONFIRMING remain internal to the engine. Foreign buy adjusts rank; foreign sell is an exit-warning layer, not an automatic sell by itself.
     </div>
   </article>
 
@@ -550,8 +557,8 @@ th{color:var(--muted)}
   <article class="card">
     <div class="section-head">
       <div>
-        <h2>Confirmed SWING BUY Candidates</h2>
-        <p>Daily breakout + weekly bullish confirmation</p>
+        <h2>Confirmed BUY Candidates</h2>
+        <p>Early reversal or trend continuation with completed-bar confirmation</p>
       </div>
       <span class="small-tag">SWING ENGINE</span>
     </div>
@@ -588,7 +595,7 @@ th{color:var(--muted)}
       </div>
     </div>
     <div class="monitor-note" style="margin-bottom:12px">
-      Swing triggers: STOP LOSS · DYNAMIC T1 · DYNAMIC T2 · TRAILING ACTIVATED · PROTECT PROFIT · CONFIRMED SELL.
+      Swing triggers: FOREIGN SELL CAUTION · DISTRIBUTION WATCH · STOP LOSS · DYNAMIC T1 · DYNAMIC T2 · TRAILING ACTIVATED · PROTECT PROFIT · CONFIRMED SELL.
     </div>
     <div id="alertsBox">
       <div class="empty"><div class="empty-symbol">⚡</div>Login to view personal alerts.</div>
@@ -800,6 +807,61 @@ function price(value){
   const n = Number(value);
   if(!Number.isFinite(n)) return safe(value);
   return n.toLocaleString("en-US",{maximumFractionDigits:2});
+}
+
+function riskObject(row){
+  const raw=row?.risk_validation;
+  if(raw && typeof raw==="object") return raw;
+  if(typeof raw==="string"){
+    try{return JSON.parse(raw);}catch(_e){return {};}
+  }
+  return {};
+}
+
+function foreignFlowInfo(row){
+  const r=riskObject(row);
+  const status=String(r.foreign_flow_status ?? row?.foreign_flow_status ?? "UNKNOWN").toUpperCase();
+  const score=Number(r.foreign_flow_score ?? 0) || 0;
+  const p1=Number(r.foreign_net_pct_1d ?? row?.foreign_net_pct_1d);
+  const p3=Number(r.foreign_net_pct_3d ?? row?.foreign_net_pct_3d);
+  const p5=Number(r.foreign_net_pct_5d ?? row?.foreign_net_pct_5d);
+  const label={
+    ACCUMULATING:"ACCUMULATING",
+    MILD_ACCUMULATION:"MILD BUY",
+    NEUTRAL:"NEUTRAL",
+    CAUTION:"SELL CAUTION",
+    DISTRIBUTION_WATCH:"DISTRIBUTION WATCH",
+    DISTRIBUTING:"DISTRIBUTING",
+    UNKNOWN:"UNKNOWN",
+    DISABLED:"DISABLED"
+  }[status] || status;
+  const cls={
+    ACCUMULATING:"ff-buy",MILD_ACCUMULATION:"ff-buy",
+    CAUTION:"ff-watch",DISTRIBUTION_WATCH:"ff-watch",DISTRIBUTING:"ff-sell"
+  }[status] || "ff-neutral";
+  const fmt=v=>Number.isFinite(v)?`${v>=0?"+":""}${v.toFixed(2)}%`:"—";
+  return {status,label,cls,score,p1,p3,p5,summary:`1D ${fmt(p1)} · 3D ${fmt(p3)} · 5D ${fmt(p5)}`};
+}
+
+function foreignFlowHtml(row){
+  const f=foreignFlowInfo(row);
+  return `<div class="foreign-flow-box">
+    <div class="foreign-flow-head"><span>FOREIGN FLOW</span><strong class="${f.cls}">${safe(f.label)} ${f.score?`(${f.score>0?"+":""}${f.score})`:""}</strong></div>
+    <div class="foreign-flow-meta">${safe(f.summary)}</div>
+  </div>`;
+}
+
+function hanzRankingScore(row){
+  // Technical BUY state stays the gate. Foreign flow adjusts ranking quality,
+  // but cannot turn a non-BUY state into a BUY.
+  const technical=Math.max(0,Math.min(10,Number(row?.score || 0)))*10;
+  const foreign=foreignFlowInfo(row).score;
+  return Math.max(0,Math.min(100,technical + foreign));
+}
+
+function buyStateLabel(row){
+  return String(row?.state || "SWING_BUY").toUpperCase()==="EARLY_CONFIRMED_BUY"
+    ? "EARLY CONFIRMED BUY" : "SWING BUY";
 }
 
 function formatDate(value){
@@ -1148,27 +1210,31 @@ async function loadWatchlist(){
   const {data,error}=await supabase
     .from("hanz_swing_signal_monitor")
     .select("*")
-    .eq("state","SWING_BUY")
-    .order("score",{ascending:false})
+    .in("state",["EARLY_CONFIRMED_BUY","SWING_BUY"])
     .order("updated_at",{ascending:false});
   if(error) throw error;
 
-  const rows=data || [];
+  const rows=(data || []).sort((a,b)=>{
+    const rankDiff=hanzRankingScore(b)-hanzRankingScore(a);
+    if(rankDiff!==0) return rankDiff;
+    return Number(b.score||0)-Number(a.score||0);
+  });
   $("opportunityCount").textContent=rows.length;
 
   if(rows.length){
     const top=rows[0];
+    const ff=foreignFlowInfo(top);
     $("topCandidate").textContent=top.ticker;
-    $("topCandidateSub").textContent=`Score ${top.score ?? "—"}/10`;
+    $("topCandidateSub").textContent=`Rank ${hanzRankingScore(top)}/100 · ${ff.label}`;
     $("heroTopCandidate").textContent=top.ticker;
-    $("heroTopSub").textContent=`SWING BUY · Swing ${top.score ?? "—"}/10 · Discount ${top.discount_score ?? "—"}/100 · Fundamental ${top.fundamental_score ?? "—"}/100`;
+    $("heroTopSub").textContent=`${buyStateLabel(top)} · Rank ${hanzRankingScore(top)}/100 · Foreign ${ff.label} · Swing ${top.score ?? "—"}/10`;
     $("lastUpdate").textContent=formatTime(top.updated_at);
     $("lastUpdateDate").textContent=`${formatDate(top.updated_at)} · Last completed Swing scan`;
   }else{
     $("topCandidate").textContent="—";
-    $("topCandidateSub").textContent="No SWING BUY";
+    $("topCandidateSub").textContent="No confirmed BUY";
     $("heroTopCandidate").textContent="—";
-    $("heroTopSub").textContent="No confirmed SWING BUY";
+    $("heroTopSub").textContent="No confirmed BUY";
   }
 
   renderRanking(rows);
@@ -1178,16 +1244,17 @@ async function loadWatchlist(){
 
 function renderRanking(rows){
   if(!rows.length){
-    $("ranking").innerHTML='<div class="empty">No confirmed SWING BUY.</div>';
+    $("ranking").innerHTML='<div class="empty">No confirmed BUY.</div>';
     return;
   }
-  $("ranking").innerHTML=rows.map((row,index)=>{
-    const score=Math.max(0,Math.min(10,Number(row.score || 0)));
-    return `<div class="rank">
+  $("ranking").innerHTML=rows.slice(0,5).map((row,index)=>{
+    const rank=hanzRankingScore(row);
+    const ff=foreignFlowInfo(row);
+    return `<div class="rank" title="${safe(buyStateLabel(row))} · Foreign ${safe(ff.label)} · ${safe(ff.summary)}">
       <div class="rank-no">#${index+1}</div>
       <div class="rank-symbol">${safe(row.ticker)}</div>
-      <div class="rank-track"><div style="width:${score*10}%"></div></div>
-      <div class="rank-score">${score}/10 · D${row.discount_score==null?"—":Math.round(Number(row.discount_score))}</div>
+      <div class="rank-track"><div style="width:${rank}%"></div></div>
+      <div class="rank-score">${rank}/100 · <span class="${ff.cls}">${safe(ff.label)}</span></div>
     </div>`;
   }).join("");
 }
@@ -1206,7 +1273,7 @@ function renderOpportunities(rows){
         </div>
         <div class="priority-ring">${row.score ?? "—"}</div>
       </div>
-      <span class="active-chip">SWING BUY</span>
+      <span class="active-chip">${safe(buyStateLabel(row))}</span>
       <span class="active-chip">${safe((row.discount_label || "DISCOUNT N/A").replaceAll("_"," "))}</span>
       <div class="levels">
         <div class="level"><span>CURRENT PRICE</span><strong>${price(row.price)}</strong></div>
@@ -1219,6 +1286,7 @@ function renderOpportunities(rows){
       <div class="reason"><strong>Entry:</strong> ${safe(row.entry_note || "")}</div>
       <div class="reason"><strong>Fundamental:</strong> ${safe(row.fundamental_reason || "Fundamental data unavailable")}</div>
       <div class="reason"><strong>Discount:</strong> ${safe(row.discount_reason || "")}</div>
+      ${foreignFlowHtml(row)}
       <div class="reason">${safe(row.evidence || "Confirmed daily breakout + weekly bullish trend")}</div>
     </article>`).join("");
 }
@@ -1238,7 +1306,7 @@ function renderLiveSignalMonitor(rows){
           <span class="signal-source">📈 DAILY + WEEKLY</span>
         </div>
         <div>
-          <span class="signal-state buy">SWING BUY</span>
+          <span class="signal-state buy">${safe(buyStateLabel(row))}</span>
           <span class="signal-state buy">${safe((row.discount_label || "DISCOUNT N/A").replaceAll("_"," "))}</span>
         </div>
       </div>
@@ -1260,6 +1328,7 @@ function renderLiveSignalMonitor(rows){
       </div>
       <div class="sig-evidence"><strong>Fundamental:</strong> ${safe(row.fundamental_reason || "Fundamental data unavailable")}</div>
       <div class="sig-evidence"><strong>Discount:</strong> ${safe(row.discount_reason || "")}</div>
+      ${foreignFlowHtml(row)}
       <div class="sig-evidence">${safe(row.evidence || "Confirmed daily breakout + weekly bullish trend")}</div>
     </article>`;
   }).join("");
@@ -1502,6 +1571,8 @@ function renderPortfolio(rows){
           <div><span>DYNAMIC T1</span><strong class="green-text">${price(row.target_1)}</strong></div>
           <div><span>DYNAMIC T2</span><strong class="green-text">${price(row.target_2)}</strong></div>
         </div>
+
+        ${foreignFlowHtml(row)}
 
         <div class="trailing-box">
           <div class="trailing-head">
