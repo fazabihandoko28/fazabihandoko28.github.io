@@ -595,7 +595,7 @@ th{color:var(--muted)}
       </div>
     </div>
     <div class="monitor-note" style="margin-bottom:12px">
-      Swing triggers: FOREIGN SELL CAUTION · DISTRIBUTION WATCH · STOP LOSS · DYNAMIC T1 · DYNAMIC T2 · TRAILING ACTIVATED · PROTECT PROFIT · CONFIRMED SELL.
+      Swing triggers: FOREIGN SELL CAUTION · INSIDER SELL CAUTION · DISTRIBUTION WATCH · STOP LOSS · DYNAMIC T1 · DYNAMIC T2 · TRAILING ACTIVATED · PROTECT PROFIT · CONFIRMED SELL.
     </div>
     <div id="alertsBox">
       <div class="empty"><div class="empty-symbol">⚡</div>Login to view personal alerts.</div>
@@ -851,12 +851,48 @@ function foreignFlowHtml(row){
   </div>`;
 }
 
+
+function insiderInfo(row){
+  const r=riskObject(row);
+  const status=String(r.insider_status ?? row?.insider_status ?? "UNKNOWN").toUpperCase();
+  const score=Number(r.insider_score ?? row?.insider_score ?? 0) || 0;
+  const b30=Number(r.insider_buy_count_30d ?? row?.insider_buy_count_30d ?? 0) || 0;
+  const s30=Number(r.insider_sell_count_30d ?? row?.insider_sell_count_30d ?? 0) || 0;
+  const b90=Number(r.insider_buy_count_90d ?? row?.insider_buy_count_90d ?? 0) || 0;
+  const s90=Number(r.insider_sell_count_90d ?? row?.insider_sell_count_90d ?? 0) || 0;
+  const reason=String(r.insider_reason ?? row?.insider_reason ?? "");
+  const label={
+    STRONG_INSIDER_BUY:"STRONG INSIDER BUY",
+    INSIDER_BUY:"INSIDER BUY",
+    NEUTRAL:"NEUTRAL",
+    INSIDER_SELL:"INSIDER SELL",
+    HEAVY_INSIDER_SELL:"HEAVY INSIDER SELL",
+    UNKNOWN:"UNKNOWN",
+    DISABLED:"DISABLED"
+  }[status] || status;
+  const cls={
+    STRONG_INSIDER_BUY:"ff-buy",INSIDER_BUY:"ff-buy",
+    INSIDER_SELL:"ff-watch",HEAVY_INSIDER_SELL:"ff-sell"
+  }[status] || "ff-neutral";
+  return {status,label,cls,score,b30,s30,b90,s90,reason};
+}
+
+function insiderHtml(row){
+  const i=insiderInfo(row);
+  return `<div class="foreign-flow-box">
+    <div class="foreign-flow-head"><span>PUBLIC INSIDER</span><strong class="${i.cls}">${safe(i.label)} ${i.score?`(${i.score>0?"+":""}${i.score})`:""}</strong></div>
+    <div class="foreign-flow-meta">30D BUY/SELL ${i.b30}/${i.s30} · 90D ${i.b90}/${i.s90}</div>
+    ${i.reason?`<div class="foreign-flow-meta">${safe(i.reason)}</div>`:""}
+  </div>`;
+}
+
 function hanzRankingScore(row){
   // Technical BUY state stays the gate. Foreign flow adjusts ranking quality,
   // but cannot turn a non-BUY state into a BUY.
   const technical=Math.max(0,Math.min(10,Number(row?.score || 0)))*10;
   const foreign=foreignFlowInfo(row).score;
-  return Math.max(0,Math.min(100,technical + foreign));
+  const insider=insiderInfo(row).score;
+  return Math.max(0,Math.min(100,technical + foreign + insider));
 }
 
 function buyStateLabel(row){
@@ -1287,6 +1323,7 @@ function renderOpportunities(rows){
       <div class="reason"><strong>Fundamental:</strong> ${safe(row.fundamental_reason || "Fundamental data unavailable")}</div>
       <div class="reason"><strong>Discount:</strong> ${safe(row.discount_reason || "")}</div>
       ${foreignFlowHtml(row)}
+      ${insiderHtml(row)}
       <div class="reason">${safe(row.evidence || "Confirmed daily breakout + weekly bullish trend")}</div>
     </article>`).join("");
 }
@@ -1329,6 +1366,7 @@ function renderLiveSignalMonitor(rows){
       <div class="sig-evidence"><strong>Fundamental:</strong> ${safe(row.fundamental_reason || "Fundamental data unavailable")}</div>
       <div class="sig-evidence"><strong>Discount:</strong> ${safe(row.discount_reason || "")}</div>
       ${foreignFlowHtml(row)}
+      ${insiderHtml(row)}
       <div class="sig-evidence">${safe(row.evidence || "Confirmed daily breakout + weekly bullish trend")}</div>
     </article>`;
   }).join("");
@@ -1573,6 +1611,7 @@ function renderPortfolio(rows){
         </div>
 
         ${foreignFlowHtml(row)}
+      ${insiderHtml(row)}
 
         <div class="trailing-box">
           <div class="trailing-head">
