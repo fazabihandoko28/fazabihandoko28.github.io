@@ -159,13 +159,6 @@ button{cursor:pointer}
   display:grid;grid-template-columns:28px 65px 1fr 40px;gap:9px;align-items:center;
   padding:9px;border-radius:12px;background:rgba(4,10,21,.48)
 }
-.rank{cursor:pointer;transition:border-color .16s ease,background .16s ease,transform .16s ease;border:1px solid transparent}
-.rank:hover{border-color:rgba(77,163,255,.28);background:rgba(77,163,255,.06)}
-.rank.monitor-selected{border-color:rgba(40,224,162,.42);background:rgba(40,224,162,.07)}
-.rank:active{transform:scale(.995)}
-.monitor-hidden{display:none!important}
-.monitor-selected-label{font-size:8px;color:var(--green);font-weight:900;letter-spacing:.5px}
-
 .rank-no{color:#62728a;font-size:9px}.rank-symbol{font-size:11px;font-weight:900}
 .rank-track{height:5px;background:#18243a;border-radius:999px;overflow:hidden}
 .rank-track div{height:100%;background:linear-gradient(90deg,var(--green),var(--blue))}
@@ -211,129 +204,6 @@ button{cursor:pointer}
 }
 .confirm strong{color:var(--green)}.invalid strong{color:#ff8992}
 .reason{margin-top:10px;color:#8190a6;font-size:8px;line-height:1.5}
-
-
-/* V16 EXPLAINABILITY + OPEN-SOURCE CHART */
-.state-chip{
-  display:inline-flex;align-items:center;padding:5px 8px;border-radius:999px;
-  font-size:7px;font-weight:900;letter-spacing:.2px;margin:0 4px 0 0
-}
-.state-buy{color:#03120d;background:var(--green)}
-.state-ready{color:var(--yellow);background:rgba(255,200,87,.12);border:1px solid rgba(255,200,87,.25)}
-.state-pre{color:#9dc7ff;background:rgba(87,156,255,.11);border:1px solid rgba(87,156,255,.22)}
-.state-early{color:#c6b6ff;background:rgba(154,120,255,.11);border:1px solid rgba(154,120,255,.22)}
-.state-broken{color:#ff7b86;background:rgba(255,107,120,.13);border:1px solid rgba(255,107,120,.30)}
-.ranking-more-wrap{display:flex;justify-content:center;margin-top:10px}
-.ranking-more-btn{
-  min-height:36px;padding:0 14px;border-radius:10px;
-  border:1px solid var(--line);background:rgba(9,16,30,.72);
-  color:#dbe4f0;font-size:11px;font-weight:800;cursor:pointer
-}
-.ranking-more-btn:hover{border-color:rgba(70,220,210,.45)}
-.volatility-warning{
-  margin-top:10px;padding:10px 12px;border-radius:11px;
-  font-size:11px;font-weight:900;line-height:1.45
-}
-.volatility-warning.high{
-  border:1px solid rgba(255,190,70,.42);
-  background:rgba(255,190,70,.11);color:#ffd784
-}
-.volatility-warning.extreme{
-  border:1px solid rgba(255,90,105,.48);
-  background:rgba(255,90,105,.13);color:#ff9aa5
-}
-
-
-.risk-box{
-  margin-top:10px;padding:10px 11px;border:1px solid rgba(255,255,255,.08);
-  border-radius:12px;background:rgba(5,12,22,.58)
-}
-.risk-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
-.risk-title{font-size:8px;font-weight:800;letter-spacing:.08em;color:#c8d4e5}
-.risk-gate{font-size:7px;font-weight:900;padding:5px 8px;border-radius:999px}
-.risk-eligible{background:rgba(40,224,162,.13);color:#28e0a2;border:1px solid rgba(40,224,162,.28)}
-.risk-caution{background:rgba(241,199,91,.13);color:#f1c75b;border:1px solid rgba(241,199,91,.28)}
-.risk-blocked{background:rgba(255,107,120,.13);color:#ff6b78;border:1px solid rgba(255,107,120,.28)}
-.risk-paper{background:rgba(74,163,255,.13);color:#75b7ff;border:1px solid rgba(74,163,255,.28)}
-.risk-monitor{background:rgba(145,160,181,.13);color:#aebbd0;border:1px solid rgba(145,160,181,.25)}
-.risk-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
-.risk-grid div{background:rgba(255,255,255,.025);border-radius:8px;padding:7px}
-.risk-grid span{display:block;font-size:6.5px;color:#7f90a8;margin-bottom:2px}
-.risk-grid strong{font-size:8px;color:#edf5ff}
-.risk-reason{font-size:7px;color:#93a4bb;line-height:1.5;margin-top:7px}
-
-.why-box{
-  margin-top:11px;padding:10px;border:1px solid var(--line);border-radius:12px;
-  background:rgba(4,10,20,.48)
-}
-.why-title{font-size:8px;font-weight:900;letter-spacing:.45px;color:#dbe7f7}
-.why-list{margin:7px 0 0 14px;padding:0;color:#8fa0b7;font-size:8px;line-height:1.55}
-.why-list li{margin:2px 0}
-.chart-btn{
-  width:100%;margin-top:10px;padding:9px 11px;border-radius:11px;
-  border:1px solid rgba(40,224,162,.28);background:rgba(40,224,162,.08);
-  color:var(--green);font-size:8px;font-weight:900;cursor:pointer
-}
-.chart-btn:active{transform:translateY(1px)}
-.chart-modal-card{
-  width:min(94vw,900px);max-height:92vh;overflow:auto;padding:14px;
-  border-radius:18px;border:1px solid var(--line);background:#08111f
-}
-.chart-modal-head{
-  display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px
-}
-.chart-modal-title{font-size:18px;font-weight:950}
-.chart-modal-sub{margin-top:3px;color:var(--muted);font-size:8px}
-.chart-close{
-  border:1px solid var(--line);background:rgba(255,255,255,.04);color:#dfe7f2;
-  border-radius:10px;padding:7px 10px;cursor:pointer
-}
-.chart-toolbar{
-  display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 10px
-}
-.chart-level-chip{
-  padding:5px 7px;border-radius:999px;background:rgba(255,255,255,.045);
-  border:1px solid var(--line);font-size:7px;color:#aab8ca
-}
-#hanzChartWrap{width:100%}
-#hanzChart{width:100%;height:330px;border-radius:12px 12px 0 0;overflow:hidden;background:#07101d}
-#hanzVolume{width:100%;height:120px;border-radius:0 0 12px 12px;overflow:hidden;background:#07101d;border-top:1px solid rgba(255,255,255,.06)}
-.volume-legend{
-  display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 6px
-}
-.volume-legend .chart-level-chip strong{color:var(--green)}
-
-.chart-status{
-  padding:14px;text-align:center;color:var(--muted);font-size:9px
-}
-
-.chart-basis-note{
-  margin:8px 0 10px;padding:9px 10px;border-radius:11px;
-  border:1px solid rgba(40,224,162,.20);background:rgba(40,224,162,.055);
-  color:#aebfd2;font-size:8px;line-height:1.5
-}
-.chart-basis-note strong{color:var(--green)}
-
-
-.hanz-fallback-wrap{
-  width:100%;background:#07101d;border-radius:12px;overflow:hidden;
-  border:1px solid rgba(255,255,255,.06)
-}
-.hanz-fallback-svg{display:block;width:100%;height:auto;background:#07101d}
-.hanz-fallback-note{
-  padding:7px 10px;border-top:1px solid rgba(255,255,255,.06);
-  color:#8fa0b7;font-size:7px;line-height:1.45
-}
-
-.chart-attribution{
-  margin-top:8px;color:var(--muted);font-size:7px;line-height:1.5
-}
-.chart-attribution a{color:var(--green)}
-@media(max-width:620px){
-  #hanzChart{height:280px}
-  #hanzVolume{height:110px}
-  .chart-modal-card{padding:10px}
-}
 
 /* PORTFOLIO */
 .portfolio-lock{display:none;padding:40px 15px;text-align:center;color:var(--muted)}
@@ -419,20 +289,6 @@ th{color:var(--muted)}
   background:linear-gradient(135deg,var(--green),var(--cyan));color:#04120d;font-size:10px;font-weight:950
 }
 .auth-message{margin-top:10px;font-size:9px;line-height:1.5}.auth-error{color:#ff8993}.auth-success{color:var(--green)}
-.auth-link{
-  display:block;margin:-3px 0 11px auto;padding:0;border:none;background:transparent;
-  color:var(--blue);font-size:9px;font-weight:800;cursor:pointer
-}
-.auth-link:hover{text-decoration:underline}
-.auth-link:disabled{opacity:.55;cursor:not-allowed}
-.password-wrap{position:relative}
-.password-wrap input{padding-right:44px}
-.password-toggle{
-  position:absolute;right:12px;top:50%;transform:translateY(-50%);
-  border:0;background:transparent;color:var(--muted);
-  cursor:pointer;font-size:17px;line-height:1;padding:4px
-}
-.password-toggle:hover{color:var(--text)}
 
 /* AUTO TRAILING TOGGLE */
 .toggle-row{
@@ -466,109 +322,31 @@ th{color:var(--muted)}
 }
 .toast.show{opacity:1;transform:translateY(0)}.toast.error{color:#ffabb2}
 
-#copyFidButton{display:none!important}
-
 @media(max-width:900px){
   .layout{grid-template-columns:1fr}
   .opportunity-grid,.portfolio-grid{grid-template-columns:1fr}
 }
 @media(max-width:700px){
-  html,body{overflow-x:hidden}
-  .app{padding:10px 10px calc(96px + env(safe-area-inset-bottom))}
-
-  /* Mobile header: never hide account or primary controls. */
-  .header{
-    min-height:0;margin-bottom:9px;display:grid;grid-template-columns:1fr;gap:9px;align-items:stretch
-  }
-  .brand{min-width:0}
-  .logo{width:41px;height:41px;flex:0 0 41px}
-  .brand strong{font-size:15px}.brand span{font-size:9px;white-space:normal}
-  .header-actions{
-    width:100%;display:grid;grid-template-columns:minmax(0,1.65fr) 44px minmax(82px,1fr);gap:7px;align-items:stretch
-  }
-  .live-pill{min-width:0;min-height:44px;padding:0 10px;justify-content:flex-start;overflow:hidden}
-  .live-pill #engineLabel{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  #refreshButton{min-width:44px;width:44px;padding:0;font-size:17px}
-  #loginButton{min-height:44px;width:100%;font-size:11px}
-  #pushButton{min-height:44px;white-space:nowrap}
-  #copyFidButton{display:none!important}
-  .user-area{grid-column:1 / -1;grid-row:2;min-width:0;width:100%;display:none!important;align-items:center;gap:8px;
-    min-height:52px;padding:7px 8px 7px 12px;border:1px solid var(--line);border-radius:12px;background:rgba(5,12,24,.42)}
-  .user-area[style*="display: flex"],.user-area[style*="display:flex"]{
-    display:grid!important;grid-template-columns:minmax(0,1fr) auto;align-items:center
-  }
-  .user-info{display:block!important;min-width:0;width:100%;text-align:left!important;padding:0!important;visibility:visible!important;opacity:1!important}
-  .user-info strong,.user-info span{display:block!important;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .user-info strong{font-size:11px!important;line-height:1.2;color:#f4f8ff!important;font-weight:800!important}
-  .user-info span{font-size:8px!important;line-height:1.2;margin-top:3px;color:var(--muted)!important}
-  #logoutButton{min-height:40px;flex:0 0 auto;padding:0 12px}
-
-  /* Mobile layout matched to the approved phone screenshot:
-     row 1 = Market / Refresh / Push, row 2 = Account / Logout. */
-  .live-pill{grid-column:1;grid-row:1}
-  #refreshButton{grid-column:2;grid-row:1}
-  #pushButton:not([style*="display:none"]){
-    grid-column:3;grid-row:1;width:100%;min-height:44px;justify-content:center;
-    font-size:10px;letter-spacing:.15px;padding:0 8px
-  }
-  #loginButton{grid-column:1 / -1;grid-row:2;width:100%}
-
-  #marketStatusStrip{
-    position:sticky!important;top:0!important;z-index:120!important;padding:8px 9px!important;gap:5px!important;
-    font-size:9px!important;line-height:1.35
-  }
-  #marketStatusStrip>div{width:100%;gap:6px!important;justify-content:space-between}
-  #marketStatusStrip span,#marketStatusStrip strong{white-space:nowrap}
-
-  .hero{padding:17px;border-radius:21px;min-height:0}
-  .hero-content{display:block}.hero h1{font-size:26px}.hero p{font-size:10px}
-  .hero-top{width:100%;min-width:0;margin-top:15px;padding:13px}.hero-top strong{font-size:22px}
+  .app{padding:10px 10px 90px}
+  .engine-pill{display:none}.header{min-height:58px;margin-bottom:9px}
+  .logo{width:41px;height:41px}.brand strong{font-size:15px}.user-info{display:none}
+  .hero{padding:19px;border-radius:21px}.hero-content{display:block}.hero h1{font-size:28px}
+  .hero-top{width:100%;min-width:0;margin-top:17px}
   .kpis{grid-template-columns:1fr 1fr;gap:7px}.kpi{min-height:94px;padding:12px}.kpi strong{font-size:20px}
   .desktop-nav{display:none}
-
-  .section-head{align-items:flex-start;flex-wrap:wrap;gap:9px}
-  .section-head>div:first-child{min-width:0;flex:1 1 190px}
-  .section-head .primary-btn,.section-head .secondary-btn{min-height:42px}
-  #addPositionButton{flex:1 1 135px}
-
   .mobile-nav{
     position:fixed;left:0;right:0;bottom:0;z-index:200;display:grid;
     grid-template-columns:repeat(5,1fr);
     padding:7px max(6px,env(safe-area-inset-right)) calc(7px + env(safe-area-inset-bottom)) max(6px,env(safe-area-inset-left));
-    border-top:1px solid var(--line);background:rgba(5,9,20,.96);backdrop-filter:blur(18px)
+    border-top:1px solid var(--line);background:rgba(5,9,20,.94);backdrop-filter:blur(18px)
   }
-  .mobile-nav button{min-height:48px;border:none;padding:5px 1px;background:transparent;color:#66768c;font-size:8px}
+  .mobile-nav button{border:none;padding:5px 1px;background:transparent;color:#66768c;font-size:8px}
   .mobile-nav button.active{color:var(--green)}
   .mobile-nav b{display:block;margin-bottom:3px;font-size:16px}
-
-  .opportunity,.portfolio-card,.card{padding:13px}
-  .levels,.risk-grid,.sig-trends,.sig-meta{grid-template-columns:1fr 1fr}
-  .portfolio-main{grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
-  .portfolio-main>div,.portfolio-levels>div,.trail-grid>div{padding:8px 6px;min-width:0}
-  .portfolio-main strong,.portfolio-levels strong,.trail-grid strong{overflow-wrap:anywhere}
   .portfolio-levels{grid-template-columns:1fr 1fr}
   .trail-grid{grid-template-columns:1fr 1fr}
-  .position-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
-  .position-actions button{min-height:40px}
-
-  .table-shell{max-width:100%;-webkit-overflow-scrolling:touch}
-  table{min-width:620px}
-
-  .modal{align-items:flex-start;padding:calc(10px + env(safe-area-inset-top)) 10px calc(16px + env(safe-area-inset-bottom));overflow-y:auto}
-  .modal-box,.modal-wide,.chart-modal-card{width:100%;max-height:none;margin:auto 0}
   .form-grid{grid-template-columns:1fr}.full-width{grid-column:auto}
-  .field input,.field textarea{font-size:16px} /* prevents iOS focus zoom */
-  .auth-submit,.position-submit{min-height:46px;font-size:11px}
-  .x-btn,.chart-close{min-width:42px;min-height:42px}
-  .toast{left:10px;right:10px;bottom:calc(82px + env(safe-area-inset-bottom));max-width:none}
-}
-
-@media(max-width:430px){
-  .header-actions{grid-template-columns:minmax(0,1fr) 44px minmax(78px,.8fr)}
-  .live-pill{font-size:8px}.secondary-btn,.primary-btn{font-size:9px}
-  .kpis{grid-template-columns:1fr 1fr}
-  .kpi span{font-size:7px}.kpi small{font-size:8px}
-  .hero h1{font-size:23px}
+  .toast{left:10px;right:10px;bottom:82px;max-width:none}
 }
 
 /* LIVE SIGNAL MONITOR */
@@ -628,7 +406,6 @@ th{color:var(--muted)}
 
 
 .quality-legend{font-size:8px;color:var(--muted);margin-top:8px;line-height:1.5}
-.market-open{font-weight:800}.market-closed{font-weight:800;opacity:.85}
 </style>
 </head>
 
@@ -653,7 +430,6 @@ th{color:var(--muted)}
     <button class="secondary-btn" id="refreshButton">↻</button>
 
     <button id="pushButton" class="secondary-btn" style="display:none">🔔 Push OFF</button>
-    <button id="copyFidButton" class="secondary-btn" style="display:none">📋 Copy FID</button>
 
     <button id="loginButton" class="primary-btn">Login</button>
 
@@ -666,34 +442,6 @@ th{color:var(--muted)}
     </div>
   </div>
 </header>
-<div id="marketStatusStrip" style="
-  position:sticky;
-  top:0;
-  z-index:25;
-  display:flex;
-  gap:10px;
-  align-items:center;
-  justify-content:space-between;
-  flex-wrap:wrap;
-  padding:9px 14px;
-  margin:0;
-  border-bottom:1px solid rgba(255,255,255,.08);
-  background:rgba(8,14,24,.96);
-  backdrop-filter:blur(10px);
-  font-size:12px;
-">
-  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-    <strong id="topIdxMarket">IDX: CHECKING</strong>
-    <span id="topIdxSession">—</span>
-    <span id="topIdxReason">—</span>
-  </div>
-  <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-    <span id="topIdxWib">WIB —</span>
-    <span id="topIdxPrev">Prev —</span>
-    <span id="topIdxNext">Next —</span>
-  </div>
-</div>
-
 
 <div id="errorBox" class="error-box"></div>
 
@@ -703,13 +451,13 @@ th{color:var(--muted)}
       <small>HANZ INTELLIGENCE NETWORK</small>
       <h1>Swing opportunities.<br>Personal portfolio intelligence.</h1>
       <p>
-        Early-signal radar + reconfirmed SWING BUY scanning with private per-user swing portfolio monitoring,
+        Confirmed SWING BUY scanning with private per-user swing portfolio monitoring,
         risk levels, targets, alerts and automatic trailing-stop management.
       </p>
     </div>
 
     <div class="hero-top">
-      <span>CURRENT TOP SWING CANDIDATE</span>
+      <span>CURRENT TOP SWING BUY</span>
       <strong id="heroTopCandidate">—</strong>
       <small id="heroTopSub">Waiting for HANZ scan</small>
     </div>
@@ -720,7 +468,7 @@ th{color:var(--muted)}
   <article class="kpi">
     <span>SWING BUY</span>
     <strong id="opportunityCount">—</strong>
-    <small>Reconfirmed SWING BUY candidates</small>
+    <small>Confirmed swing candidates</small>
   </article>
 
   <article class="kpi">
@@ -755,8 +503,8 @@ th{color:var(--muted)}
     <article class="card">
       <div class="section-head">
         <div>
-          <h2>HANZ Signal Ranking</h2>
-          <p>Top 5 only · Highest-priority HANZ radar captures</p>
+          <h2>SWING BUY Ranking</h2>
+          <p>Confirmed Daily + Weekly setups</p>
         </div>
         <span class="small-tag">SWING LIVE</span>
       </div>
@@ -778,24 +526,21 @@ th{color:var(--muted)}
     </article>
   </div>
 
-  <article id="signalMonitorCard" class="card monitor-hidden" style="margin-top:12px">
+  <article class="card" style="margin-top:12px">
     <div class="section-head">
       <div>
-        <h2>HANZ Stock Monitor</h2>
-        <p id="signalMonitorSubtitle">Selected Top-5 stock · Daily + Weekly intelligence</p>
+        <h2>SWING BUY Monitor</h2>
+        <p>Only confirmed SWING BUY · Daily setup + Weekly confirmation</p>
       </div>
-      <div style="display:flex;align-items:center;gap:8px">
-        <span id="monitorSelectedTicker" class="monitor-selected-label">—</span>
-        <button id="closeSignalMonitor" type="button" class="secondary-btn" style="padding:7px 9px">✕</button>
-      </div>
+      <span class="small-tag">BUY ONLY</span>
     </div>
 
     <div id="liveSignalMonitor" class="live-monitor-grid">
-      <div class="empty large-empty">Click one of the Top 5 stocks above to open its monitor.</div>
+      <div class="empty large-empty">Waiting for confirmed SWING BUY data...</div>
     </div>
 
     <div class="monitor-note">
-      Monitor appears only for the Top-5 stock you select. Click another Top-5 stock to switch.
+      Only SWING BUY is displayed. WATCH and CONFIRMING stay internal to the engine.
     </div>
   </article>
 
@@ -805,7 +550,7 @@ th{color:var(--muted)}
   <article class="card">
     <div class="section-head">
       <div>
-        <h2>HANZ Swing Candidates</h2>
+        <h2>Confirmed SWING BUY Candidates</h2>
         <p>Daily breakout + weekly bullish confirmation</p>
       </div>
       <span class="small-tag">SWING ENGINE</span>
@@ -852,65 +597,6 @@ th{color:var(--muted)}
 </section>
 
 <section id="system" class="panel">
-
-<section class="card" id="pushDiagnosticCard">
-  <div class="section-title">
-    <div>
-      <small>PUSH DIAGNOSTIC</small>
-      <h2>Firebase delivery status</h2>
-    </div>
-  </div>
-
-  <div class="metric-grid">
-    <div class="metric-card">
-      <span>FOREGROUND FCM</span>
-      <strong id="diagForegroundState">NEVER</strong>
-      <small id="diagForegroundTime">No message received</small>
-    </div>
-
-    <div class="metric-card">
-      <span>BACKGROUND FCM</span>
-      <strong id="diagBackgroundState">NEVER</strong>
-      <small id="diagBackgroundTime">No message received</small>
-    </div>
-
-    <div class="metric-card">
-      <span>RAW PUSH EVENT</span>
-      <strong id="diagRawPushState">NEVER</strong>
-      <small id="diagRawPushTime">No browser push event captured</small>
-    </div>
-
-    <div class="metric-card">
-      <span>SERVICE WORKER</span>
-      <strong id="diagSwState">CHECKING</strong>
-      <small id="diagSwScope">—</small>
-    </div>
-
-    <div class="metric-card">
-      <span>CURRENT FID</span>
-      <strong id="diagCurrentFid">—</strong>
-      <small>Latest onRegistered() FID</small>
-    </div>
-
-    <div class="metric-card">
-      <span>NOTIFICATION PERMISSION</span>
-      <strong id="diagPermission">—</strong>
-      <small>Browser permission</small>
-    </div>
-  </div>
-
-  <div class="reason" style="margin-top:12px">
-    <strong>Last FCM payload</strong>
-    <pre id="diagPayload" style="white-space:pre-wrap;word-break:break-word;margin:8px 0 0;font-size:11px;line-height:1.45;max-height:220px;overflow:auto">No FCM message received yet.</pre>
-  </div>
-
-  <div class="reason" style="margin-top:10px">
-    <strong>How to read this</strong><br>
-    FOREGROUND = message reached the page while HANZ was open.<br>
-    BACKGROUND = service worker received the message while HANZ was in background.
-  </div>
-</section>
-
   <article class="card">
     <div class="section-head">
       <div>
@@ -964,21 +650,8 @@ th{color:var(--muted)}
       </div>
 
       <div class="field">
-        <label id="authPasswordLabel">PASSWORD</label>
-        <div class="password-wrap">
-          <input id="authPassword" type="password" autocomplete="current-password" required minlength="6" placeholder="Minimum 6 characters">
-          <button id="authPasswordToggle" type="button" class="password-toggle" aria-label="Show password" title="Show password">👁</button>
-        </div>
-      </div>
-
-      <button id="forgotPasswordButton" type="button" class="auth-link">Forgot password?</button>
-
-      <div id="recoveryConfirmWrap" class="field" style="display:none">
-        <label>CONFIRM NEW PASSWORD</label>
-        <div class="password-wrap">
-          <input id="authPasswordConfirm" type="password" autocomplete="new-password" minlength="6" placeholder="Repeat new password">
-          <button id="authPasswordConfirmToggle" type="button" class="password-toggle" aria-label="Show password" title="Show password">👁</button>
-        </div>
+        <label>PASSWORD</label>
+        <input id="authPassword" type="password" autocomplete="current-password" required minlength="6" placeholder="Minimum 6 characters">
       </div>
 
       <button id="authSubmit" type="submit" class="auth-submit">Login to HANZ</button>
@@ -1064,39 +737,6 @@ th{color:var(--muted)}
 </div>
 
 <div id="toast" class="toast"></div>
-
-<div id="chartModal" class="modal" aria-hidden="true">
-  <div class="chart-modal-card">
-    <div class="chart-modal-head">
-      <div>
-        <div id="chartTicker" class="chart-modal-title">—</div>
-        <div id="chartSubtitle" class="chart-modal-sub">HANZ technical chart</div>
-      </div>
-      <button id="closeChartModalButton" class="chart-close" type="button">✕</button>
-    </div>
-    <div id="chartLevelChips" class="chart-toolbar"></div>
-    <div class="chart-basis-note">
-      <strong>Analysis basis:</strong> completed daily candles only.
-      Current Price is shown separately as the latest intraday / last-traded price and does not change the completed-candle technical analysis. Volume panel shows daily volume, 20-day average volume, and RVOL context.
-    </div>
-    <div id="chartStatus" class="chart-status">Select a stock to load its chart.</div>
-    <div id="chartVolumeLegend" class="volume-legend" style="display:none"></div>
-    <div id="hanzChartWrap" style="display:none">
-      <div id="hanzChart"></div>
-      <div id="hanzVolume"></div>
-    </div>
-    <div class="chart-attribution">
-      HANZ built-in rendering
-      <a href="https://www.tradingview.com/lightweight-charts/" target="_blank" rel="noopener">
-        TradingView Lightweight Charts™
-      </a>.
-      Chart data is read directly from Supabase table hanz_swing_chart_data and rendered by the built-in HANZ SVG renderer.
-    </div>
-  </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.1.1/dist/lightweight-charts.standalone.production.js"></script>
-
 <script type="module">
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
@@ -1105,9 +745,7 @@ import {
   isSupported as isMessagingSupported,
   onMessage,
   onRegistered,
-  onUnregistered,
-  register as registerMessaging,
-  unregister as unregisterMessaging
+  register as registerMessaging
 } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-messaging.js";
 
 /* =========================================================
@@ -1140,7 +778,6 @@ let currentUser = null;
 let currentSession = null;
 let portfolioRows = [];
 let editPositionId = null;
-let selectedMonitorTicker = null;
 
 let firebaseMessaging = null;
 let pushServiceWorkerRegistration = null;
@@ -1205,162 +842,19 @@ function clearError(){
 }
 
 
-
-/* PUSH DIAGNOSTICS */
-const PUSH_DIAG_STORAGE_KEY="hanz_push_diagnostic_v11";
-
-function readPushDiagnostic(){
-  try{
-    return JSON.parse(localStorage.getItem(PUSH_DIAG_STORAGE_KEY) || "{}");
-  }catch(_){
-    return {};
-  }
-}
-
-function writePushDiagnostic(update){
-  const current=readPushDiagnostic();
-  const next={...current,...update};
-  try{
-    localStorage.setItem(PUSH_DIAG_STORAGE_KEY,JSON.stringify(next));
-  }catch(_){}
-  renderPushDiagnostic();
-}
-
-function formatDiagTime(value){
-  if(!value) return "No message received";
-  try{
-    return new Date(value).toLocaleString();
-  }catch(_){
-    return String(value);
-  }
-}
-
-async function readBackgroundProbeFromCache(){
-  try{
-    if(!("caches" in window)) return null;
-    const cache=await caches.open("hanz-push-diagnostic-v13");
-    const response=await cache.match("/__hanz_push_background_probe__");
-    if(!response) return null;
-    return await response.json();
-  }catch(error){
-    console.warn("HANZ background probe cache read failed:",error);
-    return null;
-  }
-}
-
-async function renderPushDiagnostic(){
-  const state=readPushDiagnostic();
-  const backgroundProbe=await readBackgroundProbeFromCache();
-
-  if(backgroundProbe?.received_at){
-    state.background_at=backgroundProbe.received_at;
-    state.last_payload=backgroundProbe.payload || state.last_payload || null;
-    state.last_channel="BACKGROUND_RAW_PUSH";
-  }
-
-  const fgState=$("diagForegroundState");
-  const fgTime=$("diagForegroundTime");
-  const bgState=$("diagBackgroundState");
-  const bgTime=$("diagBackgroundTime");
-  const rawState=$("diagRawPushState");
-  const rawTime=$("diagRawPushTime");
-  const swState=$("diagSwState");
-  const swScope=$("diagSwScope");
-  const fid=$("diagCurrentFid");
-  const perm=$("diagPermission");
-  const payload=$("diagPayload");
-
-  if(fgState) fgState.textContent=state.foreground_at ? "RECEIVED" : "NEVER";
-  if(fgTime) fgTime.textContent=formatDiagTime(state.foreground_at);
-
-  if(bgState) bgState.textContent=state.background_at ? "RECEIVED" : "NEVER";
-  if(bgTime) bgTime.textContent=formatDiagTime(state.background_at);
-
-  if(rawState) rawState.textContent=backgroundProbe?.received_at ? "RECEIVED" : "NEVER";
-  if(rawTime) rawTime.textContent=formatDiagTime(backgroundProbe?.received_at);
-
-  if(fid) fid.textContent=currentInstallationId || "—";
-
-  if(perm){
-    perm.textContent=("Notification" in window)
-      ? String(Notification.permission || "default").toUpperCase()
-      : "UNSUPPORTED";
-  }
-
-  if(payload){
-    const latest=state.last_payload || null;
-    payload.textContent=latest
-      ? JSON.stringify(latest,null,2)
-      : "No FCM message received yet.";
-  }
-
-  if(swState && swScope){
-    try{
-      const reg=await navigator.serviceWorker.getRegistration("/dashboard/");
-      if(reg){
-        swState.textContent=reg.active ? "ACTIVE" : "REGISTERED";
-        swScope.textContent=reg.scope || "/dashboard/";
-      }else{
-        swState.textContent="NOT FOUND";
-        swScope.textContent="No /dashboard/ service worker registration";
-      }
-    }catch(error){
-      swState.textContent="ERROR";
-      swScope.textContent=error.message || String(error);
-    }
-  }
-}
-
-if("serviceWorker" in navigator){
-  navigator.serviceWorker.addEventListener("message",(event)=>{
-    const msg=event?.data || {};
-    if(msg.type!=="HANZ_FCM_BACKGROUND") return;
-
-    writePushDiagnostic({
-      background_at:new Date().toISOString(),
-      last_payload:msg.payload || null,
-      last_channel:"BACKGROUND"
-    });
-  });
-}
-
-
 /* PUSH NOTIFICATIONS */
-function pushPreferenceKey(){
-  return currentUser ? `hanz_push_disabled_${currentUser.id}` : "hanz_push_disabled";
-}
-
-function pushDisabledByUser(){
-  try{
-    return localStorage.getItem(pushPreferenceKey()) === "1";
-  }catch(_){
-    return false;
-  }
-}
-
-function setPushDisabledByUser(disabled){
-  try{
-    if(disabled) localStorage.setItem(pushPreferenceKey(),"1");
-    else localStorage.removeItem(pushPreferenceKey());
-  }catch(_){}
-}
-
 function renderPushState(){
   const btn = $("pushButton");
   if(!btn) return;
 
   btn.classList.remove("push-on","push-denied");
 
-  const fidBtn=$("copyFidButton");
-
   if(!currentUser){
     btn.style.display="none";
-    if(fidBtn) fidBtn.style.display="none";
     return;
   }
 
   btn.style.display="inline-flex";
-  if(fidBtn) fidBtn.style.display="none";
 
   if(!("Notification" in window)){
     btn.textContent="🔕 Unsupported";
@@ -1376,94 +870,31 @@ function renderPushState(){
     return;
   }
 
-  if(pushDisabledByUser()){
-    btn.textContent="🔕 Push OFF";
-    btn.title="Tap to enable HANZ push notifications";
-    return;
-  }
-
-  // Browser notification permission survives page/browser restart.
-  // If permission is still granted and the user has not explicitly
-  // disabled HANZ push, show the persisted state as ON immediately.
-  // syncPushIfAlreadyGranted() will refresh the Firebase registration
-  // in the background after login.
-  if(Notification.permission === "granted"){
+  if(pushReady && currentInstallationId){
     btn.textContent="🔔 Push ON";
-    btn.title="Tap to disable HANZ push notifications";
     btn.classList.add("push-on");
-    return;
+  }else{
+    btn.textContent="🔔 Enable Push";
   }
-
-  btn.textContent="🔔 Enable Push";
-  btn.title="Enable HANZ push notifications";
 }
 
 async function upsertPushDevice(installationId){
   if(!currentUser || !installationId) return;
 
-  const now=new Date().toISOString();
-
-  // Only the FID reported by the latest successful register() remains enabled.
-  const {error:disableError}=await supabase
-    .from("hanz_push_devices")
-    .update({
-      enabled:false,
-      last_seen_at:now
-    })
-    .eq("user_id",currentUser.id);
-
-  if(disableError) throw disableError;
-
-  const payload={
-    user_id:currentUser.id,
-    installation_id:installationId,
-    platform:navigator.platform || null,
-    user_agent:navigator.userAgent || null,
-    enabled:true,
-    last_seen_at:now
+  const payload = {
+    user_id: currentUser.id,
+    installation_id: installationId,
+    platform: navigator.platform || null,
+    user_agent: navigator.userAgent || null,
+    enabled: true,
+    last_seen_at: new Date().toISOString()
   };
 
-  const {error}=await supabase
+  const {error} = await supabase
     .from("hanz_push_devices")
     .upsert(payload,{onConflict:"user_id,installation_id"});
 
   if(error) throw error;
-
-  currentInstallationId=installationId;
-  pushReady=true;
-  renderPushState();
-}
-
-let pushRegistrationRefreshPromise=null;
-
-async function refreshPushRegistration(){
-  if(!currentUser) return false;
-  if(pushDisabledByUser()) return false;
-
-  if(pushRegistrationRefreshPromise){
-    return pushRegistrationRefreshPromise;
-  }
-
-  pushRegistrationRefreshPromise=(async ()=>{
-    try{
-      const okay=await initPushMessaging();
-      if(!okay) return false;
-
-      if(Notification.permission !== "granted"){
-        return false;
-      }
-
-      // Modern Firebase Messaging registration. onRegistered() is the source
-      // of truth for the active FID and will update Supabase.
-      await refreshPushRegistration();
-
-      return true;
-    }finally{
-      pushRegistrationRefreshPromise=null;
-    }
-  })();
-
-  return pushRegistrationRefreshPromise;
 }
 
 async function initPushMessaging(){
@@ -1482,8 +913,8 @@ async function initPushMessaging(){
 
   if(!pushServiceWorkerRegistration){
     pushServiceWorkerRegistration = await navigator.serviceWorker.register(
-      "/dashboard/firebase-messaging-sw.js",
-      {scope:"/dashboard/"}
+      "./firebase-messaging-sw.js",
+      {scope:"./"}
     );
   }
 
@@ -1492,86 +923,23 @@ async function initPushMessaging(){
 
     onRegistered(firebaseMessaging, async installationId=>{
       try{
-        if(!currentUser || !installationId) return;
-
-        if(pushDisabledByUser()){
-          const {error}=await supabase
-            .from("hanz_push_devices")
-            .upsert({
-              user_id:currentUser.id,
-              installation_id:installationId,
-              platform:navigator.platform || null,
-              user_agent:navigator.userAgent || null,
-              enabled:false,
-              last_seen_at:new Date().toISOString()
-            },{onConflict:"user_id,installation_id"});
-
-          if(error) throw error;
-
-          currentInstallationId=null;
-          pushReady=false;
-          renderPushState();
-          return;
-        }
-
+        currentInstallationId = installationId;
         await upsertPushDevice(installationId);
-        console.log("HANZ active FID registered:",installationId);
+        pushReady = true;
+        renderPushState();
+        console.log("HANZ push registered:", installationId);
       }catch(error){
         console.error("Push registration save failed:",error);
         notify("Push registration failed: " + error.message,"error");
       }
     });
 
-    onUnregistered(firebaseMessaging, async installationId=>{
-      try{
-        if(currentUser && installationId){
-          await supabase
-            .from("hanz_push_devices")
-            .update({
-              enabled:false,
-              last_seen_at:new Date().toISOString()
-            })
-            .eq("user_id",currentUser.id)
-            .eq("installation_id",installationId);
-        }
-
-        if(currentInstallationId===installationId){
-          currentInstallationId=null;
-        }
-
-        pushReady=false;
-        renderPushState();
-        console.warn("HANZ FID unregistered:",installationId);
-
-        // Self-heal only when user still wants push ON.
-        if(!pushDisabledByUser() && Notification.permission==="granted"){
-          setTimeout(()=>{
-            refreshPushRegistration().catch(error=>{
-              console.warn("HANZ push self-heal retry failed:",error);
-            });
-          },1500);
-        }
-      }catch(error){
-        console.warn("HANZ unregister sync warning:",error);
-      }
-    });
-
     onMessage(firebaseMessaging, payload=>{
-      writePushDiagnostic({
-        foreground_at:new Date().toISOString(),
-        last_payload:payload || null,
-        last_channel:"FOREGROUND"
-      });
-
       const data = payload?.data || {};
-      const title = data.title || payload?.notification?.title || "HANZ Alert";
+      const title = data.title || "HANZ Alert";
       const body = data.body || data.message || "New HANZ trading alert.";
 
-      if(
-        Notification.permission === "granted" &&
-        pushServiceWorkerRegistration &&
-        !pushDisabledByUser()
-      ){
+      if(Notification.permission === "granted" && pushServiceWorkerRegistration){
         pushServiceWorkerRegistration.showNotification(title,{
           body,
           tag:data.dedupe_key || data.alert_id || undefined,
@@ -1595,7 +963,6 @@ async function enablePush(){
   }
 
   try{
-    setPushDisabledByUser(false);
     const okay = await initPushMessaging();
     if(!okay){
       notify("Push notification is not supported on this browser.","error");
@@ -1615,8 +982,6 @@ async function enablePush(){
       serviceWorkerRegistration:pushServiceWorkerRegistration
     });
 
-    try{ localStorage.setItem(`hanz_push_ever_enabled_${currentUser.id}`,"1"); }catch(_){}
-    renderPushState();
     notify("HANZ push notifications enabled.");
   }catch(error){
     console.error(error);
@@ -1624,126 +989,22 @@ async function enablePush(){
   }
 }
 
-async function disablePush(){
-  if(!currentUser) return;
-
-  try{
-    setPushDisabledByUser(true);
-
-    const {error}=await supabase
-      .from("hanz_push_devices")
-      .update({
-        enabled:false,
-        last_seen_at:new Date().toISOString()
-      })
-      .eq("user_id",currentUser.id);
-
-    if(error) throw error;
-
-    // Modern FCM registration lifecycle: unregister the FID.
-    // If it is already stale/unregistered, keep HANZ OFF anyway.
-    try{
-      if(firebaseMessaging){
-        await unregisterMessaging(firebaseMessaging);
-      }
-    }catch(error){
-      console.warn("FCM unregister warning:",error);
-    }
-
-    currentInstallationId=null;
-    pushReady=false;
-    renderPushState();
-    notify("HANZ push notifications disabled on this device.");
-  }catch(error){
-    setPushDisabledByUser(false);
-    console.error(error);
-    notify("Failed to disable push: " + error.message,"error");
-    renderPushState();
-  }
-}
-
-async function togglePush(){
-  if(!currentUser){
-    openAuth("login");
-    return;
-  }
-
-  const btn=$("pushButton");
-  const looksOn=!!btn && btn.classList.contains("push-on");
-
-  if(!pushDisabledByUser() && (looksOn || pushReady || currentInstallationId)){
-    await disablePush();
-    return;
-  }
-
-  setPushDisabledByUser(false);
-  renderPushState();
-  await enablePush();
-}
-
 async function syncPushIfAlreadyGranted(){
-  if(!currentUser || Notification.permission!=="granted") return;
-
-  if(pushDisabledByUser()){
-    pushReady=false;
-    renderPushState();
-    return;
-  }
+  if(!currentUser || Notification.permission !== "granted") return;
 
   try{
-    await refreshPushRegistration();
-  }catch(error){
-    console.warn("Background push registration refresh failed:",error);
-  }
-}
+    const okay = await initPushMessaging();
+    if(!okay) return;
 
-
-async function copyCurrentFid(){
-  if(!currentUser){
-    openAuth("login");
-    return;
-  }
-
-  try{
-    if(pushDisabledByUser()){
-      notify("Turn Push ON first.","error");
-      return;
-    }
-
-    const okay=await initPushMessaging();
-    if(!okay){
-      notify("Push messaging is not supported on this browser.","error");
-      return;
-    }
-
-    // Trigger a modern FID registration refresh. The FID itself is delivered
-    // asynchronously to onRegistered().
     await registerMessaging(firebaseMessaging,{
       vapidKey:FIREBASE_VAPID_KEY,
       serviceWorkerRegistration:pushServiceWorkerRegistration
     });
-
-    // Give onRegistered a moment to update currentInstallationId.
-    for(let i=0;i<20 && !currentInstallationId;i++){
-      await new Promise(resolve=>setTimeout(resolve,100));
-    }
-
-    if(!currentInstallationId){
-      notify("FID is not available yet. Wait a moment and try again.","error");
-      return;
-    }
-
-    try{
-      await navigator.clipboard.writeText(currentInstallationId);
-      notify("Firebase Installation ID copied.");
-    }catch(_){
-      window.prompt("Copy this Firebase Installation ID:",currentInstallationId);
-    }
   }catch(error){
-    console.error(error);
-    notify("Failed to get FID: " + error.message,"error");
+    console.warn("Background push sync failed:",error);
   }
 }
+
 
 /* NAV */
 function showPanel(name){
@@ -1767,47 +1028,14 @@ function closeAuth(){
   $("authMessage").textContent = "";
 }
 
-function bindPasswordToggle(inputId,buttonId){
-  const input=$(inputId);
-  const button=$(buttonId);
-  if(!input || !button) return;
-  button.addEventListener("click",()=>{
-    const showing=input.type==="text";
-    input.type=showing ? "password" : "text";
-    button.textContent=showing ? "👁" : "🙈";
-    button.setAttribute("aria-label",showing ? "Show password" : "Hide password");
-    button.title=showing ? "Show password" : "Hide password";
-  });
-}
-
 function setAuthMode(mode){
   const loginMode = mode === "login";
-  const signupMode = mode === "signup";
-  const recoveryMode = mode === "recovery";
-
   $("loginTab").classList.toggle("active",loginMode);
-  $("signupTab").classList.toggle("active",signupMode);
-  $("authModal").querySelector(".auth-tabs").style.display = recoveryMode ? "none" : "grid";
-  $("signupNameWrap").style.display = signupMode ? "block" : "none";
-
-  $("authEmail").closest(".field").style.display = recoveryMode ? "none" : "block";
-  $("authPasswordLabel").textContent = recoveryMode ? "NEW PASSWORD" : "PASSWORD";
-  $("authPassword").autocomplete = recoveryMode ? "new-password" : "current-password";
-  $("authPassword").placeholder = recoveryMode ? "Minimum 6 characters" : "Minimum 6 characters";
-  $("recoveryConfirmWrap").style.display = recoveryMode ? "block" : "none";
-  $("forgotPasswordButton").style.display = loginMode ? "block" : "none";
-
-  $("authSubmit").textContent = recoveryMode
-    ? "Update Password"
-    : (loginMode ? "Login to HANZ" : "Create HANZ Account");
-
+  $("signupTab").classList.toggle("active",!loginMode);
+  $("signupNameWrap").style.display = loginMode ? "none" : "block";
+  $("authSubmit").textContent = loginMode ? "Login to HANZ" : "Create HANZ Account";
   $("authForm").dataset.mode = mode;
   $("authMessage").textContent = "";
-
-  if(recoveryMode){
-    $("authPassword").value = "";
-    $("authPasswordConfirm").value = "";
-  }
 }
 
 async function signUp(){
@@ -1834,41 +1062,6 @@ async function signUp(){
 
   $("authMessage").innerHTML =
     `<div class="auth-success">Account created. Check <strong>${safe(email)}</strong> and confirm your email.</div>`;
-}
-
-async function requestPasswordReset(){
-  const email = $("authEmail").value.trim();
-  if(!email) throw new Error("Enter your email first.");
-
-  const redirectTo = window.location.origin + "/dashboard/swing/";
-
-  const {error} = await supabase.auth.resetPasswordForEmail(email,{
-    redirectTo
-  });
-  if(error) throw error;
-
-  $("authMessage").innerHTML =
-    `<div class="auth-success">Password reset link sent to <strong>${safe(email)}</strong>. Check your inbox.</div>`;
-}
-
-async function updateRecoveredPassword(){
-  const password = $("authPassword").value;
-  const confirmPassword = $("authPasswordConfirm").value;
-
-  if(password.length < 6) throw new Error("Password must contain at least 6 characters.");
-  if(password !== confirmPassword) throw new Error("Passwords do not match.");
-
-  const {error} = await supabase.auth.updateUser({password});
-  if(error) throw error;
-
-  $("authMessage").innerHTML =
-    `<div class="auth-success">Password updated successfully. You can continue using HANZ.</div>`;
-
-  setTimeout(()=>{
-    closeAuth();
-    renderAuthState();
-    notify("Password updated.");
-  },900);
 }
 
 async function login(){
@@ -1910,8 +1103,6 @@ function renderAuthState(){
     $("userArea").style.display="flex";
     $("userName").textContent=displayName;
     $("userEmail").textContent=currentUser.email || "";
-    $("userName").title=displayName;
-    $("userEmail").title=currentUser.email || "";
     $("addPositionButton").disabled=false;
     $("portfolioLocked").style.display="none";
     renderPushState();
@@ -1940,12 +1131,6 @@ async function initAuth(){
     currentUser=session?.user || null;
     renderAuthState();
 
-    if(_event==="PASSWORD_RECOVERY"){
-      openAuth("recovery");
-      $("authMessage").innerHTML =
-        `<div class="auth-success">Enter a new password for your HANZ account.</div>`;
-    }
-
     if(currentUser){
       setTimeout(async ()=>{
         await loadPortfolio();
@@ -1958,623 +1143,106 @@ async function initAuth(){
   });
 }
 
-/* SHARED HANZ SIGNALS */
-const HANZ_SIGNAL_STATES=["EARLY_CONFIRMED_BUY","SWING_BUY","SWING_CONFIRMING","SWING_WATCH","RADAR_ARMED","RADAR_PRE_ALERT","RADAR_WATCH","SETUP_READY","PRE_ALERT","EARLY_WATCH","MOMENTUM_BROKEN"];
-
-function radarProgress(state){
-  return {
-    "EARLY_WATCH":20,
-    "RADAR_WATCH":30,
-    "PRE_ALERT":45,
-    "RADAR_PRE_ALERT":55,
-    "SETUP_READY":70,
-    "RADAR_ARMED":80,
-    "EARLY_CONFIRMED_BUY":95,
-    "SWING_BUY":100,
-    "MOMENTUM_BROKEN":0
-  }[String(state || "").toUpperCase()] ?? 0;
-}
-
-function radarStageLabel(state){
-  return {
-    "EARLY_WATCH":"Early structure detected",
-    "RADAR_WATCH":"Predictive radar watching",
-    "PRE_ALERT":"Pre-alert building",
-    "RADAR_PRE_ALERT":"Predictive pre-alert",
-    "SETUP_READY":"Setup ready — waiting reconfirmation",
-    "RADAR_ARMED":"Radar armed — waiting completed-bar reconfirmation",
-    "EARLY_CONFIRMED_BUY":"Early bullish transition confirmed before full expansion",
-    "SWING_BUY":"Trend-continuation reconfirmation complete",
-    "MOMENTUM_BROKEN":"Setup invalidated"
-  }[String(state || "").toUpperCase()] || String(state || "UNKNOWN").replaceAll("_"," ");
-}
-
-// V33: prevent a raw SWING_BUY engine state from being presented as an actionable BUY
-// when the final risk gate has not cleared it.
-function displaySignalStateLabel(row){
-  const state=String(row?.state || "").toUpperCase();
-  const decision=finalDecision(row);
-  if(["SWING_BUY","EARLY_CONFIRMED_BUY"].includes(state) && decision.label!=="BUY"){
-    return state==="EARLY_CONFIRMED_BUY" ? "EARLY TECHNICAL CONFIRMATION" : "TECHNICALLY RECONFIRMED";
-  }
-  return signalStateLabel(state);
-}
-
-function signalStateRank(state){
-  return {
-    "EARLY_CONFIRMED_BUY":8,
-    "SWING_BUY":7,
-    "SWING_CONFIRMING":6,
-    "RADAR_ARMED":5,
-    "SETUP_READY":4,
-    "SWING_WATCH":3,
-    "PRE_ALERT":3,
-    "EARLY_WATCH":2,
-    "MOMENTUM_BROKEN":1
-  }[String(state || "").toUpperCase()] || 0;
-}
-
-function signalStateLabel(state){
-  return {
-    "EARLY_CONFIRMED_BUY":"EARLY CONFIRMED BUY",
-    "SWING_BUY":"RECONFIRMED BUY",
-    "SWING_CONFIRMING":"SWING CONFIRMING",
-    "SWING_WATCH":"SWING WATCH",
-    "RADAR_ARMED":"RADAR ARMED",
-    "RADAR_PRE_ALERT":"RADAR PRE-ALERT",
-    "RADAR_WATCH":"RADAR WATCH",
-    "MOMENTUM_BROKEN":"AVOID · MOMENTUM BROKEN",
-    "SETUP_READY":"SETUP READY",
-    "PRE_ALERT":"PRE-ALERT",
-    "EARLY_WATCH":"EARLY WATCH"
-  }[String(state || "").toUpperCase()] || String(state || "UNKNOWN").replaceAll("_"," ");
-}
-
-function signalStateClass(state){
-  return {
-    "EARLY_CONFIRMED_BUY":"state-buy",
-    "SWING_BUY":"state-buy",
-    "SWING_CONFIRMING":"state-ready",
-    "SWING_WATCH":"state-pre",
-    "MOMENTUM_BROKEN":"state-broken",
-    "SETUP_READY":"state-ready",
-    "PRE_ALERT":"state-pre",
-    "EARLY_WATCH":"state-early"
-  }[String(state || "").toUpperCase()] || "state-pre";
-}
-
-
-function volatilityInfo(row){
-  const r=(row && row.risk_validation && typeof row.risk_validation==="object")
-    ? row.risk_validation : {};
-  const status=String(r.volatility_status || "NORMAL").toUpperCase();
-  return {
-    status,
-    warning:r.volatility_warning || (status==="EXTREME"
-      ? "EXTREME VOLATILITY — NOT SUITABLE FOR HANZ SWING"
-      : status==="HIGH"
-        ? "HIGH VOLATILITY — SWING RISK ELEVATED"
-        : "NORMAL VOLATILITY"),
-    reason:r.volatility_reason || "",
-    atr_pct:r.atr_pct,
-    gap_pct:r.gap_pct,
-    day_range_pct:r.day_range_pct,
-    extreme_move_days10:r.extreme_move_days10
-  };
-}
-
-function volatilityWarningHtml(row){
-  const v=volatilityInfo(row);
-  if(v.status!=="HIGH" && v.status!=="EXTREME") return "";
-  const cls=v.status==="EXTREME" ? "extreme" : "high";
-  const metrics=[
-    Number.isFinite(Number(v.atr_pct)) ? `ATR ${Number(v.atr_pct).toFixed(1)}%` : null,
-    Number.isFinite(Number(v.gap_pct)) ? `Gap ${Number(v.gap_pct)>=0?"+":""}${Number(v.gap_pct).toFixed(1)}%` : null,
-    Number.isFinite(Number(v.day_range_pct)) ? `Range ${Number(v.day_range_pct).toFixed(1)}%` : null
-  ].filter(Boolean).join(" · ");
-  return `<div class="volatility-warning ${cls}">⚠ ${safe(v.warning)}${metrics?` · ${safe(metrics)}`:""}${v.reason?`<div style="margin-top:4px;font-weight:700">${safe(v.reason)}</div>`:""}</div>`;
-}
-
-function finalDecision(row){
-  const state=String(row?.state || "").toUpperCase();
-  const gate=String(row?.risk_gate || row?.risk_validation?.gate || "MONITOR").toUpperCase();
-  const momentum=String(row?.risk_validation?.momentum_status || "").toUpperCase();
-  const volatility=volatilityInfo(row).status;
-  const entryStatus=String(row?.entry_status || row?.risk_validation?.entry_status || "").toUpperCase();
-
-  if(state==="MOMENTUM_BROKEN" || momentum==="BROKEN"){
-    return {label:"AVOID",cls:"state-broken",detail:"Momentum/breakout damage veto"};
-  }
-  if(volatility==="EXTREME"){
-    return {label:"AVOID",cls:"state-broken",detail:"Extreme volatility is not suitable for HANZ Swing"};
-  }
-  if(["SWING_BUY","EARLY_CONFIRMED_BUY"].includes(state) && entryStatus==="WAIT_PULLBACK"){
-    return {label:"WAIT",cls:"state-ready",detail:"GOOD STOCK — BAD ENTRY: price is extended from preferred entry; wait for pullback/retest"};
-  }
-  if(["SWING_BUY","EARLY_CONFIRMED_BUY"].includes(state) && ["ELIGIBLE","CAUTION"].includes(gate)){
-    const early=state==="EARLY_CONFIRMED_BUY";
-    return {
-      label:"BUY",
-      cls:"state-buy",
-      detail:gate==="CAUTION"
-        ? (early ? "Early confirmed BUY with caution" : "Buy signal with caution")
-        : (early ? "Actionable early confirmed BUY near pre-expansion location" : "Actionable reconfirmed buy")
-    };
-  }
-  if(["SWING_BUY","EARLY_CONFIRMED_BUY"].includes(state) && gate==="RESEARCH_ONLY"){
-    return {label:"PAPER ONLY",cls:"state-ready",detail:"Technical signal is reconfirmed, but the strategy has not yet passed walk-forward validation"};
-  }
-  if(["SWING_BUY","EARLY_CONFIRMED_BUY"].includes(state) && ["BLOCKED","PAPER_ONLY"].includes(gate)){
-    return {label:"NO BUY",cls:"state-broken",detail:`Risk gate ${gate}`};
-  }
-  if(["SWING_BUY","EARLY_CONFIRMED_BUY"].includes(state)){
-    return {label:"WATCH",cls:"state-pre",detail:`Technical reconfirmation complete; waiting final risk clearance (${gate})`};
-  }
-  if(state==="SETUP_READY"){
-    return {label:"WAIT",cls:"state-ready",detail:"Setup ready; reconfirmation required"};
-  }
-  return {label:"WATCH",cls:"state-pre",detail:"Not actionable"};
-}
-
-
-function decisionGuidanceHtmlSafe(row){
-  const d=finalDecision(row);
-  const state=String(row?.state || "").toUpperCase();
-  const gate=String(row?.risk_gate || row?.risk_validation?.gate || "MONITOR").toUpperCase();
-  let why="Candidate is still under HANZ review and is not actionable yet.";
-  let next="Wait for completed-bar reconfirmation and final risk clearance before acting.";
-
-  if(d.label==="WAIT" && String(row?.entry_status || row?.risk_validation?.entry_status || "").toUpperCase()==="WAIT_PULLBACK"){
-    why="Technical setup is valid, but the current price is too extended from the preferred entry location.";
-    next="Do not chase. Wait for a controlled pullback/retest into the displayed entry zone and require the setup to remain intact.";
-  }else if(d.label==="BUY"){
-    why="Technical reconfirmation, entry-location check and final risk gate are cleared.";
-    next="Actionable BUY: follow the displayed entry zone, stop-loss, target and position-risk rules.";
-  }else if(["SWING_BUY","EARLY_CONFIRMED_BUY"].includes(state) && gate==="MONITOR"){
-    why="Technical reconfirmation is complete, but final risk clearance is still MONITOR.";
-    next="Risk gate must clear to ELIGIBLE or CAUTION while momentum remains intact.";
-  }else if(gate==="RESEARCH_ONLY"){
-    why="The technical setup is reconfirmed, but the strategy is still unvalidated by Walk-Forward Analysis.";
-    next="Use this signal only for research/paper tracking until WFA, OOS expectancy, drawdown and sample-size checks are completed.";
-  }else if(["BLOCKED","PAPER_ONLY"].includes(gate)){
-    why=`Risk gate is ${gate}; real-money execution is blocked.`;
-    next="Wait until the blocking risk conditions clear and HANZ produces a fresh final BUY.";
-  }else if(state==="RADAR_ARMED" || state==="SETUP_READY"){
-    why="Setup is ready, but completed-bar reconfirmation is still required.";
-    next="The next completed daily bar must pass the BUY, momentum, volatility and risk checks.";
-  }else if(state==="RADAR_PRE_ALERT" || state==="PRE_ALERT"){
-    why="Leading conditions are building, but the setup is not yet reconfirmed.";
-    next="Wait for SETUP READY / RADAR ARMED, then require completed-bar reconfirmation.";
-  }else if(state==="MOMENTUM_BROKEN" || d.label==="AVOID"){
-    why=d.detail || "Momentum/setup is invalidated.";
-    next="Stand aside until HANZ detects a new valid setup.";
-  }
-
-  return `<div style="margin-top:10px;padding:12px;border:1px solid rgba(255,255,255,.14);border-radius:12px;background:rgba(4,12,25,.42);font-size:12px;line-height:1.5">
-    <div style="font-weight:900;letter-spacing:.08em;margin-bottom:6px">DECISION STATUS</div>
-    <div>${safe(why)}</div>
-    <div style="font-weight:900;letter-spacing:.08em;margin:10px 0 6px">WHAT MUST HAPPEN NEXT</div>
-    <div>${safe(next)}</div>
-  </div>`;
-}
-
-function finalDecisionRank(row){
-  const label=String(finalDecision(row)?.label || "").toUpperCase();
-  return {
-    "BUY":5,
-    "WAIT":4,
-    "WATCH":3,
-    "NO BUY":2,
-    "AVOID":1
-  }[label] || 0;
-}
-
-function pctText(v){
-  const n=Number(v);
-  if(!Number.isFinite(n)) return "—";
-  return `${n>0?"+":""}${n.toFixed(2)}%`;
-}
-
-function whyReasons(row,limit=6){
-  const raw=String(row?.evidence || "").split(";").map(x=>x.trim()).filter(Boolean);
-  const unique=[];
-  for(const item of raw){
-    const cleaned=item.replace(/^EARLY:/i,"").trim();
-    if(cleaned && !unique.includes(cleaned)) unique.push(cleaned);
-    if(unique.length>=limit) break;
-  }
-  if(!unique.length){
-    if(row?.daily_trend==="BULLISH") unique.push("Daily trend bullish");
-    if(row?.weekly_trend==="BULLISH") unique.push("Weekly trend bullish");
-    if(row?.breakout) unique.push("20-day breakout confirmed");
-  }
-  return unique;
-}
-
-function whyHtml(row){
-  const reasons=whyReasons(row);
-  const items=reasons.length
-    ? reasons.map(x=>`<li>${safe(x)}</li>`).join("")
-    : "<li>HANZ evidence is not available yet.</li>";
-  return `<div class="why-box">
-    <div class="why-title">WHY HANZ PICKED THIS</div>
-    <ul class="why-list">${items}</ul>
-  </div>`;
-}
-
-
-function riskGateClass(gate){
-  return {
-    "ELIGIBLE":"risk-eligible",
-    "CAUTION":"risk-caution",
-    "BLOCKED":"risk-blocked",
-    "PAPER_ONLY":"risk-paper",
-    "RESEARCH_ONLY":"risk-paper",
-    "MONITOR":"risk-monitor"
-  }[String(gate || "").toUpperCase()] || "risk-monitor";
-}
-
-function compactIDR(value){
-  const n=Number(value);
-  if(!Number.isFinite(n)) return "—";
-  if(Math.abs(n)>=1e9) return "Rp"+(n/1e9).toFixed(1)+"B";
-  if(Math.abs(n)>=1e6) return "Rp"+(n/1e6).toFixed(1)+"M";
-  if(Math.abs(n)>=1e3) return "Rp"+(n/1e3).toFixed(1)+"K";
-  return "Rp"+n.toFixed(0);
-}
-
-function riskHtml(row){
-  const r=(row && row.risk_validation && typeof row.risk_validation==="object")
-    ? row.risk_validation : {};
-  const gate=row?.risk_gate || r.gate || "MONITOR";
-  const blockers=Array.isArray(r.blockers) ? r.blockers : [];
-  const cautions=Array.isArray(r.cautions) ? r.cautions : [];
-
-  const reason=[
-    blockers.length ? "Blocked: "+blockers.join(", ") : "",
-    cautions.length ? "Watch: "+cautions.join(", ") : "",
-    r.kill_switch_reason || ""
-  ].filter(Boolean).join(" · ");
-
-  return `<div class="risk-box">
-    <div class="risk-head">
-      <div class="risk-title">REAL-MONEY GUARD</div>
-      <span class="risk-gate ${riskGateClass(gate)}">${safe(String(gate).replaceAll("_"," "))}</span>
-    </div>
-    <div class="risk-grid">
-      <div><span>MARKET REGIME</span><strong>${safe(r.market_regime || row?.market_regime || "—")}</strong></div>
-      <div><span>MOMENTUM</span><strong>${safe(r.momentum_status || "—")}</strong></div>
-      <div><span>VOLATILITY</span><strong>${safe(r.volatility_status || "NORMAL")} · ATR ${Number.isFinite(Number(r.atr_pct)) ? Number(r.atr_pct).toFixed(1)+"%" : "—"}</strong></div>
-      <div><span>GAP / DAY RANGE</span><strong>${pctText(r.gap_pct)} / ${pctText(r.day_range_pct)}</strong></div>
-      <div><span>1D / 3D / 5D</span><strong>${pctText(r.ret1_pct)} / ${pctText(r.ret3_pct)} / ${pctText(r.ret5_pct)}</strong></div>
-      <div><span>FAILED BREAKOUT</span><strong>${r.failed_breakout ? "YES" : "NO"}</strong></div>
-      <div><span>EARLY LOCATION</span><strong>${r.early_location_ok ? "SUPPORTIVE" : "—"}</strong></div>
-      <div><span>MINOR STRUCTURE SHIFT</span><strong>${r.minor_structure_break || r.higher_low ? "CONFIRMED" : "—"}</strong></div>
-      <div><span>LIQUIDITY</span><strong>${safe(r.liquidity_grade || "—")} · ${compactIDR(r.avg_value20)}</strong></div>
-      <div><span>RISK SCORE</span><strong>${row?.risk_score ?? r.score ?? "—"}/100</strong></div>
-      <div><span>STOP DISTANCE</span><strong>${Number.isFinite(Number(r.stop_distance_pct)) ? Number(r.stop_distance_pct).toFixed(2)+"%" : "—"}</strong></div>
-      <div><span>R:R NET T1 / T2</span><strong>${Number.isFinite(Number(r.net_rr_target_1)) ? Number(r.net_rr_target_1).toFixed(2) : (Number.isFinite(Number(r.rr_target_1)) ? Number(r.rr_target_1).toFixed(2) : "—")} / ${Number.isFinite(Number(r.net_rr_target_2)) ? Number(r.net_rr_target_2).toFixed(2) : (Number.isFinite(Number(r.rr_target_2)) ? Number(r.rr_target_2).toFixed(2) : "—")}</strong></div>
-      <div><span>SUGGESTED SIZE</span><strong>${r.suggested_lots==null ? "—" : r.suggested_lots+" lots"}</strong></div>
-      <div><span>PORTFOLIO RISK</span><strong>${Number.isFinite(Number(r.portfolio_risk_pct)) ? Number(r.portfolio_risk_pct).toFixed(2)+"%" : "—"}</strong></div>
-      <div><span>KILL SWITCH</span><strong>${safe(r.kill_switch || "—")}</strong></div>
-      <div><span>TRADING COSTS</span><strong>${r.costs_configured ? "CONFIGURED" : "PENDING"}</strong></div>
-    </div>
-    ${reason ? `<div class="risk-reason">${safe(reason)}</div>` : ""}
-  </div>`;
-}
-
-
-/* V38 — BOOK-ALIGNED DOCTRINE / VALIDATION-AWARE RANKING
-   Top 5 is no longer "highest radar progress".
-   It ranks only candidates that still have credible BUY-quality evidence.
-   Hard-risk / broken-momentum names are excluded. Ranking is deterministic. */
-function hanzBuyQuality(row){
-  const state=String(row?.state || "").toUpperCase();
-  const r=(row && row.risk_validation && typeof row.risk_validation==="object") ? row.risk_validation : {};
-  const gate=String(row?.risk_gate || r.gate || "MONITOR").toUpperCase();
-  const momentum=String(r.momentum_status || "").toUpperCase();
-  const volatility=String(r.volatility_status || volatilityInfo(row).status || "NORMAL").toUpperCase();
-  const entryStatus=String(row?.entry_status || r.entry_status || "").toUpperCase();
-  const structure=String(r.structure_state || row?.structure_state || "").toUpperCase();
-  const setupFamily=String(r.setup_family || row?.setup_family || "NONE").toUpperCase();
-  const daily=String(row?.daily_trend || "").toUpperCase();
-  const weekly=String(row?.weekly_trend || "").toUpperCase();
-  const trigger=Boolean(r.trigger_confirmed ?? row?.trigger_confirmed);
-  const volumeOk=Boolean(r.volume_confirm ?? row?.volume_confirm);
-  const setup=Math.max(0,Math.min(10,Number(row?.score || 0)));
-
-  // Book-guided eligibility hierarchy. Weighted score ranks only names that survive it.
-  if(state==="MOMENTUM_BROKEN" || momentum==="BROKEN")
-    return {qualified:false,total:0,coverage:100,parts:{},reason:"Momentum/setup damaged"};
-  if(gate==="BLOCKED" || volatility==="EXTREME" || r.failed_breakout===true)
-    return {qualified:false,total:0,coverage:100,parts:{},reason:"Execution/risk veto"};
-  if(structure==="BEARISH_LH_LL")
-    return {qualified:false,total:0,coverage:100,parts:{},reason:"Bearish LH/LL structure"};
-  if(daily!=="BULLISH" || weekly!=="BULLISH")
-    return {qualified:false,total:0,coverage:100,parts:{},reason:"Trend hierarchy not aligned"};
-  if(!["BREAKOUT","PULLBACK_RETEST"].includes(setupFamily))
-    return {qualified:false,total:0,coverage:100,parts:{},reason:"No defined setup family"};
-  if(entryStatus==="WAIT_PULLBACK")
-    return {qualified:false,total:0,coverage:100,parts:{},reason:"GOOD STOCK — BAD ENTRY; wait pullback"};
-
-  let total=0; const parts={};
-  // Hierarchy has already qualified the candidate; these are tie-breakers only.
-  parts.structure=structure==="BULLISH_HH_HL"?20:10; total+=parts.structure;
-  parts.setup=setupFamily==="PULLBACK_RETEST"?18:16; total+=parts.setup;
-  parts.trigger=trigger?20:(state==="SETUP_READY"||state==="SWING_CONFIRMING"?10:0); total+=parts.trigger;
-  parts.volume=volumeOk?12:4; total+=parts.volume;
-  parts.entry=entryStatus==="ENTRY_ZONE"?15:8; total+=parts.entry;
-  parts.maturity={EARLY_CONFIRMED_BUY:12,SWING_BUY:10,SETUP_READY:8,RADAR_ARMED:7,SWING_CONFIRMING:6,RADAR_PRE_ALERT:5,PRE_ALERT:4,RADAR_WATCH:3,SWING_WATCH:3,EARLY_WATCH:2}[state]||0; total+=parts.maturity;
-  const rr=[Number(r.net_rr_target_1),Number(r.rr_target_1),Number(r.net_rr_target_2),Number(r.rr_target_2)].filter(Number.isFinite);
-  parts.rr=rr.length?(Math.max(...rr)>=2?5:Math.max(...rr)>=1.3?3:0):0; total+=parts.rr;
-  // Setup score is diagnostic only and deliberately capped to 5 points.
-  parts.diagnostic=Math.round((setup/10)*5); total+=parts.diagnostic;
-
-  const qualified=total>=50;
-  return {qualified,total:Math.min(100,total),coverage:100,parts,
-    reason:qualified?`${setupFamily.replaceAll("_"," ")} hierarchy qualified`:`Below post-gate ranking threshold`};
-}
-function hanzBuyCompare(a,b){
-  const qa=hanzBuyQuality(a), qb=hanzBuyQuality(b);
-  if(qb.total!==qa.total) return qb.total-qa.total;
-
-  // Deterministic tie-breakers: actionable decision, setup, risk, then ticker.
-  const fd=finalDecisionRank(b)-finalDecisionRank(a);
-  if(fd) return fd;
-  const ss=Number(b?.score || 0)-Number(a?.score || 0);
-  if(ss) return ss;
-  const rg={ELIGIBLE:4,CAUTION:3,MONITOR:2,PAPER_ONLY:2,RESEARCH_ONLY:2,BLOCKED:0};
-  const ga=String(a?.risk_gate || a?.risk_validation?.gate || "MONITOR").toUpperCase();
-  const gb=String(b?.risk_gate || b?.risk_validation?.gate || "MONITOR").toUpperCase();
-  if((rg[gb]||0)!==(rg[ga]||0)) return (rg[gb]||0)-(rg[ga]||0);
-  return String(a?.ticker || "").localeCompare(String(b?.ticker || ""));
-}
-
-function buyQualitySummary(row){
-  const q=hanzBuyQuality(row);
-  return `BUY Quality ${q.total}/100`;
-}
-
+/* SHARED SWING BUY */
 async function loadWatchlist(){
   const {data,error}=await supabase
     .from("hanz_swing_signal_monitor")
     .select("*")
-    .in("state",HANZ_SIGNAL_STATES)
+    .eq("state","SWING_BUY")
     .order("score",{ascending:false})
     .order("updated_at",{ascending:false});
   if(error) throw error;
 
-  const allRows=(data || []).slice().sort(hanzBuyCompare);
-
-  // V35: the public Top 5 is restricted to strong BUY-quality candidates.
-  // If fewer than five qualify, HANZ shows fewer rather than filling the list with weak names.
-  const primaryRows=allRows.filter(row=>hanzBuyQuality(row).qualified);
-  const backupRows=allRows.filter(row=>{
-    const q=hanzBuyQuality(row);
-    const setup=Number(row?.score || 0);
-    const entryStatus=String(row?.entry_status || row?.risk_validation?.entry_status || "").toUpperCase();
-    const gate=String(row?.risk_gate || row?.risk_validation?.gate || "MONITOR").toUpperCase();
-    return !q.qualified && gate!=="BLOCKED" && entryStatus!=="WAIT_PULLBACK" && q.total>=50;
-  });
-
-  // V36.1 DEEPFIX: Top-5 is an OPPORTUNITY ranking, not a list of five
-  // already-actionable orders.  If fewer than five names pass the strict
-  // primary/backup gates, fill the remaining slots with the best intact
-  // WATCH/READY candidates.  Their FINAL badge still says WAIT/WATCH/NO BUY,
-  // so this never manufactures a BUY signal.  Extended WAIT_PULLBACK names
-  // are last-resort fillers only and keep their heavy entry penalty.
-  const used=new Set();
-  const strongRows=[];
-  const addRows=(arr)=>{
-    for(const row of arr){
-      const key=String(row?.ticker || "");
-      if(!key || used.has(key)) continue;
-      used.add(key);
-      strongRows.push(row);
-      if(strongRows.length>=5) break;
-    }
-  };
-  addRows(primaryRows);
-  if(strongRows.length<5) addRows(backupRows);
-
-  if(strongRows.length<5){
-    const intactFallback=allRows.filter(row=>{
-      if(used.has(String(row?.ticker || ""))) return false;
-      const q=hanzBuyQuality(row);
-      const r=(row && row.risk_validation && typeof row.risk_validation==="object") ? row.risk_validation : {};
-      const gate=String(row?.risk_gate || r.gate || "MONITOR").toUpperCase();
-      const momentum=String(r.momentum_status || "").toUpperCase();
-      const volatility=String(r.volatility_status || volatilityInfo(row).status || "NORMAL").toUpperCase();
-      const entryStatus=String(row?.entry_status || r.entry_status || "").toUpperCase();
-      const setup=Number(row?.score || 0);
-      const state=String(row?.state || "").toUpperCase();
-      const monitorable=["SWING_CONFIRMING","SWING_WATCH","RADAR_ARMED","RADAR_PRE_ALERT","RADAR_WATCH","SETUP_READY","PRE_ALERT","EARLY_WATCH"].includes(state);
-      return gate!=="BLOCKED" && momentum!=="BROKEN" && volatility!=="EXTREME"
-        && entryStatus!=="WAIT_PULLBACK" && monitorable;
-    });
-    addRows(intactFallback);
-  }
-
-  if(strongRows.length<5){
-    const pullbackFallback=allRows.filter(row=>{
-      if(used.has(String(row?.ticker || ""))) return false;
-      const q=hanzBuyQuality(row);
-      const r=(row && row.risk_validation && typeof row.risk_validation==="object") ? row.risk_validation : {};
-      const gate=String(row?.risk_gate || r.gate || "MONITOR").toUpperCase();
-      const entryStatus=String(row?.entry_status || r.entry_status || "").toUpperCase();
-      const state=String(row?.state || "").toUpperCase();
-      const monitorable=["EARLY_CONFIRMED_BUY","SWING_BUY","SWING_CONFIRMING","SWING_WATCH","RADAR_ARMED","RADAR_PRE_ALERT","RADAR_WATCH","SETUP_READY","PRE_ALERT","EARLY_WATCH"].includes(state);
-      return gate!=="BLOCKED" && entryStatus==="WAIT_PULLBACK" && monitorable;
-    });
-    addRows(pullbackFallback);
-  }
-
-  const confirmed=allRows.filter(row=>{
-    const state=String(row?.state || "").toUpperCase();
-    const decision=finalDecision(row);
-    const r=(row && row.risk_validation && typeof row.risk_validation==="object")
-      ? row.risk_validation : {};
-    const radarInternal=Boolean(r.radar_internal);
-    return ["SWING_BUY","EARLY_CONFIRMED_BUY"].includes(state) && decision.label==="BUY" && !radarInternal;
-  });
-
-  const radarRows=allRows.filter(row=>!["SWING_BUY","EARLY_CONFIRMED_BUY"].includes(String(row?.state || "").toUpperCase()));
-  const rows=strongRows.slice(0,5);
-
-  window.__hanzDiagnostics={
-    fetched:allRows.length,
-    primary:primaryRows.length,
-    backup:backupRows.length,
-    displayed:rows.length,
-    tickers:rows.map(r=>r.ticker)
-  };
-  console.info("HANZ V38 Top5 diagnostics", window.__hanzDiagnostics);
-
-  window.__hanzSignalRows=rows;
-  window.__hanzConfirmedRows=confirmed;
-  window.__hanzRadarRows=radarRows;
-  $("opportunityCount").textContent=confirmed.length;
+  const rows=data || [];
+  $("opportunityCount").textContent=rows.length;
 
   if(rows.length){
-    // V35: #1 is the highest BUY-quality candidate, not the newest timestamp/radar state.
     const top=rows[0];
-    const topDecision=finalDecision(top);
     $("topCandidate").textContent=top.ticker;
-    const topState=String(top?.state || "").toUpperCase();
-    const topGate=String(top?.risk_gate || top?.risk_validation?.gate || "MONITOR").toUpperCase();
-    const topIsTechnicallyReconfirmed=["SWING_BUY","EARLY_CONFIRMED_BUY"].includes(topState) && !confirmed.includes(top);
-    $("topCandidateSub").textContent=confirmed.includes(top)
-      ? `RECONFIRMED ${topDecision.label} · Score ${top.score ?? "—"}/10`
-      : topIsTechnicallyReconfirmed
-        ? `Technical reconfirmation complete · Final ${topDecision.label} · Risk ${topGate} · Score ${top.score ?? "—"}/10 · NOT YET ACTIONABLE`
-        : `${radarStageLabel(top.state)} · Progress ${radarProgress(top.state)}% · Score ${top.score ?? "—"}/10 · NOT YET ACTIONABLE`;
+    $("topCandidateSub").textContent=`Score ${top.score ?? "—"}/10`;
     $("heroTopCandidate").textContent=top.ticker;
-    $("heroTopSub").textContent=confirmed.includes(top)
-      ? `RECONFIRMED ${topDecision.label} · Swing ${top.score ?? "—"}/10 · Risk ${top.risk_gate || "MONITOR"} · Discount ${top.discount_score==null?"PENDING":Number(top.discount_score).toFixed(0)+"/100"} · Fundamental ${top.fundamental_score==null?"PENDING":Number(top.fundamental_score).toFixed(0)+"/100"}`
-      : topIsTechnicallyReconfirmed
-        ? `Technical reconfirmation complete · Final risk clearance pending (${topGate}) · FINAL ${topDecision.label} · NOT A BUY SIGNAL`
-        : `${radarStageLabel(top.state)} · ${radarProgress(top.state)}% toward reconfirmation · Risk ${top.risk_gate || "MONITOR"} · NOT A BUY SIGNAL`;
+    $("heroTopSub").textContent=`SWING BUY · Swing ${top.score ?? "—"}/10 · Discount ${top.discount_score ?? "—"}/100 · Fundamental ${top.fundamental_score ?? "—"}/100`;
     $("lastUpdate").textContent=formatTime(top.updated_at);
-    $("lastUpdateDate").textContent=`${formatDate(top.updated_at)} · Last HANZ signal update`;
+    $("lastUpdateDate").textContent=`${formatDate(top.updated_at)} · Last completed Swing scan`;
   }else{
     $("topCandidate").textContent="—";
-    $("topCandidateSub").textContent="No candidate currently clears the HANZ Top-5 opportunity-quality threshold";
+    $("topCandidateSub").textContent="No SWING BUY";
     $("heroTopCandidate").textContent="—";
-    $("heroTopSub").textContent="HANZ is scanning, but no stock currently has strong enough combined BUY indicators";
+    $("heroTopSub").textContent="No confirmed SWING BUY";
   }
 
   renderRanking(rows);
   renderOpportunities(rows);
-  syncSelectedSignalMonitor(rows);
+  renderLiveSignalMonitor(rows);
 }
 
 function renderRanking(rows){
   if(!rows.length){
-    $("ranking").innerHTML='<div class="empty">No active HANZ swing signals.</div>';
+    $("ranking").innerHTML='<div class="empty">No confirmed SWING BUY.</div>';
     return;
   }
-
-  // V35: rows is already a deterministic strong BUY-quality Top 5.
-  const visibleRows=rows.slice(0,5);
-
-  const rankingHtml=visibleRows.map((row,index)=>{
+  $("ranking").innerHTML=rows.map((row,index)=>{
     const score=Math.max(0,Math.min(10,Number(row.score || 0)));
-    const decision=finalDecision(row);
-    const quality=hanzBuyQuality(row);
-    const selected = selectedMonitorTicker &&
-      String(selectedMonitorTicker).toUpperCase()===String(row.ticker).toUpperCase();
-    return `<div class="rank${selected ? " monitor-selected" : ""}" data-monitor-ticker="${safe(row.ticker)}" role="button" tabindex="0" aria-label="Open ${safe(row.ticker)} stock monitor">
+    return `<div class="rank">
       <div class="rank-no">#${index+1}</div>
-      <div class="rank-symbol">${safe(row.ticker)}<div style="margin-top:3px"><span class="state-chip ${decision.cls}">FINAL ${safe(decision.label)}</span> <span class="state-chip ${signalStateClass(row.state)}">${safe(displaySignalStateLabel(row))}</span></div></div>
-      <div class="rank-track"><div style="width:${quality.total}%"></div></div>
-      <div class="rank-score">BUY ${quality.total}/100 · Data ${quality.coverage}% · Setup ${score}/10 · ${safe(row.risk_gate || "MONITOR")}${volatilityInfo(row).status!=="NORMAL" ? ` · VOL ${safe(volatilityInfo(row).status)}` : ""}</div>
+      <div class="rank-symbol">${safe(row.ticker)}</div>
+      <div class="rank-track"><div style="width:${score*10}%"></div></div>
+      <div class="rank-score">${score}/10 · D${row.discount_score==null?"—":Math.round(Number(row.discount_score))}</div>
     </div>`;
   }).join("");
-
-  $("ranking").innerHTML=rankingHtml;
-
-  $("ranking").querySelectorAll("[data-monitor-ticker]").forEach(el=>{
-    const open=()=>openSignalMonitor(el.dataset.monitorTicker);
-    el.addEventListener("click",open);
-    el.addEventListener("keydown",event=>{
-      if(event.key==="Enter" || event.key===" "){
-        event.preventDefault();
-        open();
-      }
-    });
-  });
 }
 
 function renderOpportunities(rows){
   if(!rows.length){
-    $("opportunityGrid").innerHTML='<div class="empty">No active HANZ swing candidates right now.</div>';
+    $("opportunityGrid").innerHTML='<div class="empty">No SWING BUY candidates right now.</div>';
     return;
   }
-  $("opportunityGrid").innerHTML=rows.slice(0,5).map(row=>{
-    const decision=finalDecision(row);
-    return `
+  $("opportunityGrid").innerHTML=rows.map(row=>`
     <article class="opportunity">
       <div class="op-top">
         <div>
           <div class="op-symbol">${safe(row.ticker)}</div>
-          <div class="op-source">HANZ SWING ENGINE · RADAR PROGRESS → COMPLETED-BAR RECONFIRMATION → ACTIONABLE BUY</div>
-<div style="margin-top:8px;padding:10px 12px;border:1px solid rgba(255,255,255,.12);border-radius:12px;font-size:12px;line-height:1.45">
-  <strong>Top-5 Rule:</strong> ranking mengikuti MARKET/TREND → STRUCTURE/LOCATION → TRIGGER → VOLUME → RISK. Indikator dan candlestick hanya confirmation, bukan alasan BUY tunggal. <strong>Ranking tinggi bukan otomatis BUY</strong>; bila WFA belum tervalidasi, signal tetap PAPER/RESEARCH ONLY.
-</div>
+          <div class="op-source">HANZ SWING ENGINE · 1D + 1W</div>
         </div>
-        <div class="priority-ring">${hanzBuyQuality(row).total}</div>
+        <div class="priority-ring">${row.score ?? "—"}</div>
       </div>
-      <div style="margin-top:9px">
-        <span class="state-chip ${decision.cls}">FINAL ${safe(decision.label)}</span>
-        <span class="state-chip ${signalStateClass(row.state)}">${safe(displaySignalStateLabel(row))}</span>
-        <span class="state-chip state-buy">${safe((row.discount_label || "DISCOUNT N/A").replaceAll("_"," "))}</span>
-      </div>
+      <span class="active-chip">SWING BUY</span>
+      <span class="active-chip">${safe((row.discount_label || "DISCOUNT N/A").replaceAll("_"," "))}</span>
       <div class="levels">
         <div class="level"><span>CURRENT PRICE</span><strong>${price(row.price)}</strong></div>
         <div class="level confirm"><span>ENTRY ZONE</span><strong>${price(row.entry_low)} – ${price(row.entry_high)}</strong></div>
         <div class="level"><span>STOP LOSS</span><strong>${price(row.stop_loss)}</strong></div>
         <div class="level target"><span>DYNAMIC T1</span><strong>${price(row.target_1)}</strong></div>
         <div class="level target"><span>DYNAMIC T2</span><strong>${price(row.target_2)}</strong></div>
-        <div class="level confirm"><span>BUY QUALITY</span><strong>${hanzBuyQuality(row).total}/100 · Swing ${row.score ?? "—"}/10 · D${row.discount_score==null?"—":Number(row.discount_score).toFixed(0)} · F${row.fundamental_score==null?"—":Number(row.fundamental_score).toFixed(0)}</strong></div>
+        <div class="level confirm"><span>QUALITY</span><strong>Swing ${row.score ?? "—"}/10 · D${row.discount_score==null?"—":Number(row.discount_score).toFixed(0)} · F${row.fundamental_score==null?"—":Number(row.fundamental_score).toFixed(0)}</strong></div>
       </div>
-      ${volatilityWarningHtml(row)}
-      ${decisionGuidanceHtmlSafe(row)}
-      ${whyHtml(row)}
-      ${riskHtml(row)}
-      <button class="chart-btn" type="button" data-chart-ticker="${safe(row.ticker)}">📈 VIEW CHART + HANZ LEVELS</button>
       <div class="reason"><strong>Entry:</strong> ${safe(row.entry_note || "")}</div>
       <div class="reason"><strong>Fundamental:</strong> ${safe(row.fundamental_reason || "Fundamental data unavailable")}</div>
       <div class="reason"><strong>Discount:</strong> ${safe(row.discount_reason || "")}</div>
-    </article>`;
-  }).join("");
+      <div class="reason">${safe(row.evidence || "Confirmed daily breakout + weekly bullish trend")}</div>
+    </article>`).join("");
 }
 
 function renderLiveSignalMonitor(rows){
-  const ticker=String(selectedMonitorTicker || "").toUpperCase();
-  const row=(rows || []).find(r=>String(r?.ticker || "").toUpperCase()===ticker);
-
-  if(!row){
-    $("liveSignalMonitor").innerHTML='<div class="empty large-empty">Selected stock is no longer in the current Top 5.</div>';
+  if(!rows.length){
+    $("liveSignalMonitor").innerHTML='<div class="empty large-empty">No confirmed SWING BUY right now.</div>';
     return;
   }
-
+  $("liveSignalMonitor").innerHTML=rows.map(row=>{
     const score=Math.max(0,Math.min(10,Number(row.score || 0)));
-    const decision=finalDecision(row);
-    const cardHtml=`<article class="signal-card buy">
+    return `<article class="signal-card buy">
       <div class="sig-head">
         <div>
           <div class="sig-ticker">${safe(row.ticker)}</div>
           <div class="sig-price">Price ${price(row.price)}</div>
-          <span class="signal-source">📈 DAILY + WEEKLY · V6 RADAR</span>
+          <span class="signal-source">📈 DAILY + WEEKLY</span>
         </div>
         <div>
-          <span class="state-chip ${decision.cls}">FINAL ${safe(decision.label)}</span>
-          <span class="state-chip ${signalStateClass(row.state)}">${safe(displaySignalStateLabel(row))}</span>
+          <span class="signal-state buy">SWING BUY</span>
+          <span class="signal-state buy">${safe((row.discount_label || "DISCOUNT N/A").replaceAll("_"," "))}</span>
         </div>
       </div>
-      ${volatilityWarningHtml(row)}
-      <div class="sig-score"><span>Final decision</span><strong>${safe(decision.label)} · ${safe(decision.detail)}</strong></div>
-      <div class="sig-score"><span>Setup score</span><strong>${row.score ?? "—"}/10</strong></div>
+      <div class="sig-score"><span>Swing score</span><strong>${row.score ?? "—"}/10</strong></div>
       <div class="sig-score"><span>Discount score</span><strong>${row.discount_score==null?"—":Number(row.discount_score).toFixed(0)+"/100"} · ${safe(row.discount_confidence || "—")}</strong></div>
       <div class="sig-score"><span>Fundamental score</span><strong>${row.fundamental_score==null?"—":Number(row.fundamental_score).toFixed(0)+"/100"} · ${safe(row.fundamental_label || "—")} · ${safe(row.fundamental_confidence || "—")}</strong></div>
       <div class="sig-bar"><div style="width:${score*10}%"></div></div>
@@ -2590,431 +1258,11 @@ function renderLiveSignalMonitor(rows){
         <div><span>DYNAMIC T2</span><strong>${price(row.target_2)}</strong></div>
         <div><span>QUALITY</span><strong>S${row.score ?? "—"} · D${row.discount_score==null?"—":Number(row.discount_score).toFixed(0)} · F${row.fundamental_score==null?"—":Number(row.fundamental_score).toFixed(0)}</strong></div>
       </div>
-      ${whyHtml(row)}
-      ${riskHtml(row)}
-      <button class="chart-btn" type="button" data-chart-ticker="${safe(row.ticker)}">📈 VIEW CHART + HANZ LEVELS</button>
       <div class="sig-evidence"><strong>Fundamental:</strong> ${safe(row.fundamental_reason || "Fundamental data unavailable")}</div>
       <div class="sig-evidence"><strong>Discount:</strong> ${safe(row.discount_reason || "")}</div>
+      <div class="sig-evidence">${safe(row.evidence || "Confirmed daily breakout + weekly bullish trend")}</div>
     </article>`;
-  
-  $("liveSignalMonitor").innerHTML=cardHtml;
-}
-
-function openSignalMonitor(ticker){
-  const rows=[...(window.__hanzSignalRows || [])].slice(0,5);
-  const row=rows.find(r=>String(r?.ticker || "").toUpperCase()===String(ticker || "").toUpperCase());
-  if(!row) return;
-
-  selectedMonitorTicker=row.ticker;
-  $("signalMonitorCard").classList.remove("monitor-hidden");
-  $("monitorSelectedTicker").textContent=String(row.ticker || "").toUpperCase();
-  $("signalMonitorSubtitle").textContent=`${String(row.ticker || "").toUpperCase()} · selected from HANZ Top 5 · Daily + Weekly intelligence`;
-
-  renderRanking(rows);
-  renderLiveSignalMonitor(rows);
-
-  $("signalMonitorCard").scrollIntoView({behavior:"smooth",block:"start"});
-}
-
-function closeSignalMonitor(){
-  selectedMonitorTicker=null;
-  $("signalMonitorCard").classList.add("monitor-hidden");
-  $("monitorSelectedTicker").textContent="—";
-  renderRanking([...(window.__hanzSignalRows || [])]);
-}
-
-function syncSelectedSignalMonitor(rows){
-  if(!selectedMonitorTicker){
-    $("signalMonitorCard").classList.add("monitor-hidden");
-    return;
-  }
-
-  const stillTop5=(rows || []).slice(0,5).some(
-    r=>String(r?.ticker || "").toUpperCase()===String(selectedMonitorTicker).toUpperCase()
-  );
-
-  if(!stillTop5){
-    closeSignalMonitor();
-    return;
-  }
-
-  $("signalMonitorCard").classList.remove("monitor-hidden");
-  $("monitorSelectedTicker").textContent=String(selectedMonitorTicker).toUpperCase();
-  renderLiveSignalMonitor(rows);
-}
-
-function emaPoints(candles,period){
-  const k=2/(period+1);
-  let ema=null;
-  return candles.map((c,i)=>{
-    ema = ema==null ? c.close : (c.close*k + ema*(1-k));
-    return {time:c.time,value:Number(ema.toFixed(4))};
-  });
-}
-
-function currentSignalRow(ticker){
-  const all=[...(window.__hanzSignalRows || [])];
-  return all.find(r=>String(r.ticker).toUpperCase()===String(ticker).toUpperCase()) || {};
-}
-
-function completedDailyCandlesOnly(candles){
-  if(!Array.isArray(candles) || !candles.length) return candles || [];
-
-  const m=idxStatusNow();
-  const todayWib=m?.parts?.iso;
-  const state=String(m?.state || "");
-
-  // Today's daily candle is considered complete only from POST-CLOSE onward.
-  // During PRE-OPEN / SESSION 1 / LUNCH / SESSION 2, remove today's partial candle.
-  const todayCompleted = (
-    state==="POST-CLOSE" ||
-    state==="CLOSED · AFTER HOURS"
-  );
-
-  if(!todayCompleted && todayWib){
-    return candles.filter(c=>String(c.time)!==String(todayWib));
-  }
-  return candles;
-}
-
-
-function latestCompletedIdxDateClient(){
-  const m=idxStatusNow();
-  const today=m?.parts?.iso;
-  const state=String(m?.state || "");
-
-  if(!today) return null;
-
-  // During POST-CLOSE, today's candle is complete.
-  if(state==="POST-CLOSE" || state==="CLOSED · AFTER HOURS"){
-    return today;
-  }
-
-  // Before today's close, walk backwards to the prior IDX trading day.
-  const d=new Date(`${today}T00:00:00+07:00`);
-  for(let i=0;i<10;i++){
-    d.setDate(d.getDate()-1);
-    const iso=[
-      d.getFullYear(),
-      String(d.getMonth()+1).padStart(2,"0"),
-      String(d.getDate()).padStart(2,"0")
-    ].join("-");
-    const day=d.getDay();
-    if(day!==0 && day!==6 && !IDX_HOLIDAYS[iso]){
-      return iso;
-    }
-  }
-  return null;
-}
-
-async function supabaseDailyCandles(ticker){
-  const clean = String(ticker || "").toUpperCase().replace(/\.JK$/,"");
-
-  const url =
-    `${SUPABASE_URL}/rest/v1/hanz_swing_chart_data` +
-    `?ticker=eq.${encodeURIComponent(clean)}` +
-    `&select=ticker,state,source_bar_at,candles,updated_at` +
-    `&limit=1`;
-
-  const response = await fetch(url, {
-    method: "GET",
-    headers: {
-      apikey: SUPABASE_KEY,
-      Accept: "application/json"
-    },
-    cache: "no-store"
-  });
-
-  if(!response.ok){
-    const body = await response.text();
-    throw new Error(
-      `Supabase read failed (${response.status})${body ? ": " + body : ""}`
-    );
-  }
-
-  const rows = await response.json();
-
-  if(!Array.isArray(rows) || rows.length === 0){
-    throw new Error(`No chart data found in Supabase for ${clean}`);
-  }
-
-  const data = rows[0];
-
-  if(!Array.isArray(data.candles) || data.candles.length === 0){
-    throw new Error(`Supabase chart candles are empty for ${clean}`);
-  }
-
-  const candles = data.candles.map(c => ({
-    time: String(c.time),
-    open: Number(c.open),
-    high: Number(c.high),
-    low: Number(c.low),
-    close: Number(c.close),
-    volume: Number(c.volume || 0)
-  })).filter(c =>
-    c.time &&
-    [c.open, c.high, c.low, c.close].every(Number.isFinite)
-  );
-
-  if(candles.length < 10){
-    throw new Error(`Insufficient chart candles for ${clean}`);
-  }
-
-  return {
-    candles,
-    sourceBarAt: String(
-      data.source_bar_at || candles[candles.length - 1].time
-    ).slice(0,10),
-    updatedAt: data.updated_at || null
-  };
-}
-
-function addHorizontalLevel(series,value,title,color){
-  const n=Number(value);
-  if(!Number.isFinite(n)) return;
-  series.createPriceLine({
-    price:n,
-    color,
-    lineWidth:1,
-    lineStyle:2,
-    axisLabelVisible:true,
-    title
-  });
-}
-
-
-function smaVolumePoints(candles,period=20){
-  const out=[];
-  const window=[];
-  let sum=0;
-  for(const c of candles){
-    const v=Number(c.volume || 0);
-    window.push(v);
-    sum += v;
-    if(window.length>period){
-      sum -= window.shift();
-    }
-    if(window.length===period){
-      out.push({time:c.time,value:sum/period});
-    }
-  }
-  return out;
-}
-
-function latestVolumeStats(candles){
-  if(!Array.isArray(candles) || !candles.length){
-    return {latest:null,avg20:null,rvol:null};
-  }
-  const latest=Number(candles[candles.length-1].volume || 0);
-  const recent=candles.slice(-20).map(c=>Number(c.volume || 0)).filter(Number.isFinite);
-  const avg20=recent.length ? recent.reduce((a,b)=>a+b,0)/recent.length : null;
-  const rvol=(avg20 && Number.isFinite(latest)) ? latest/avg20 : null;
-  return {latest,avg20,rvol};
-}
-
-
-function emaArray(candles,period){
-  const k=2/(period+1);
-  let e=null;
-  return candles.map(c=>{
-    e=e==null ? c.close : (c.close*k + e*(1-k));
-    return e;
-  });
-}
-
-function renderHanzFallbackChart(candles,row){
-  const chartBox=$("hanzChart");
-  const volumeBox=$("hanzVolume");
-  const width=900;
-  const priceH=360;
-  const volumeH=130;
-  const pad={l:48,r:64,t:18,b:28};
-  const usableW=width-pad.l-pad.r;
-  const visible=candles.slice(-90);
-  const ema20=emaArray(visible,20);
-  const ema50=emaArray(visible,50);
-
-  const levels=[
-    Number(row.entry_low),Number(row.entry_high),
-    Number(row.stop_loss),Number(row.target_1),Number(row.target_2)
-  ].filter(Number.isFinite);
-
-  let minP=Math.min(...visible.map(c=>c.low),...levels);
-  let maxP=Math.max(...visible.map(c=>c.high),...levels);
-  const spread=Math.max(1,maxP-minP);
-  minP-=spread*.06;
-  maxP+=spread*.06;
-
-  const x=i=>pad.l+(i+.5)*(usableW/visible.length);
-  const y=p=>pad.t+(maxP-p)/(maxP-minP)*(priceH-pad.t-pad.b);
-  const step=usableW/visible.length;
-  const bodyW=Math.max(2,Math.min(8,step*.58));
-
-  const esc=safe;
-  let svg=`<div class="hanz-fallback-wrap">
-    <svg class="hanz-fallback-svg" viewBox="0 0 ${width} ${priceH}" role="img" aria-label="HANZ candlestick analysis chart">`;
-
-  // Grid
-  for(let g=0;g<=4;g++){
-    const gy=pad.t+g*(priceH-pad.t-pad.b)/4;
-    const gv=maxP-g*(maxP-minP)/4;
-    svg+=`<line x1="${pad.l}" x2="${width-pad.r}" y1="${gy}" y2="${gy}" stroke="rgba(255,255,255,.06)"/>`;
-    svg+=`<text x="${width-pad.r+6}" y="${gy+4}" fill="#8796aa" font-size="10">${gv.toFixed(0)}</text>`;
-  }
-
-  // Candles
-  visible.forEach((c,i)=>{
-    const xx=x(i);
-    const up=c.close>=c.open;
-    const col=up?"#28e0a2":"#ff6b78";
-    const yo=y(c.open), yc=y(c.close), yh=y(c.high), yl=y(c.low);
-    const top=Math.min(yo,yc), bh=Math.max(1,Math.abs(yc-yo));
-    svg+=`<line x1="${xx}" x2="${xx}" y1="${yh}" y2="${yl}" stroke="${col}" stroke-width="1"/>`;
-    svg+=`<rect x="${xx-bodyW/2}" y="${top}" width="${bodyW}" height="${bh}" fill="${col}"/>`;
-  });
-
-  // EMA lines
-  const pathFor=arr=>arr.map((v,i)=>`${i?"L":"M"}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
-  svg+=`<path d="${pathFor(ema20)}" fill="none" stroke="#4aa3ff" stroke-width="1.7"/>`;
-  svg+=`<path d="${pathFor(ema50)}" fill="none" stroke="#f1c75b" stroke-width="1.7"/>`;
-
-  // HANZ levels
-  const levelDefs=[
-    ["ENTRY L",row.entry_low,"#9b8cff"],
-    ["ENTRY H",row.entry_high,"#9b8cff"],
-    ["STOP",row.stop_loss,"#ff6b78"],
-    ["T1",row.target_1,"#28e0a2"],
-    ["T2",row.target_2,"#20b8ff"]
-  ];
-  levelDefs.forEach(([label,val,col])=>{
-    const n=Number(val);
-    if(!Number.isFinite(n)) return;
-    const yy=y(n);
-    svg+=`<line x1="${pad.l}" x2="${width-pad.r}" y1="${yy}" y2="${yy}" stroke="${col}" stroke-width="1" stroke-dasharray="5 4"/>`;
-    svg+=`<text x="${pad.l+4}" y="${yy-3}" fill="${col}" font-size="9" font-weight="700">${label} ${n}</text>`;
-  });
-
-  // Date labels
-  const labelIdx=[0,Math.floor((visible.length-1)/2),visible.length-1];
-  labelIdx.forEach(i=>{
-    if(i<0 || !visible[i]) return;
-    svg+=`<text x="${x(i)}" y="${priceH-8}" text-anchor="middle" fill="#8796aa" font-size="9">${esc(visible[i].time)}</text>`;
-  });
-
-  svg+=`</svg><div class="hanz-fallback-note">Built-in HANZ renderer active · Completed daily candles · EMA20/EMA50 · Entry/Stop/T1/T2</div></div>`;
-  chartBox.innerHTML=svg;
-
-  // Volume SVG
-  const vols=visible.map(c=>Number(c.volume||0));
-  const maxV=Math.max(1,...vols);
-  const avg20=smaVolumePoints(visible,20);
-  const avgMap=new Map(avg20.map(p=>[p.time,p.value]));
-  let vsvg=`<div class="hanz-fallback-wrap"><svg class="hanz-fallback-svg" viewBox="0 0 ${width} ${volumeH}" role="img" aria-label="HANZ volume chart">`;
-  visible.forEach((c,i)=>{
-    const v=Number(c.volume||0);
-    const h=(v/maxV)*(volumeH-30);
-    const xx=x(i);
-    const col=c.close>=c.open?"rgba(40,224,162,.65)":"rgba(255,107,120,.65)";
-    vsvg+=`<rect x="${xx-bodyW/2}" y="${volumeH-20-h}" width="${bodyW}" height="${h}" fill="${col}"/>`;
-  });
-  const avgPts=[];
-  visible.forEach((c,i)=>{
-    const v=avgMap.get(c.time);
-    if(v!=null){
-      const yy=volumeH-20-(v/maxV)*(volumeH-30);
-      avgPts.push(`${avgPts.length?"L":"M"}${x(i).toFixed(1)},${yy.toFixed(1)}`);
-    }
-  });
-  if(avgPts.length){
-    vsvg+=`<path d="${avgPts.join(" ")}" fill="none" stroke="#9b8cff" stroke-width="1.6"/>`;
-  }
-  vsvg+=`</svg></div>`;
-  volumeBox.innerHTML=vsvg;
-}
-
-async function openHanzChart(ticker){
-  console.info("HANZ chart open:", ticker);
-  const modal=$("chartModal");
-  const chartWrap=$("hanzChartWrap");
-  const chartBox=$("hanzChart");
-  const volumeBox=$("hanzVolume");
-  const volumeLegend=$("chartVolumeLegend");
-  const status=$("chartStatus");
-  const row=currentSignalRow(ticker);
-
-  $("chartTicker").textContent=String(ticker || "—").toUpperCase();
-  $("chartSubtitle").textContent=
-    `${displaySignalStateLabel(row)} · Completed Daily Candles · HANZ Direct Renderer`;
-
-  $("chartLevelChips").innerHTML=[
-    ["Current (Intraday/Last Trade)",price(row.price)],
-    ["Entry",row.entry_low!=null && row.entry_high!=null
-      ? `${price(row.entry_low)}–${price(row.entry_high)}`
-      : "—"],
-    ["Stop",price(row.stop_loss)],
-    ["T1",price(row.target_1)],
-    ["T2",price(row.target_2)]
-  ].map(([k,v])=>
-    `<span class="chart-level-chip">${k}: ${safe(v)}</span>`
-  ).join("");
-
-  modal.classList.add("show");
-  modal.setAttribute("aria-hidden","false");
-
-  chartWrap.style.display="none";
-  volumeLegend.style.display="none";
-  status.style.display="block";
-  status.textContent="Loading chart data directly from Supabase…";
-
-  try{
-    // This is the same direct REST path that passed the standalone diagnostic.
-    const chartPayload=await supabaseDailyCandles(ticker);
-    const candles=chartPayload.candles;
-
-    chartBox.innerHTML="";
-    volumeBox.innerHTML="";
-
-    chartWrap.style.display="block";
-    status.style.display="none";
-
-    // No external chart-library dependency for this path.
-    renderHanzFallbackChart(candles,row);
-
-    const volStats=latestVolumeStats(candles);
-    volumeLegend.innerHTML=[
-      ["Volume",Number.isFinite(volStats.latest)
-        ? volStats.latest.toLocaleString("en-US")
-        : "—"],
-      ["Avg20",Number.isFinite(volStats.avg20)
-        ? Math.round(volStats.avg20).toLocaleString("en-US")
-        : "—"],
-      ["RVOL",Number.isFinite(volStats.rvol)
-        ? volStats.rvol.toFixed(2)+"×"
-        : "—"]
-    ].map(([k,v])=>
-      `<span class="chart-level-chip"><strong>${k}</strong>: ${v}</span>`
-    ).join("");
-
-    volumeLegend.style.display="flex";
-
-    $("chartSubtitle").textContent=
-      `${displaySignalStateLabel(row)} · Completed Daily Candles through ${chartPayload.sourceBarAt} · EMA20 / EMA50 · Volume`;
-
-  }catch(error){
-    console.error("HANZ direct chart error:",error);
-
-    chartWrap.style.display="none";
-    volumeLegend.style.display="none";
-    status.style.display="block";
-    status.innerHTML=
-      `HANZ chart could not be loaded.<br>` +
-      `<span style="opacity:.7">${safe(error.message || String(error))}</span>`;
-  }
-}
-
-function closeHanzChart(){
-  $("chartModal").classList.remove("show");
-  $("chartModal").setAttribute("aria-hidden","true");
+  }).join("");
 }
 
 
@@ -3124,60 +1372,17 @@ function nearestTradingDay(iso,direction){
 function renderIdxMarketClock(){
   const m=idxStatusNow();
   const p=m.parts;
-
-  const previousTradingDay=nearestTradingDay(p.iso,-1);
-  const nextTradingDay=nearestTradingDay(p.iso,1);
   const marketText=m.reason==="Trading Day" ? m.state : `${m.state} · ${m.reason}`;
 
-  // System panel
   if($("idxMarketState")) $("idxMarketState").textContent=marketText;
   if($("idxMarketTime")) $("idxMarketTime").textContent=`${p.iso} ${p.hour}:${p.minute} WIB`;
-  if($("idxLastTradingDay")) $("idxLastTradingDay").textContent=previousTradingDay;
-  if($("idxNextTradingDay")) $("idxNextTradingDay").textContent=nextTradingDay;
-
-  // Persistent top market strip
-  const topMarket=$("topIdxMarket");
-  const topSession=$("topIdxSession");
-  const topReason=$("topIdxReason");
-  const topWib=$("topIdxWib");
-  const topPrev=$("topIdxPrev");
-  const topNext=$("topIdxNext");
-
-  let topMarketText="IDX: MARKET CLOSED";
-  if(m.reason==="Trading Day"){
-    if(m.state==="SESSION 1" || m.state==="SESSION 2"){
-      topMarketText="IDX: MARKET OPEN";
-    }else if(m.state==="LUNCH BREAK"){
-      topMarketText="IDX: MARKET BREAK";
-    }else if(m.state==="PRE-OPEN"){
-      topMarketText="IDX: PRE-OPEN";
-    }else if(m.state==="POST-CLOSE"){
-      topMarketText="IDX: POST-CLOSE";
-    }
-  }
-
-  if(topMarket){
-    topMarket.textContent=topMarketText;
-    topMarket.classList.toggle("market-open",topMarketText==="IDX: MARKET OPEN");
-    topMarket.classList.toggle(
-      "market-closed",
-      topMarketText!=="IDX: MARKET OPEN"
-    );
-  }
-
-  if(topSession) topSession.textContent=m.state || "UNKNOWN";
-  if(topReason) topReason.textContent=m.reason ? `· ${m.reason}` : "";
-  if(topWib) topWib.textContent=`WIB ${p.hour}:${p.minute}`;
-  if(topPrev) topPrev.textContent=`Prev ${previousTradingDay}`;
-  if(topNext) topNext.textContent=`Next ${nextTradingDay}`;
+  if($("idxLastTradingDay")) $("idxLastTradingDay").textContent=nearestTradingDay(p.iso,-1);
+  if($("idxNextTradingDay")) $("idxNextTradingDay").textContent=nearestTradingDay(p.iso,1);
 
   // Do not describe stale holiday/weekend data as "Swing Live".
   if($("lastUpdateDate")){
-    if(
-      m.reason==="Trading Day" &&
-      ["SESSION 1","LUNCH BREAK","SESSION 2","POST-CLOSE"].includes(m.state)
-    ){
-      $("lastUpdateDate").textContent=`IDX ${m.state} · ${p.hour}:${p.minute} WIB`;
+    if(m.reason==="Trading Day" && ["SESSION 1","LUNCH BREAK","SESSION 2","POST-CLOSE"].includes(m.state)){
+      $("lastUpdateDate").textContent=`IDX ${m.state} · WIB`;
     }else{
       $("lastUpdateDate").textContent=`IDX ${marketText}`;
     }
@@ -3411,20 +1616,13 @@ async function savePosition(event){
     return Number.isFinite(n) ? n : null;
   };
 
-  const stopForRisk=optionalNumber("positionStopLoss");
-  const initialRiskPerShare=(
-    Number.isFinite(stopForRisk) && stopForRisk<avgBuy
-  ) ? avgBuy-stopForRisk : null;
-
   const payload={
     ticker,
     avg_buy:avgBuy,
     lots,
     quantity:lots*100,
     buy_date:buyDate || localDateISO(),
-    stop_loss:stopForRisk,
-    initial_risk_per_share:initialRiskPerShare,
-    initial_risk_amount:initialRiskPerShare==null ? null : initialRiskPerShare*lots*100,
+    stop_loss:optionalNumber("positionStopLoss"),
     target_1:optionalNumber("positionTarget1"),
     target_2:optionalNumber("positionTarget2"),
     auto_trailing:autoTrailing,
@@ -3445,62 +1643,23 @@ async function savePosition(event){
     payload.trailing_active=false;
   }
 
-  // Supabase schema-safe writer. Older HANZ databases may not yet have
-  // recently added optional portfolio columns. Instead of blocking a position
-  // save, retry without only the missing optional column and keep the user
-  // informed that the DB migration is still recommended.
-  const optionalSchemaColumns=new Set([
-    "initial_risk_per_share",
-    "initial_risk_amount",
-    "peak_price",
-    "trailing_atr_multiplier",
-    "trailing_activated_at",
-    "last_trailing_update_at",
-    "trailing_active"
-  ]);
-
-  const missingSchemaColumn=error=>{
-    const message=String(error?.message || "");
-    const match=message.match(/Could not find the ['"]([^'"]+)['"] column/i);
-    return match ? match[1] : null;
-  };
-
-  const writeWithSchemaCompatibility=async(mode,rowPayload)=>{
-    const working={...rowPayload};
-    const skipped=[];
-
-    for(let attempt=0; attempt<10; attempt++){
-      let query=supabase.from("hanz_swing_portfolio");
-      const result=(mode==="update")
-        ? await query.update(working).eq("id",editPositionId)
-        : await query.insert(working);
-
-      if(!result.error) return {skipped};
-
-      const missing=missingSchemaColumn(result.error);
-      if(missing && optionalSchemaColumns.has(missing) && Object.prototype.hasOwnProperty.call(working,missing)){
-        delete working[missing];
-        skipped.push(missing);
-        console.warn(`HANZ portfolio DB compatibility: skipped missing optional column ${missing}.`);
-        continue;
-      }
-      throw result.error;
-    }
-    throw new Error("Portfolio save could not resolve database schema compatibility.");
-  };
-
   try{
     if(editPositionId){
-      const {skipped}=await writeWithSchemaCompatibility("update",payload);
-      notify(skipped.length ? `${ticker} updated. DB migration recommended.` : `${ticker} updated.`);
+      const {error}=await supabase
+        .from("hanz_swing_portfolio")
+        .update(payload)
+        .eq("id",editPositionId);
+      if(error) throw error;
+      notify(`${ticker} updated.`);
     }else{
       payload.user_id=currentUser.id;
       payload.status="OPEN";
       payload.signal="MONITOR";
       payload.opened_at=new Date().toISOString();
 
-      const {skipped}=await writeWithSchemaCompatibility("insert",payload);
-      notify(skipped.length ? `${ticker} added. DB migration recommended.` : `${ticker} added to portfolio.`);
+      const {error}=await supabase.from("hanz_swing_portfolio").insert(payload);
+      if(error) throw error;
+      notify(`${ticker} added to portfolio.`);
     }
 
     closePositionModal();
@@ -3516,37 +1675,11 @@ async function closePosition(id){
   const row=portfolioRows.find(r=>Number(r.id)===Number(id));
   if(!row) return;
 
-  const rawClose=prompt(
-    `Close ${row.ticker} position.\n\nEnter REAL exit price for performance tracking:`,
-    row.last_price ?? row.avg_buy ?? ""
-  );
-  if(rawClose===null) return;
-
-  const closePrice=Number(rawClose);
-  if(!Number.isFinite(closePrice) || closePrice<=0){
-    notify("Valid exit price is required to close a real trade.","error");
-    return;
-  }
-
-  const avgBuy=Number(row.avg_buy);
-  const realizedPnlPct=(Number.isFinite(avgBuy) && avgBuy>0)
-    ? (closePrice/avgBuy-1)*100
-    : null;
-
-  if(!confirm(
-    `Close ${row.ticker} at ${price(closePrice)}?\n\n` +
-    `Realized P/L: ${realizedPnlPct==null?"—":realizedPnlPct.toFixed(2)+"%"}`
-  )) return;
+  if(!confirm(`Close ${row.ticker} position?\n\nIt will leave the active portfolio but stay in the database as CLOSED.`)) return;
 
   const {error}=await supabase
     .from("hanz_swing_portfolio")
-    .update({
-      status:"CLOSED",
-      signal:"CLOSED",
-      close_price:closePrice,
-      closed_at:new Date().toISOString(),
-      realized_pnl_pct:realizedPnlPct
-    })
+    .update({status:"CLOSED",signal:"CLOSED"})
     .eq("id",id);
 
   if(error){notify(error.message,"error");return;}
@@ -3646,41 +1779,14 @@ async function loadAll(){
 /* EVENTS + START */
 window.addEventListener("DOMContentLoaded",async ()=>{
   renderIdxMarketClock();
-  renderPushDiagnostic();
   setInterval(renderIdxMarketClock,60000);
 
   document.querySelectorAll("[data-panel]").forEach(btn=>{
     btn.addEventListener("click",()=>showPanel(btn.dataset.panel));
   });
 
-  
-  // HANZ push registration heartbeat:
-  // refresh active FID while the dashboard is open, without user action.
-  setInterval(()=>{
-    if(
-      currentUser &&
-      !pushDisabledByUser() &&
-      "Notification" in window &&
-      Notification.permission==="granted"
-    ){
-      refreshPushRegistration().catch(error=>{
-        console.warn("HANZ push registration heartbeat failed:",error);
-      });
-    }
-  },5*60*1000);
-
-  document.addEventListener("click",event=>{
-    const btn=event.target.closest("[data-chart-ticker]");
-    if(btn) openHanzChart(btn.dataset.chartTicker);
-  });
-  $("closeChartModalButton").addEventListener("click",closeHanzChart);
-  $("chartModal").addEventListener("click",event=>{
-    if(event.target===$("chartModal")) closeHanzChart();
-  });
-
   $("refreshButton").addEventListener("click",loadAll);
-  $("pushButton").addEventListener("click",togglePush);
-  $("copyFidButton").addEventListener("click",copyCurrentFid);
+  $("pushButton").addEventListener("click",enablePush);
   $("loginButton").addEventListener("click",()=>openAuth("login"));
   $("logoutButton").addEventListener("click",logout);
   $("portfolioLoginButton").addEventListener("click",()=>openAuth("login"));
@@ -3689,39 +1795,6 @@ window.addEventListener("DOMContentLoaded",async ()=>{
   $("closePositionModalButton").addEventListener("click",closePositionModal);
   $("loginTab").addEventListener("click",()=>setAuthMode("login"));
   $("signupTab").addEventListener("click",()=>setAuthMode("signup"));
-  $("closeSignalMonitor").addEventListener("click",closeSignalMonitor);
-  bindPasswordToggle("authPassword","authPasswordToggle");
-  bindPasswordToggle("authPasswordConfirm","authPasswordConfirmToggle");
-  $("forgotPasswordButton").addEventListener("click",async ()=>{
-    const button=$("forgotPasswordButton");
-    const email=$("authEmail").value.trim();
-
-    $("authMessage").textContent="";
-
-    if(!email){
-      $("authEmail").focus();
-      $("authMessage").innerHTML=
-        `<div class="auth-error">Enter your registered email first, then tap Forgot password?</div>`;
-      return;
-    }
-
-    button.disabled=true;
-    const originalText=button.textContent;
-    button.textContent="Sending reset email…";
-
-    try{
-      await requestPasswordReset();
-      button.textContent="Reset email sent ✓";
-    }catch(error){
-      button.textContent=originalText;
-      $("authMessage").innerHTML=`<div class="auth-error">${safe(error.message)}</div>`;
-    }finally{
-      setTimeout(()=>{
-        button.disabled=false;
-        button.textContent=originalText;
-      },1800);
-    }
-  });
   $("positionAutoTrailing").addEventListener("change",updateTrailingFieldState);
 
   $("authForm").addEventListener("submit",async event=>{
@@ -3732,7 +1805,6 @@ window.addEventListener("DOMContentLoaded",async ()=>{
 
     try{
       if(event.currentTarget.dataset.mode==="signup") await signUp();
-      else if(event.currentTarget.dataset.mode==="recovery") await updateRecoveredPassword();
       else await login();
     }catch(error){
       $("authMessage").innerHTML=`<div class="auth-error">${safe(error.message)}</div>`;
