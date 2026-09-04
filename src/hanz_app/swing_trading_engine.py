@@ -124,6 +124,14 @@ EARLY_WEEKLY_EMA_TOLERANCE = float(
 
 BUY_STATES = {"SWING_BUY", "EARLY_CONFIRMED_BUY"}
 
+# V10.5 Foreign Flow Intelligence (research hypotheses; calibrate with IDX OOS/WFA)
+FOREIGN_FLOW_ENABLED = os.getenv("HANZ_FOREIGN_FLOW_ENABLED", "1").strip() != "0"
+FOREIGN_FLOW_LOOKBACK_DAYS = int(os.getenv("HANZ_FOREIGN_FLOW_LOOKBACK_DAYS", "5"))
+FOREIGN_FLOW_STRONG_BUY_PCT = float(os.getenv("HANZ_FOREIGN_FLOW_STRONG_BUY_PCT", "1.0"))
+FOREIGN_FLOW_STRONG_SELL_PCT = float(os.getenv("HANZ_FOREIGN_FLOW_STRONG_SELL_PCT", "-1.0"))
+FOREIGN_FLOW_WARN_SELL_PCT = float(os.getenv("HANZ_FOREIGN_FLOW_WARN_SELL_PCT", "-0.35"))
+FOREIGN_FLOW_CONFIRM_DAYS = int(os.getenv("HANZ_FOREIGN_FLOW_CONFIRM_DAYS", "2"))
+
 # V8.5 Predictive Radar
 # Radar states are INTERNAL ONLY and must never be shown as user-facing BUY signals.
 RADAR_BASE_MIN_SCORE = int(os.getenv("HANZ_RADAR_BASE_MIN_SCORE", "4"))
@@ -344,6 +352,8 @@ PUSH_ALERT_TYPES = {
     "TARGET_2_REACHED",
     "TRAILING_ACTIVATED",
     "PROTECT_PROFIT",
+    "DISTRIBUTION_WATCH",
+    "FOREIGN_SELL_CAUTION",
     "STOP_LOSS",
     "CONFIRMED_SELL",
 }
@@ -1833,6 +1843,51 @@ def apply_early_state_and_reconfirmation(
     )
     out["evidence"] = evidence
     return out
+
+
+def foreign_flow_snapshot(ticker):
+    """Per-ticker foreign flow from Supabase; missing data => UNKNOWN."""
+    empty={"status":"UNKNOWN","score":0,"available":False,"net_1d":None,"net_3d":None,"net_5d":None,"net_pct_1d":None,"net_pct_3d":None,"net_pct_5d":None,"buy_days_5d":0,"sell_days_5d":0,"reason":"Foreign-flow data unavailable."}
+    if not FOREIGN_FLOW_ENABLED:
+        out=dict(empty); out.update(status="DISABLED",reason="Foreign-flow layer disabled."); return out
+    try:
+        enc=urllib.parse.quote(clean_ticker(ticker),safe="")
+        rows=supabase_request("GET","hanz_foreign_flow_daily"+f"?ticker=eq.{enc}"+"&select=trade_date,foreign_net_value,total_value,foreign_buy_value,foreign_sell_value"+"&order=trade_date.desc"+f"&limit={max(FOREIGN_FLOW_LOOKBACK_DAYS,5)}") or []
+    except Exception as exc:
+        out=dict(empty); out["reason"]=f"Foreign-flow query unavailable: {exc}"; return out
+    if not rows:
+        out=dict(empty); out["reason"]="No foreign-flow rows for ticker."; return out
+    def sums(n):
+        s=rows[:n]; net=sum(safe_float(r.get("foreign_net_value")) or 0.0 for r in s); tv=sum(safe_float(r.get("total_value")) or 0.0 for r in s); return net,(net/tv*100.0 if tv>0 else None)
+    net1,p1=sums(1); net3,p3=sums(min(3,len(rows))); net5,p5=sums(min(5,len(rows)))
+    bd=sum(1 for r in rows[:5] if (safe_float(r.get("foreign_net_value")) or 0)>0); sd=sum(1 for r in rows[:5] if (safe_float(r.get("foreign_net_value")) or 0)<0)
+    status="NEUTRAL"; score=0; reason="Foreign flow neutral / inconclusive."
+    if p5 is not None and p5>=FOREIGN_FLOW_STRONG_BUY_PCT and bd>=FOREIGN_FLOW_CONFIRM_DAYS: status,score,reason="ACCUMULATING",12,"5D foreign accumulation."
+    elif p3 is not None and p3>=FOREIGN_FLOW_STRONG_BUY_PCT: status,score,reason="ACCUMULATING",9,"3D foreign accumulation."
+    elif p5 is not None and p5<=FOREIGN_FLOW_STRONG_SELL_PCT and sd>=FOREIGN_FLOW_CONFIRM_DAYS: status,score,reason="DISTRIBUTING",-12,"5D foreign distribution."
+    elif p3 is not None and p3<=FOREIGN_FLOW_WARN_SELL_PCT and sd>=FOREIGN_FLOW_CONFIRM_DAYS: status,score,reason="DISTRIBUTION_WATCH",-7,"Multi-day foreign net sell."
+    elif p1 is not None and p1<=FOREIGN_FLOW_WARN_SELL_PCT: status,score,reason="CAUTION",-3,"1D foreign net sell."
+    elif p1 is not None and p1>0: status,score,reason="MILD_ACCUMULATION",3,"1D foreign net buy."
+    return {"status":status,"score":score,"available":True,"net_1d":safe_float(net1),"net_3d":safe_float(net3),"net_5d":safe_float(net5),"net_pct_1d":safe_float(p1),"net_pct_3d":safe_float(p3),"net_pct_5d":safe_float(p5),"buy_days_5d":bd,"sell_days_5d":sd,"reason":reason}
+
+def apply_foreign_flow_to_risk_validation(risk_validation,foreign_flow):
+    out=dict(risk_validation or {}); ff=dict(foreign_flow or {})
+    for k,v in {"foreign_flow_status":"status","foreign_flow_score":"score","foreign_net_1d":"net_1d","foreign_net_3d":"net_3d","foreign_net_5d":"net_5d","foreign_net_pct_1d":"net_pct_1d","foreign_net_pct_3d":"net_pct_3d","foreign_net_pct_5d":"net_pct_5d","foreign_buy_days_5d":"buy_days_5d","foreign_sell_days_5d":"sell_days_5d","foreign_flow_reason":"reason"}.items(): out[k]=ff.get(v)
+    out["score"]=int(max(0,min(100,round((safe_float(out.get("score")) or 0)+(safe_float(ff.get("score")) or 0)))))
+    cautions=list(out.get("cautions") or []); status=str(ff.get("status") or "").upper()
+    if status in {"DISTRIBUTING","DISTRIBUTION_WATCH"} and "FOREIGN_DISTRIBUTION" not in cautions: cautions.append("FOREIGN_DISTRIBUTION")
+    out["cautions"]=cautions; return out
+
+def foreign_exit_overlay(position,daily,foreign_flow):
+    """Foreign sell = prepare-exit warning; price/structure confirms actual SELL."""
+    status=str((foreign_flow or {}).get("status") or "UNKNOWN").upper(); close=safe_float(daily.get("price")); ema20=safe_float(daily.get("ema20")); prior_low20=safe_float(daily.get("prior_low20")); pnl=safe_float(position.get("last_pnl_pct"))
+    if status=="DISTRIBUTING":
+        if close is not None and prior_low20 is not None and close<prior_low20: return {"signal":"CONFIRMED_SELL","priority":96,"reason":"Foreign distribution confirmed by daily support breakdown."}
+        if close is not None and ema20 is not None and close<ema20: return {"signal":"PROTECT_PROFIT" if (pnl is not None and pnl>0) else "DISTRIBUTION_WATCH","priority":82,"reason":"Heavy foreign distribution + close below EMA20. Prepare exit / tighten risk."}
+        return {"signal":"DISTRIBUTION_WATCH","priority":70,"reason":"Heavy foreign net sell. Prepare exit; wait for price/structure confirmation."}
+    if status=="DISTRIBUTION_WATCH": return {"signal":"DISTRIBUTION_WATCH","priority":60,"reason":"Multi-day foreign net sell detected. Tighten monitoring."}
+    if status=="CAUTION": return {"signal":"FOREIGN_SELL_CAUTION","priority":45,"reason":"One-day foreign net sell. Early warning only."}
+    return None
 
 
 def swing_score(daily, weekly):
@@ -3983,7 +4038,11 @@ def monitor_swing_portfolio(*, allow_structural_exit=True):
                 allow_structural_exit=allow_structural_exit,
             )
 
+            foreign_flow = foreign_flow_snapshot(ticker)
+            foreign_overlay = foreign_exit_overlay(position, daily, foreign_flow)
             signal = result["signal"]
+            if foreign_overlay is not None and int(foreign_overlay.get("priority") or 0) > int(result.get("priority") or 0):
+                result = dict(result); result.update(foreign_overlay); signal = result["signal"]
 
             updates = {
                 "signal": signal,
@@ -3993,6 +4052,14 @@ def monitor_swing_portfolio(*, allow_structural_exit=True):
                 "last_daily_bar_at": daily.get("bar_at"),
                 "last_weekly_bar_at": weekly.get("bar_at"),
                 "last_signal_reason": result.get("reason"),
+                "foreign_flow_status": foreign_flow.get("status"),
+                "foreign_net_1d": foreign_flow.get("net_1d"),
+                "foreign_net_3d": foreign_flow.get("net_3d"),
+                "foreign_net_5d": foreign_flow.get("net_5d"),
+                "foreign_net_pct_1d": foreign_flow.get("net_pct_1d"),
+                "foreign_net_pct_3d": foreign_flow.get("net_pct_3d"),
+                "foreign_net_pct_5d": foreign_flow.get("net_pct_5d"),
+                "foreign_flow_reason": foreign_flow.get("reason"),
             }
 
             update_swing_portfolio(
@@ -4027,6 +4094,13 @@ def monitor_swing_portfolio(*, allow_structural_exit=True):
                     ),
                     reason=result["reason"],
                     daily_dedupe=True,
+                )
+
+            elif signal in {"DISTRIBUTION_WATCH", "FOREIGN_SELL_CAUTION"}:
+                insert_swing_alert(
+                    position=position, alert_type=signal, priority=result["priority"],
+                    message=(f"Price {daily['price']:.2f}. {result['reason']} Foreign 1D/3D/5D: {foreign_flow.get('net_pct_1d')}% / {foreign_flow.get('net_pct_3d')}% / {foreign_flow.get('net_pct_5d')}%."),
+                    reason=result["reason"], daily_dedupe=True,
                 )
 
             print(
@@ -5748,6 +5822,8 @@ def scan_symbol(ticker, maintenance_mode=False):
         fundamental,
         _REAL_MONEY_CONTEXT,
     )
+    foreign_flow = foreign_flow_snapshot(ticker)
+    risk_validation = apply_foreign_flow_to_risk_validation(risk_validation, foreign_flow)
 
     # V8.8 OFF-MARKET CANDIDATE REFRESH
     #
@@ -5781,6 +5857,9 @@ def scan_symbol(ticker, maintenance_mode=False):
         # display state so it cannot look actionable while the exchange is shut.
         risk_validation = real_money_validation(
             ticker, daily, result, levels, fundamental, _REAL_MONEY_CONTEXT
+        )
+        risk_validation = apply_foreign_flow_to_risk_validation(
+            risk_validation, foreign_flow
         )
 
     if maintenance_write:
@@ -6151,7 +6230,7 @@ def run_cycle():
 
 def main():
     print(
-        "HANZ SWING / WEEKLY ENGINE START — V10.4 EARLY-CONFIRMED BUY + PORTFOLIO PUSH",
+        "HANZ SWING / WEEKLY ENGINE START — V10.5 FOREIGN FLOW + EARLY-CONFIRMED BUY",
         flush=True,
     )
 
