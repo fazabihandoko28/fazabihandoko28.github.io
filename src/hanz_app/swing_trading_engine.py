@@ -342,7 +342,7 @@ FIREBASE_SERVICE_ACCOUNT_JSON = os.getenv(
 
 PUSH_DASHBOARD_URL = os.getenv(
     "HANZ_SWING_DASHBOARD_URL",
-    "https://fazabihandoko28.github.io/dashboard/swing/",
+    "https://hanzcuan.com/dashboard/swing/",
 )
 
 # Production portfolio push events.
