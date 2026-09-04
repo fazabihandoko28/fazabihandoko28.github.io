@@ -132,6 +132,14 @@ FOREIGN_FLOW_STRONG_SELL_PCT = float(os.getenv("HANZ_FOREIGN_FLOW_STRONG_SELL_PC
 FOREIGN_FLOW_WARN_SELL_PCT = float(os.getenv("HANZ_FOREIGN_FLOW_WARN_SELL_PCT", "-0.35"))
 FOREIGN_FLOW_CONFIRM_DAYS = int(os.getenv("HANZ_FOREIGN_FLOW_CONFIRM_DAYS", "2"))
 
+# V10.6 Public Insider Disclosure Intelligence.
+# ONLY public disclosures are eligible. Never use leaked/confidential/MNPI data.
+INSIDER_DISCLOSURE_ENABLED = os.getenv("HANZ_INSIDER_DISCLOSURE_ENABLED", "1").strip() != "0"
+INSIDER_LOOKBACK_DAYS = int(os.getenv("HANZ_INSIDER_LOOKBACK_DAYS", "90"))
+INSIDER_RECENT_DAYS = int(os.getenv("HANZ_INSIDER_RECENT_DAYS", "30"))
+INSIDER_MIN_VALUE_IDR = float(os.getenv("HANZ_INSIDER_MIN_VALUE_IDR", "100000000"))
+INSIDER_REPEAT_COUNT = int(os.getenv("HANZ_INSIDER_REPEAT_COUNT", "2"))
+
 # V8.5 Predictive Radar
 # Radar states are INTERNAL ONLY and must never be shown as user-facing BUY signals.
 RADAR_BASE_MIN_SCORE = int(os.getenv("HANZ_RADAR_BASE_MIN_SCORE", "4"))
@@ -354,6 +362,7 @@ PUSH_ALERT_TYPES = {
     "PROTECT_PROFIT",
     "DISTRIBUTION_WATCH",
     "FOREIGN_SELL_CAUTION",
+    "INSIDER_SELL_CAUTION",
     "STOP_LOSS",
     "CONFIRMED_SELL",
 }
@@ -1887,6 +1896,124 @@ def foreign_exit_overlay(position,daily,foreign_flow):
         return {"signal":"DISTRIBUTION_WATCH","priority":70,"reason":"Heavy foreign net sell. Prepare exit; wait for price/structure confirmation."}
     if status=="DISTRIBUTION_WATCH": return {"signal":"DISTRIBUTION_WATCH","priority":60,"reason":"Multi-day foreign net sell detected. Tighten monitoring."}
     if status=="CAUTION": return {"signal":"FOREIGN_SELL_CAUTION","priority":45,"reason":"One-day foreign net sell. Early warning only."}
+    return None
+
+
+def insider_disclosure_snapshot(ticker):
+    """Summarize ONLY verified public insider disclosures from Supabase."""
+    empty = {
+        "status":"UNKNOWN","score":0,"available":False,
+        "buy_count_30d":0,"sell_count_30d":0,
+        "buy_count_90d":0,"sell_count_90d":0,
+        "buy_value_90d":0.0,"sell_value_90d":0.0,
+        "distinct_buyers_90d":0,"distinct_sellers_90d":0,
+        "latest_action":None,"latest_disclosure_date":None,
+        "reason":"Public insider disclosure data unavailable."
+    }
+    if not INSIDER_DISCLOSURE_ENABLED:
+        out=dict(empty); out.update(status="DISABLED",reason="Public insider disclosure layer disabled."); return out
+    try:
+        enc=urllib.parse.quote(clean_ticker(ticker),safe="")
+        rows=supabase_request(
+            "GET",
+            "hanz_insider_activity"
+            f"?ticker=eq.{enc}"
+            "&verified_public=eq.true"
+            "&select=disclosure_date,transaction_date,insider_name,role,action,shares,price,transaction_value,ownership_after,source_name,source_url"
+            "&order=disclosure_date.desc&limit=100"
+        ) or []
+    except Exception as exc:
+        out=dict(empty); out["reason"]=f"Public insider query unavailable: {exc}"; return out
+    if not rows:
+        out=dict(empty); out["reason"]="No verified public insider disclosures stored for ticker."; return out
+
+    today=jakarta_now().date()
+    def row_date(r):
+        for key in ("transaction_date","disclosure_date"):
+            try:
+                if r.get(key): return pd.Timestamp(r.get(key)).date()
+            except Exception:
+                pass
+        return None
+    def act(r): return str(r.get("action") or "").strip().upper()
+    def val(r):
+        v=safe_float(r.get("transaction_value"))
+        if v is not None: return max(0.0,v)
+        sh=safe_float(r.get("shares")); px=safe_float(r.get("price"))
+        return max(0.0,(sh or 0.0)*(px or 0.0))
+
+    r90=[]; r30=[]
+    for r in rows:
+        d=row_date(r)
+        if d is None: continue
+        age=(today-d).days
+        if 0 <= age <= INSIDER_LOOKBACK_DAYS:
+            r90.append(r)
+            if age <= INSIDER_RECENT_DAYS: r30.append(r)
+
+    b90=[r for r in r90 if act(r)=="BUY"]; s90=[r for r in r90 if act(r)=="SELL"]
+    b30=[r for r in r30 if act(r)=="BUY"]; s30=[r for r in r30 if act(r)=="SELL"]
+    bv=sum(val(r) for r in b90); sv=sum(val(r) for r in s90)
+    buyers={str(r.get("insider_name") or "").strip().lower() for r in b90 if str(r.get("insider_name") or "").strip()}
+    sellers={str(r.get("insider_name") or "").strip().lower() for r in s90 if str(r.get("insider_name") or "").strip()}
+
+    status="NEUTRAL"; score=0; reason="No decisive public insider accumulation/distribution signal."
+    if len(b90)>=INSIDER_REPEAT_COUNT and bv>=INSIDER_MIN_VALUE_IDR and bv>max(sv*2.0,INSIDER_MIN_VALUE_IDR):
+        status="STRONG_INSIDER_BUY"; score=12 if len(buyers)>=2 else 10
+        reason="Multiple/repeated verified public insider purchases." if len(buyers)>=2 else "Repeated verified public insider purchases."
+    elif b90 and bv>=INSIDER_MIN_VALUE_IDR and bv>sv:
+        status,score,reason="INSIDER_BUY",6,"Verified public insider buying exceeds insider selling."
+    elif len(s90)>=INSIDER_REPEAT_COUNT and sv>=INSIDER_MIN_VALUE_IDR and sv>max(bv*2.0,INSIDER_MIN_VALUE_IDR):
+        status="HEAVY_INSIDER_SELL"; score=-12 if len(sellers)>=2 else -10
+        reason="Multiple/repeated verified public insider sales." if len(sellers)>=2 else "Repeated verified public insider sales."
+    elif s90 and sv>=INSIDER_MIN_VALUE_IDR and sv>bv:
+        status,score,reason="INSIDER_SELL",-5,"Verified public insider selling exceeds insider buying."
+
+    latest=rows[0]
+    return {
+        "status":status,"score":score,"available":True,
+        "buy_count_30d":len(b30),"sell_count_30d":len(s30),
+        "buy_count_90d":len(b90),"sell_count_90d":len(s90),
+        "buy_value_90d":safe_float(bv),"sell_value_90d":safe_float(sv),
+        "distinct_buyers_90d":len(buyers),"distinct_sellers_90d":len(sellers),
+        "latest_action":act(latest) or None,
+        "latest_disclosure_date":latest.get("disclosure_date"),
+        "reason":reason
+    }
+
+
+def apply_insider_to_risk_validation(risk_validation,insider):
+    out=dict(risk_validation or {}); ins=dict(insider or {})
+    mp={
+        "insider_status":"status","insider_score":"score",
+        "insider_buy_count_30d":"buy_count_30d","insider_sell_count_30d":"sell_count_30d",
+        "insider_buy_count_90d":"buy_count_90d","insider_sell_count_90d":"sell_count_90d",
+        "insider_buy_value_90d":"buy_value_90d","insider_sell_value_90d":"sell_value_90d",
+        "insider_distinct_buyers_90d":"distinct_buyers_90d","insider_distinct_sellers_90d":"distinct_sellers_90d",
+        "insider_latest_action":"latest_action","insider_latest_disclosure_date":"latest_disclosure_date",
+        "insider_reason":"reason"
+    }
+    for k,v in mp.items(): out[k]=ins.get(v)
+    # Confirmation/ranking only; cannot bypass a failed technical/risk gate.
+    out["score"]=int(max(0,min(100,round((safe_float(out.get("score")) or 0)+(safe_float(ins.get("score")) or 0)))))
+    cautions=list(out.get("cautions") or [])
+    if str(ins.get("status") or "").upper() in {"INSIDER_SELL","HEAVY_INSIDER_SELL"} and "PUBLIC_INSIDER_SELLING" not in cautions:
+        cautions.append("PUBLIC_INSIDER_SELLING")
+    out["cautions"]=cautions
+    return out
+
+
+def insider_exit_overlay(position,daily,insider):
+    """Public insider selling is a warning layer, never a standalone confirmed SELL."""
+    status=str((insider or {}).get("status") or "UNKNOWN").upper()
+    close=safe_float(daily.get("price")); ema20=safe_float(daily.get("ema20"))
+    pnl=safe_float(position.get("last_pnl_pct"))
+    if status=="HEAVY_INSIDER_SELL":
+        if close is not None and ema20 is not None and close<ema20:
+            return {"signal":"PROTECT_PROFIT" if (pnl is not None and pnl>0) else "INSIDER_SELL_CAUTION","priority":78,"reason":"Repeated public insider selling + close below EMA20. Tighten risk."}
+        return {"signal":"INSIDER_SELL_CAUTION","priority":58,"reason":"Repeated public insider selling disclosed. Prepare exit; wait for price/structure confirmation."}
+    if status=="INSIDER_SELL":
+        return {"signal":"INSIDER_SELL_CAUTION","priority":42,"reason":"Public insider selling disclosed. Warning only; no automatic sell."}
     return None
 
 
@@ -4040,9 +4167,15 @@ def monitor_swing_portfolio(*, allow_structural_exit=True):
 
             foreign_flow = foreign_flow_snapshot(ticker)
             foreign_overlay = foreign_exit_overlay(position, daily, foreign_flow)
+            insider = insider_disclosure_snapshot(ticker)
+            insider_overlay = insider_exit_overlay(position, daily, insider)
+
             signal = result["signal"]
-            if foreign_overlay is not None and int(foreign_overlay.get("priority") or 0) > int(result.get("priority") or 0):
-                result = dict(result); result.update(foreign_overlay); signal = result["signal"]
+            for overlay in (foreign_overlay, insider_overlay):
+                if overlay is not None and int(overlay.get("priority") or 0) > int(result.get("priority") or 0):
+                    result = dict(result)
+                    result.update(overlay)
+                    signal = result["signal"]
 
             updates = {
                 "signal": signal,
@@ -4060,6 +4193,17 @@ def monitor_swing_portfolio(*, allow_structural_exit=True):
                 "foreign_net_pct_3d": foreign_flow.get("net_pct_3d"),
                 "foreign_net_pct_5d": foreign_flow.get("net_pct_5d"),
                 "foreign_flow_reason": foreign_flow.get("reason"),
+                "insider_status": insider.get("status"),
+                "insider_score": insider.get("score"),
+                "insider_buy_count_30d": insider.get("buy_count_30d"),
+                "insider_sell_count_30d": insider.get("sell_count_30d"),
+                "insider_buy_count_90d": insider.get("buy_count_90d"),
+                "insider_sell_count_90d": insider.get("sell_count_90d"),
+                "insider_buy_value_90d": insider.get("buy_value_90d"),
+                "insider_sell_value_90d": insider.get("sell_value_90d"),
+                "insider_latest_action": insider.get("latest_action"),
+                "insider_latest_disclosure_date": insider.get("latest_disclosure_date"),
+                "insider_reason": insider.get("reason"),
             }
 
             update_swing_portfolio(
@@ -4101,6 +4245,19 @@ def monitor_swing_portfolio(*, allow_structural_exit=True):
                     position=position, alert_type=signal, priority=result["priority"],
                     message=(f"Price {daily['price']:.2f}. {result['reason']} Foreign 1D/3D/5D: {foreign_flow.get('net_pct_1d')}% / {foreign_flow.get('net_pct_3d')}% / {foreign_flow.get('net_pct_5d')}%."),
                     reason=result["reason"], daily_dedupe=True,
+                )
+
+            elif signal == "INSIDER_SELL_CAUTION":
+                insert_swing_alert(
+                    position=position,
+                    alert_type=signal,
+                    priority=result["priority"],
+                    message=(
+                        f"Price {daily['price']:.2f}. {result['reason']} "
+                        f"Public insider BUY/SELL 30D: {insider.get('buy_count_30d')}/{insider.get('sell_count_30d')}."
+                    ),
+                    reason=result["reason"],
+                    daily_dedupe=True,
                 )
 
             print(
@@ -5824,6 +5981,8 @@ def scan_symbol(ticker, maintenance_mode=False):
     )
     foreign_flow = foreign_flow_snapshot(ticker)
     risk_validation = apply_foreign_flow_to_risk_validation(risk_validation, foreign_flow)
+    insider = insider_disclosure_snapshot(ticker)
+    risk_validation = apply_insider_to_risk_validation(risk_validation, insider)
 
     # V8.8 OFF-MARKET CANDIDATE REFRESH
     #
@@ -5860,6 +6019,9 @@ def scan_symbol(ticker, maintenance_mode=False):
         )
         risk_validation = apply_foreign_flow_to_risk_validation(
             risk_validation, foreign_flow
+        )
+        risk_validation = apply_insider_to_risk_validation(
+            risk_validation, insider
         )
 
     if maintenance_write:
