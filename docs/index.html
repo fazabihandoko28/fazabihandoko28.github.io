@@ -1,17 +1,296 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>HANZ</title>
-
-  <meta http-equiv="refresh" content="0; url=/dashboard/swing/">
-
-  <script>
-    window.location.replace("/dashboard/swing/");
-  </script>
-</head>
-<body>
-  <p>Redirecting to HANZ Swing Intelligence...</p>
-</body>
-</html>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>HANZ Intelligence</title><style>
+:root{--bg:#050b14;--panel:#0d1727;--panel2:#111f34;--line:#263650;--text:#f5f7fb;--muted:#98a7bd;--blue:#54a8ff;--green:#66e3a4;--yellow:#ffd76a;--red:#ff8299;--violet:#c5a7ff}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:radial-gradient(circle at top right,#10213c 0,#050b14 38%);color:var(--text)}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;background:linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);background-size:32px 32px;mask-image:linear-gradient(to bottom,black,transparent 70%)}
+main{max-width:1280px;margin:auto;padding:26px 20px 56px;position:relative}a{color:#9bcaff;text-decoration:none}.eyebrow{color:#7fa7d6;font-size:11px;font-weight:800;letter-spacing:.14em}
+.hero{padding:30px;border:1px solid #2a3f5f;border-radius:26px;background:linear-gradient(135deg,rgba(27,53,91,.96),rgba(13,23,39,.96));box-shadow:0 24px 60px rgba(0,0,0,.32);position:relative;overflow:hidden}
+.hero:after{content:"HANZ";position:absolute;right:-14px;top:-42px;font-size:160px;font-weight:900;color:rgba(255,255,255,.025);letter-spacing:-.08em}h1{margin:0 0 8px;font-size:clamp(34px,5vw,58px);letter-spacing:-.04em}.motto{margin:0 0 20px;font-size:18px;color:#d8e4f4}
+.notice{display:inline-flex;padding:10px 14px;border:1px solid #5b3548;border-radius:999px;background:#2c1c28;color:#ffd4df;font-size:13px;font-weight:700}.meta-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px;color:var(--muted)}.meta-row span{border:1px solid #324765;background:rgba(8,15,26,.35);border-radius:999px;padding:7px 10px;font-size:12px}
+.market-section{margin-top:34px}.section-head,.subsection-head{display:flex;align-items:end;justify-content:space-between;gap:16px;margin-bottom:16px}h2{margin:4px 0 0;font-size:34px}h3{margin:4px 0 0;font-size:24px}.section-head p{margin:5px 0 0;color:var(--muted)}
+.counts{display:flex;gap:8px;flex-wrap:wrap}.counts span{border:1px solid var(--line);background:rgba(13,23,39,.72);border-radius:999px;padding:8px 11px;color:var(--muted);font-size:12px}.counts b{color:var(--text);font-size:15px}
+.decision-panel{display:grid;grid-template-columns:2fr repeat(4,1fr);gap:10px;background:linear-gradient(135deg,#132744,#0b1524);border:1px solid #35527a;border-radius:22px;padding:16px;margin:18px 0 10px;box-shadow:0 18px 44px rgba(0,0,0,.24)}
+.decision-main,.decision-stat{border:1px solid rgba(130,170,220,.16);border-radius:16px;padding:15px;display:flex;flex-direction:column;justify-content:center;min-width:0}.decision-main small,.decision-stat small{color:var(--muted);font-size:10px;font-weight:800;letter-spacing:.12em}.decision-main strong{font-size:30px;margin-top:4px;line-height:1.05}.decision-main p{margin:8px 0 0;color:#d8e5f5;font-size:13px;line-height:1.45}.decision-stat strong{font-size:24px;margin-top:7px}.decision-stat strong span{font-size:13px;color:var(--muted)}
+.ready,.good{color:var(--green)}.wait,.caution{color:var(--yellow)}.risk,.reject,.bad{color:var(--red)}.neutral{color:#cbd6e7}.unknown{color:var(--muted)}
+.health-line,.quality-meter{height:6px;background:#15243a;border-radius:999px;overflow:hidden}.health-line span,.quality-meter span{display:block;height:100%;background:linear-gradient(90deg,#3f88ff,#66e3a4);border-radius:999px}.health-copy{color:var(--muted);margin:10px 2px 24px;font-size:13px}
+.candidate-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:16px}.candidate-card,.empty,.errors,.market-explanation{background:linear-gradient(180deg,#111f34,#0d1727);border:1px solid var(--line);border-radius:22px;padding:19px;box-shadow:0 14px 34px rgba(0,0,0,.18)}.watch-card{border-style:dashed}.candidate-head{display:flex;justify-content:space-between;gap:14px;align-items:start}.symbol-row{display:flex;align-items:center;gap:10px}.symbol{font-size:31px;font-weight:900;letter-spacing:-.03em}.market,.meta{color:var(--muted);font-size:12px}.mini-action{font-size:10px;font-weight:900;padding:5px 8px;border-radius:999px;background:#17263c}
+.badges{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.status,.strength,.quality,.grade{border-radius:999px;padding:6px 9px;font-weight:800;font-size:11px}.status.ready,.strength.strong{background:#113729;color:var(--green)}.status.wait,.strength.developing{background:#3c3316;color:var(--yellow)}.status.risk,.status.reject,.strength.weak{background:#401d27;color:var(--red)}.quality{background:#17314e;color:#b8dcff}.grade{background:#30264b;color:#d8c7ff}.quality-meter{margin:13px 0 14px}
+.instruction{border-left:3px solid #4d9fff;background:#0b1628;border-radius:10px;padding:10px 12px;margin-bottom:14px}.instruction strong{font-size:10px;letter-spacing:.12em;color:#8ebfff}.instruction p{margin:4px 0 0;font-size:13px;color:#dce7f5;line-height:1.45}
+.signal-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0}.signal{padding:11px;border:1px solid var(--line);border-radius:13px;display:flex;flex-direction:column;gap:5px;background:#0b1626}.signal small{color:var(--muted);font-size:11px}.signal strong{font-size:13px}
+.plan{display:grid;grid-template-columns:1.3fr repeat(3,1fr);gap:8px;margin:14px 0}.plan>div{border:1px solid var(--line);border-radius:13px;padding:11px;display:flex;flex-direction:column;gap:4px;background:#0b1626}.plan-primary{background:linear-gradient(145deg,#122b49,#0b1626)!important}.plan small,.plan span,.plan-note{color:var(--muted);font-size:11px}.plan strong{font-size:16px}.plan-note{line-height:1.45}
+details{margin:14px 0}summary{cursor:pointer;color:#bad6ff;font-weight:700}ul{line-height:1.55}.technical-values{display:flex;gap:7px;flex-wrap:wrap;margin-top:14px}.technical-values span{border:1px solid var(--line);border-radius:999px;padding:6px 8px;color:var(--muted);font-size:11px}.meta{margin-top:8px}.market-explanation{background:#17162a;border-color:#3d3760;margin:16px 0}.empty p{color:var(--muted);margin-bottom:0}footer{margin-top:34px;color:var(--muted);font-size:12px;line-height:1.5}
+@media(max-width:980px){.decision-panel{grid-template-columns:2fr repeat(2,1fr)}.decision-main{grid-row:span 2}.plan{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:720px){body{background:#060d18;padding-bottom:24px}main{padding:12px 10px 34px;max-width:none}.hero{padding:20px 16px;border-radius:20px}.hero:after{font-size:100px}h1{font-size:38px}.motto{font-size:14px;line-height:1.45}.notice{font-size:11px;border-radius:12px;line-height:1.35}.meta-row{display:grid;grid-template-columns:1fr;gap:6px}.meta-row span{font-size:10px;overflow-wrap:anywhere}
+.section-head,.subsection-head{align-items:start;flex-direction:column;gap:10px}h2{font-size:28px}h3{font-size:21px}.counts{display:grid;grid-template-columns:repeat(2,1fr);width:100%}.counts span{text-align:center}
+.decision-panel{position:sticky;top:8px;z-index:8;grid-template-columns:repeat(2,1fr);padding:12px;border-radius:18px;box-shadow:0 16px 30px rgba(0,0,0,.4)}.decision-main{grid-column:1/-1;grid-row:auto;padding:13px}.decision-main strong{font-size:25px}.decision-main p{font-size:12px}.decision-stat{padding:10px}.decision-stat strong{font-size:18px}
+.candidate-grid{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:12px;padding:2px 2px 12px;margin:0 -2px}.candidate-card{min-width:calc(100vw - 30px);scroll-snap-align:center;padding:16px;border-radius:18px}.watch-card{min-width:88vw}.candidate-head{flex-direction:column;gap:10px}.badges{justify-content:flex-start}.symbol{font-size:34px}.quality-meter{margin-top:10px}
+.signal-grid{grid-template-columns:repeat(2,1fr);gap:7px}.signal{min-height:68px;padding:10px 9px}.plan{grid-template-columns:repeat(2,1fr);gap:7px}.plan>div{min-height:92px;padding:10px 9px}.technical-values{gap:6px}.technical-values span{font-size:10px}.subsection-head a{font-size:12px}}
+@media(max-width:390px){.decision-panel{grid-template-columns:1fr 1fr}.candidate-card{min-width:calc(100vw - 22px)}.watch-card{min-width:92vw}}
+</style></head><body><main id="top"><section class="hero"><span class="eyebrow">INSTITUTIONAL RESEARCH DASHBOARD</span><h1>HANZ Intelligence</h1><p class="motto">HANZ isn't loyal to stocks. HANZ is loyal to profits.</p>
+<div class="notice">PAPER-TRADE RESEARCH ONLY — not approved for live-money execution.</div><div class="meta-row"><span>Generated: 2026-09-04T16:57:21.879087+00:00</span><span>Source: YAHOO_FINANCE_RESEARCH_ONLY</span><span>Grade: RESEARCH</span><span>Delayed: True</span></div></section>
+    <section class="market-section" id="market">
+      <div class="section-head">
+        <div><span class="eyebrow">MARKET OVERVIEW</span><h2>BEI</h2><p>100 symbols · 99.0% analyzed</p></div>
+        <div class="counts"><span><b>5</b> candidates</span><span><b>34</b> reviewed</span><span><b>60</b> rejected</span><span><b>1</b> errors</span></div>
+      </div>
+      <section class="decision-panel">
+      <div class="decision-main">
+        <small>TODAY'S DECISION</small>
+        <strong class="ready">READY · TINS</strong>
+        <p>Review the TINS entry plan. Respect the stop and exposure limit.</p>
+      </div>
+      <div class="decision-stat"><small>MARKET POSTURE</small><strong>SELECTIVE</strong></div>
+      <div class="decision-stat"><small>HEALTH</small><strong>90<span>/100</span></strong></div>
+      <div class="decision-stat"><small>MAX EXPOSURE</small><strong>35<span>%</span></strong></div>
+      <div class="decision-stat"><small>TOP QUALITY</small><strong>96<span>/100</span></strong></div>
+    </section>
+      <div class="health-line"><span style="width:90%"></span></div>
+      <p class="health-copy">Some evidence is developing; favor patience and smaller paper positions.</p>
+      
+      <div class="subsection-head"><div><span class="eyebrow">PRIMARY SETUPS</span><h3>Actionable candidates</h3></div><a href="#watchlist">View watchlist ↓</a></div>
+      <div class="candidate-grid">
+    <article class="candidate-card ">
+      <div class="candidate-head">
+        <div>
+          <div class="symbol-row"><div class="symbol">TINS</div><span class="mini-action ready">READY</span></div>
+          <div class="market">BEI · SECONDARY</div>
+        </div>
+        <div class="badges"><span class="quality">QUALITY 96/100</span><span class="grade">AAA</span><span class="strength developing">DEVELOPING</span><span class="status ready">READY</span></div>
+      </div>
+      <div class="quality-meter"><span style="width:96%"></span></div>
+      <div class="instruction"><strong>WHAT TO DO</strong><p>Review the TINS entry plan. Respect the stop and exposure limit.</p></div>
+      <div class="signal-grid"><div class="signal"><span class="signal-icon"></span><small>Trend</small><strong class="good">SUPPORTIVE</strong></div><div class="signal"><span class="signal-icon"></span><small>Volume</small><strong class="good">SUPPORTIVE</strong></div><div class="signal"><span class="signal-icon"></span><small>Resistance</small><strong class="good">SUPPORTIVE</strong></div><div class="signal"><span class="signal-icon"></span><small>Risk / Reward</small><strong class="good">SUPPORTIVE</strong></div><div class="signal"><span class="signal-icon"></span><small>Liquidity</small><strong class="good">SUPPORTIVE</strong></div><div class="signal"><span class="signal-icon"></span><small>Extension</small><strong class="caution">CAUTION</strong></div></div>
+      <div class="plan">
+      <div class="plan-primary"><small>ENTRY PLAN</small><strong>4,383.57 – 4,441.86</strong><span>Price zone to monitor</span></div>
+      <div><small>STOP</small><strong>4,201.43</strong><span>Research invalidation</span></div>
+      <div><small>TARGET 1</small><strong>4,900.86</strong><span>R/R 1.9</span></div>
+      <div><small>TARGET 2</small><strong>5,141.29</strong><span>R/R 2.9</span></div>
+    </div><div class="plan-note">Research plan only; confirm liquidity and live price before any decision.</div>
+      <details><summary>Why HANZ classified it this way</summary><ul><li>Core evidence aligned with no active hard veto</li><li>Positive: data_freshness</li><li>Positive: liquidity</li><li>Positive: price_structure</li><li>Positive: resistance</li><li>Positive: risk_reward</li><li>Positive: volume_confirmation</li></ul></details>
+      <div class="technical-values">
+        <span>Close 4,420.00</span><span>RSI 73.45</span>
+        <span>RVOL 2.09</span><span>Resistance 4,220.00</span><span>ATR 145.71</span>
+      </div>
+      <div class="meta">Signal time: 2026-09-04T00:00:00+00:00</div>
+    </article>
+    <article class="candidate-card ">
+      <div class="candidate-head">
+        <div>
+          <div class="symbol-row"><div class="symbol">MARK</div><span class="mini-action wait">WAIT</span></div>
+          <div class="market">BEI · SECONDARY</div>
+        </div>
+        <div class="badges"><span class="quality">QUALITY 81/100</span><span class="grade">A</span><span class="strength developing">DEVELOPING</span><span class="status wait">WAIT</span></div>
+      </div>
+      <div class="quality-meter"><span style="width:81%"></span></div>
+      <div class="instruction"><strong>WHAT TO DO</strong><p>Monitor MARK. No entry until the status changes to READY.</p></div>
+      <div class="signal-grid"><div class="signal"><span class="signal-icon"></span><small>Trend</small><strong class="good">SUPPORTIVE</strong></div><div class="signal"><span class="signal-icon"></span><small>Volume</small><strong class="neutral">NEUTRAL</strong></div><div class="signal"><span class="signal-icon"></span><small>Resistance</small><strong class="neutral">NEUTRAL</strong></div><div class="signal"><span class="signal-icon"></span><small>Risk / Reward</small><strong class="good">SUPPORTIVE</strong></div><div class="signal"><span class="signal-icon"></span><small>Liquidity</small><strong class="good">SUPPORTIVE</strong></div><div class="signal"><span class="signal-icon"></span><small>Extension</small><strong class="neutral">NEUTRAL</strong></div></div>
+      <div class="plan">
+      <div class="plan-primary"><small>WATCH PLAN</small><strong>1,068.21 – 1,079.07</strong><span>Price zone to monitor</span></div>
+      <div><small>STOP</small><strong>1,044.75</strong><span>Research invalidation</span></div>
+      <div><small>TARGET 1</small><strong>1,143.64</strong><span>R/R 1.9</span></div>
+      <div><small>TARGET 2</small><strong>1,177.96</strong><span>R/R 2.9</span></div>
+    </div><div class="plan-note">Watchlist plan only; wait for READY evidence before considering entry.</div>
+      <details><summary>Why HANZ classified it this way</summary><ul><li>Evidence retained for confirmation</li><li>Positive: data_freshness</li><li>Positive: liquidity</li><li>Positive: price_structure</li><li>Positive: risk_reward</li></ul></details>
+      <div class="technical-values">
+        <span>Close 1,075.00</span><span>RSI 40.54</span>
+        <span>RVOL 1.09</span><span>Resistance 1,125.00</span><span>ATR 27.14</span>
+      </div>
+      <div class="meta">Signal time: 2026-09-04T00:00:00+00:00</div>
+    </article>
+    <article class="candidate-card ">
+      <div class="candidate-head">
+        <div>
+          <div class="symbol-row"><div class="symbol">HMSP</div><span class="mini-action wait">WAIT</span></div>
+          <div class="market">BEI · SECONDARY</div>
+        </div>
+        <div class="badges"><span class="quality">QUALITY 78/100</span><span class="grade">A</span><span class="strength developing">DEVELOPING</span><span class="status wait">WAIT</span></div>
+      </div>
+      <div class="quality-meter"><span style="width:78%"></span></div>
+      <div class="instruction"><strong>WHAT TO DO</strong><p>Monitor HMSP. No entry until the status changes to READY.</p></div>
+      <div class="signal-grid"><div class="signal"><span class="signal-icon"></span><small>Trend</small><strong class="good">SUPPORTIVE</strong></div><div class="signal"><span class="signal-icon"></span><small>Volume</small><strong class="caution">CAUTION</strong></div><div class="signal"><span class="signal-icon"></span><small>Resistance</small><strong class="neutral">NEUTRAL</strong></div><div class="signal"><span class="signal-icon"></span><small>Risk / Reward</small><strong class="good">SUPPORTIVE</strong></div><div class="signal"><span class="signal-icon"></span><small>Liquidity</small><strong class="good">SUPPORTIVE</strong></div><div class="signal"><span class="signal-icon"></span><small>Extension</small><strong class="neutral">NEUTRAL</strong></div></div>
+      <div class="plan">
+      <div class="plan-primary"><small>WATCH PLAN</small><strong>735.89 – 742.46</strong><span>Price zone to monitor</span></div>
+      <div><small>STOP</small><strong>715.36</strong><span>Research invalidation</span></div>
+      <div><small>TARGET 1</small><strong>794.21</strong><span>R/R 1.9</span></div>
+      <div><small>TARGET 2</small><strong>821.32</strong><span>R/R 2.9</span></div>
+    </div><div class="plan-note">Watchlist plan only; wait for READY evidence before considering entry.</div>
+      <details><summary>Why HANZ classified it this way</summary><ul><li>Evidence retained for confirmation</li><li>Positive: data_freshness</li><li>Positive: liquidity</li><li>Positive: price_structure</li><li>Positive: risk_reward</li></ul></details>
+      <div class="technical-values">
+        <span>Close 740.00</span><span>RSI 41.18</span>
+        <span>RVOL 0.69</span><span>Resistance 790.00</span><span>ATR 16.43</span>
+      </div>
+      <div class="meta">Signal time: 2026-09-04T00:00:00+00:00</div>
+    </article>
+    <article class="candidate-card ">
+      <div class="candidate-head">
+        <div>
+          <div class="symbol-row"><div class="symbol">GGRM</div><span class="mini-action wait">WAIT</span></div>
+          <div class="market">BEI · SECONDARY</div>
+        </div>
+        <div class="badges"><span class="quality">QUALITY 78/100</span><span class="grade">A</span><span class="strength developing">DEVELOPING</span><span class="status wait">WAIT</span></div>
+      </div>
+      <div class="quality-meter"><span style="width:78%"></span></div>
+      <div class="instruction"><strong>WHAT TO DO</strong><p>Monitor GGRM. No entry until the status changes to READY.</p></div>
+      <div class="signal-grid"><div class="signal"><span class="signal-icon"></span><small>Trend</small><strong class="good">SUPPORTIVE</strong></div><div class="signal"><span class="signal-icon"></span><small>Volume</small><strong class="caution">CAUTION</strong></div><div class="signal"><span class="signal-icon"></span><small>Resistance</small><strong class="neutral">NEUTRAL</strong></div><div class="signal"><span class="signal-icon"></span><small>Risk / Reward</small><strong class="good">SUPPORTIVE</strong></div><div class="signal"><span class="signal-icon"></span><small>Liquidity</small><strong class="good">SUPPORTIVE</strong></div><div class="signal"><span class="signal-icon"></span><small>Extension</small><strong class="neutral">NEUTRAL</strong></div></div>
+      <div class="plan">
+      <div class="plan-primary"><small>WATCH PLAN</small><strong>19,941.07 – 20,155.36</strong><span>Price zone to monitor</span></div>
+      <div><small>STOP</small><strong>19,271.43</strong><span>Research invalidation</span></div>
+      <div><small>TARGET 1</small><strong>21,842.86</strong><span>R/R 1.9</span></div>
+      <div><small>TARGET 2</small><strong>22,726.79</strong><span>R/R 2.9</span></div>
+    </div><div class="plan-note">Watchlist plan only; wait for READY evidence before considering entry.</div>
+      <details><summary>Why HANZ classified it this way</summary><ul><li>Evidence retained for confirmation</li><li>Positive: data_freshness</li><li>Positive: liquidity</li><li>Positive: price_structure</li><li>Positive: risk_reward</li></ul></details>
+      <div class="technical-values">
+        <span>Close 20,075.00</span><span>RSI 48.63</span>
+        <span>RVOL 0.31</span><span>Resistance 21,825.00</span><span>ATR 535.71</span>
+      </div>
+      <div class="meta">Signal time: 2026-09-04T00:00:00+00:00</div>
+    </article>
+    <article class="candidate-card ">
+      <div class="candidate-head">
+        <div>
+          <div class="symbol-row"><div class="symbol">SMSM</div><span class="mini-action wait">WAIT</span></div>
+          <div class="market">BEI · SECONDARY</div>
+        </div>
+        <div class="badges"><span class="quality">QUALITY 74/100</span><span class="grade">A</span><span class="strength developing">DEVELOPING</span><span class="status wait">WAIT</span></div>
+      </div>
+      <div class="quality-meter"><span style="width:74%"></span></div>
+      <div class="instruction"><strong>WHAT TO DO</strong><p>Monitor SMSM. No entry until the status changes to READY.</p></div>
+      <div class="signal-grid"><div class="signal"><span class="signal-icon"></span><small>Trend</small><strong class="caution">CAUTION</strong></div><div class="signal"><span class="signal-icon"></span><small>Volume</small><strong class="good">SUPPORTIVE</strong></div><div class="signal"><span class="signal-icon"></span><small>Resistance</small><strong class="neutral">NEUTRAL</strong></div><div class="signal"><span class="signal-icon"></span><small>Risk / Reward</small><strong class="good">SUPPORTIVE</strong></div><div class="signal"><span class="signal-icon"></span><small>Liquidity</small><strong class="good">SUPPORTIVE</strong></div><div class="signal"><span class="signal-icon"></span><small>Extension</small><strong class="neutral">NEUTRAL</strong></div></div>
+      <div class="plan">
+      <div class="plan-primary"><small>WATCH PLAN</small><strong>1,715.09 – 1,722.95</strong><span>Price zone to monitor</span></div>
+      <div><small>STOP</small><strong>1,691.50</strong><span>Research invalidation</span></div>
+      <div><small>TARGET 1</small><strong>1,800.00</strong><span>R/R 2.5</span></div>
+      <div><small>TARGET 2</small><strong>1,831.45</strong><span>R/R 3.5</span></div>
+    </div><div class="plan-note">Watchlist plan only; wait for READY evidence before considering entry.</div>
+      <details><summary>Why HANZ classified it this way</summary><ul><li>Evidence retained for confirmation</li><li>Positive: data_freshness</li><li>Positive: liquidity</li><li>Positive: risk_reward</li><li>Positive: volume_confirmation</li></ul></details>
+      <div class="technical-values">
+        <span>Close 1,720.00</span><span>RSI 52.00</span>
+        <span>RVOL 1.95</span><span>Resistance 1,800.00</span><span>ATR 19.64</span>
+      </div>
+      <div class="meta">Signal time: 2026-09-04T00:00:00+00:00</div>
+    </article></div>
+      <div class="subsection-head" id="watchlist"><div><span class="eyebrow">EARLY OPPORTUNITIES</span><h3>Top developing watchlist</h3></div><a href="#top">Back to top ↑</a></div>
+      <div class="candidate-grid watch-grid">
+    <article class="candidate-card watch-card">
+      <div class="candidate-head">
+        <div>
+          <div class="symbol-row"><div class="symbol">CMRY</div><span class="mini-action wait">WAIT</span></div>
+          <div class="market">BEI · SECONDARY</div>
+        </div>
+        <div class="badges"><span class="quality">QUALITY 70/100</span><span class="grade">BBB</span><span class="strength developing">DEVELOPING</span><span class="status wait">WATCHLIST</span></div>
+      </div>
+      <div class="quality-meter"><span style="width:70%"></span></div>
+      <div class="instruction"><strong>WHAT TO DO</strong><p>Monitor CMRY. No entry until the status changes to READY.</p></div>
+      <div class="signal-grid"><div class="signal"><span class="signal-icon"></span><small>Trend</small><strong class="caution">CAUTION</strong></div><div class="signal"><span class="signal-icon"></span><small>Volume</small><strong class="neutral">NEUTRAL</strong></div><div class="signal"><span class="signal-icon"></span><small>Resistance</small><strong class="neutral">NEUTRAL</strong></div><div class="signal"><span class="signal-icon"></span><small>Risk / Reward</small><strong class="good">SUPPORTIVE</strong></div><div class="signal"><span class="signal-icon"></span><small>Liquidity</small><strong class="good">SUPPORTIVE</strong></div><div class="signal"><span class="signal-icon"></span><small>Extension</small><strong class="neutral">NEUTRAL</strong></div></div>
+      <div class="plan">
+      <div class="plan-primary"><small>WATCH PLAN</small><strong>4,537.68 – 4,589.39</strong><span>Price zone to monitor</span></div>
+      <div><small>STOP</small><strong>4,497.40</strong><span>Research invalidation</span></div>
+      <div><small>TARGET 1</small><strong>4,840.00</strong><span>R/R 2.7</span></div>
+      <div><small>TARGET 2</small><strong>4,931.99</strong><span>R/R 3.7</span></div>
+    </div><div class="plan-note">Watchlist plan only; wait for READY evidence before considering entry.</div>
+      <details><summary>Why HANZ classified it this way</summary><ul><li>Evidence retained for confirmation</li><li>Positive: data_freshness</li><li>Positive: liquidity</li><li>Positive: risk_reward</li></ul></details>
+      <div class="technical-values">
+        <span>Close 4,570.00</span><span>RSI 45.63</span>
+        <span>RVOL 1.35</span><span>Resistance 4,840.00</span><span>ATR 129.29</span>
+      </div>
+      <div class="meta">Signal time: 2026-09-04T00:00:00+00:00</div>
+    </article>
+    <article class="candidate-card watch-card">
+      <div class="candidate-head">
+        <div>
+          <div class="symbol-row"><div class="symbol">AKRA</div><span class="mini-action wait">WAIT</span></div>
+          <div class="market">BEI · SECONDARY</div>
+        </div>
+        <div class="badges"><span class="quality">QUALITY 70/100</span><span class="grade">BBB</span><span class="strength developing">DEVELOPING</span><span class="status wait">WATCHLIST</span></div>
+      </div>
+      <div class="quality-meter"><span style="width:70%"></span></div>
+      <div class="instruction"><strong>WHAT TO DO</strong><p>Monitor AKRA. No entry until the status changes to READY.</p></div>
+      <div class="signal-grid"><div class="signal"><span class="signal-icon"></span><small>Trend</small><strong class="caution">CAUTION</strong></div><div class="signal"><span class="signal-icon"></span><small>Volume</small><strong class="neutral">NEUTRAL</strong></div><div class="signal"><span class="signal-icon"></span><small>Resistance</small><strong class="neutral">NEUTRAL</strong></div><div class="signal"><span class="signal-icon"></span><small>Risk / Reward</small><strong class="good">SUPPORTIVE</strong></div><div class="signal"><span class="signal-icon"></span><small>Liquidity</small><strong class="good">SUPPORTIVE</strong></div><div class="signal"><span class="signal-icon"></span><small>Extension</small><strong class="neutral">NEUTRAL</strong></div></div>
+      <div class="plan">
+      <div class="plan-primary"><small>WATCH PLAN</small><strong>1,375.54 – 1,390.68</strong><span>Price zone to monitor</span></div>
+      <div><small>STOP</small><strong>1,343.25</strong><span>Research invalidation</span></div>
+      <div><small>TARGET 1</small><strong>1,479.86</strong><span>R/R 1.9</span></div>
+      <div><small>TARGET 2</small><strong>1,527.29</strong><span>R/R 2.9</span></div>
+    </div><div class="plan-note">Watchlist plan only; wait for READY evidence before considering entry.</div>
+      <details><summary>Why HANZ classified it this way</summary><ul><li>Evidence retained for confirmation</li><li>Positive: data_freshness</li><li>Positive: liquidity</li><li>Positive: risk_reward</li></ul></details>
+      <div class="technical-values">
+        <span>Close 1,385.00</span><span>RSI 47.54</span>
+        <span>RVOL 1.34</span><span>Resistance 1,455.00</span><span>ATR 37.86</span>
+      </div>
+      <div class="meta">Signal time: 2026-09-04T00:00:00+00:00</div>
+    </article>
+    <article class="candidate-card watch-card">
+      <div class="candidate-head">
+        <div>
+          <div class="symbol-row"><div class="symbol">ICBP</div><span class="mini-action wait">WAIT</span></div>
+          <div class="market">BEI · SECONDARY</div>
+        </div>
+        <div class="badges"><span class="quality">QUALITY 70/100</span><span class="grade">BBB</span><span class="strength developing">DEVELOPING</span><span class="status wait">WATCHLIST</span></div>
+      </div>
+      <div class="quality-meter"><span style="width:70%"></span></div>
+      <div class="instruction"><strong>WHAT TO DO</strong><p>Monitor ICBP. No entry until the status changes to READY.</p></div>
+      <div class="signal-grid"><div class="signal"><span class="signal-icon"></span><small>Trend</small><strong class="caution">CAUTION</strong></div><div class="signal"><span class="signal-icon"></span><small>Volume</small><strong class="neutral">NEUTRAL</strong></div><div class="signal"><span class="signal-icon"></span><small>Resistance</small><strong class="neutral">NEUTRAL</strong></div><div class="signal"><span class="signal-icon"></span><small>Risk / Reward</small><strong class="good">SUPPORTIVE</strong></div><div class="signal"><span class="signal-icon"></span><small>Liquidity</small><strong class="good">SUPPORTIVE</strong></div><div class="signal"><span class="signal-icon"></span><small>Extension</small><strong class="neutral">NEUTRAL</strong></div></div>
+      <div class="plan">
+      <div class="plan-primary"><small>WATCH PLAN</small><strong>7,226.34 – 7,304.20</strong><span>Price zone to monitor</span></div>
+      <div><small>STOP</small><strong>7,188.88</strong><span>Research invalidation</span></div>
+      <div><small>TARGET 1</small><strong>8,000.00</strong><span>R/R 6.0</span></div>
+      <div><small>TARGET 2</small><strong>8,115.32</strong><span>R/R 7.0</span></div>
+    </div><div class="plan-note">Watchlist plan only; wait for READY evidence before considering entry.</div>
+      <details><summary>Why HANZ classified it this way</summary><ul><li>Evidence retained for confirmation</li><li>Positive: data_freshness</li><li>Positive: liquidity</li><li>Positive: risk_reward</li></ul></details>
+      <div class="technical-values">
+        <span>Close 7,275.00</span><span>RSI 38.78</span>
+        <span>RVOL 1.10</span><span>Resistance 8,000.00</span><span>ATR 194.64</span>
+      </div>
+      <div class="meta">Signal time: 2026-09-04T00:00:00+00:00</div>
+    </article>
+    <article class="candidate-card watch-card">
+      <div class="candidate-head">
+        <div>
+          <div class="symbol-row"><div class="symbol">KLBF</div><span class="mini-action wait">WAIT</span></div>
+          <div class="market">BEI · SECONDARY</div>
+        </div>
+        <div class="badges"><span class="quality">QUALITY 70/100</span><span class="grade">BBB</span><span class="strength developing">DEVELOPING</span><span class="status wait">WATCHLIST</span></div>
+      </div>
+      <div class="quality-meter"><span style="width:70%"></span></div>
+      <div class="instruction"><strong>WHAT TO DO</strong><p>Monitor KLBF. No entry until the status changes to READY.</p></div>
+      <div class="signal-grid"><div class="signal"><span class="signal-icon"></span><small>Trend</small><strong class="caution">CAUTION</strong></div><div class="signal"><span class="signal-icon"></span><small>Volume</small><strong class="neutral">NEUTRAL</strong></div><div class="signal"><span class="signal-icon"></span><small>Resistance</small><strong class="neutral">NEUTRAL</strong></div><div class="signal"><span class="signal-icon"></span><small>Risk / Reward</small><strong class="good">SUPPORTIVE</strong></div><div class="signal"><span class="signal-icon"></span><small>Liquidity</small><strong class="good">SUPPORTIVE</strong></div><div class="signal"><span class="signal-icon"></span><small>Extension</small><strong class="neutral">NEUTRAL</strong></div></div>
+      <div class="plan">
+      <div class="plan-primary"><small>WATCH PLAN</small><strong>768.21 – 779.07</strong><span>Price zone to monitor</span></div>
+      <div><small>STOP</small><strong>746.25</strong><span>Research invalidation</span></div>
+      <div><small>TARGET 1</small><strong>840.64</strong><span>R/R 1.9</span></div>
+      <div><small>TARGET 2</small><strong>873.46</strong><span>R/R 2.9</span></div>
+    </div><div class="plan-note">Watchlist plan only; wait for READY evidence before considering entry.</div>
+      <details><summary>Why HANZ classified it this way</summary><ul><li>Evidence retained for confirmation</li><li>Positive: data_freshness</li><li>Positive: liquidity</li><li>Positive: risk_reward</li></ul></details>
+      <div class="technical-values">
+        <span>Close 775.00</span><span>RSI 42.42</span>
+        <span>RVOL 0.88</span><span>Resistance 835.00</span><span>ATR 27.14</span>
+      </div>
+      <div class="meta">Signal time: 2026-09-04T00:00:00+00:00</div>
+    </article>
+    <article class="candidate-card watch-card">
+      <div class="candidate-head">
+        <div>
+          <div class="symbol-row"><div class="symbol">ANTM</div><span class="mini-action wait">WAIT</span></div>
+          <div class="market">BEI · SECONDARY</div>
+        </div>
+        <div class="badges"><span class="quality">QUALITY 68/100</span><span class="grade">BBB</span><span class="strength developing">DEVELOPING</span><span class="status wait">WATCHLIST</span></div>
+      </div>
+      <div class="quality-meter"><span style="width:68%"></span></div>
+      <div class="instruction"><strong>WHAT TO DO</strong><p>Monitor ANTM. No entry until the status changes to READY.</p></div>
+      <div class="signal-grid"><div class="signal"><span class="signal-icon"></span><small>Trend</small><strong class="good">SUPPORTIVE</strong></div><div class="signal"><span class="signal-icon"></span><small>Volume</small><strong class="neutral">NEUTRAL</strong></div><div class="signal"><span class="signal-icon"></span><small>Resistance</small><strong class="neutral">NEUTRAL</strong></div><div class="signal"><span class="signal-icon"></span><small>Risk / Reward</small><strong class="caution">CAUTION</strong></div><div class="signal"><span class="signal-icon"></span><small>Liquidity</small><strong class="good">SUPPORTIVE</strong></div><div class="signal"><span class="signal-icon"></span><small>Extension</small><strong class="neutral">NEUTRAL</strong></div></div>
+      <div class="plan">
+      <div class="plan-primary"><small>WATCH PLAN</small><strong>3,099.11 – 3,132.54</strong><span>Price zone to monitor</span></div>
+      <div><small>STOP</small><strong>2,994.64</strong><span>Research invalidation</span></div>
+      <div><small>TARGET 1</small><strong>3,395.79</strong><span>R/R 1.9</span></div>
+      <div><small>TARGET 2</small><strong>3,533.68</strong><span>R/R 2.9</span></div>
+    </div><div class="plan-note">Watchlist plan only; wait for READY evidence before considering entry.</div>
+      <details><summary>Why HANZ classified it this way</summary><ul><li>Evidence retained for confirmation</li><li>Positive: data_freshness</li><li>Positive: liquidity</li><li>Positive: price_structure</li></ul></details>
+      <div class="technical-values">
+        <span>Close 3,120.00</span><span>RSI 54.10</span>
+        <span>RVOL 0.86</span><span>Resistance 3,290.00</span><span>ATR 83.57</span>
+      </div>
+      <div class="meta">Signal time: 2026-09-04T00:00:00+00:00</div>
+    </article></div>
+      <details class="errors"><summary>Data errors (1)</summary><ul><li><strong>MFIN</strong>: Both Yahoo acquisition paths failed for MFIN.JK. yfinance=yfinance returned no data for MFIN.JK; chart=Yahoo chart request failed for MFIN.JK: HTTP Error 404: Not Found</li></ul></details>
+    </section>
+<footer>Evidence-first output. Quality scores summarize evidence completeness and alignment; they are not win probabilities or guarantees.</footer></main></body></html>
