@@ -465,6 +465,13 @@ th{color:var(--muted)}
 @media(max-width:900px){.candidate-grid{grid-template-columns:1fr 1fr}.detail-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:620px){.candidate-grid{grid-template-columns:1fr}.candidate-actions{grid-template-columns:1fr}.detail-grid{grid-template-columns:1fr}.detail-chart-svg{height:190px}}
 
+
+.tech-chart-grid{display:grid;gap:12px}
+.tech-panel{border:1px solid var(--line);background:#08111e;border-radius:14px;padding:10px}
+.tech-panel-head{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:6px}
+.tech-panel-head strong{font-size:11px}.tech-legend{display:flex;flex-wrap:wrap;gap:8px;color:var(--muted);font-size:8px}
+.tech-svg{width:100%;display:block}.tech-note{font-size:8px;color:var(--muted);margin-top:5px}
+
 </style>
 </head>
 
@@ -1580,12 +1587,194 @@ function openCandidateDetail(index){
 
 function closeCandidateDetail(){$("candidateDetailModal").classList.remove("show");}
 
+
+function sma(values,period){
+  const out=new Array(values.length).fill(null);
+  let sum=0;
+  for(let i=0;i<values.length;i++){
+    sum+=values[i];
+    if(i>=period) sum-=values[i-period];
+    if(i>=period-1) out[i]=sum/period;
+  }
+  return out;
+}
+
+function ema(values,period){
+  const out=new Array(values.length).fill(null);
+  if(!values.length) return out;
+  const k=2/(period+1);
+  let prev=values[0];
+  out[0]=prev;
+  for(let i=1;i<values.length;i++){
+    prev=values[i]*k+prev*(1-k);
+    out[i]=prev;
+  }
+  return out;
+}
+
+function stddev(values,period){
+  const out=new Array(values.length).fill(null);
+  for(let i=period-1;i<values.length;i++){
+    const slice=values.slice(i-period+1,i+1);
+    const mean=slice.reduce((a,b)=>a+b,0)/period;
+    const variance=slice.reduce((a,b)=>a+(b-mean)*(b-mean),0)/period;
+    out[i]=Math.sqrt(variance);
+  }
+  return out;
+}
+
+function rsiSeries(values,period=14){
+  const out=new Array(values.length).fill(null);
+  if(values.length<=period) return out;
+  let gains=0,losses=0;
+  for(let i=1;i<=period;i++){
+    const d=values[i]-values[i-1];
+    if(d>=0) gains+=d; else losses-=d;
+  }
+  let avgGain=gains/period,avgLoss=losses/period;
+  out[period]=avgLoss===0?100:100-(100/(1+avgGain/avgLoss));
+  for(let i=period+1;i<values.length;i++){
+    const d=values[i]-values[i-1];
+    const gain=Math.max(d,0),loss=Math.max(-d,0);
+    avgGain=(avgGain*(period-1)+gain)/period;
+    avgLoss=(avgLoss*(period-1)+loss)/period;
+    out[i]=avgLoss===0?100:100-(100/(1+avgGain/avgLoss));
+  }
+  return out;
+}
+
+function fmtChartNumber(v){
+  const n=Number(v);
+  if(!Number.isFinite(n)) return "—";
+  return new Intl.NumberFormat("en-US",{maximumFractionDigits:2}).format(n);
+}
+
+function linePath(values,w,h,min,max,pad=10){
+  const pts=[];
+  const span=(max-min)||1;
+  const denom=Math.max(1,values.length-1);
+  values.forEach((v,i)=>{
+    if(v===null || !Number.isFinite(Number(v))) return;
+    const x=pad+i*(w-pad*2)/denom;
+    const y=h-pad-((Number(v)-min)/span)*(h-pad*2);
+    pts.push(`${x.toFixed(1)},${y.toFixed(1)}`);
+  });
+  return pts.join(" ");
+}
+
+function areaPath(upper,lower,w,h,min,max,pad=10){
+  const span=(max-min)||1, denom=Math.max(1,upper.length-1);
+  const top=[],bot=[];
+  upper.forEach((v,i)=>{
+    if(v===null || lower[i]===null) return;
+    const x=pad+i*(w-pad*2)/denom;
+    const yu=h-pad-((v-min)/span)*(h-pad*2);
+    top.push(`${x.toFixed(1)},${yu.toFixed(1)}`);
+  });
+  for(let i=lower.length-1;i>=0;i--){
+    const v=lower[i];
+    if(v===null || upper[i]===null) continue;
+    const x=pad+i*(w-pad*2)/denom;
+    const yl=h-pad-((v-min)/span)*(h-pad*2);
+    bot.push(`${x.toFixed(1)},${yl.toFixed(1)}`);
+  }
+  return top.concat(bot).join(" ");
+}
+
 function buildCandidateChart(candles){
-  const vals=(Array.isArray(candles)?candles:[]).map(c=>Number(c.close)).filter(Number.isFinite);
-  if(vals.length<2) return '<div class="mover-empty">Chart data unavailable.</div>';
-  const w=900,h=240,pad=16,min=Math.min(...vals),max=Math.max(...vals),span=(max-min)||1;
-  const pts=vals.map((v,i)=>`${(pad+i*(w-pad*2)/(vals.length-1)).toFixed(1)},${(h-pad-((v-min)/span)*(h-pad*2)).toFixed(1)}`).join(" ");
-  return `<svg class="detail-chart-svg" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="var(--green)" stroke-width="3" vector-effect="non-scaling-stroke"/></svg>`;
+  const rows=(Array.isArray(candles)?candles:[])
+    .map(c=>({
+      close:Number(c.close), open:Number(c.open), high:Number(c.high), low:Number(c.low),
+      volume:Number(c.volume), date:c.date||c.trade_date||c.time||""
+    }))
+    .filter(c=>Number.isFinite(c.close));
+
+  if(rows.length<35) return '<div class="mover-empty">Chart data insufficient. Need at least 35 completed daily bars.</div>';
+
+  const data=rows.slice(-100);
+  const close=data.map(d=>d.close);
+  const volume=data.map(d=>Number.isFinite(d.volume)?d.volume:0);
+
+  const ma20=sma(close,20), ma50=sma(close,50);
+  const sd20=stddev(close,20);
+  const bbUpper=ma20.map((m,i)=>m===null||sd20[i]===null?null:m+2*sd20[i]);
+  const bbLower=ma20.map((m,i)=>m===null||sd20[i]===null?null:m-2*sd20[i]);
+  const rsi=rsiSeries(close,14);
+  const ema12=ema(close,12), ema26=ema(close,26);
+  const macd=close.map((_,i)=>ema12[i]-ema26[i]);
+  const signal=ema(macd,9);
+  const hist=macd.map((v,i)=>v-signal[i]);
+
+  const W=900,pH=300;
+  const validPrice=[...close,...ma20.filter(v=>v!==null),...ma50.filter(v=>v!==null),...bbUpper.filter(v=>v!==null),...bbLower.filter(v=>v!==null)];
+  const pMin=Math.min(...validPrice),pMax=Math.max(...validPrice);
+  const priceLine=linePath(close,W,pH,pMin,pMax);
+  const ma20Line=linePath(ma20,W,pH,pMin,pMax);
+  const ma50Line=linePath(ma50,W,pH,pMin,pMax);
+  const upperLine=linePath(bbUpper,W,pH,pMin,pMax);
+  const lowerLine=linePath(bbLower,W,pH,pMin,pMax);
+  const bbArea=areaPath(bbUpper,bbLower,W,pH,pMin,pMax);
+
+  const vH=120,vMax=Math.max(...volume,1),barW=Math.max(2,(W-20)/data.length*0.65);
+  const volumeBars=volume.map((v,i)=>{
+    const x=10+i*(W-20)/Math.max(1,data.length-1)-barW/2;
+    const h=(v/vMax)*(vH-20);
+    return `<rect x="${x.toFixed(1)}" y="${(vH-10-h).toFixed(1)}" width="${barW.toFixed(1)}" height="${h.toFixed(1)}" fill="rgba(57,220,178,.45)"/>`;
+  }).join("");
+
+  const rH=120,rsiLine=linePath(rsi,W,rH,0,100);
+  const y70=rH-10-(70/100)*(rH-20),y30=rH-10-(30/100)*(rH-20);
+
+  const mH=150,mVals=[...macd,...signal,...hist],abs=Math.max(...mVals.map(v=>Math.abs(v)).filter(Number.isFinite),1e-9);
+  const mMin=-abs,mMax=abs,macdLine=linePath(macd,W,mH,mMin,mMax),signalLine=linePath(signal,W,mH,mMin,mMax),zeroY=mH/2;
+  const histBars=hist.map((v,i)=>{
+    const x=10+i*(W-20)/Math.max(1,data.length-1)-barW/2;
+    const y=mH-10-((v-mMin)/(mMax-mMin))*(mH-20);
+    const h=Math.abs(y-zeroY),top=Math.min(y,zeroY);
+    return `<rect x="${x.toFixed(1)}" y="${top.toFixed(1)}" width="${barW.toFixed(1)}" height="${Math.max(1,h).toFixed(1)}" fill="${v>=0?'rgba(57,220,178,.45)':'rgba(255,99,132,.45)'}"/>`;
+  }).join("");
+
+  const latest={close:close.at(-1),ma20:ma20.at(-1),ma50:ma50.at(-1),rsi:rsi.at(-1),macd:macd.at(-1),signal:signal.at(-1),bbUpper:bbUpper.at(-1),bbLower:bbLower.at(-1),volume:volume.at(-1)};
+
+  return `<div class="tech-chart-grid">
+    <div class="tech-panel">
+      <div class="tech-panel-head"><strong>PRICE · MA20 · MA50 · BOLLINGER BANDS</strong><div class="tech-legend"><span>Close ${fmtChartNumber(latest.close)}</span><span>MA20 ${fmtChartNumber(latest.ma20)}</span><span>MA50 ${fmtChartNumber(latest.ma50)}</span></div></div>
+      <svg class="tech-svg" viewBox="0 0 ${W} ${pH}" preserveAspectRatio="none">
+        <polygon points="${bbArea}" fill="rgba(95,145,255,.09)"/>
+        <polyline points="${upperLine}" fill="none" stroke="rgba(95,145,255,.75)" stroke-width="1.5"/>
+        <polyline points="${lowerLine}" fill="none" stroke="rgba(95,145,255,.75)" stroke-width="1.5"/>
+        <polyline points="${ma50Line}" fill="none" stroke="rgba(255,184,77,.95)" stroke-width="2"/>
+        <polyline points="${ma20Line}" fill="none" stroke="rgba(177,118,255,.95)" stroke-width="2"/>
+        <polyline points="${priceLine}" fill="none" stroke="var(--green)" stroke-width="3"/>
+      </svg>
+      <div class="tech-note">BB = MA20 ± 2σ · Upper ${fmtChartNumber(latest.bbUpper)} · Lower ${fmtChartNumber(latest.bbLower)}</div>
+    </div>
+
+    <div class="tech-panel">
+      <div class="tech-panel-head"><strong>VOLUME</strong><div class="tech-legend"><span>Latest ${compactNumber(latest.volume)}</span></div></div>
+      <svg class="tech-svg" viewBox="0 0 ${W} ${vH}" preserveAspectRatio="none">${volumeBars}</svg>
+    </div>
+
+    <div class="tech-panel">
+      <div class="tech-panel-head"><strong>RSI 14</strong><div class="tech-legend"><span>RSI ${fmtChartNumber(latest.rsi)}</span></div></div>
+      <svg class="tech-svg" viewBox="0 0 ${W} ${rH}" preserveAspectRatio="none">
+        <line x1="10" y1="${y70}" x2="${W-10}" y2="${y70}" stroke="rgba(255,184,77,.5)" stroke-dasharray="5 5"/>
+        <line x1="10" y1="${y30}" x2="${W-10}" y2="${y30}" stroke="rgba(95,145,255,.5)" stroke-dasharray="5 5"/>
+        <polyline points="${rsiLine}" fill="none" stroke="rgba(177,118,255,.95)" stroke-width="2.5"/>
+      </svg>
+      <div class="tech-note">Reference zones: 70 overbought · 30 oversold.</div>
+    </div>
+
+    <div class="tech-panel">
+      <div class="tech-panel-head"><strong>MACD 12/26/9</strong><div class="tech-legend"><span>MACD ${fmtChartNumber(latest.macd)}</span><span>Signal ${fmtChartNumber(latest.signal)}</span></div></div>
+      <svg class="tech-svg" viewBox="0 0 ${W} ${mH}" preserveAspectRatio="none">
+        <line x1="10" y1="${zeroY}" x2="${W-10}" y2="${zeroY}" stroke="rgba(255,255,255,.18)"/>
+        ${histBars}
+        <polyline points="${macdLine}" fill="none" stroke="var(--green)" stroke-width="2.5"/>
+        <polyline points="${signalLine}" fill="none" stroke="rgba(255,184,77,.95)" stroke-width="2"/>
+      </svg>
+    </div>
+  </div>`;
 }
 
 async function openCandidateChart(index){
