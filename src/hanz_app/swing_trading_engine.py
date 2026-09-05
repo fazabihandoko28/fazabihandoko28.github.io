@@ -6670,6 +6670,12 @@ def run_cycle():
             + " | Monitor refreshed from completed bars; no new BUY signal, portfolio trigger, alert or push.",
             flush=True,
         )
+        movers_summary = publish_market_movers()
+        print(
+            "MARKET MOVERS: " + json.dumps(movers_summary, default=str),
+            flush=True,
+        )
+
         return
 
     # During active sessions / lunch:
