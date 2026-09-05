@@ -472,6 +472,14 @@ th{color:var(--muted)}
 .tech-panel-head strong{font-size:11px}.tech-legend{display:flex;flex-wrap:wrap;gap:8px;color:var(--muted);font-size:8px}
 .tech-svg{width:100%;display:block}.tech-note{font-size:8px;color:var(--muted);margin-top:5px}
 
+
+.tech-axis-label{font-size:18px;fill:rgba(220,230,244,.58)}
+.tech-turn-label{font-size:17px;font-weight:800}
+.tech-turn-line{stroke-dasharray:5 5;stroke-width:1.5}
+.tech-turn-dot{stroke-width:2}
+.tech-timeline-note{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;color:var(--muted);font-size:8px}
+.tech-timeline-chip{border:1px solid var(--line);border-radius:999px;padding:4px 7px;background:#0b1626}
+
 </style>
 </head>
 
@@ -1681,11 +1689,56 @@ function areaPath(upper,lower,w,h,min,max,pad=10){
   return top.concat(bot).join(" ");
 }
 
+
+function formatAxisDate(value){
+  if(!value) return "";
+  try{
+    const d=new Date(value);
+    if(Number.isNaN(d.getTime())) return String(value).slice(0,10);
+    return d.toLocaleDateString("en-GB",{day:"2-digit",month:"short"});
+  }catch(_){
+    return String(value).slice(0,10);
+  }
+}
+
+function detectTurningPoints(values,dates){
+  if(values.length<7) return {};
+  const out={peak:null,trough:null,recovery:null};
+
+  // strongest local peak before the main trough
+  let troughIndex=0;
+  for(let i=1;i<values.length;i++){
+    if(values[i]<values[troughIndex]) troughIndex=i;
+  }
+  if(troughIndex>2){
+    let peakIndex=0;
+    for(let i=1;i<troughIndex;i++){
+      if(values[i]>values[peakIndex]) peakIndex=i;
+    }
+    out.peak={index:peakIndex,value:values[peakIndex],date:dates[peakIndex]};
+  }
+
+  out.trough={index:troughIndex,value:values[troughIndex],date:dates[troughIndex]};
+
+  // recovery start: first point after trough where price rises 3 bars out of 4
+  for(let i=troughIndex+3;i<values.length;i++){
+    const window=values.slice(i-3,i+1);
+    let up=0;
+    for(let j=1;j<window.length;j++) if(window[j]>window[j-1]) up++;
+    if(up>=3){
+      out.recovery={index:i-3,value:values[i-3],date:dates[i-3]};
+      break;
+    }
+  }
+  return out;
+}
+
 function buildCandidateChart(candles){
   const rows=(Array.isArray(candles)?candles:[])
     .map(c=>({
       close:Number(c.close), open:Number(c.open), high:Number(c.high), low:Number(c.low),
-      volume:Number(c.volume), date:c.date||c.trade_date||c.time||""
+      volume:Number(c.volume),
+      date:c.date||c.trade_date||c.time||c.bar_at||""
     }))
     .filter(c=>Number.isFinite(c.close));
 
@@ -1694,6 +1747,7 @@ function buildCandidateChart(candles){
   const data=rows.slice(-100);
   const close=data.map(d=>d.close);
   const volume=data.map(d=>Number.isFinite(d.volume)?d.volume:0);
+  const dates=data.map(d=>d.date);
 
   const ma20=sma(close,20), ma50=sma(close,50);
   const sd20=stddev(close,20);
@@ -1705,15 +1759,51 @@ function buildCandidateChart(candles){
   const signal=ema(macd,9);
   const hist=macd.map((v,i)=>v-signal[i]);
 
-  const W=900,pH=300;
+  const W=900,pH=330,padX=32,padY=18;
   const validPrice=[...close,...ma20.filter(v=>v!==null),...ma50.filter(v=>v!==null),...bbUpper.filter(v=>v!==null),...bbLower.filter(v=>v!==null)];
   const pMin=Math.min(...validPrice),pMax=Math.max(...validPrice);
-  const priceLine=linePath(close,W,pH,pMin,pMax);
-  const ma20Line=linePath(ma20,W,pH,pMin,pMax);
-  const ma50Line=linePath(ma50,W,pH,pMin,pMax);
-  const upperLine=linePath(bbUpper,W,pH,pMin,pMax);
-  const lowerLine=linePath(bbLower,W,pH,pMin,pMax);
-  const bbArea=areaPath(bbUpper,bbLower,W,pH,pMin,pMax);
+  const priceLine=linePath(close,W,pH,pMin,pMax,padX);
+  const ma20Line=linePath(ma20,W,pH,pMin,pMax,padX);
+  const ma50Line=linePath(ma50,W,pH,pMin,pMax,padX);
+  const upperLine=linePath(bbUpper,W,pH,pMin,pMax,padX);
+  const lowerLine=linePath(bbLower,W,pH,pMin,pMax,padX);
+  const bbArea=areaPath(bbUpper,bbLower,W,pH,pMin,pMax,padX);
+
+  const xFor=i=>padX+i*(W-padX*2)/Math.max(1,data.length-1);
+  const yFor=v=>pH-padY-((v-pMin)/((pMax-pMin)||1))*(pH-padY*2);
+
+  // Timeline ticks: 5 evenly spaced dates
+  const tickIndexes=[0,Math.floor((data.length-1)*0.25),Math.floor((data.length-1)*0.5),Math.floor((data.length-1)*0.75),data.length-1];
+  const timelineTicks=tickIndexes.map(i=>{
+    const x=xFor(i);
+    return `<line x1="${x}" y1="${pH-22}" x2="${x}" y2="${pH-12}" stroke="rgba(255,255,255,.18)"/>
+            <text class="tech-axis-label" x="${x}" y="${pH-2}" text-anchor="middle">${formatAxisDate(dates[i])}</text>`;
+  }).join("");
+
+  const turns=detectTurningPoints(close,dates);
+  const turnSvg=[];
+  const chips=[];
+  if(turns.peak){
+    const x=xFor(turns.peak.index), y=yFor(turns.peak.value);
+    turnSvg.push(`<line class="tech-turn-line" x1="${x}" y1="${y}" x2="${x}" y2="${pH-28}" stroke="rgba(255,184,77,.7)"/>
+      <circle class="tech-turn-dot" cx="${x}" cy="${y}" r="5" fill="rgba(255,184,77,.95)" stroke="#08111e"/>
+      <text class="tech-turn-label" x="${x+8}" y="${Math.max(20,y-10)}" fill="rgba(255,184,77,.95)">Peak</text>`);
+    chips.push(`<span class="tech-timeline-chip">Peak ${formatAxisDate(turns.peak.date)} · ${fmtChartNumber(turns.peak.value)}</span>`);
+  }
+  if(turns.trough){
+    const x=xFor(turns.trough.index), y=yFor(turns.trough.value);
+    turnSvg.push(`<line class="tech-turn-line" x1="${x}" y1="${y}" x2="${x}" y2="${pH-28}" stroke="rgba(255,99,132,.75)"/>
+      <circle class="tech-turn-dot" cx="${x}" cy="${y}" r="5" fill="rgba(255,99,132,.95)" stroke="#08111e"/>
+      <text class="tech-turn-label" x="${x+8}" y="${Math.min(pH-36,y+22)}" fill="rgba(255,99,132,.95)">Low</text>`);
+    chips.push(`<span class="tech-timeline-chip">Low ${formatAxisDate(turns.trough.date)} · ${fmtChartNumber(turns.trough.value)}</span>`);
+  }
+  if(turns.recovery){
+    const x=xFor(turns.recovery.index), y=yFor(turns.recovery.value);
+    turnSvg.push(`<line class="tech-turn-line" x1="${x}" y1="${y}" x2="${x}" y2="${pH-28}" stroke="rgba(57,220,178,.7)"/>
+      <circle class="tech-turn-dot" cx="${x}" cy="${y}" r="5" fill="rgba(57,220,178,.95)" stroke="#08111e"/>
+      <text class="tech-turn-label" x="${x+8}" y="${Math.max(20,y-10)}" fill="rgba(57,220,178,.95)">Recovery</text>`);
+    chips.push(`<span class="tech-timeline-chip">Recovery ${formatAxisDate(turns.recovery.date)} · ${fmtChartNumber(turns.recovery.value)}</span>`);
+  }
 
   const vH=120,vMax=Math.max(...volume,1),barW=Math.max(2,(W-20)/data.length*0.65);
   const volumeBars=volume.map((v,i)=>{
@@ -1746,8 +1836,11 @@ function buildCandidateChart(candles){
         <polyline points="${ma50Line}" fill="none" stroke="rgba(255,184,77,.95)" stroke-width="2"/>
         <polyline points="${ma20Line}" fill="none" stroke="rgba(177,118,255,.95)" stroke-width="2"/>
         <polyline points="${priceLine}" fill="none" stroke="var(--green)" stroke-width="3"/>
+        ${turnSvg.join("")}
+        ${timelineTicks}
       </svg>
-      <div class="tech-note">BB = MA20 ± 2σ · Upper ${fmtChartNumber(latest.bbUpper)} · Lower ${fmtChartNumber(latest.bbLower)}</div>
+      <div class="tech-timeline-note">${chips.join("")}</div>
+      <div class="tech-note">Timeline uses completed daily bars. Peak/Low/Recovery are descriptive turning-point markers, not guaranteed reversal signals.</div>
     </div>
 
     <div class="tech-panel">
