@@ -149,6 +149,14 @@ BROKER_WARNING_NET_PCT_5D = float(os.getenv("HANZ_BROKER_WARNING_NET_PCT_5D", "0
 BROKER_CONFIRM_DAYS = int(os.getenv("HANZ_BROKER_CONFIRM_DAYS", "3"))
 BROKER_CONCENTRATION_BONUS_PCT = float(os.getenv("HANZ_BROKER_CONCENTRATION_BONUS_PCT", "45"))
 
+# V10.8 Market Movers Intelligence.
+# Publishes Top-5 gainers + Top-5 losers from the HANZ scanned universe.
+# "Why it moved" is evidence-based (price/volume/structure/flow), never invented news causality.
+MARKET_MOVERS_ENABLED = os.getenv("HANZ_MARKET_MOVERS_ENABLED", "1").strip() != "0"
+MARKET_MOVERS_TOP_N = int(os.getenv("HANZ_MARKET_MOVERS_TOP_N", "5"))
+MARKET_MOVERS_CHART_BARS = int(os.getenv("HANZ_MARKET_MOVERS_CHART_BARS", "20"))
+_MARKET_MOVER_ROWS = []
+
 # V8.5 Predictive Radar
 # Radar states are INTERNAL ONLY and must never be shown as user-facing BUY signals.
 RADAR_BASE_MIN_SCORE = int(os.getenv("HANZ_RADAR_BASE_MIN_SCORE", "4"))
@@ -6128,6 +6136,157 @@ def scan_predictive_radar_symbol(ticker):
     return radar["state"]
 
 
+def _mover_reason(daily, direction, foreign_flow=None, insider=None, broker_flow=None):
+    """Explain observed movement without claiming unverified causality."""
+    reasons = []
+
+    change = safe_float(daily.get("ret1"))
+    rvol = safe_float(daily.get("rvol20"))
+    price = safe_float(daily.get("price"))
+    ema20 = safe_float(daily.get("ema20"))
+    prior_high20 = safe_float(daily.get("prior_high20"))
+    prior_low20 = safe_float(daily.get("prior_low20"))
+    gap = safe_float(daily.get("gap_pct"))
+
+    if change is not None:
+        reasons.append(f"price {'rose' if change >= 0 else 'fell'} {abs(change):.2f}% on the latest completed daily bar")
+
+    if rvol is not None:
+        if rvol >= 2.0:
+            reasons.append(f"volume surged to {rvol:.2f}x the 20-day average")
+        elif rvol >= 1.3:
+            reasons.append(f"volume was elevated at {rvol:.2f}x the 20-day average")
+        elif rvol <= 0.70:
+            reasons.append(f"move occurred on relatively light volume ({rvol:.2f}x average)")
+
+    if gap is not None and abs(gap) >= 1.5:
+        reasons.append(f"session opened with a {gap:+.2f}% gap")
+
+    if direction == "UP":
+        if price is not None and prior_high20 is not None and price > prior_high20:
+            reasons.append("price closed above the prior 20-day high")
+        elif price is not None and ema20 is not None and price > ema20:
+            reasons.append("price held above EMA20")
+    else:
+        if price is not None and prior_low20 is not None and price < prior_low20:
+            reasons.append("price closed below the prior 20-day low")
+        elif price is not None and ema20 is not None and price < ema20:
+            reasons.append("price closed below EMA20")
+
+    flow_notes = []
+    ff = str((foreign_flow or {}).get("status") or "UNKNOWN").upper()
+    bf = str((broker_flow or {}).get("status") or "UNKNOWN").upper()
+    ins = str((insider or {}).get("status") or "UNKNOWN").upper()
+
+    if ff not in {"UNKNOWN", "DISABLED", "NEUTRAL"}:
+        flow_notes.append(f"foreign {ff.replace('_',' ').lower()}")
+    if bf not in {"UNKNOWN", "DISABLED", "NEUTRAL"}:
+        flow_notes.append(f"broker {bf.replace('BROKER_','').replace('_',' ').lower()}")
+    if ins not in {"UNKNOWN", "DISABLED", "NEUTRAL"}:
+        flow_notes.append(f"public insider {ins.replace('_',' ').lower()}")
+
+    movement_reason = "; ".join(reasons[:4]) if reasons else "No strong technical explanation available."
+    flow_reason = "; ".join(flow_notes) if flow_notes else "No verified flow catalyst available."
+
+    return movement_reason, flow_reason
+
+
+def collect_market_mover(ticker, daily_df, daily, foreign_flow, insider, broker_flow):
+    if not MARKET_MOVERS_ENABLED:
+        return
+
+    try:
+        change = safe_float(daily.get("ret1"))
+        price = safe_float(daily.get("price"))
+        if change is None or price is None:
+            return
+
+        volume = safe_float(daily_df["Volume"].iloc[-1])
+        avg_volume20 = safe_float(daily_df["Volume"].iloc[-20:].astype(float).mean()) if len(daily_df) >= 20 else None
+        traded_value = (price * volume) if volume is not None else None
+        prev_close = safe_float(daily_df["Close"].iloc[-2]) if len(daily_df) >= 2 else None
+
+        bars = daily_df.iloc[-max(5, MARKET_MOVERS_CHART_BARS):]
+        chart_points = []
+        for idx, row in bars.iterrows():
+            try:
+                label = pd.Timestamp(idx).strftime("%d %b")
+            except Exception:
+                label = str(idx)[:10]
+            chart_points.append({
+                "date": label,
+                "close": safe_float(row.get("Close")),
+                "volume": safe_float(row.get("Volume")),
+            })
+
+        direction = "UP" if change >= 0 else "DOWN"
+        movement_reason, flow_reason = _mover_reason(
+            daily, direction, foreign_flow, insider, broker_flow
+        )
+
+        _MARKET_MOVER_ROWS.append({
+            "ticker": clean_ticker(ticker),
+            "direction": direction,
+            "change_pct": safe_float(change),
+            "price": price,
+            "open": safe_float(daily.get("open")),
+            "high": safe_float(daily.get("high")),
+            "low": safe_float(daily.get("low")),
+            "prev_close": prev_close,
+            "volume": volume,
+            "avg_volume20": avg_volume20,
+            "rvol20": safe_float(daily.get("rvol20")),
+            "traded_value": safe_float(traded_value),
+            "chart_points": chart_points,
+            "movement_reason": movement_reason,
+            "flow_reason": flow_reason,
+            "foreign_status": (foreign_flow or {}).get("status"),
+            "broker_status": (broker_flow or {}).get("status"),
+            "insider_status": (insider or {}).get("status"),
+        })
+    except Exception as exc:
+        print(f"MARKET MOVER collect {ticker} skipped: {exc}", flush=True)
+
+
+def publish_market_movers():
+    if not MARKET_MOVERS_ENABLED:
+        return {"published": 0, "enabled": False}
+
+    valid = [r for r in _MARKET_MOVER_ROWS if safe_float(r.get("change_pct")) is not None]
+    gainers = sorted(
+        [r for r in valid if safe_float(r.get("change_pct")) >= 0],
+        key=lambda r: (safe_float(r.get("change_pct")) or 0, safe_float(r.get("traded_value")) or 0),
+        reverse=True,
+    )[:MARKET_MOVERS_TOP_N]
+    losers = sorted(
+        [r for r in valid if safe_float(r.get("change_pct")) < 0],
+        key=lambda r: (safe_float(r.get("change_pct")) or 0, -(safe_float(r.get("traded_value")) or 0)),
+    )[:MARKET_MOVERS_TOP_N]
+
+    payload = []
+    for direction, rows in (("UP", gainers), ("DOWN", losers)):
+        for rank, row in enumerate(rows, 1):
+            item = dict(row)
+            item["direction"] = direction
+            item["rank"] = rank
+            payload.append(item)
+
+    try:
+        # Current snapshot only; remove stale prior ranking then insert fresh Top-N.
+        supabase_request("DELETE", "hanz_market_movers_current?rank=gte.1")
+        if payload:
+            supabase_request(
+                "POST",
+                "hanz_market_movers_current",
+                payload=payload,
+                prefer="return=minimal",
+            )
+        return {"published": len(payload), "gainers": len(gainers), "losers": len(losers)}
+    except Exception as exc:
+        print(f"MARKET MOVERS publish failed: {exc}", flush=True)
+        return {"published": 0, "error": str(exc)}
+
+
 def scan_symbol(ticker, maintenance_mode=False):
     daily_df = download_frame(
         ticker,
@@ -6218,6 +6377,15 @@ def scan_symbol(ticker, maintenance_mode=False):
     risk_validation = apply_insider_to_risk_validation(risk_validation, insider)
     broker_flow = broker_flow_snapshot(ticker)
     risk_validation = apply_broker_flow_to_risk_validation(risk_validation, broker_flow)
+
+    collect_market_mover(
+        ticker,
+        daily_df,
+        daily,
+        foreign_flow,
+        insider,
+        broker_flow,
+    )
 
     # V8.8 OFF-MARKET CANDIDATE REFRESH
     #
@@ -6590,6 +6758,8 @@ def run_cycle():
         flush=True,
     )
 
+    _MARKET_MOVER_ROWS.clear()
+
     counts = {
         "SWING_BUY": 0,
         "MOMENTUM_BROKEN": 0,
@@ -6615,6 +6785,12 @@ def run_cycle():
                 flush=True,
             )
 
+    movers_summary = publish_market_movers()
+    print(
+        "MARKET MOVERS: " + json.dumps(movers_summary, default=str),
+        flush=True,
+    )
+
     portfolio_summary = monitor_swing_portfolio(
         allow_structural_exit=True
     )
@@ -6630,7 +6806,7 @@ def run_cycle():
 
 def main():
     print(
-        "HANZ SWING / WEEKLY ENGINE START — V10.5 FOREIGN FLOW + EARLY-CONFIRMED BUY",
+        "HANZ SWING / WEEKLY ENGINE START — V10.8 MARKET MOVERS + BROKER/INSIDER/FOREIGN FLOW",
         flush=True,
     )
 
