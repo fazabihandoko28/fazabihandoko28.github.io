@@ -157,6 +157,11 @@ MARKET_MOVERS_TOP_N = int(os.getenv("HANZ_MARKET_MOVERS_TOP_N", "5"))
 MARKET_MOVERS_CHART_BARS = int(os.getenv("HANZ_MARKET_MOVERS_CHART_BARS", "20"))
 _MARKET_MOVER_ROWS = []
 
+# V10.8.3 Canonical Ranking Freeze.
+# One ranking formula is computed by the engine and reused everywhere.
+# This does NOT change BUY gates/states; it only prevents dashboard-side ranking drift.
+CANONICAL_RANK_VERSION = "CRV1_2026_09_05"
+
 # V8.5 Predictive Radar
 # Radar states are INTERNAL ONLY and must never be shown as user-facing BUY signals.
 RADAR_BASE_MIN_SCORE = int(os.getenv("HANZ_RADAR_BASE_MIN_SCORE", "4"))
@@ -2228,6 +2233,38 @@ def broker_exit_overlay(position, daily, broker_flow):
             "reason":"Broker selling is building. Early warning only."
         }
     return None
+
+
+
+def canonical_rank_score(result, risk_validation):
+    """Single frozen ranking score used by all HANZ views.
+
+    Formula is intentionally identical to the previous dashboard ranking:
+      technical swing score (0..10)*10
+      + foreign-flow adjustment
+      + public-insider adjustment
+      + broker-flow adjustment
+    clamped to 0..100.
+
+    IMPORTANT: this ranking cannot create a BUY. State/actionability remain
+    controlled only by the existing engine gates and reconfirmation logic.
+    """
+    technical = max(
+        0.0,
+        min(10.0, safe_float((result or {}).get("score")) or 0.0),
+    ) * 10.0
+    foreign = safe_float((risk_validation or {}).get("foreign_flow_score")) or 0.0
+    insider = safe_float((risk_validation or {}).get("insider_score")) or 0.0
+    broker = safe_float((risk_validation or {}).get("broker_flow_score")) or 0.0
+    return int(
+        max(
+            0,
+            min(
+                100,
+                round(technical + foreign + insider + broker),
+            ),
+        )
+    )
 
 
 def swing_score(daily, weekly):
@@ -6377,6 +6414,10 @@ def scan_symbol(ticker, maintenance_mode=False):
     risk_validation = apply_insider_to_risk_validation(risk_validation, insider)
     broker_flow = broker_flow_snapshot(ticker)
     risk_validation = apply_broker_flow_to_risk_validation(risk_validation, broker_flow)
+    risk_validation["canonical_rank_score"] = canonical_rank_score(
+        result, risk_validation
+    )
+    risk_validation["canonical_rank_version"] = CANONICAL_RANK_VERSION
 
     collect_market_mover(
         ticker,
@@ -6429,6 +6470,10 @@ def scan_symbol(ticker, maintenance_mode=False):
         risk_validation = apply_broker_flow_to_risk_validation(
             risk_validation, broker_flow
         )
+        risk_validation["canonical_rank_score"] = canonical_rank_score(
+            result, risk_validation
+        )
+        risk_validation["canonical_rank_version"] = CANONICAL_RANK_VERSION
 
     if maintenance_write:
         upsert_monitor(
@@ -6818,7 +6863,7 @@ def run_cycle():
 
 def main():
     print(
-        "HANZ SWING / WEEKLY ENGINE START — V10.8 MARKET MOVERS + BROKER/INSIDER/FOREIGN FLOW",
+        "HANZ SWING / WEEKLY ENGINE START — V10.8.3 CANONICAL RANK + MARKET MOVERS + BROKER/INSIDER/FOREIGN FLOW",
         flush=True,
     )
 
