@@ -125,104 +125,6 @@ button{cursor:pointer}
 .green-text{color:var(--green)!important}.red-text{color:#ff8992!important}.yellow-text{color:var(--yellow)!important}
 
 
-
-/* MARKET MOVERS */
-let marketMoversRows=[];
-let marketMoversDirection="UP";
-
-function compactNumber(v){
-  const n=Number(v);
-  if(!Number.isFinite(n)) return "—";
-  return new Intl.NumberFormat("en-US",{notation:"compact",maximumFractionDigits:1}).format(n);
-}
-
-function moverSparkline(points,direction){
-  const vals=(Array.isArray(points)?points:[]).map(p=>Number(p.close)).filter(Number.isFinite);
-  if(vals.length<2) return '<div class="mover-empty">Chart unavailable</div>';
-  const w=250,h=92,pad=5;
-  const min=Math.min(...vals), max=Math.max(...vals), span=(max-min)||1;
-  const xy=vals.map((v,i)=>{
-    const x=pad+i*(w-pad*2)/(vals.length-1);
-    const y=h-pad-((v-min)/span)*(h-pad*2);
-    return `${x.toFixed(1)},${y.toFixed(1)}`;
-  }).join(" ");
-  const stroke=direction==="UP" ? "var(--green)" : "var(--red)";
-  return `<svg class="mover-chart" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-label="Recent closing-price chart">
-    <polyline points="${xy}" fill="none" stroke="${stroke}" stroke-width="3" vector-effect="non-scaling-stroke"/>
-  </svg><div class="mover-chart-label">Last ${vals.length} completed daily bars</div>`;
-}
-
-function renderMarketMovers(){
-  const list=$("marketMoversList");
-  const rows=marketMoversRows
-    .filter(r=>String(r.direction||"").toUpperCase()===marketMoversDirection)
-    .sort((a,b)=>Number(a.rank||99)-Number(b.rank||99))
-    .slice(0,5);
-
-  document.querySelectorAll("[data-mover-direction]").forEach(btn=>{
-    btn.classList.toggle("active",btn.dataset.moverDirection===marketMoversDirection);
-  });
-
-  if(!rows.length){
-    list.innerHTML='<div class="mover-empty">No completed market-mover snapshot available yet.</div>';
-    return;
-  }
-
-  list.innerHTML=rows.map(r=>{
-    const ch=Number(r.change_pct);
-    const cls=ch>=0?"mover-up":"mover-down";
-    const sign=ch>=0?"+":"";
-    const rv=Number(r.rvol20);
-    return `<article class="mover-row">
-      <div>
-        <div class="mover-symbol">#${Number(r.rank||0)} ${safe(r.ticker)}</div>
-        <div class="mover-change ${cls}">${Number.isFinite(ch)?sign+ch.toFixed(2)+"%":"—"}</div>
-      </div>
-      <div>
-        <div class="mover-stats">
-          <div class="mover-stat"><span>PRICE</span><strong>${price(r.price)}</strong></div>
-          <div class="mover-stat"><span>VOLUME</span><strong>${compactNumber(r.volume)}</strong></div>
-          <div class="mover-stat"><span>RVOL 20D</span><strong>${Number.isFinite(rv)?rv.toFixed(2)+"x":"—"}</strong></div>
-          <div class="mover-stat"><span>VALUE</span><strong>${compactNumber(r.traded_value)}</strong></div>
-        </div>
-        <div class="mover-reason"><b>Why moving:</b> ${safe(r.movement_reason||"No technical explanation available.")}</div>
-        <div class="mover-reason"><b>Flow:</b> ${safe(r.flow_reason||"No verified flow catalyst available.")}</div>
-      </div>
-      <div>${moverSparkline(r.chart_points,r.direction)}</div>
-    </article>`;
-  }).join("");
-}
-
-async function loadMarketMovers(){
-  const {data,error}=await supabase
-    .from("hanz_market_movers_current")
-    .select("*")
-    .order("direction",{ascending:false})
-    .order("rank",{ascending:true});
-  if(error) throw error;
-  marketMoversRows=data||[];
-  const latest=marketMoversRows.map(r=>r.updated_at).filter(Boolean).sort().reverse()[0];
-  $("marketMoversUpdated").textContent=latest?`Snapshot ${formatDate(latest)} · ${formatTime(latest)}`:"No snapshot yet";
-  renderMarketMovers();
-}
-
-async function openMarketMovers(){
-  $("marketMoversModal").classList.add("show");
-  $("marketMoversModal").setAttribute("aria-hidden","false");
-  $("marketMoversList").innerHTML='<div class="mover-empty">Loading market movers…</div>';
-  try{
-    await loadMarketMovers();
-  }catch(error){
-    $("marketMoversList").innerHTML=`<div class="mover-empty">Market movers unavailable: ${safe(error.message||String(error))}</div>`;
-  }
-}
-
-function closeMarketMovers(){
-  $("marketMoversModal").classList.remove("show");
-  $("marketMoversModal").setAttribute("aria-hidden","true");
-}
-
-
 /* NAV */
 .desktop-nav{
   display:flex;gap:5px;width:max-content;padding:4px;margin:0 0 13px;
@@ -513,25 +415,26 @@ th{color:var(--muted)}
 .quality-legend{font-size:8px;color:var(--muted);margin-top:8px;line-height:1.5}
 
 .market-mover-card{cursor:pointer;position:relative;overflow:hidden}
-.market-mover-card:after{content:"↗";position:absolute;right:18px;top:16px;color:var(--green);font-size:20px;font-weight:900}
-.market-mover-card:hover{border-color:#2fd6b1}
-.mover-modal{position:fixed;inset:0;background:rgba(2,7,14,.82);z-index:2000;display:none;align-items:flex-start;justify-content:center;padding:24px 12px;overflow:auto}
+.market-mover-card::after{content:"↗";position:absolute;right:16px;top:14px;color:var(--green);font-size:18px;font-weight:900}
+.market-mover-card:focus{outline:2px solid var(--green);outline-offset:2px}
+.mover-modal{position:fixed;inset:0;background:rgba(2,7,14,.84);z-index:2200;display:none;align-items:flex-start;justify-content:center;padding:20px 10px;overflow:auto}
 .mover-modal.show{display:flex}
-.mover-shell{width:min(1080px,100%);background:#07111f;border:1px solid #243852;border-radius:26px;padding:18px;box-shadow:0 30px 90px rgba(0,0,0,.55)}
-.mover-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:14px}
-.mover-head h2{margin:3px 0 5px;font-size:25px}.mover-head p{margin:0;color:var(--muted);font-size:12px;line-height:1.5}
+.mover-shell{width:min(1080px,100%);background:#07111f;border:1px solid #243852;border-radius:24px;padding:18px;box-shadow:0 30px 90px rgba(0,0,0,.55)}
+.mover-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.mover-head h2{margin:3px 0 5px;font-size:25px}.mover-head p{margin:0;color:var(--muted);font-size:11px;line-height:1.5}
 .mover-close{border:1px solid var(--line);background:#0b1626;color:var(--text);border-radius:12px;width:42px;height:42px;font-size:20px;cursor:pointer}
-.mover-tabs{display:flex;gap:8px;margin:12px 0 16px}.mover-tab{border:1px solid var(--line);background:#0b1626;color:var(--muted);padding:10px 14px;border-radius:999px;font-weight:800;cursor:pointer}
-.mover-tab.active{color:#06111a;background:var(--green);border-color:var(--green)}
-.mover-list{display:grid;gap:12px}
-.mover-row{border:1px solid var(--line);border-radius:18px;background:#0b1626;padding:14px;display:grid;grid-template-columns:86px 1fr 250px;gap:14px;align-items:center}
-.mover-symbol{font-size:24px;font-weight:900}.mover-change{font-size:13px;font-weight:900;margin-top:4px}.mover-up{color:var(--green)}.mover-down{color:var(--red)}
-.mover-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px}
+.mover-tabs{display:flex;gap:8px;margin:14px 0}.mover-tab{border:1px solid var(--line);background:#0b1626;color:var(--muted);padding:10px 14px;border-radius:999px;font-weight:800;cursor:pointer}
+.mover-tab.active{background:var(--green);border-color:var(--green);color:#04120d}
+.mover-list{display:grid;gap:12px;margin-top:10px}
+.mover-row{border:1px solid var(--line);border-radius:18px;background:#0b1626;padding:14px;display:grid;grid-template-columns:86px minmax(0,1fr) 250px;gap:14px;align-items:center}
+.mover-symbol{font-size:23px;font-weight:900}.mover-change{font-size:13px;font-weight:900;margin-top:4px}.mover-up{color:var(--green)}.mover-down{color:var(--red)}
+.mover-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:8px}
 .mover-stat{background:#08111e;border:1px solid #1a2a40;border-radius:10px;padding:8px}.mover-stat span{display:block;color:var(--muted);font-size:8px;letter-spacing:.08em}.mover-stat strong{font-size:11px}
 .mover-reason{font-size:10px;color:#c6d2e3;line-height:1.55;margin-top:9px}.mover-reason b{color:#fff}
-.mover-chart{width:100%;height:110px;display:block}.mover-chart-label{font-size:8px;color:var(--muted);margin-top:3px;text-align:right}
+.mover-chart{width:100%;height:105px;display:block}.mover-chart-label{font-size:8px;color:var(--muted);margin-top:3px;text-align:right}
 .mover-empty{padding:24px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:16px}
-@media(max-width:760px){.mover-modal{padding:8px}.mover-shell{border-radius:18px;padding:12px}.mover-row{grid-template-columns:1fr;gap:10px}.mover-stats{grid-template-columns:repeat(2,1fr)}.mover-chart{height:90px}}
+.radar-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 7px;border-radius:999px;background:rgba(255,200,87,.10);color:var(--yellow);font-size:8px;font-weight:900;letter-spacing:.05em}
+@media(max-width:760px){.mover-modal{padding:8px}.mover-shell{border-radius:18px;padding:12px}.mover-row{grid-template-columns:1fr;gap:10px}.mover-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.mover-chart{height:88px}}
 
 </style>
 </head>
@@ -616,8 +519,8 @@ th{color:var(--muted)}
     <small id="lastUpdateDate">Supabase Live</small>
   </article>
 
-  <article class="kpi market-mover-card" id="marketMoversCard" role="button" tabindex="0" aria-label="Open Top Market Movers">
-    <span>MARKET MOVERS</span>
+  <article class="kpi market-mover-card" id="marketMoversCard" role="button" tabindex="0" aria-label="Open Top 5 Market Movers">
+    <span>Market Movers</span>
     <strong>TOP 5 ↑↓</strong>
     <small>Volume · chart · movement reason</small>
   </article>
@@ -636,8 +539,8 @@ th{color:var(--muted)}
     <article class="card">
       <div class="section-head">
         <div>
-          <h2>HANZ BUY Ranking</h2>
-          <p>Early-confirmed + trend-confirmed setups · foreign-flow adjusted ranking</p>
+          <h2>HANZ Opportunity Radar</h2>
+          <p>Confirmed BUY prioritized; when none, radar shows strongest WATCH / PRE-ALERT setups without calling them BUY</p>
         </div>
         <span class="small-tag">SWING LIVE</span>
       </div>
@@ -759,26 +662,6 @@ th{color:var(--muted)}
 </nav>
 
 <!-- AUTH MODAL -->
-
-<div id="marketMoversModal" class="mover-modal" aria-hidden="true">
-  <section class="mover-shell" role="dialog" aria-modal="true" aria-labelledby="marketMoversTitle">
-    <div class="mover-head">
-      <div>
-        <small class="eyebrow">HANZ MARKET ACTIVITY</small>
-        <h2 id="marketMoversTitle">Top Market Movers</h2>
-        <p>Top 5 gainers/losers in the HANZ scanned universe. Reasons are evidence-based; HANZ does not invent unverified news catalysts.</p>
-      </div>
-      <button id="marketMoversClose" class="mover-close" type="button" aria-label="Close">×</button>
-    </div>
-    <div class="mover-tabs">
-      <button class="mover-tab active" type="button" data-mover-direction="UP">Top 5 Gainers</button>
-      <button class="mover-tab" type="button" data-mover-direction="DOWN">Top 5 Losers</button>
-    </div>
-    <div id="marketMoversUpdated" class="foreign-flow-meta"></div>
-    <div id="marketMoversList" class="mover-list"><div class="mover-empty">Loading market movers…</div></div>
-  </section>
-</div>
-
 <div id="authModal" class="modal">
   <div class="modal-box">
     <div class="modal-head">
@@ -887,6 +770,26 @@ th{color:var(--muted)}
       <button id="positionSubmit" type="submit" class="position-submit">Save Position</button>
     </form>
   </div>
+</div>
+
+
+<div id="marketMoversModal" class="mover-modal" aria-hidden="true">
+  <section class="mover-shell" role="dialog" aria-modal="true" aria-labelledby="marketMoversTitle">
+    <div class="mover-head">
+      <div>
+        <small class="eyebrow">HANZ MARKET ACTIVITY</small>
+        <h2 id="marketMoversTitle">Top Market Movers</h2>
+        <p>Top 5 gainers/losers from the HANZ scanned universe. "Why moving" is based on observed price, volume, structure and available flow data—not invented news causality.</p>
+      </div>
+      <button id="marketMoversClose" class="mover-close" type="button" aria-label="Close">×</button>
+    </div>
+    <div class="mover-tabs">
+      <button class="mover-tab active" type="button" data-mover-direction="UP">Top 5 Gainers</button>
+      <button class="mover-tab" type="button" data-mover-direction="DOWN">Top 5 Losers</button>
+    </div>
+    <div id="marketMoversUpdated" class="foreign-flow-meta"></div>
+    <div id="marketMoversList" class="mover-list"><div class="mover-empty">Loading market movers…</div></div>
+  </section>
 </div>
 
 <div id="toast" class="toast"></div>
@@ -1436,56 +1339,172 @@ async function initAuth(){
   });
 }
 
+
+/* MARKET MOVERS */
+let marketMoversRows=[];
+let marketMoversDirection="UP";
+
+function compactNumber(v){
+  const n=Number(v);
+  if(!Number.isFinite(n)) return "—";
+  return new Intl.NumberFormat("en-US",{notation:"compact",maximumFractionDigits:1}).format(n);
+}
+
+function moverSparkline(points,direction){
+  const vals=(Array.isArray(points)?points:[]).map(p=>Number(p.close)).filter(Number.isFinite);
+  if(vals.length<2) return '<div class="mover-empty">Chart unavailable</div>';
+  const w=250,h=92,pad=5;
+  const min=Math.min(...vals),max=Math.max(...vals),span=(max-min)||1;
+  const pts=vals.map((v,i)=>{
+    const x=pad+i*(w-pad*2)/(vals.length-1);
+    const y=h-pad-((v-min)/span)*(h-pad*2);
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(" ");
+  const stroke=direction==="UP"?"var(--green)":"var(--red)";
+  return `<svg class="mover-chart" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-label="Recent closing-price chart">
+    <polyline points="${pts}" fill="none" stroke="${stroke}" stroke-width="3" vector-effect="non-scaling-stroke"/>
+  </svg><div class="mover-chart-label">Last ${vals.length} completed daily bars</div>`;
+}
+
+function renderMarketMovers(){
+  const list=$("marketMoversList");
+  const rows=marketMoversRows
+    .filter(r=>String(r.direction||"").toUpperCase()===marketMoversDirection)
+    .sort((a,b)=>Number(a.rank||99)-Number(b.rank||99))
+    .slice(0,5);
+
+  document.querySelectorAll("[data-mover-direction]").forEach(btn=>{
+    btn.classList.toggle("active",btn.dataset.moverDirection===marketMoversDirection);
+  });
+
+  if(!rows.length){
+    list.innerHTML='<div class="mover-empty">No market-mover snapshot available.</div>';
+    return;
+  }
+
+  list.innerHTML=rows.map(r=>{
+    const ch=Number(r.change_pct);
+    const rv=Number(r.rvol20);
+    const cls=ch>=0?"mover-up":"mover-down";
+    const sign=ch>=0?"+":"";
+    return `<article class="mover-row">
+      <div>
+        <div class="mover-symbol">#${Number(r.rank||0)} ${safe(r.ticker)}</div>
+        <div class="mover-change ${cls}">${Number.isFinite(ch)?sign+ch.toFixed(2)+"%":"—"}</div>
+      </div>
+      <div>
+        <div class="mover-stats">
+          <div class="mover-stat"><span>PRICE</span><strong>${price(r.price)}</strong></div>
+          <div class="mover-stat"><span>VOLUME</span><strong>${compactNumber(r.volume)}</strong></div>
+          <div class="mover-stat"><span>RVOL 20D</span><strong>${Number.isFinite(rv)?rv.toFixed(2)+"x":"—"}</strong></div>
+          <div class="mover-stat"><span>VALUE</span><strong>${compactNumber(r.traded_value)}</strong></div>
+        </div>
+        <div class="mover-reason"><b>Why moving:</b> ${safe(r.movement_reason||"No technical explanation available.")}</div>
+        <div class="mover-reason"><b>Flow:</b> ${safe(r.flow_reason||"No verified flow catalyst available.")}</div>
+      </div>
+      <div>${moverSparkline(r.chart_points,r.direction)}</div>
+    </article>`;
+  }).join("");
+}
+
+async function loadMarketMovers(){
+  const {data,error}=await supabase
+    .from("hanz_market_movers_current")
+    .select("*")
+    .order("direction",{ascending:false})
+    .order("rank",{ascending:true});
+  if(error) throw error;
+  marketMoversRows=data||[];
+  const latest=marketMoversRows.map(r=>r.updated_at).filter(Boolean).sort().reverse()[0];
+  $("marketMoversUpdated").textContent=latest?`Snapshot ${formatDate(latest)} · ${formatTime(latest)}`:"No snapshot yet";
+  renderMarketMovers();
+}
+
+async function openMarketMovers(){
+  $("marketMoversModal").classList.add("show");
+  $("marketMoversModal").setAttribute("aria-hidden","false");
+  $("marketMoversList").innerHTML='<div class="mover-empty">Loading market movers…</div>';
+  try{ await loadMarketMovers(); }
+  catch(error){
+    $("marketMoversList").innerHTML=`<div class="mover-empty">Market movers unavailable: ${safe(error.message||String(error))}</div>`;
+  }
+}
+
+function closeMarketMovers(){
+  $("marketMoversModal").classList.remove("show");
+  $("marketMoversModal").setAttribute("aria-hidden","true");
+}
+
+
 /* SHARED SWING BUY */
 async function loadWatchlist(){
+  const interestingStates=[
+    "EARLY_CONFIRMED_BUY","SWING_BUY",
+    "SETUP_READY","PRE_ALERT","EARLY_WATCH"
+  ];
+
   const {data,error}=await supabase
     .from("hanz_swing_signal_monitor")
     .select("*")
-    .in("state",["EARLY_CONFIRMED_BUY","SWING_BUY"])
+    .in("state",interestingStates)
     .order("updated_at",{ascending:false});
   if(error) throw error;
 
-  const rows=(data || []).sort((a,b)=>{
+  const all=(data||[]).sort((a,b)=>{
     const rankDiff=hanzRankingScore(b)-hanzRankingScore(a);
     if(rankDiff!==0) return rankDiff;
     return Number(b.score||0)-Number(a.score||0);
   });
-  $("opportunityCount").textContent=rows.length;
 
-  if(rows.length){
-    const top=rows[0];
+  const confirmed=all.filter(r=>["EARLY_CONFIRMED_BUY","SWING_BUY"].includes(String(r.state||"")));
+  const radar=all.filter(r=>["SETUP_READY","PRE_ALERT","EARLY_WATCH"].includes(String(r.state||"")));
+
+  $("opportunityCount").textContent=confirmed.length;
+
+  const primary=confirmed.length ? confirmed : radar;
+  if(primary.length){
+    const top=primary[0];
     const ff=foreignFlowInfo(top);
+    const isConfirmed=confirmed.length>0;
+
     $("topCandidate").textContent=top.ticker;
-    $("topCandidateSub").textContent=`Rank ${hanzRankingScore(top)}/100 · ${ff.label}`;
+    $("topCandidateSub").textContent=isConfirmed
+      ? `Rank ${hanzRankingScore(top)}/100 · ${ff.label}`
+      : `RADAR · ${String(top.state||"WATCH").replaceAll("_"," ")} · Rank ${hanzRankingScore(top)}/100`;
+
     $("heroTopCandidate").textContent=top.ticker;
-    $("heroTopSub").textContent=`${buyStateLabel(top)} · Rank ${hanzRankingScore(top)}/100 · Foreign ${ff.label} · Swing ${top.score ?? "—"}/10`;
+    $("heroTopSub").textContent=isConfirmed
+      ? `${buyStateLabel(top)} · Rank ${hanzRankingScore(top)}/100 · Foreign ${ff.label} · Swing ${top.score ?? "—"}/10`
+      : `RADAR WATCH · ${String(top.state||"WATCH").replaceAll("_"," ")} · Rank ${hanzRankingScore(top)}/100 · NOT A BUY`;
+
     $("lastUpdate").textContent=formatTime(top.updated_at);
     $("lastUpdateDate").textContent=`${formatDate(top.updated_at)} · Last completed Swing scan`;
   }else{
     $("topCandidate").textContent="—";
-    $("topCandidateSub").textContent="No confirmed BUY";
+    $("topCandidateSub").textContent="No radar candidates";
     $("heroTopCandidate").textContent="—";
-    $("heroTopSub").textContent="No confirmed BUY";
+    $("heroTopSub").textContent="Waiting for HANZ scan";
   }
 
-  renderRanking(rows);
-  renderOpportunities(rows);
-  renderLiveSignalMonitor(rows);
+  renderRanking(primary, confirmed.length===0);
+  renderOpportunities(confirmed);
+  renderLiveSignalMonitor(confirmed);
 }
 
-function renderRanking(rows){
+function renderRanking(rows,radarMode=false){
   if(!rows.length){
-    $("ranking").innerHTML='<div class="empty">No confirmed BUY.</div>';
+    $("ranking").innerHTML='<div class="empty">No confirmed BUY or radar candidate.</div>';
     return;
   }
   $("ranking").innerHTML=rows.slice(0,5).map((row,index)=>{
     const rank=hanzRankingScore(row);
     const ff=foreignFlowInfo(row);
-    return `<div class="rank" title="${safe(buyStateLabel(row))} · Foreign ${safe(ff.label)} · ${safe(ff.summary)}">
+    const state=String(row.state||"").replaceAll("_"," ");
+    return `<div class="rank" title="${safe(state)} · Foreign ${safe(ff.label)} · ${safe(ff.summary)}">
       <div class="rank-no">#${index+1}</div>
-      <div class="rank-symbol">${safe(row.ticker)}</div>
+      <div class="rank-symbol">${safe(row.ticker)} ${radarMode?'<span class="radar-badge">RADAR</span>':""}</div>
       <div class="rank-track"><div style="width:${rank}%"></div></div>
-      <div class="rank-score">${rank}/100 · <span class="${ff.cls}">${safe(ff.label)}</span></div>
+      <div class="rank-score">${rank}/100 · ${radarMode?safe(state):`<span class="${ff.cls}">${safe(ff.label)}</span>`}</div>
     </div>`;
   }).join("");
 }
@@ -2093,6 +2112,24 @@ window.addEventListener("DOMContentLoaded",async ()=>{
     btn.addEventListener("click",()=>showPanel(btn.dataset.panel));
   });
 
+  $("marketMoversCard").addEventListener("click",openMarketMovers);
+  $("marketMoversCard").addEventListener("keydown",event=>{
+    if(event.key==="Enter" || event.key===" "){
+      event.preventDefault();
+      openMarketMovers();
+    }
+  });
+  $("marketMoversClose").addEventListener("click",closeMarketMovers);
+  $("marketMoversModal").addEventListener("click",event=>{
+    if(event.target===$("marketMoversModal")) closeMarketMovers();
+  });
+  document.querySelectorAll("[data-mover-direction]").forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      marketMoversDirection=btn.dataset.moverDirection;
+      renderMarketMovers();
+    });
+  });
+
   $("refreshButton").addEventListener("click",loadAll);
   $("pushButton").addEventListener("click",enablePush);
   $("loginButton").addEventListener("click",()=>openAuth("login"));
@@ -2131,21 +2168,7 @@ window.addEventListener("DOMContentLoaded",async ()=>{
     if(event.target===$("positionModal")) closePositionModal();
   });
 
-  await 
-$("marketMoversCard").addEventListener("click",openMarketMovers);
-$("marketMoversCard").addEventListener("keydown",e=>{
-  if(e.key==="Enter" || e.key===" "){e.preventDefault();openMarketMovers();}
-});
-$("marketMoversClose").addEventListener("click",closeMarketMovers);
-$("marketMoversModal").addEventListener("click",e=>{if(e.target===$("marketMoversModal")) closeMarketMovers();});
-document.querySelectorAll("[data-mover-direction]").forEach(btn=>{
-  btn.addEventListener("click",()=>{
-    marketMoversDirection=btn.dataset.moverDirection;
-    renderMarketMovers();
-  });
-});
-
-initAuth();
+  await initAuth();
   await loadAll();
 
   setInterval(loadAll,REFRESH_MS);
