@@ -140,6 +140,15 @@ INSIDER_RECENT_DAYS = int(os.getenv("HANZ_INSIDER_RECENT_DAYS", "30"))
 INSIDER_MIN_VALUE_IDR = float(os.getenv("HANZ_INSIDER_MIN_VALUE_IDR", "100000000"))
 INSIDER_REPEAT_COUNT = int(os.getenv("HANZ_INSIDER_REPEAT_COUNT", "2"))
 
+# V10.7 Broker Flow Intelligence.
+# Broker codes represent intermediaries, not a single investor. This is confirmation only.
+BROKER_FLOW_ENABLED = os.getenv("HANZ_BROKER_FLOW_ENABLED", "1").strip() != "0"
+BROKER_LOOKBACK_DAYS = int(os.getenv("HANZ_BROKER_LOOKBACK_DAYS", "5"))
+BROKER_STRONG_NET_PCT_5D = float(os.getenv("HANZ_BROKER_STRONG_NET_PCT_5D", "1.25"))
+BROKER_WARNING_NET_PCT_5D = float(os.getenv("HANZ_BROKER_WARNING_NET_PCT_5D", "0.60"))
+BROKER_CONFIRM_DAYS = int(os.getenv("HANZ_BROKER_CONFIRM_DAYS", "3"))
+BROKER_CONCENTRATION_BONUS_PCT = float(os.getenv("HANZ_BROKER_CONCENTRATION_BONUS_PCT", "45"))
+
 # V8.5 Predictive Radar
 # Radar states are INTERNAL ONLY and must never be shown as user-facing BUY signals.
 RADAR_BASE_MIN_SCORE = int(os.getenv("HANZ_RADAR_BASE_MIN_SCORE", "4"))
@@ -363,6 +372,7 @@ PUSH_ALERT_TYPES = {
     "DISTRIBUTION_WATCH",
     "FOREIGN_SELL_CAUTION",
     "INSIDER_SELL_CAUTION",
+    "BROKER_DISTRIBUTION_WATCH",
     "STOP_LOSS",
     "CONFIRMED_SELL",
 }
@@ -2014,6 +2024,201 @@ def insider_exit_overlay(position,daily,insider):
         return {"signal":"INSIDER_SELL_CAUTION","priority":58,"reason":"Repeated public insider selling disclosed. Prepare exit; wait for price/structure confirmation."}
     if status=="INSIDER_SELL":
         return {"signal":"INSIDER_SELL_CAUTION","priority":42,"reason":"Public insider selling disclosed. Warning only; no automatic sell."}
+    return None
+
+
+def broker_flow_snapshot(ticker):
+    """Summarize broker activity from hanz_broker_flow_daily.
+
+    IMPORTANT:
+    A broker code is an intermediary and can represent many unrelated clients.
+    Therefore this layer is confirmation/ranking only, never proof of insider/smart money.
+
+    Expected rows (one broker per ticker/date):
+      ticker, trade_date, broker_code,
+      buy_value, sell_value, buy_volume, sell_volume,
+      avg_buy_price, avg_sell_price, source, verified_public
+    """
+    empty = {
+        "status": "UNKNOWN", "score": 0, "available": False,
+        "net_1d": 0.0, "net_3d": 0.0, "net_5d": 0.0,
+        "net_pct_1d": None, "net_pct_3d": None, "net_pct_5d": None,
+        "buy_days_5d": 0, "sell_days_5d": 0,
+        "top_buyers": [], "top_sellers": [],
+        "buyer_concentration_pct": None, "seller_concentration_pct": None,
+        "weighted_avg_buy_price_5d": None,
+        "reason": "Broker-flow data unavailable.",
+    }
+    if not BROKER_FLOW_ENABLED:
+        out = dict(empty)
+        out.update(status="DISABLED", reason="Broker-flow layer disabled.")
+        return out
+    try:
+        enc = urllib.parse.quote(clean_ticker(ticker), safe="")
+        rows = supabase_request(
+            "GET",
+            "hanz_broker_flow_daily"
+            f"?ticker=eq.{enc}"
+            "&verified_public=eq.true"
+            "&select=trade_date,broker_code,buy_value,sell_value,buy_volume,sell_volume,avg_buy_price,avg_sell_price,source"
+            "&order=trade_date.desc"
+            "&limit=250",
+        ) or []
+    except Exception as exc:
+        out = dict(empty)
+        out["reason"] = f"Broker-flow query unavailable: {exc}"
+        return out
+
+    if not rows:
+        out = dict(empty)
+        out["reason"] = "No verified broker-flow rows stored for ticker."
+        return out
+
+    # Group by latest distinct trade dates.
+    by_date = {}
+    for r in rows:
+        d = str(r.get("trade_date") or "")[:10]
+        if not d:
+            continue
+        by_date.setdefault(d, []).append(r)
+    dates = sorted(by_date.keys(), reverse=True)[:max(1, BROKER_LOOKBACK_DAYS)]
+    if not dates:
+        return empty
+
+    def n(v): return safe_float(v) or 0.0
+    daily = []
+    broker_net_5d = {}
+    broker_buy_value_5d = {}
+    buy_px_num = 0.0
+    buy_px_den = 0.0
+
+    for d in dates:
+        items = by_date[d]
+        buy = sum(n(x.get("buy_value")) for x in items)
+        sell = sum(n(x.get("sell_value")) for x in items)
+        total = buy + sell
+        net = buy - sell
+        daily.append({"date": d, "buy": buy, "sell": sell, "total": total, "net": net})
+
+        for x in items:
+            b = n(x.get("buy_value")); s = n(x.get("sell_value"))
+            code = str(x.get("broker_code") or "?").strip().upper()
+            broker_net_5d[code] = broker_net_5d.get(code, 0.0) + b - s
+            broker_buy_value_5d[code] = broker_buy_value_5d.get(code, 0.0) + b
+            vol = n(x.get("buy_volume"))
+            px = safe_float(x.get("avg_buy_price"))
+            if vol > 0 and px is not None:
+                buy_px_num += vol * px
+                buy_px_den += vol
+
+    def window(k):
+        w = daily[:k]
+        net = sum(x["net"] for x in w)
+        total = sum(x["total"] for x in w)
+        pct = (100.0 * net / total) if total > 0 else None
+        return net, pct
+
+    net1, p1 = window(1)
+    net3, p3 = window(min(3, len(daily)))
+    net5, p5 = window(min(5, len(daily)))
+    buy_days = sum(1 for x in daily[:5] if x["net"] > 0)
+    sell_days = sum(1 for x in daily[:5] if x["net"] < 0)
+
+    buyers = sorted(
+        ((k, v) for k, v in broker_net_5d.items() if v > 0),
+        key=lambda kv: kv[1], reverse=True
+    )[:3]
+    sellers = sorted(
+        ((k, -v) for k, v in broker_net_5d.items() if v < 0),
+        key=lambda kv: kv[1], reverse=True
+    )[:3]
+    positive_total = sum(v for v in broker_net_5d.values() if v > 0)
+    negative_total = sum(-v for v in broker_net_5d.values() if v < 0)
+    buyer_conc = (100.0 * sum(v for _, v in buyers) / positive_total) if positive_total > 0 else None
+    seller_conc = (100.0 * sum(v for _, v in sellers) / negative_total) if negative_total > 0 else None
+
+    status, score = "NEUTRAL", 0
+    reason = "Broker activity is mixed/neutral."
+    if p5 is not None and p5 >= BROKER_STRONG_NET_PCT_5D and buy_days >= BROKER_CONFIRM_DAYS:
+        status, score = "BROKER_ACCUMULATING", 8
+        reason = "Persistent multi-day broker net accumulation."
+        if buyer_conc is not None and buyer_conc >= BROKER_CONCENTRATION_BONUS_PCT:
+            score = 9
+            reason += " Top buyers are concentrated."
+    elif p3 is not None and p3 >= BROKER_WARNING_NET_PCT_5D and buy_days >= 2:
+        status, score, reason = "BROKER_ACCUMULATION_WATCH", 4, "Broker net buying is building but not fully confirmed."
+    elif p5 is not None and p5 <= -BROKER_STRONG_NET_PCT_5D and sell_days >= BROKER_CONFIRM_DAYS:
+        status, score = "BROKER_DISTRIBUTING", -8
+        reason = "Persistent multi-day broker net distribution."
+        if seller_conc is not None and seller_conc >= BROKER_CONCENTRATION_BONUS_PCT:
+            score = -9
+            reason += " Top sellers are concentrated."
+    elif p3 is not None and p3 <= -BROKER_WARNING_NET_PCT_5D and sell_days >= 2:
+        status, score, reason = "BROKER_DISTRIBUTION_WATCH", -4, "Broker net selling is building; early caution."
+
+    return {
+        "status": status, "score": int(score), "available": True,
+        "net_1d": safe_float(net1), "net_3d": safe_float(net3), "net_5d": safe_float(net5),
+        "net_pct_1d": safe_float(p1), "net_pct_3d": safe_float(p3), "net_pct_5d": safe_float(p5),
+        "buy_days_5d": buy_days, "sell_days_5d": sell_days,
+        "top_buyers": [{"broker": k, "net_value": safe_float(v)} for k, v in buyers],
+        "top_sellers": [{"broker": k, "net_value": safe_float(v)} for k, v in sellers],
+        "buyer_concentration_pct": safe_float(buyer_conc),
+        "seller_concentration_pct": safe_float(seller_conc),
+        "weighted_avg_buy_price_5d": safe_float(buy_px_num / buy_px_den) if buy_px_den > 0 else None,
+        "reason": reason,
+    }
+
+
+def apply_broker_flow_to_risk_validation(risk_validation, broker_flow):
+    out = dict(risk_validation or {})
+    bf = dict(broker_flow or {})
+    mapping = {
+        "broker_flow_status":"status","broker_flow_score":"score",
+        "broker_net_1d":"net_1d","broker_net_3d":"net_3d","broker_net_5d":"net_5d",
+        "broker_net_pct_1d":"net_pct_1d","broker_net_pct_3d":"net_pct_3d","broker_net_pct_5d":"net_pct_5d",
+        "broker_buy_days_5d":"buy_days_5d","broker_sell_days_5d":"sell_days_5d",
+        "broker_top_buyers":"top_buyers","broker_top_sellers":"top_sellers",
+        "broker_buyer_concentration_pct":"buyer_concentration_pct",
+        "broker_seller_concentration_pct":"seller_concentration_pct",
+        "broker_weighted_avg_buy_price_5d":"weighted_avg_buy_price_5d",
+        "broker_flow_reason":"reason",
+    }
+    for out_key, in_key in mapping.items():
+        out[out_key] = bf.get(in_key)
+
+    # Smaller weight than foreign + public insider; broker identity is not investor identity.
+    out["score"] = int(max(0, min(100, round(
+        (safe_float(out.get("score")) or 0) + (safe_float(bf.get("score")) or 0)
+    ))))
+    cautions = list(out.get("cautions") or [])
+    if str(bf.get("status") or "").upper() in {"BROKER_DISTRIBUTING","BROKER_DISTRIBUTION_WATCH"}:
+        if "BROKER_DISTRIBUTION" not in cautions:
+            cautions.append("BROKER_DISTRIBUTION")
+    out["cautions"] = cautions
+    return out
+
+
+def broker_exit_overlay(position, daily, broker_flow):
+    """Broker distribution is only an early warning; price/structure remains decisive."""
+    status = str((broker_flow or {}).get("status") or "UNKNOWN").upper()
+    close = safe_float(daily.get("price"))
+    ema20 = safe_float(daily.get("ema20"))
+    if status == "BROKER_DISTRIBUTING":
+        if close is not None and ema20 is not None and close < ema20:
+            return {
+                "signal":"BROKER_DISTRIBUTION_WATCH","priority":68,
+                "reason":"Persistent broker distribution + close below EMA20. Tighten risk."
+            }
+        return {
+            "signal":"BROKER_DISTRIBUTION_WATCH","priority":52,
+            "reason":"Persistent broker distribution. Prepare exit; wait for technical confirmation."
+        }
+    if status == "BROKER_DISTRIBUTION_WATCH":
+        return {
+            "signal":"BROKER_DISTRIBUTION_WATCH","priority":38,
+            "reason":"Broker selling is building. Early warning only."
+        }
     return None
 
 
@@ -4169,9 +4374,11 @@ def monitor_swing_portfolio(*, allow_structural_exit=True):
             foreign_overlay = foreign_exit_overlay(position, daily, foreign_flow)
             insider = insider_disclosure_snapshot(ticker)
             insider_overlay = insider_exit_overlay(position, daily, insider)
+            broker_flow = broker_flow_snapshot(ticker)
+            broker_overlay = broker_exit_overlay(position, daily, broker_flow)
 
             signal = result["signal"]
-            for overlay in (foreign_overlay, insider_overlay):
+            for overlay in (foreign_overlay, insider_overlay, broker_overlay):
                 if overlay is not None and int(overlay.get("priority") or 0) > int(result.get("priority") or 0):
                     result = dict(result)
                     result.update(overlay)
@@ -4204,6 +4411,18 @@ def monitor_swing_portfolio(*, allow_structural_exit=True):
                 "insider_latest_action": insider.get("latest_action"),
                 "insider_latest_disclosure_date": insider.get("latest_disclosure_date"),
                 "insider_reason": insider.get("reason"),
+                "broker_flow_status": broker_flow.get("status"),
+                "broker_flow_score": broker_flow.get("score"),
+                "broker_net_1d": broker_flow.get("net_1d"),
+                "broker_net_3d": broker_flow.get("net_3d"),
+                "broker_net_5d": broker_flow.get("net_5d"),
+                "broker_net_pct_1d": broker_flow.get("net_pct_1d"),
+                "broker_net_pct_3d": broker_flow.get("net_pct_3d"),
+                "broker_net_pct_5d": broker_flow.get("net_pct_5d"),
+                "broker_top_buyers": broker_flow.get("top_buyers"),
+                "broker_top_sellers": broker_flow.get("top_sellers"),
+                "broker_weighted_avg_buy_price_5d": broker_flow.get("weighted_avg_buy_price_5d"),
+                "broker_flow_reason": broker_flow.get("reason"),
             }
 
             update_swing_portfolio(
@@ -4255,6 +4474,20 @@ def monitor_swing_portfolio(*, allow_structural_exit=True):
                     message=(
                         f"Price {daily['price']:.2f}. {result['reason']} "
                         f"Public insider BUY/SELL 30D: {insider.get('buy_count_30d')}/{insider.get('sell_count_30d')}."
+                    ),
+                    reason=result["reason"],
+                    daily_dedupe=True,
+                )
+
+            elif signal == "BROKER_DISTRIBUTION_WATCH":
+                insert_swing_alert(
+                    position=position,
+                    alert_type=signal,
+                    priority=result["priority"],
+                    message=(
+                        f"Price {daily['price']:.2f}. {result['reason']} "
+                        f"Broker 1D/3D/5D: {broker_flow.get('net_pct_1d')}% / "
+                        f"{broker_flow.get('net_pct_3d')}% / {broker_flow.get('net_pct_5d')}%."
                     ),
                     reason=result["reason"],
                     daily_dedupe=True,
@@ -5983,6 +6216,8 @@ def scan_symbol(ticker, maintenance_mode=False):
     risk_validation = apply_foreign_flow_to_risk_validation(risk_validation, foreign_flow)
     insider = insider_disclosure_snapshot(ticker)
     risk_validation = apply_insider_to_risk_validation(risk_validation, insider)
+    broker_flow = broker_flow_snapshot(ticker)
+    risk_validation = apply_broker_flow_to_risk_validation(risk_validation, broker_flow)
 
     # V8.8 OFF-MARKET CANDIDATE REFRESH
     #
@@ -6022,6 +6257,9 @@ def scan_symbol(ticker, maintenance_mode=False):
         )
         risk_validation = apply_insider_to_risk_validation(
             risk_validation, insider
+        )
+        risk_validation = apply_broker_flow_to_risk_validation(
+            risk_validation, broker_flow
         )
 
     if maintenance_write:
