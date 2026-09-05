@@ -520,9 +520,9 @@ th{color:var(--muted)}
   </article>
 
   <article class="kpi market-mover-card" id="marketMoversCard" role="button" tabindex="0" aria-label="Open Top 5 Market Movers">
-    <span>Market Movers</span>
-    <strong>TOP 5 ↑↓</strong>
-    <small>Volume · chart · movement reason</small>
+    <span>Pullback / Downside Radar</span>
+    <strong>MAX 5</strong>
+    <small>Recent Early Watch · pullback/downside risk</small>
   </article>
 </section>
 
@@ -777,15 +777,11 @@ th{color:var(--muted)}
   <section class="mover-shell" role="dialog" aria-modal="true" aria-labelledby="marketMoversTitle">
     <div class="mover-head">
       <div>
-        <small class="eyebrow">HANZ MARKET ACTIVITY</small>
-        <h2 id="marketMoversTitle">Top Market Movers</h2>
-        <p>Top 5 gainers/losers from the HANZ scanned universe. "Why moving" is based on observed price, volume, structure and available flow data—not invented news causality.</p>
+        <small class="eyebrow">HANZ RISK TRANSITION RADAR</small>
+        <h2 id="marketMoversTitle">Pullback / Downside Watch</h2>
+        <p>Maximum 5 stocks that had a confirmed EARLY lifecycle within the previous 5 completed bars and now show evidence of pullback risk or downside deterioration. This is a risk watch—not a guaranteed forecast or automatic SELL.</p>
       </div>
       <button id="marketMoversClose" class="mover-close" type="button" aria-label="Close">×</button>
-    </div>
-    <div class="mover-tabs">
-      <button class="mover-tab active" type="button" data-mover-direction="UP">Top 5 Gainers</button>
-      <button class="mover-tab" type="button" data-mover-direction="DOWN">Top 5 Losers</button>
     </div>
     <div id="marketMoversUpdated" class="foreign-flow-meta"></div>
     <div id="marketMoversList" class="mover-list"><div class="mover-empty">Loading market movers…</div></div>
@@ -1351,9 +1347,8 @@ async function initAuth(){
 }
 
 
-/* MARKET MOVERS */
-let marketMoversRows=[];
-let marketMoversDirection="UP";
+/* PULLBACK / DOWNSIDE RADAR */
+let pullbackRadarRows=[];
 
 function compactNumber(v){
   const n=Number(v);
@@ -1361,7 +1356,7 @@ function compactNumber(v){
   return new Intl.NumberFormat("en-US",{notation:"compact",maximumFractionDigits:1}).format(n);
 }
 
-function moverSparkline(points,direction){
+function moverSparkline(points,riskState){
   const vals=(Array.isArray(points)?points:[]).map(p=>Number(p.close)).filter(Number.isFinite);
   if(vals.length<2) return '<div class="mover-empty">Chart unavailable</div>';
   const w=250,h=92,pad=5;
@@ -1371,7 +1366,7 @@ function moverSparkline(points,direction){
     const y=h-pad-((v-min)/span)*(h-pad*2);
     return `${x.toFixed(1)},${y.toFixed(1)}`;
   }).join(" ");
-  const stroke=direction==="UP"?"var(--green)":"var(--red)";
+  const stroke=riskState==="DOWNSIDE_CONFIRMED"?"var(--red)":"var(--yellow)";
   return `<svg class="mover-chart" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-label="Recent closing-price chart">
     <polyline points="${pts}" fill="none" stroke="${stroke}" stroke-width="3" vector-effect="non-scaling-stroke"/>
   </svg><div class="mover-chart-label">Last ${vals.length} completed daily bars</div>`;
@@ -1379,54 +1374,51 @@ function moverSparkline(points,direction){
 
 function renderMarketMovers(){
   const list=$("marketMoversList");
-  const rows=marketMoversRows
-    .filter(r=>String(r.direction||"").toUpperCase()===marketMoversDirection)
+  const rows=(pullbackRadarRows||[])
     .sort((a,b)=>Number(a.rank||99)-Number(b.rank||99))
     .slice(0,5);
 
-  document.querySelectorAll("[data-mover-direction]").forEach(btn=>{
-    btn.classList.toggle("active",btn.dataset.moverDirection===marketMoversDirection);
-  });
-
   if(!rows.length){
-    list.innerHTML='<div class="mover-empty">No market-mover snapshot available.</div>';
+    list.innerHTML='<div class="mover-empty">No qualifying pullback/downside candidate right now. HANZ will not force-fill 5 names.</div>';
     return;
   }
 
   list.innerHTML=rows.map(r=>{
-    const ch=Number(r.change_pct);
+    const risk=Number(r.risk_score);
+    const ret1=Number(r.ret1_pct);
     const rv=Number(r.rvol20);
-    const cls=ch>=0?"mover-up":"mover-down";
-    const sign=ch>=0?"+":"";
+    const state=String(r.risk_state||"PULLBACK_RISK");
+    const stateLabel=state==="DOWNSIDE_CONFIRMED"?"DOWNSIDE CONFIRMED":"PULLBACK RISK";
+    const cls=state==="DOWNSIDE_CONFIRMED"?"mover-down":"";
     return `<article class="mover-row">
       <div>
         <div class="mover-symbol">#${Number(r.rank||0)} ${safe(r.ticker)}</div>
-        <div class="mover-change ${cls}">${Number.isFinite(ch)?sign+ch.toFixed(2)+"%":"—"}</div>
+        <div class="mover-change ${cls}">${safe(stateLabel)} · ${Number.isFinite(risk)?risk+"/100":"—"}</div>
       </div>
       <div>
         <div class="mover-stats">
           <div class="mover-stat"><span>PRICE</span><strong>${price(r.price)}</strong></div>
+          <div class="mover-stat"><span>1D</span><strong>${Number.isFinite(ret1)?(ret1>=0?"+":"")+ret1.toFixed(2)+"%":"—"}</strong></div>
           <div class="mover-stat"><span>VOLUME</span><strong>${compactNumber(r.volume)}</strong></div>
           <div class="mover-stat"><span>RVOL 20D</span><strong>${Number.isFinite(rv)?rv.toFixed(2)+"x":"—"}</strong></div>
-          <div class="mover-stat"><span>VALUE</span><strong>${compactNumber(r.traded_value)}</strong></div>
         </div>
-        <div class="mover-reason"><b>Why moving:</b> ${safe(r.movement_reason||"No technical explanation available.")}</div>
-        <div class="mover-reason"><b>Flow:</b> ${safe(r.flow_reason||"No verified flow catalyst available.")}</div>
+        <div class="mover-reason"><b>Recent early state:</b> ${safe(r.prior_early_state||"—")} · ${Number(r.prior_early_score||0)}/10 · ${Number(r.prior_early_bars_ago||0)} bar(s) ago</div>
+        <div class="mover-reason"><b>Why flagged:</b> ${safe(r.reason||"No sufficient explanation.")}</div>
+        <div class="mover-reason"><b>Current HANZ state:</b> ${safe(String(r.current_state||"—").replaceAll("_"," "))}</div>
       </div>
-      <div>${moverSparkline(r.chart_points,r.direction)}</div>
+      <div>${moverSparkline(r.chart_points,state)}</div>
     </article>`;
   }).join("");
 }
 
 async function loadMarketMovers(){
   const {data,error}=await supabase
-    .from("hanz_market_movers_current")
+    .from("hanz_pullback_watch_current")
     .select("*")
-    .order("direction",{ascending:false})
     .order("rank",{ascending:true});
   if(error) throw error;
-  marketMoversRows=data||[];
-  const latest=marketMoversRows.map(r=>r.updated_at).filter(Boolean).sort().reverse()[0];
+  pullbackRadarRows=data||[];
+  const latest=pullbackRadarRows.map(r=>r.updated_at).filter(Boolean).sort().reverse()[0];
   $("marketMoversUpdated").textContent=latest?`Snapshot ${formatDate(latest)} · ${formatTime(latest)}`:"No snapshot yet";
   renderMarketMovers();
 }
@@ -1434,10 +1426,10 @@ async function loadMarketMovers(){
 async function openMarketMovers(){
   $("marketMoversModal").classList.add("show");
   $("marketMoversModal").setAttribute("aria-hidden","false");
-  $("marketMoversList").innerHTML='<div class="mover-empty">Loading market movers…</div>';
+  $("marketMoversList").innerHTML='<div class="mover-empty">Loading pullback/downside radar…</div>';
   try{ await loadMarketMovers(); }
   catch(error){
-    $("marketMoversList").innerHTML=`<div class="mover-empty">Market movers unavailable: ${safe(error.message||String(error))}</div>`;
+    $("marketMoversList").innerHTML=`<div class="mover-empty">Pullback radar unavailable: ${safe(error.message||String(error))}</div>`;
   }
 }
 
@@ -1445,7 +1437,6 @@ function closeMarketMovers(){
   $("marketMoversModal").classList.remove("show");
   $("marketMoversModal").setAttribute("aria-hidden","true");
 }
-
 
 /* SHARED SWING BUY */
 async function loadWatchlist(){
@@ -2132,14 +2123,7 @@ window.addEventListener("DOMContentLoaded",async ()=>{
   $("marketMoversModal").addEventListener("click",event=>{
     if(event.target===$("marketMoversModal")) closeMarketMovers();
   });
-  document.querySelectorAll("[data-mover-direction]").forEach(btn=>{
-    btn.addEventListener("click",()=>{
-      marketMoversDirection=btn.dataset.moverDirection;
-      renderMarketMovers();
-    });
-  });
-
-  $("refreshButton").addEventListener("click",loadAll);
+$("refreshButton").addEventListener("click",loadAll);
   $("pushButton").addEventListener("click",enablePush);
   $("loginButton").addEventListener("click",()=>openAuth("login"));
   $("logoutButton").addEventListener("click",logout);
