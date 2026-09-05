@@ -839,7 +839,8 @@ function foreignFlowInfo(row){
     ACCUMULATING:"ff-buy",MILD_ACCUMULATION:"ff-buy",
     CAUTION:"ff-watch",DISTRIBUTION_WATCH:"ff-watch",DISTRIBUTING:"ff-sell"
   }[status] || "ff-neutral";
-  const fmt=v=>Number.isFinite(v)?`${v>=0?"+":""}${v.toFixed(2)}%`:"—";
+  const unavailable=["UNKNOWN","DISABLED"].includes(status);
+  const fmt=v=>(!unavailable && Number.isFinite(v))?`${v>=0?"+":""}${v.toFixed(2)}%`:"—";
   return {status,label,cls,score,p1,p3,p5,summary:`1D ${fmt(p1)} · 3D ${fmt(p3)} · 5D ${fmt(p5)}`};
 }
 
@@ -879,9 +880,12 @@ function insiderInfo(row){
 
 function insiderHtml(row){
   const i=insiderInfo(row);
+  const unavailable=["UNKNOWN","DISABLED"].includes(i.status);
+  const d30=unavailable?"—/—":`${i.b30}/${i.s30}`;
+  const d90=unavailable?"—/—":`${i.b90}/${i.s90}`;
   return `<div class="foreign-flow-box">
     <div class="foreign-flow-head"><span>PUBLIC INSIDER</span><strong class="${i.cls}">${safe(i.label)} ${i.score?`(${i.score>0?"+":""}${i.score})`:""}</strong></div>
-    <div class="foreign-flow-meta">30D BUY/SELL ${i.b30}/${i.s30} · 90D ${i.b90}/${i.s90}</div>
+    <div class="foreign-flow-meta">30D BUY/SELL ${d30} · 90D ${d90}</div>
     ${i.reason?`<div class="foreign-flow-meta">${safe(i.reason)}</div>`:""}
   </div>`;
 }
@@ -896,7 +900,8 @@ function brokerFlowInfo(row){
   const p5=Number(r.broker_net_pct_5d ?? row?.broker_net_pct_5d);
   const topBuyers=r.broker_top_buyers ?? row?.broker_top_buyers ?? [];
   const topSellers=r.broker_top_sellers ?? row?.broker_top_sellers ?? [];
-  const avgBuy=Number(r.broker_weighted_avg_buy_price_5d ?? row?.broker_weighted_avg_buy_price_5d);
+  const rawAvgBuy=(r.broker_weighted_avg_buy_price_5d ?? row?.broker_weighted_avg_buy_price_5d);
+  const avgBuy=(rawAvgBuy===null || rawAvgBuy===undefined || rawAvgBuy==="") ? NaN : Number(rawAvgBuy);
   const reason=String(r.broker_flow_reason ?? row?.broker_flow_reason ?? "");
   const label={
     BROKER_ACCUMULATING:"ACCUMULATING",
@@ -917,9 +922,10 @@ function brokerFlowInfo(row){
 
 function brokerFlowHtml(row){
   const b=brokerFlowInfo(row);
-  const f=v=>Number.isFinite(v)?`${v>=0?"+":""}${v.toFixed(2)}%`:"—";
-  const codes=x=>Array.isArray(x)&&x.length?x.slice(0,3).map(v=>safe(v.broker||"?")).join(", "):"—";
-  const avg=Number.isFinite(b.avgBuy)?Number(b.avgBuy).toLocaleString("en-US",{maximumFractionDigits:2}):"—";
+  const unavailable = ["UNKNOWN","DISABLED"].includes(b.status);
+  const f=v=>(!unavailable && Number.isFinite(v))?`${v>=0?"+":""}${v.toFixed(2)}%`:"—";
+  const codes=x=>(!unavailable && Array.isArray(x)&&x.length)?x.slice(0,3).map(v=>safe(v.broker||"?")).join(", "):"—";
+  const avg=(!unavailable && Number.isFinite(b.avgBuy))?Number(b.avgBuy).toLocaleString("en-US",{maximumFractionDigits:2}):"—";
   return `<div class="foreign-flow-box">
     <div class="foreign-flow-head"><span>BROKER FLOW</span><strong class="${b.cls}">${safe(b.label)} ${b.score?`(${b.score>0?"+":""}${b.score})`:""}</strong></div>
     <div class="foreign-flow-meta">1D ${f(b.p1)} · 3D ${f(b.p3)} · 5D ${f(b.p5)}</div>
