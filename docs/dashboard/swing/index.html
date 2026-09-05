@@ -984,13 +984,24 @@ function brokerFlowHtml(row){
 }
 
 function hanzRankingScore(row){
-  // Technical BUY state stays the gate. Foreign flow adjusts ranking quality,
-  // but cannot turn a non-BUY state into a BUY.
+  // Canonical rank is computed once by the engine. The dashboard must not
+  // invent or modify ranking rules. Fallback is temporary for pre-V10.8.3 rows.
+  const r=riskObject(row);
+  const canonical=Number(r.canonical_rank_score);
+  if(Number.isFinite(canonical)){
+    return Math.max(0,Math.min(100,canonical));
+  }
   const technical=Math.max(0,Math.min(10,Number(row?.score || 0)))*10;
-  const foreign=foreignFlowInfo(row).score;
-  const insider=insiderInfo(row).score;
-  const broker=brokerFlowInfo(row).score;
-  return Math.max(0,Math.min(100,technical + foreign + insider + broker));
+  return Math.max(
+    0,
+    Math.min(
+      100,
+      technical +
+      foreignFlowInfo(row).score +
+      insiderInfo(row).score +
+      brokerFlowInfo(row).score
+    )
+  );
 }
 
 function buyStateLabel(row){
@@ -1450,43 +1461,41 @@ async function loadWatchlist(){
     .order("updated_at",{ascending:false});
   if(error) throw error;
 
-  const all=(data||[]).sort((a,b)=>{
-    const rankDiff=hanzRankingScore(b)-hanzRankingScore(a);
-    if(rankDiff!==0) return rankDiff;
+  const all=data||[];
+  const byCanonical=(a,b)=>{
+    const diff=hanzRankingScore(b)-hanzRankingScore(a);
+    if(diff!==0) return diff;
     return Number(b.score||0)-Number(a.score||0);
-  });
+  };
 
-  const confirmed=all.filter(r=>["EARLY_CONFIRMED_BUY","SWING_BUY"].includes(String(r.state||"")));
-  const radar=all.filter(r=>["SETUP_READY","PRE_ALERT","EARLY_WATCH"].includes(String(r.state||"")));
+  const confirmed=all
+    .filter(r=>["EARLY_CONFIRMED_BUY","SWING_BUY"].includes(String(r.state||"")))
+    .sort(byCanonical);
 
+  const radar=all
+    .filter(r=>["SETUP_READY","PRE_ALERT","EARLY_WATCH"].includes(String(r.state||"")))
+    .sort(byCanonical);
+
+  // BUY widgets are BUY-only. Radar is never allowed to impersonate a BUY.
   $("opportunityCount").textContent=confirmed.length;
 
-  const primary=confirmed.length ? confirmed : radar;
-  if(primary.length){
-    const top=primary[0];
+  if(confirmed.length){
+    const top=confirmed[0];
     const ff=foreignFlowInfo(top);
-    const isConfirmed=confirmed.length>0;
-
     $("topCandidate").textContent=top.ticker;
-    $("topCandidateSub").textContent=isConfirmed
-      ? `Rank ${hanzRankingScore(top)}/100 · ${ff.label}`
-      : `RADAR · ${String(top.state||"WATCH").replaceAll("_"," ")} · Rank ${hanzRankingScore(top)}/100`;
-
+    $("topCandidateSub").textContent=`Rank ${hanzRankingScore(top)}/100 · ${ff.label}`;
     $("heroTopCandidate").textContent=top.ticker;
-    $("heroTopSub").textContent=isConfirmed
-      ? `${buyStateLabel(top)} · Rank ${hanzRankingScore(top)}/100 · Foreign ${ff.label} · Swing ${top.score ?? "—"}/10`
-      : `RADAR WATCH · ${String(top.state||"WATCH").replaceAll("_"," ")} · Rank ${hanzRankingScore(top)}/100 · NOT A BUY`;
-
+    $("heroTopSub").textContent=`${buyStateLabel(top)} · Rank ${hanzRankingScore(top)}/100 · Foreign ${ff.label} · Swing ${top.score ?? "—"}/10`;
     $("lastUpdate").textContent=formatTime(top.updated_at);
     $("lastUpdateDate").textContent=`${formatDate(top.updated_at)} · Last completed Swing scan`;
   }else{
     $("topCandidate").textContent="—";
-    $("topCandidateSub").textContent="No radar candidates";
+    $("topCandidateSub").textContent="No confirmed BUY";
     $("heroTopCandidate").textContent="—";
-    $("heroTopSub").textContent="Waiting for HANZ scan";
+    $("heroTopSub").textContent="No confirmed SWING BUY right now";
   }
 
-  renderRanking(primary, confirmed.length===0);
+  renderRanking(radar,true);
   renderOpportunities(confirmed);
   renderLiveSignalMonitor(confirmed);
 }
