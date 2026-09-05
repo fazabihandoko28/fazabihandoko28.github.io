@@ -162,6 +162,14 @@ _MARKET_MOVER_ROWS = []
 # This does NOT change BUY gates/states; it only prevents dashboard-side ranking drift.
 CANONICAL_RANK_VERSION = "CRV1_2026_09_05"
 
+# V10.9 Recent Early-Watch Pullback / Downside Radar.
+# Max 5 candidates; never force-fill the list.
+PULLBACK_RADAR_ENABLED = os.getenv("HANZ_PULLBACK_RADAR_ENABLED", "1").strip() != "0"
+PULLBACK_RADAR_LOOKBACK_BARS = int(os.getenv("HANZ_PULLBACK_RADAR_LOOKBACK_BARS", "5"))
+PULLBACK_RADAR_MAX_ROWS = int(os.getenv("HANZ_PULLBACK_RADAR_MAX_ROWS", "5"))
+PULLBACK_RADAR_MIN_SCORE = int(os.getenv("HANZ_PULLBACK_RADAR_MIN_SCORE", "58"))
+_PULLBACK_RADAR_ROWS = []
+
 # V8.5 Predictive Radar
 # Radar states are INTERNAL ONLY and must never be shown as user-facing BUY signals.
 RADAR_BASE_MIN_SCORE = int(os.getenv("HANZ_RADAR_BASE_MIN_SCORE", "4"))
@@ -6173,6 +6181,321 @@ def scan_predictive_radar_symbol(ticker):
     return radar["state"]
 
 
+
+def _weekly_frame_asof(weekly_df, asof_date):
+    try:
+        idx = pd.to_datetime(weekly_df.index)
+        mask = idx.date <= pd.Timestamp(asof_date).date()
+        return weekly_df.loc[mask]
+    except Exception:
+        return weekly_df
+
+
+def recent_early_watch_evidence(daily_df, weekly_df, lookback_bars=None):
+    """Replay prior completed bars without lookahead.
+
+    Returns the strongest EARLY lifecycle observation from the previous N
+    completed daily bars. Current bar is excluded.
+    """
+    n = max(1, int(lookback_bars or PULLBACK_RADAR_LOOKBACK_BARS))
+    if daily_df is None or len(daily_df) < 90:
+        return None
+
+    best = None
+    max_back = min(n, len(daily_df) - 80)
+
+    for back in range(1, max_back + 1):
+        hist_daily = daily_df.iloc[:-back]
+        if len(hist_daily) < 80:
+            continue
+
+        bar_at = hist_daily.index[-1]
+        hist_weekly = _weekly_frame_asof(weekly_df, bar_at)
+        if hist_weekly is None or len(hist_weekly) < 20:
+            continue
+
+        try:
+            dm = daily_metrics(hist_daily)
+            wm = weekly_metrics(hist_weekly)
+            early = early_signal_score(dm, wm)
+        except Exception:
+            continue
+
+        score = int(early.get("score") or 0)
+        if score < EARLY_WATCH_SCORE:
+            continue
+
+        state = "EARLY_WATCH"
+        if score >= PRE_ALERT_SCORE:
+            state = "PRE_ALERT"
+        if score >= SETUP_READY_SCORE:
+            state = "SETUP_READY"
+
+        item = {
+            "bars_ago": back,
+            "bar_at": pd.Timestamp(bar_at).isoformat(),
+            "state": state,
+            "early_score": score,
+            "evidence": list(early.get("evidence") or []),
+        }
+        if best is None or score > int(best.get("early_score") or 0):
+            best = item
+
+    return best
+
+
+def pullback_downside_assessment(
+    ticker,
+    daily_df,
+    weekly_df,
+    daily,
+    result,
+    foreign_flow,
+    insider,
+    broker_flow,
+):
+    """Assess near-term pullback/downside risk after a recent EARLY lifecycle.
+
+    This is a risk-watch signal, not a prediction guarantee and never a SELL
+    command by itself.
+    """
+    if not PULLBACK_RADAR_ENABLED:
+        return None
+
+    prior = recent_early_watch_evidence(
+        daily_df,
+        weekly_df,
+        PULLBACK_RADAR_LOOKBACK_BARS,
+    )
+    if not prior:
+        return None
+
+    price = safe_float(daily.get("price"))
+    ema20 = safe_float(daily.get("ema20"))
+    ema50 = safe_float(daily.get("ema50"))
+    ret1 = safe_float(daily.get("ret1_pct"))
+    ret3 = safe_float(daily.get("ret3_pct"))
+    ret5 = safe_float(daily.get("ret5_pct"))
+    rsi = safe_float(daily.get("rsi14"))
+    rvol = safe_float(daily.get("rvol20"))
+    close_loc = safe_float(daily.get("close_location"))
+    ema20_slope = safe_float(daily.get("ema20_slope_5d_pct"))
+    down_vol = safe_float(daily.get("down_volume_ratio_5d"))
+    prior_high20 = safe_float(daily.get("prior_high20"))
+    prior_low20 = safe_float(daily.get("prior_low20"))
+    atr_pct = safe_float(daily.get("atr_pct"))
+
+    score = 0
+    reasons = []
+
+    # 1) Actual current weakness.
+    if ret1 is not None:
+        if ret1 <= -2.0:
+            score += 18
+            reasons.append(f"latest bar fell {abs(ret1):.2f}%")
+        elif ret1 <= -0.8:
+            score += 12
+            reasons.append(f"latest bar weakened {abs(ret1):.2f}%")
+        elif ret1 < 0:
+            score += 6
+            reasons.append("latest bar closed lower")
+
+    if price is not None and ema20 is not None and price < ema20:
+        score += 18
+        reasons.append("close is below EMA20")
+    elif price is not None and ema20 is not None and price > ema20:
+        # Still above EMA20: can be a pullback-risk candidate rather than a breakdown.
+        distance = 100.0 * (price / ema20 - 1.0) if ema20 else None
+        if distance is not None and distance >= 6.0:
+            score += 10
+            reasons.append(f"price remains {distance:.1f}% above EMA20 (extended)")
+
+    if ema20_slope is not None and ema20_slope < 0:
+        score += 10
+        reasons.append("EMA20 slope is weakening")
+
+    if close_loc is not None and close_loc <= 0.35:
+        score += 10
+        reasons.append("candle closed near its low")
+    elif close_loc is not None and close_loc <= 0.50:
+        score += 5
+        reasons.append("close location weakened")
+
+    if rvol is not None and rvol >= 1.5 and ret1 is not None and ret1 < 0:
+        score += 12
+        reasons.append(f"selling bar volume is elevated ({rvol:.2f}x 20D)")
+    elif down_vol is not None and down_vol >= 1.20:
+        score += 8
+        reasons.append(f"down-volume ratio is elevated ({down_vol:.2f}x)")
+
+    # 2) Exhaustion / pullback risk before an outright breakdown.
+    if rsi is not None and rsi >= 72:
+        score += 8
+        reasons.append(f"RSI is stretched at {rsi:.1f}")
+    if ret5 is not None and ret5 >= 8.0:
+        score += 8
+        reasons.append(f"5-day momentum is extended (+{ret5:.1f}%)")
+    elif ret3 is not None and ret3 >= 5.0:
+        score += 5
+        reasons.append(f"3-day momentum is extended (+{ret3:.1f}%)")
+
+    # 3) State deterioration.
+    current_state = str(result.get("state") or "").upper()
+    if current_state == "MOMENTUM_BROKEN":
+        score += 22
+        reasons.append("HANZ momentum state is broken")
+    elif current_state == "NO_SETUP":
+        score += 12
+        reasons.append("prior setup is no longer active")
+    elif current_state == "EARLY_WATCH" and prior.get("state") in {"PRE_ALERT", "SETUP_READY"}:
+        score += 8
+        reasons.append("setup downgraded back to EARLY_WATCH")
+
+    # 4) Flow confirmation — secondary only.
+    ff = str((foreign_flow or {}).get("status") or "UNKNOWN").upper()
+    bf = str((broker_flow or {}).get("status") or "UNKNOWN").upper()
+    ins = str((insider or {}).get("status") or "UNKNOWN").upper()
+
+    if ff in {"DISTRIBUTING", "DISTRIBUTION_WATCH", "CAUTION"}:
+        score += 8 if ff == "DISTRIBUTING" else 4
+        reasons.append(f"foreign flow: {ff.replace('_',' ').lower()}")
+    if bf in {"BROKER_DISTRIBUTING", "BROKER_DISTRIBUTION_WATCH"}:
+        score += 6 if bf == "BROKER_DISTRIBUTING" else 3
+        reasons.append(f"broker flow: {bf.replace('BROKER_','').replace('_',' ').lower()}")
+    if ins in {"INSIDER_SELL", "HEAVY_INSIDER_SELL"}:
+        score += 5 if ins == "HEAVY_INSIDER_SELL" else 2
+        reasons.append(f"public insider: {ins.replace('_',' ').lower()}")
+
+    score = int(max(0, min(100, score)))
+
+    if score < PULLBACK_RADAR_MIN_SCORE:
+        return None
+
+    # Classification.
+    if (
+        current_state == "MOMENTUM_BROKEN"
+        or (
+            price is not None and ema20 is not None and price < ema20
+            and ret1 is not None and ret1 < 0
+        )
+    ):
+        risk_state = "DOWNSIDE_CONFIRMED"
+    else:
+        risk_state = "PULLBACK_RISK"
+
+    # Use up to 20 completed daily bars for charting.
+    chart_points = []
+    bars = daily_df.iloc[-20:]
+    for idx, row in bars.iterrows():
+        try:
+            label = pd.Timestamp(idx).strftime("%d %b")
+        except Exception:
+            label = str(idx)[:10]
+        chart_points.append({
+            "date": label,
+            "close": safe_float(row.get("Close")),
+            "volume": safe_float(row.get("Volume")),
+        })
+
+    latest_volume = safe_float(daily_df["Volume"].iloc[-1]) if "Volume" in daily_df.columns else None
+    avg_volume20 = (
+        safe_float(daily_df["Volume"].iloc[-20:].astype(float).mean())
+        if "Volume" in daily_df.columns and len(daily_df) >= 20
+        else None
+    )
+
+    return {
+        "ticker": clean_ticker(ticker),
+        "risk_state": risk_state,
+        "risk_score": score,
+        "price": price,
+        "ret1_pct": ret1,
+        "ret3_pct": ret3,
+        "ret5_pct": ret5,
+        "volume": latest_volume,
+        "avg_volume20": avg_volume20,
+        "rvol20": rvol,
+        "rsi14": rsi,
+        "ema20": ema20,
+        "ema50": ema50,
+        "atr_pct": atr_pct,
+        "prior_high20": prior_high20,
+        "prior_low20": prior_low20,
+        "prior_early_state": prior.get("state"),
+        "prior_early_score": prior.get("early_score"),
+        "prior_early_bars_ago": prior.get("bars_ago"),
+        "prior_early_bar_at": prior.get("bar_at"),
+        "current_state": current_state,
+        "reason": "; ".join(reasons[:6]),
+        "foreign_status": ff,
+        "broker_status": bf,
+        "insider_status": ins,
+        "chart_points": chart_points,
+    }
+
+
+def collect_pullback_radar(
+    ticker,
+    daily_df,
+    weekly_df,
+    daily,
+    result,
+    foreign_flow,
+    insider,
+    broker_flow,
+):
+    item = pullback_downside_assessment(
+        ticker,
+        daily_df,
+        weekly_df,
+        daily,
+        result,
+        foreign_flow,
+        insider,
+        broker_flow,
+    )
+    if item:
+        _PULLBACK_RADAR_ROWS.append(item)
+
+
+def publish_pullback_radar():
+    if not PULLBACK_RADAR_ENABLED:
+        return {"published": 0, "enabled": False}
+
+    rows = sorted(
+        _PULLBACK_RADAR_ROWS,
+        key=lambda r: (
+            safe_float(r.get("risk_score")) or 0,
+            abs(safe_float(r.get("ret1_pct")) or 0),
+        ),
+        reverse=True,
+    )[:max(1, PULLBACK_RADAR_MAX_ROWS)]
+
+    payload = []
+    for rank, row in enumerate(rows, 1):
+        item = dict(row)
+        item["rank"] = rank
+        payload.append(item)
+
+    try:
+        supabase_request("DELETE", "hanz_pullback_watch_current?rank=gte.1")
+        if payload:
+            supabase_request(
+                "POST",
+                "hanz_pullback_watch_current",
+                payload=payload,
+                prefer="return=minimal",
+            )
+        return {
+            "published": len(payload),
+            "max_rows": PULLBACK_RADAR_MAX_ROWS,
+            "eligible": len(_PULLBACK_RADAR_ROWS),
+        }
+    except Exception as exc:
+        print(f"PULLBACK RADAR publish failed: {exc}", flush=True)
+        return {"published": 0, "error": str(exc)}
+
+
 def _mover_reason(daily, direction, foreign_flow=None, insider=None, broker_flow=None):
     """Explain observed movement without claiming unverified causality."""
     reasons = []
@@ -6428,6 +6751,17 @@ def scan_symbol(ticker, maintenance_mode=False):
         broker_flow,
     )
 
+    collect_pullback_radar(
+        ticker,
+        daily_df,
+        weekly_df,
+        daily,
+        result,
+        foreign_flow,
+        insider,
+        broker_flow,
+    )
+
     # V8.8 OFF-MARKET CANDIDATE REFRESH
     #
     # Root cause fixed:
@@ -6677,6 +7011,7 @@ def run_cycle():
 
         universe = fetch_universe()
         _MARKET_MOVER_ROWS.clear()
+        _PULLBACK_RADAR_ROWS.clear()
 
         maintenance_counts = {
             "SWING_BUY_EXISTING": 0,
@@ -6724,6 +7059,12 @@ def run_cycle():
         movers_summary = publish_market_movers()
         print(
             "MARKET MOVERS: " + json.dumps(movers_summary, default=str),
+            flush=True,
+        )
+
+        pullback_summary = publish_pullback_radar()
+        print(
+            "PULLBACK RADAR: " + json.dumps(pullback_summary, default=str),
             flush=True,
         )
 
@@ -6816,6 +7157,7 @@ def run_cycle():
     )
 
     _MARKET_MOVER_ROWS.clear()
+    _PULLBACK_RADAR_ROWS.clear()
 
     counts = {
         "SWING_BUY": 0,
@@ -6848,6 +7190,12 @@ def run_cycle():
         flush=True,
     )
 
+    pullback_summary = publish_pullback_radar()
+    print(
+        "PULLBACK RADAR: " + json.dumps(pullback_summary, default=str),
+        flush=True,
+    )
+
     portfolio_summary = monitor_swing_portfolio(
         allow_structural_exit=True
     )
@@ -6863,7 +7211,7 @@ def run_cycle():
 
 def main():
     print(
-        "HANZ SWING / WEEKLY ENGINE START — V10.8.3 CANONICAL RANK + MARKET MOVERS + BROKER/INSIDER/FOREIGN FLOW",
+        "HANZ SWING / WEEKLY ENGINE START — V10.9 PULLBACK RADAR + CANONICAL RANK + FLOW INTELLIGENCE",
         flush=True,
     )
 
