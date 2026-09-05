@@ -919,7 +919,7 @@ function brokerFlowHtml(row){
   const b=brokerFlowInfo(row);
   const f=v=>Number.isFinite(v)?`${v>=0?"+":""}${v.toFixed(2)}%`:"—";
   const codes=x=>Array.isArray(x)&&x.length?x.slice(0,3).map(v=>safe(v.broker||"?")).join(", "):"—";
-  const avg=Number.isFinite(b.avgBuy)?fmt(b.avgBuy):"—";
+  const avg=Number.isFinite(b.avgBuy)?Number(b.avgBuy).toLocaleString("en-US",{maximumFractionDigits:2}):"—";
   return `<div class="foreign-flow-box">
     <div class="foreign-flow-head"><span>BROKER FLOW</span><strong class="${b.cls}">${safe(b.label)} ${b.score?`(${b.score>0?"+":""}${b.score})`:""}</strong></div>
     <div class="foreign-flow-meta">1D ${f(b.p1)} · 3D ${f(b.p3)} · 5D ${f(b.p5)}</div>
