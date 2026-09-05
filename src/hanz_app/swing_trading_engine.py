@@ -6140,7 +6140,7 @@ def _mover_reason(daily, direction, foreign_flow=None, insider=None, broker_flow
     """Explain observed movement without claiming unverified causality."""
     reasons = []
 
-    change = safe_float(daily.get("ret1"))
+    change = safe_float(daily.get("ret1_pct"))
     rvol = safe_float(daily.get("rvol20"))
     price = safe_float(daily.get("price"))
     ema20 = safe_float(daily.get("ema20"))
@@ -6196,7 +6196,7 @@ def collect_market_mover(ticker, daily_df, daily, foreign_flow, insider, broker_
         return
 
     try:
-        change = safe_float(daily.get("ret1"))
+        change = safe_float(daily.get("ret1_pct"))
         price = safe_float(daily.get("price"))
         if change is None or price is None:
             return
@@ -6631,6 +6631,8 @@ def run_cycle():
         _REAL_MONEY_CONTEXT = build_real_money_context()
 
         universe = fetch_universe()
+        _MARKET_MOVER_ROWS.clear()
+
         maintenance_counts = {
             "SWING_BUY_EXISTING": 0,
             "SETUP_READY": 0,
@@ -6668,6 +6670,10 @@ def run_cycle():
             "SWING CLOSED-MARKET REFRESH complete: "
             + json.dumps(maintenance_counts)
             + " | Monitor refreshed from completed bars; no new BUY signal, portfolio trigger, alert or push.",
+            flush=True,
+        )
+        print(
+            f"MARKET MOVERS collected: {len(_MARKET_MOVER_ROWS)}",
             flush=True,
         )
         movers_summary = publish_market_movers()
