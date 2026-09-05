@@ -886,13 +886,56 @@ function insiderHtml(row){
   </div>`;
 }
 
+
+function brokerFlowInfo(row){
+  const r=riskObject(row);
+  const status=String(r.broker_flow_status ?? row?.broker_flow_status ?? "UNKNOWN").toUpperCase();
+  const score=Number(r.broker_flow_score ?? row?.broker_flow_score ?? 0) || 0;
+  const p1=Number(r.broker_net_pct_1d ?? row?.broker_net_pct_1d);
+  const p3=Number(r.broker_net_pct_3d ?? row?.broker_net_pct_3d);
+  const p5=Number(r.broker_net_pct_5d ?? row?.broker_net_pct_5d);
+  const topBuyers=r.broker_top_buyers ?? row?.broker_top_buyers ?? [];
+  const topSellers=r.broker_top_sellers ?? row?.broker_top_sellers ?? [];
+  const avgBuy=Number(r.broker_weighted_avg_buy_price_5d ?? row?.broker_weighted_avg_buy_price_5d);
+  const reason=String(r.broker_flow_reason ?? row?.broker_flow_reason ?? "");
+  const label={
+    BROKER_ACCUMULATING:"ACCUMULATING",
+    BROKER_ACCUMULATION_WATCH:"ACCUMULATION WATCH",
+    NEUTRAL:"NEUTRAL",
+    BROKER_DISTRIBUTION_WATCH:"DISTRIBUTION WATCH",
+    BROKER_DISTRIBUTING:"DISTRIBUTING",
+    UNKNOWN:"UNKNOWN",DISABLED:"DISABLED"
+  }[status] || status;
+  const cls={
+    BROKER_ACCUMULATING:"ff-buy",
+    BROKER_ACCUMULATION_WATCH:"ff-buy",
+    BROKER_DISTRIBUTION_WATCH:"ff-watch",
+    BROKER_DISTRIBUTING:"ff-sell"
+  }[status] || "ff-neutral";
+  return {status,label,cls,score,p1,p3,p5,topBuyers,topSellers,avgBuy,reason};
+}
+
+function brokerFlowHtml(row){
+  const b=brokerFlowInfo(row);
+  const f=v=>Number.isFinite(v)?`${v>=0?"+":""}${v.toFixed(2)}%`:"—";
+  const codes=x=>Array.isArray(x)&&x.length?x.slice(0,3).map(v=>safe(v.broker||"?")).join(", "):"—";
+  const avg=Number.isFinite(b.avgBuy)?fmt(b.avgBuy):"—";
+  return `<div class="foreign-flow-box">
+    <div class="foreign-flow-head"><span>BROKER FLOW</span><strong class="${b.cls}">${safe(b.label)} ${b.score?`(${b.score>0?"+":""}${b.score})`:""}</strong></div>
+    <div class="foreign-flow-meta">1D ${f(b.p1)} · 3D ${f(b.p3)} · 5D ${f(b.p5)}</div>
+    <div class="foreign-flow-meta">Top buy: ${codes(b.topBuyers)} · Top sell: ${codes(b.topSellers)} · Avg buy 5D: ${avg}</div>
+    ${b.reason?`<div class="foreign-flow-meta">${safe(b.reason)}</div>`:""}
+  </div>`;
+}
+
 function hanzRankingScore(row){
   // Technical BUY state stays the gate. Foreign flow adjusts ranking quality,
   // but cannot turn a non-BUY state into a BUY.
   const technical=Math.max(0,Math.min(10,Number(row?.score || 0)))*10;
   const foreign=foreignFlowInfo(row).score;
   const insider=insiderInfo(row).score;
-  return Math.max(0,Math.min(100,technical + foreign + insider));
+  const broker=brokerFlowInfo(row).score;
+  return Math.max(0,Math.min(100,technical + foreign + insider + broker));
 }
 
 function buyStateLabel(row){
@@ -1324,6 +1367,7 @@ function renderOpportunities(rows){
       <div class="reason"><strong>Discount:</strong> ${safe(row.discount_reason || "")}</div>
       ${foreignFlowHtml(row)}
       ${insiderHtml(row)}
+      ${brokerFlowHtml(row)}
       <div class="reason">${safe(row.evidence || "Confirmed daily breakout + weekly bullish trend")}</div>
     </article>`).join("");
 }
@@ -1367,6 +1411,7 @@ function renderLiveSignalMonitor(rows){
       <div class="sig-evidence"><strong>Discount:</strong> ${safe(row.discount_reason || "")}</div>
       ${foreignFlowHtml(row)}
       ${insiderHtml(row)}
+      ${brokerFlowHtml(row)}
       <div class="sig-evidence">${safe(row.evidence || "Confirmed daily breakout + weekly bullish trend")}</div>
     </article>`;
   }).join("");
@@ -1612,6 +1657,7 @@ function renderPortfolio(rows){
 
         ${foreignFlowHtml(row)}
       ${insiderHtml(row)}
+      ${brokerFlowHtml(row)}
 
         <div class="trailing-box">
           <div class="trailing-head">
