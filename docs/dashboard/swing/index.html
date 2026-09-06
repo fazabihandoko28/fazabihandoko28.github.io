@@ -480,6 +480,12 @@ th{color:var(--muted)}
 .tech-timeline-note{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;color:var(--muted);font-size:8px}
 .tech-timeline-chip{border:1px solid var(--line);border-radius:999px;padding:4px 7px;background:#0b1626}
 
+
+.candle-up{fill:rgba(25,205,162,.92);stroke:rgba(25,205,162,1)}
+.candle-down{fill:rgba(255,70,94,.92);stroke:rgba(255,70,94,1)}
+.candle-wick-up{stroke:rgba(25,205,162,1)}
+.candle-wick-down{stroke:rgba(255,70,94,1)}
+
 </style>
 </head>
 
@@ -584,7 +590,7 @@ th{color:var(--muted)}
       <div class="section-head">
         <div>
           <h2>HANZ Opportunity Radar</h2>
-          <p>Confirmed BUY prioritized; when none, radar shows strongest WATCH / PRE-ALERT setups without calling them BUY</p>
+          <p>Top 5 opportunity radar stays visible; confirmed BUY is prioritized, but strong developing setups remain visible before confirmation</p>
         </div>
         <span class="small-tag">SWING LIVE</span>
       </div>
@@ -633,7 +639,7 @@ th{color:var(--muted)}
     </div>
 
     <div class="monitor-note">
-      Only confirmed BUY states are displayed. WATCH / CONFIRMING remain internal to the engine. Foreign buy adjusts rank; foreign sell is an exit-warning layer, not an automatic sell by itself.
+      Confirmed BUY remains execution-only. WATCH / CONFIRMING / RADAR states stay visible in the Top 5 opportunity radar as HANZ progress, not as BUY. Foreign buy adjusts rank; foreign sell is an exit-warning layer, not an automatic sell by itself.
     </div>
   </article>
 
@@ -1538,7 +1544,7 @@ function candidateReason(row){
 }
 
 function renderSelectedCandidates(rows){
-  selectedCandidateRows=(rows||[]).slice(0,6);
+  selectedCandidateRows=(rows||[]).slice(0,5);
   $("selectedCandidateCount").textContent=`${selectedCandidateRows.length} selected`;
   const grid=$("selectedCandidateGrid");
   if(!selectedCandidateRows.length){
@@ -1744,7 +1750,7 @@ function buildCandidateChart(candles){
 
   if(rows.length<35) return '<div class="mover-empty">Chart data insufficient. Need at least 35 completed daily bars.</div>';
 
-  const data=rows.slice(-100);
+  const data=rows.slice(-60);
   const close=data.map(d=>d.close);
   const volume=data.map(d=>Number.isFinite(d.volume)?d.volume:0);
   const dates=data.map(d=>d.date);
@@ -1771,6 +1777,21 @@ function buildCandidateChart(candles){
 
   const xFor=i=>padX+i*(W-padX*2)/Math.max(1,data.length-1);
   const yFor=v=>pH-padY-((v-pMin)/((pMax-pMin)||1))*(pH-padY*2);
+
+  const candleStep=(W-padX*2)/Math.max(1,data.length-1);
+  const candleWidth=Math.max(4,Math.min(11,candleStep*0.58));
+  const candleSvg=data.map((d,i)=>{
+    if(!Number.isFinite(d.open)||!Number.isFinite(d.high)||!Number.isFinite(d.low)) return "";
+    const x=xFor(i);
+    const yOpen=yFor(d.open),yClose=yFor(d.close),yHigh=yFor(d.high),yLow=yFor(d.low);
+    const up=d.close>=d.open;
+    const bodyTop=Math.min(yOpen,yClose);
+    const bodyH=Math.max(2,Math.abs(yClose-yOpen));
+    const cls=up?"candle-up":"candle-down";
+    const wickCls=up?"candle-wick-up":"candle-wick-down";
+    return `<line class="${wickCls}" x1="${x.toFixed(1)}" y1="${yHigh.toFixed(1)}" x2="${x.toFixed(1)}" y2="${yLow.toFixed(1)}" stroke-width="1.5"/>
+      <rect class="${cls}" x="${(x-candleWidth/2).toFixed(1)}" y="${bodyTop.toFixed(1)}" width="${candleWidth.toFixed(1)}" height="${bodyH.toFixed(1)}" stroke-width="1"/>`;
+  }).join("");
 
   // Timeline ticks: 5 evenly spaced dates
   const tickIndexes=[0,Math.floor((data.length-1)*0.25),Math.floor((data.length-1)*0.5),Math.floor((data.length-1)*0.75),data.length-1];
@@ -1828,19 +1849,20 @@ function buildCandidateChart(candles){
 
   return `<div class="tech-chart-grid">
     <div class="tech-panel">
-      <div class="tech-panel-head"><strong>PRICE · MA20 · MA50 · BOLLINGER BANDS</strong><div class="tech-legend"><span>Close ${fmtChartNumber(latest.close)}</span><span>MA20 ${fmtChartNumber(latest.ma20)}</span><span>MA50 ${fmtChartNumber(latest.ma50)}</span></div></div>
+      <div class="tech-panel-head"><strong>CANDLE PRICE · MA20 · MA50 · BOLLINGER BANDS</strong><div class="tech-legend"><span>60 completed daily bars</span><span>Close ${fmtChartNumber(latest.close)}</span><span>MA20 ${fmtChartNumber(latest.ma20)}</span><span>MA50 ${fmtChartNumber(latest.ma50)}</span></div></div>
       <svg class="tech-svg" viewBox="0 0 ${W} ${pH}" preserveAspectRatio="none">
         <polygon points="${bbArea}" fill="rgba(95,145,255,.09)"/>
         <polyline points="${upperLine}" fill="none" stroke="rgba(95,145,255,.75)" stroke-width="1.5"/>
         <polyline points="${lowerLine}" fill="none" stroke="rgba(95,145,255,.75)" stroke-width="1.5"/>
+        ${candleSvg}
         <polyline points="${ma50Line}" fill="none" stroke="rgba(255,184,77,.95)" stroke-width="2"/>
         <polyline points="${ma20Line}" fill="none" stroke="rgba(177,118,255,.95)" stroke-width="2"/>
-        <polyline points="${priceLine}" fill="none" stroke="var(--green)" stroke-width="3"/>
+        <polyline points="${priceLine}" fill="none" stroke="rgba(220,235,245,.20)" stroke-width="1"/>
         ${turnSvg.join("")}
         ${timelineTicks}
       </svg>
       <div class="tech-timeline-note">${chips.join("")}</div>
-      <div class="tech-note">Timeline uses completed daily bars. Peak/Low/Recovery are descriptive turning-point markers, not guaranteed reversal signals.</div>
+      <div class="tech-note">Window: last 60 completed trading days (about 3 months), chosen to show swing structure clearly without making candles too compressed. Green candle = close ≥ open; red = close &lt; open. Peak/Low/Recovery markers are descriptive, not guaranteed reversal signals.</div>
     </div>
 
     <div class="tech-panel">
@@ -1890,7 +1912,9 @@ function closeCandidateChart(){$("candidateChartModal").classList.remove("show")
 async function loadWatchlist(){
   const interestingStates=[
     "EARLY_CONFIRMED_BUY","SWING_BUY",
-    "SETUP_READY","PRE_ALERT","EARLY_WATCH"
+    "RADAR_ARMED","RADAR_PRE_ALERT","RADAR_WATCH",
+    "SETUP_READY","PRE_ALERT","EARLY_WATCH",
+    "SWING_CONFIRMING","SWING_WATCH"
   ];
 
   const {data,error}=await supabase
@@ -1912,7 +1936,11 @@ async function loadWatchlist(){
     .sort(byCanonical);
 
   const radar=all
-    .filter(r=>["SETUP_READY","PRE_ALERT","EARLY_WATCH"].includes(String(r.state||"")))
+    .filter(r=>[
+      "RADAR_ARMED","RADAR_PRE_ALERT","RADAR_WATCH",
+      "SETUP_READY","PRE_ALERT","EARLY_WATCH",
+      "SWING_CONFIRMING","SWING_WATCH"
+    ].includes(String(r.state||"")))
     .sort(byCanonical);
 
   // BUY widgets are BUY-only. Radar is never allowed to impersonate a BUY.
@@ -1927,15 +1955,25 @@ async function loadWatchlist(){
     $("heroTopSub").textContent=`${buyStateLabel(top)} · Rank ${hanzRankingScore(top)}/100 · Foreign ${ff.label} · Swing ${top.score ?? "—"}/10`;
     $("lastUpdate").textContent=formatTime(top.updated_at);
     $("lastUpdateDate").textContent=`${formatDate(top.updated_at)} · Last completed Swing scan`;
+  }else if(radar.length){
+    const top=radar[0];
+    const state=String(top.state||"WATCH").replaceAll("_"," ");
+    const ff=foreignFlowInfo(top);
+    $("topCandidate").textContent=top.ticker;
+    $("topCandidateSub").textContent=`TOP RADAR · Rank ${hanzRankingScore(top)}/100 · ${state}`;
+    $("heroTopCandidate").textContent=top.ticker;
+    $("heroTopSub").textContent=`HANZ RADAR PICK · ${state} · Rank ${hanzRankingScore(top)}/100 · Foreign ${ff.label} · NOT YET BUY`;
+    $("lastUpdate").textContent=formatTime(top.updated_at);
+    $("lastUpdateDate").textContent=`${formatDate(top.updated_at)} · Last completed Swing scan`;
   }else{
     $("topCandidate").textContent="—";
-    $("topCandidateSub").textContent="No confirmed BUY";
+    $("topCandidateSub").textContent="No qualifying radar candidate";
     $("heroTopCandidate").textContent="—";
-    $("heroTopSub").textContent="No confirmed SWING BUY right now";
+    $("heroTopSub").textContent="No qualifying HANZ swing setup right now";
   }
 
   renderRanking(radar,true);
-  renderSelectedCandidates([...confirmed,...radar].sort(byCanonical).slice(0,6));
+  renderSelectedCandidates([...confirmed,...radar].sort(byCanonical).slice(0,5));
   renderOpportunities(confirmed);
   renderLiveSignalMonitor(confirmed);
 }
