@@ -3461,6 +3461,13 @@ def real_money_validation(
         if volatility_size_multiplier is not None:
             size_multiplier *= volatility_size_multiplier
 
+        # Opportunity-first risk policy:
+        # CAUTION is manageable risk, not a fatal veto. Keep it tradable,
+        # but cap exposure at 50% of the normal risk budget. Existing
+        # market/performance/volatility reductions remain in force.
+        if gate == "CAUTION":
+            size_multiplier = min(size_multiplier, 0.50)
+
         risk_budget_idr = (
             ACCOUNT_CAPITAL_IDR
             * (RISK_PER_TRADE_PCT / 100.0)
@@ -3496,7 +3503,7 @@ def real_money_validation(
         and strategy_validation.get("passed")
         and (
             (not RISK_LIVE_GATE_ENABLED)
-            or gate == "ELIGIBLE"
+            or gate in {"ELIGIBLE", "CAUTION"}
         )
     )
 
@@ -7211,7 +7218,7 @@ def run_cycle():
 
 def main():
     print(
-        "HANZ SWING / WEEKLY ENGINE START — V10.9 PULLBACK RADAR + CANONICAL RANK + FLOW INTELLIGENCE",
+        "HANZ SWING / WEEKLY ENGINE START — V10.9.1 OPPORTUNITY-FIRST PULLBACK RADAR + CANONICAL RANK + FLOW INTELLIGENCE",
         flush=True,
     )
 
