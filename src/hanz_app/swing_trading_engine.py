@@ -160,7 +160,7 @@ _MARKET_MOVER_ROWS = []
 # V10.8.3 Canonical Ranking Freeze.
 # One ranking formula is computed by the engine and reused everywhere.
 # This does NOT change BUY gates/states; it only prevents dashboard-side ranking drift.
-CANONICAL_RANK_VERSION = "CRV1_2026_09_05"
+CANONICAL_RANK_VERSION = "CRV2_2026_09_06_OPPORTUNITY"
 
 # V10.9 Recent Early-Watch Pullback / Downside Radar.
 # Max 5 candidates; never force-fill the list.
@@ -2245,143 +2245,242 @@ def broker_exit_overlay(position, daily, broker_flow):
 
 
 def canonical_rank_score(result, risk_validation):
-    """Canonical HANZ opportunity ranking used by all HANZ views.
+    """HANZ opportunity score used for Top-5 ranking.
 
-    Ranking and execution-state are intentionally separate. This score cannot
-    create a BUY, but candidates with failed execution-quality prerequisites
-    must not dominate the opportunity ranking.
+    Technical setup quality, tradability, participation, entry quality, risk/reward,
+    flow confirmation and market context are scored separately.  The score ranks
+    opportunities only; it never creates a BUY or bypasses reconfirmation/risk gates.
 
-    Design:
-      1) hard ranking exclusions for unusable liquidity / blocked momentum;
-      2) technical quality as the largest, but not exclusive, component;
-      3) participation, flow, R:R and entry/structure confirmation;
-      4) penalties for missing confirmation, overextension and uncertainty.
+    Score architecture (0..100):
+      trend/structure      20
+      momentum quality     15
+      volume participation 15
+      entry quality        15
+      risk/reward          15
+      flow confirmation    10
+      liquidity quality     5
+      market context        5
+      minus extension / deterioration penalties
+
+    Non-tradable liquidity, blocked momentum, or an explicit BLOCKED risk gate are
+    hard ranking exclusions.  RESEARCH_ONLY/MONITOR remain execution states, not
+    ranking vetoes, because strategy validation is deliberately separate.
     """
-    result = result or {}
-    rv = risk_validation or {}
+    result = dict(result or {})
+    rv = risk_validation if isinstance(risk_validation, dict) else {}
 
-    # ---------------------------------------------------------
-    # 1. HARD RANKING EXCLUSIONS
-    # ---------------------------------------------------------
-    # Top Opportunity must be executable in normal IDX liquidity. A setup may
-    # remain visible elsewhere as MONITOR/RESEARCH, but it cannot rank highly.
+    technical_score = max(0.0, min(10.0, safe_float(result.get("score")) or 0.0))
+    reject_reasons = []
+
     if rv.get("liquidity_pass") is False:
-        return 0
-
+        reject_reasons.append("LIQUIDITY_FAIL")
     if str(rv.get("liquidity_grade") or "").upper() == "FAIL":
-        return 0
-
-    avg_value20 = safe_float(rv.get("avg_value20"))
-    if avg_value20 is None or avg_value20 < MIN_AVG_DAILY_VALUE_IDR:
-        return 0
-
+        reject_reasons.append("LIQUIDITY_GRADE_FAIL")
     if str(rv.get("gate") or "").upper() == "BLOCKED":
-        return 0
-
+        reject_reasons.append("RISK_GATE_BLOCKED")
     momentum_guard = rv.get("momentum_guard") or {}
     if momentum_guard.get("blocked"):
+        reject_reasons.append("MOMENTUM_BLOCKED")
+
+    if reject_reasons:
+        rv["technical_score"] = round(technical_score, 2)
+        rv["opportunity_score"] = 0
+        rv["ranking_eligible"] = False
+        rv["ranking_reject_reasons"] = reject_reasons
+        rv["opportunity_score_breakdown"] = {
+            "trend_structure": 0, "momentum": 0, "participation": 0,
+            "entry_quality": 0, "risk_reward": 0, "flow": 0,
+            "liquidity": 0, "market": 0, "penalty": 0,
+        }
         return 0
 
-    # ---------------------------------------------------------
-    # 2. BASE TECHNICAL QUALITY — max 60
-    # ---------------------------------------------------------
-    technical_raw = safe_float(result.get("score")) or 0.0
-    technical_raw = max(0.0, min(10.0, technical_raw))
-    score = technical_raw * 6.0
+    # 1) Trend + structure (max 20)
+    trend_structure = 0.0
+    if str(result.get("weekly_trend") or "").upper() == "BULLISH":
+        trend_structure += 7
+    if str(result.get("daily_trend") or "").upper() == "BULLISH":
+        trend_structure += 7
+    structure = str(rv.get("structure_state") or result.get("structure_state") or "").upper()
+    if structure == "BULLISH_HH_HL":
+        trend_structure += 6
+    elif structure == "MIXED":
+        trend_structure += 2
+    trend_structure = min(20.0, trend_structure)
 
-    # ---------------------------------------------------------
-    # 3. VOLUME / PARTICIPATION — max 12
-    # ---------------------------------------------------------
+    # 2) Momentum quality (max 15) -- reward healthy, not merely high RSI.
+    momentum = 0.0
+    rsi_now = safe_float(rv.get("daily_rsi"))
+    ema_slope = safe_float(rv.get("ema20_slope_5d_pct"))
+    ret5 = safe_float(rv.get("ret5_pct"))
+    if rsi_now is not None:
+        if 50 <= rsi_now <= 65:
+            momentum += 8
+        elif 45 <= rsi_now < 50 or 65 < rsi_now <= 70:
+            momentum += 6
+        elif 40 <= rsi_now < 45 or 70 < rsi_now <= 75:
+            momentum += 3
+    if ema_slope is not None:
+        if ema_slope >= 0.75:
+            momentum += 4
+        elif ema_slope >= 0.20:
+            momentum += 3
+        elif ema_slope >= 0:
+            momentum += 1
+    if ret5 is not None:
+        if 0 < ret5 <= 8:
+            momentum += 3
+        elif 8 < ret5 <= 12:
+            momentum += 1
+    momentum = min(15.0, momentum)
+
+    # 3) Volume / participation (max 15)
+    participation = 0.0
     rvol = safe_float(rv.get("daily_rvol"))
+    vol_accel = safe_float(rv.get("volume_accel_5d"))
     if rvol is not None:
-        if rvol >= 1.50:
-            score += 12
-        elif rvol >= 1.20:
-            score += 9
+        if rvol >= 1.75:
+            participation += 11
+        elif rvol >= 1.40:
+            participation += 9
+        elif rvol >= 1.15:
+            participation += 7
         elif rvol >= 1.00:
-            score += 6
+            participation += 5
         elif rvol >= 0.80:
-            score += 2
-        else:
-            score -= 6
+            participation += 2
+    if vol_accel is not None:
+        if vol_accel >= 1.75:
+            participation += 4
+        elif vol_accel >= 1.30:
+            participation += 3
+        elif vol_accel >= 1.10:
+            participation += 1
+    participation = min(15.0, participation)
 
-    # ---------------------------------------------------------
-    # 4. FLOW / DISCLOSURE CONFIRMATION — bounded contribution
-    # ---------------------------------------------------------
-    foreign_score = safe_float(rv.get("foreign_flow_score")) or 0.0
-    broker_score = safe_float(rv.get("broker_flow_score")) or 0.0
-    insider_score = safe_float(rv.get("insider_score")) or 0.0
-
-    score += max(-4.0, min(4.0, foreign_score))
-    score += max(-4.0, min(4.0, broker_score))
-    score += max(-2.0, min(2.0, insider_score))
-
-    # UNKNOWN is uncertainty, not positive confirmation.
-    if str(rv.get("foreign_flow_status") or "").upper() == "UNKNOWN":
-        score -= 2
-    if str(rv.get("broker_flow_status") or "").upper() == "UNKNOWN":
-        score -= 2
-
-    # ---------------------------------------------------------
-    # 5. RISK / REWARD — max 10
-    # ---------------------------------------------------------
-    rr1 = safe_float(rv.get("rr_target_1"))
-    rr2 = safe_float(rv.get("rr_target_2"))
-    if rr1 is not None and rr2 is not None:
-        if rr1 >= 2.0 and rr2 >= 3.0:
-            score += 10
-        elif rr1 >= 1.5 and rr2 >= 2.5:
-            score += 7
-        elif rr1 >= MIN_RR_T1 and rr2 >= MIN_RR_T2:
-            score += 4
-
-    # ---------------------------------------------------------
-    # 6. ENTRY / STRUCTURE QUALITY — max 8
-    # ---------------------------------------------------------
-    if str(rv.get("entry_status") or "").upper() == "ENTRY_ZONE":
-        score += 3
-
-    if str(rv.get("structure_state") or "").upper() == "BULLISH_HH_HL":
-        score += 3
-
+    # 4) Entry quality (max 15)
+    entry_quality = 0.0
+    entry_status = str(rv.get("entry_status") or "").upper()
+    if entry_status == "ENTRY_ZONE":
+        entry_quality += 6
+    elif entry_status and entry_status != "WAIT_PULLBACK":
+        entry_quality += 3
     support_atr = safe_float(rv.get("support_distance_atr"))
-    if support_atr is not None and support_atr <= 0.75:
-        score += 2
+    if support_atr is not None:
+        if support_atr <= 0.75:
+            entry_quality += 4
+        elif support_atr <= 1.25:
+            entry_quality += 2
+    stop_distance = safe_float(rv.get("stop_distance_pct"))
+    if stop_distance is not None:
+        if 1.25 <= stop_distance <= 6.0:
+            entry_quality += 3
+        elif 1.0 <= stop_distance < 1.25 or 6.0 < stop_distance <= 8.0:
+            entry_quality += 1
+    breakout_distance = safe_float(rv.get("breakout_distance_pct"))
+    if breakout_distance is not None and -1.0 <= breakout_distance <= 3.0:
+        entry_quality += 2
+    entry_quality = min(15.0, entry_quality)
 
-    # ---------------------------------------------------------
-    # 7. CONFIRMATION / EXTENSION PENALTIES
-    # ---------------------------------------------------------
-    # Lack of breakout is a penalty, not a hard reject, so early/pullback setups
-    # can still rank when their structure and entry quality are attractive.
-    if not bool(result.get("breakout")):
-        score -= 4
+    # 5) Risk/reward (max 15)
+    risk_reward = 0.0
+    rr1 = safe_float(rv.get("net_rr_target_1")) or safe_float(rv.get("rr_target_1"))
+    rr2 = safe_float(rv.get("net_rr_target_2")) or safe_float(rv.get("rr_target_2"))
+    if rr1 is not None:
+        if rr1 >= 2.0:
+            risk_reward += 7
+        elif rr1 >= 1.5:
+            risk_reward += 5
+        elif rr1 >= MIN_RR_T1:
+            risk_reward += 3
+    if rr2 is not None:
+        if rr2 >= 3.5:
+            risk_reward += 8
+        elif rr2 >= 3.0:
+            risk_reward += 7
+        elif rr2 >= 2.5:
+            risk_reward += 5
+        elif rr2 >= MIN_RR_T2:
+            risk_reward += 3
+    risk_reward = min(15.0, risk_reward)
 
-    rsi_value = safe_float(rv.get("daily_rsi"))
-    if rsi_value is not None:
-        if rsi_value > 80:
-            score -= 12
-        elif rsi_value > 75:
-            score -= 7
-        elif rsi_value > 70:
-            score -= 3
+    # 6) Foreign / broker / public-insider confirmation (max 10, can be negative).
+    foreign = safe_float(rv.get("foreign_flow_score")) or 0.0
+    broker = safe_float(rv.get("broker_flow_score")) or 0.0
+    insider = safe_float(rv.get("insider_score")) or 0.0
+    flow_raw = foreign * 0.45 + broker * 0.35 + insider * 0.20
+    flow = max(-10.0, min(10.0, flow_raw))
 
-    if momentum_guard.get("caution"):
-        score -= 5
+    # 7) Liquidity quality among candidates that passed the minimum (max 5).
+    liquidity = 0.0
+    grade = str(rv.get("liquidity_grade") or "").upper()
+    if grade == "A":
+        liquidity = 5
+    elif grade == "B":
+        liquidity = 4
+    elif grade == "C":
+        liquidity = 2
+    else:
+        liq_score = safe_float(rv.get("liquidity_score"))
+        if liq_score is not None:
+            liquidity = max(0.0, min(5.0, liq_score / 20.0))
 
+    # 8) Market context (max 5)
+    market = 0.0
+    regime = str(rv.get("market_regime") or "").upper()
+    market_score = safe_float(rv.get("market_score"))
+    if regime == "GREEN":
+        market = 5
+    elif regime == "YELLOW":
+        market = 2
+    elif market_score is not None:
+        market = max(0.0, min(5.0, market_score / 20.0))
+
+    # Penalties prevent chasing and penalize deterioration/missing confirmation.
+    penalty = 0.0
+    penalty_reasons = []
+    if rsi_now is not None:
+        if rsi_now > 82:
+            penalty += 12; penalty_reasons.append("RSI_EXTREME")
+        elif rsi_now > 78:
+            penalty += 8; penalty_reasons.append("RSI_OVERBOUGHT")
+        elif rsi_now > 74:
+            penalty += 4; penalty_reasons.append("RSI_HOT")
     if rv.get("do_not_chase"):
-        score -= 10
+        penalty += 10; penalty_reasons.append("DO_NOT_CHASE")
+    if momentum_guard.get("caution"):
+        penalty += 5; penalty_reasons.append("MOMENTUM_CAUTION")
+    if rv.get("failed_breakout"):
+        penalty += 12; penalty_reasons.append("FAILED_BREAKOUT")
+    volatility = str(rv.get("volatility_status") or "").upper()
+    if volatility == "HIGH":
+        penalty += 4; penalty_reasons.append("HIGH_VOLATILITY")
+    if rvol is not None and rvol < 0.80:
+        penalty += 4; penalty_reasons.append("WEAK_RVOL")
+    if not bool(result.get("breakout")) and str(result.get("setup_family") or "").upper() == "BREAKOUT":
+        penalty += 3; penalty_reasons.append("BREAKOUT_NOT_CONFIRMED")
 
-    # Non-executable states may remain visible as research/watch candidates,
-    # but should rank below otherwise comparable executable opportunities.
-    gate = str(rv.get("gate") or "").upper()
-    if gate == "MONITOR":
-        score -= 5
-    elif gate == "RESEARCH_ONLY":
-        score -= 8
-    elif gate == "PAPER_ONLY":
-        score -= 5
+    raw_total = (trend_structure + momentum + participation + entry_quality +
+                 risk_reward + flow + liquidity + market)
+    final = int(max(0, min(100, round(raw_total - penalty))))
 
-    return int(max(0, min(100, round(score))))
+    rv["technical_score"] = round(technical_score, 2)
+    rv["opportunity_score"] = final
+    rv["ranking_eligible"] = True
+    rv["ranking_reject_reasons"] = []
+    rv["opportunity_score_breakdown"] = {
+        "trend_structure": round(trend_structure, 2),
+        "momentum": round(momentum, 2),
+        "participation": round(participation, 2),
+        "entry_quality": round(entry_quality, 2),
+        "risk_reward": round(risk_reward, 2),
+        "flow": round(flow, 2),
+        "liquidity": round(liquidity, 2),
+        "market": round(market, 2),
+        "penalty": round(penalty, 2),
+        "penalty_reasons": penalty_reasons,
+        "raw_total": round(raw_total, 2),
+    }
+    return final
 
 def swing_score(daily, weekly):
     """Book-guided hierarchy with three explicit setup families.
@@ -6009,7 +6108,9 @@ def upsert_monitor(
     payload = {
         "ticker": clean_ticker(ticker),
         "state": result["state"],
-        "score": result["score"],
+        # Dashboard/Top-5 score is the canonical opportunity score (0..100).
+        # The original technical swing score remains preserved inside risk_validation.
+        "score": int(risk_validation.get("canonical_rank_score") or 0),
         "price": daily["price"],
         "daily_trend": result["daily_trend"],
         "weekly_trend": result["weekly_trend"],
@@ -7326,7 +7427,7 @@ def run_cycle():
 
 def main():
     print(
-        "HANZ SWING / WEEKLY ENGINE START — V10.9.1 OPPORTUNITY-FIRST PULLBACK RADAR + CANONICAL RANK + FLOW INTELLIGENCE",
+        "HANZ SWING / WEEKLY ENGINE START — V10.10 OPPORTUNITY RANKING + TRADABILITY GATE + FLOW INTELLIGENCE",
         flush=True,
     )
 
