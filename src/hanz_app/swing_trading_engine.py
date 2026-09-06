@@ -2245,35 +2245,143 @@ def broker_exit_overlay(position, daily, broker_flow):
 
 
 def canonical_rank_score(result, risk_validation):
-    """Single frozen ranking score used by all HANZ views.
+    """Canonical HANZ opportunity ranking used by all HANZ views.
 
-    Formula is intentionally identical to the previous dashboard ranking:
-      technical swing score (0..10)*10
-      + foreign-flow adjustment
-      + public-insider adjustment
-      + broker-flow adjustment
-    clamped to 0..100.
+    Ranking and execution-state are intentionally separate. This score cannot
+    create a BUY, but candidates with failed execution-quality prerequisites
+    must not dominate the opportunity ranking.
 
-    IMPORTANT: this ranking cannot create a BUY. State/actionability remain
-    controlled only by the existing engine gates and reconfirmation logic.
+    Design:
+      1) hard ranking exclusions for unusable liquidity / blocked momentum;
+      2) technical quality as the largest, but not exclusive, component;
+      3) participation, flow, R:R and entry/structure confirmation;
+      4) penalties for missing confirmation, overextension and uncertainty.
     """
-    technical = max(
-        0.0,
-        min(10.0, safe_float((result or {}).get("score")) or 0.0),
-    ) * 10.0
-    foreign = safe_float((risk_validation or {}).get("foreign_flow_score")) or 0.0
-    insider = safe_float((risk_validation or {}).get("insider_score")) or 0.0
-    broker = safe_float((risk_validation or {}).get("broker_flow_score")) or 0.0
-    return int(
-        max(
-            0,
-            min(
-                100,
-                round(technical + foreign + insider + broker),
-            ),
-        )
-    )
+    result = result or {}
+    rv = risk_validation or {}
 
+    # ---------------------------------------------------------
+    # 1. HARD RANKING EXCLUSIONS
+    # ---------------------------------------------------------
+    # Top Opportunity must be executable in normal IDX liquidity. A setup may
+    # remain visible elsewhere as MONITOR/RESEARCH, but it cannot rank highly.
+    if rv.get("liquidity_pass") is False:
+        return 0
+
+    if str(rv.get("liquidity_grade") or "").upper() == "FAIL":
+        return 0
+
+    avg_value20 = safe_float(rv.get("avg_value20"))
+    if avg_value20 is None or avg_value20 < MIN_AVG_DAILY_VALUE_IDR:
+        return 0
+
+    if str(rv.get("gate") or "").upper() == "BLOCKED":
+        return 0
+
+    momentum_guard = rv.get("momentum_guard") or {}
+    if momentum_guard.get("blocked"):
+        return 0
+
+    # ---------------------------------------------------------
+    # 2. BASE TECHNICAL QUALITY — max 60
+    # ---------------------------------------------------------
+    technical_raw = safe_float(result.get("score")) or 0.0
+    technical_raw = max(0.0, min(10.0, technical_raw))
+    score = technical_raw * 6.0
+
+    # ---------------------------------------------------------
+    # 3. VOLUME / PARTICIPATION — max 12
+    # ---------------------------------------------------------
+    rvol = safe_float(rv.get("daily_rvol"))
+    if rvol is not None:
+        if rvol >= 1.50:
+            score += 12
+        elif rvol >= 1.20:
+            score += 9
+        elif rvol >= 1.00:
+            score += 6
+        elif rvol >= 0.80:
+            score += 2
+        else:
+            score -= 6
+
+    # ---------------------------------------------------------
+    # 4. FLOW / DISCLOSURE CONFIRMATION — bounded contribution
+    # ---------------------------------------------------------
+    foreign_score = safe_float(rv.get("foreign_flow_score")) or 0.0
+    broker_score = safe_float(rv.get("broker_flow_score")) or 0.0
+    insider_score = safe_float(rv.get("insider_score")) or 0.0
+
+    score += max(-4.0, min(4.0, foreign_score))
+    score += max(-4.0, min(4.0, broker_score))
+    score += max(-2.0, min(2.0, insider_score))
+
+    # UNKNOWN is uncertainty, not positive confirmation.
+    if str(rv.get("foreign_flow_status") or "").upper() == "UNKNOWN":
+        score -= 2
+    if str(rv.get("broker_flow_status") or "").upper() == "UNKNOWN":
+        score -= 2
+
+    # ---------------------------------------------------------
+    # 5. RISK / REWARD — max 10
+    # ---------------------------------------------------------
+    rr1 = safe_float(rv.get("rr_target_1"))
+    rr2 = safe_float(rv.get("rr_target_2"))
+    if rr1 is not None and rr2 is not None:
+        if rr1 >= 2.0 and rr2 >= 3.0:
+            score += 10
+        elif rr1 >= 1.5 and rr2 >= 2.5:
+            score += 7
+        elif rr1 >= MIN_RR_T1 and rr2 >= MIN_RR_T2:
+            score += 4
+
+    # ---------------------------------------------------------
+    # 6. ENTRY / STRUCTURE QUALITY — max 8
+    # ---------------------------------------------------------
+    if str(rv.get("entry_status") or "").upper() == "ENTRY_ZONE":
+        score += 3
+
+    if str(rv.get("structure_state") or "").upper() == "BULLISH_HH_HL":
+        score += 3
+
+    support_atr = safe_float(rv.get("support_distance_atr"))
+    if support_atr is not None and support_atr <= 0.75:
+        score += 2
+
+    # ---------------------------------------------------------
+    # 7. CONFIRMATION / EXTENSION PENALTIES
+    # ---------------------------------------------------------
+    # Lack of breakout is a penalty, not a hard reject, so early/pullback setups
+    # can still rank when their structure and entry quality are attractive.
+    if not bool(result.get("breakout")):
+        score -= 4
+
+    rsi_value = safe_float(rv.get("daily_rsi"))
+    if rsi_value is not None:
+        if rsi_value > 80:
+            score -= 12
+        elif rsi_value > 75:
+            score -= 7
+        elif rsi_value > 70:
+            score -= 3
+
+    if momentum_guard.get("caution"):
+        score -= 5
+
+    if rv.get("do_not_chase"):
+        score -= 10
+
+    # Non-executable states may remain visible as research/watch candidates,
+    # but should rank below otherwise comparable executable opportunities.
+    gate = str(rv.get("gate") or "").upper()
+    if gate == "MONITOR":
+        score -= 5
+    elif gate == "RESEARCH_ONLY":
+        score -= 8
+    elif gate == "PAPER_ONLY":
+        score -= 5
+
+    return int(max(0, min(100, round(score))))
 
 def swing_score(daily, weekly):
     """Book-guided hierarchy with three explicit setup families.
