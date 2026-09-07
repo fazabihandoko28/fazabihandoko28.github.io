@@ -7255,12 +7255,13 @@ def run_cycle():
             flush=True,
         )
 
-    if not market["is_trading_day"]:
-        # CLOSED-MARKET COMPLETED-BAR REFRESH (V8.8)
+    if (not market["is_trading_day"]) or market.get("state") == "CLOSED_AFTER_HOURS":
+        # CLOSED-MARKET / AFTER-HOURS COMPLETED-BAR REFRESH
         # Recalculate the ENTIRE enabled universe from the latest completed
-        # candles and refresh monitor states used by the dashboard.  This keeps
-        # weekend/holiday Top-5 candidates current.  It still cannot create a
-        # new actionable BUY, portfolio trigger, alert, push, or signal row.
+        # daily bars on weekends, holidays, OR after IDX operating hours.
+        # This keeps dashboard opportunity ranking current and also makes a
+        # manual GitHub Actions run useful after hours. It cannot create a new
+        # actionable BUY, portfolio trigger, alert, push, or signal row.
         global _REAL_MONEY_CONTEXT
         _REAL_MONEY_CONTEXT = build_real_money_context()
 
@@ -7466,7 +7467,7 @@ def run_cycle():
 
 def main():
     print(
-        "HANZ SWING / WEEKLY ENGINE START — V10.10 OPPORTUNITY RANKING + TRADABILITY GATE + FLOW INTELLIGENCE",
+        "HANZ SWING / WEEKLY ENGINE START — V10.11.1 CANONICAL + AFTER-HOURS REFRESH",
         flush=True,
     )
 
