@@ -6391,6 +6391,18 @@ def scan_predictive_radar_symbol(ticker):
     risk_validation["dashboard_eligible"] = False
     risk_validation["reconfirmation_required"] = True
 
+    # V10.11.1 CRITICAL FIX:
+    # Intraday radar writes to the SAME monitor table as the completed-bar scan.
+    # Since upsert_monitor() now stores canonical_rank_score as the top-level
+    # dashboard score, every radar write MUST also carry a canonical score/version.
+    # Without this, radar cycles overwrite valid CRV3 rows with score=0 and no
+    # canonical version, making the dashboard appear completely empty.
+    risk_validation["technical_score"] = safe_float(result.get("score"))
+    risk_validation["canonical_rank_score"] = canonical_rank_score(
+        result, risk_validation
+    )
+    risk_validation["canonical_rank_version"] = CANONICAL_RANK_VERSION
+
     # If a previously armed radar loses the setup before close, clear it.
     # NO_SETUP is internal and is hidden by the dashboard.
     upsert_monitor(
