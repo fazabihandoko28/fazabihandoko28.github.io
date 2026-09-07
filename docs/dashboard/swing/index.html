@@ -509,7 +509,7 @@ th{color:var(--muted)}
 
     <button class="secondary-btn" id="refreshButton">↻</button>
 
-    <button id="pushButton" class="secondary-btn" style="display:none">🔔 Push OFF</button>
+    <button id="pushButton" class="secondary-btn" style="display:none">🔕 NOTIF OFF</button>
 
     <button id="loginButton" class="primary-btn">Login</button>
 
@@ -1165,7 +1165,7 @@ function renderPushState(){
   btn.style.display="inline-flex";
 
   if(!("Notification" in window)){
-    btn.textContent="🔕 Unsupported";
+    btn.textContent="🚫 NOTIF UNSUPPORTED";
     btn.disabled=true;
     return;
   }
@@ -1173,16 +1173,16 @@ function renderPushState(){
   btn.disabled=false;
 
   if(Notification.permission === "denied"){
-    btn.textContent="🔕 Push Blocked";
+    btn.textContent="🚫 NOTIF BLOCKED";
     btn.classList.add("push-denied");
     return;
   }
 
   if(pushReady && currentInstallationId){
-    btn.textContent="🔔 Push ON";
+    btn.textContent="🔔 NOTIF ON";
     btn.classList.add("push-on");
   }else{
-    btn.textContent="🔔 Enable Push";
+    btn.textContent="🔕 NOTIF OFF";
   }
 }
 
