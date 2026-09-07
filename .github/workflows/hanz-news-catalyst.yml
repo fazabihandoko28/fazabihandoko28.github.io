@@ -1,0 +1,69 @@
+name: HANZ News Catalyst
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "src/hanz_app/news_catalyst.py"
+      - "docs/dashboard/swing/news-catalyst.js"
+      - ".github/workflows/hanz-news-catalyst.yml"
+  schedule:
+    - cron: "*/30 2-9 * * 1-5"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: hanz-news-catalyst
+  cancel-in-progress: true
+
+jobs:
+  build-news-catalyst:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      PYTHONPATH: src
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+    steps:
+      - name: Checkout HANZ repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install runtime dependency
+        run: pip install requests
+
+      - name: Generate high-confidence catalyst snapshot
+        run: python -m hanz_app.news_catalyst
+
+      - name: Ensure dashboard loads catalyst layer
+        shell: python
+        run: |
+          from pathlib import Path
+          path = Path("docs/dashboard/swing/index.html")
+          text = path.read_text(encoding="utf-8")
+          tag = '<script src="./news-catalyst.js" defer></script>'
+          if tag not in text:
+              text = text.replace("</body>", f"{tag}\n</body>")
+              path.write_text(text, encoding="utf-8")
+              print("Injected news-catalyst.js")
+          else:
+              print("news-catalyst.js already installed")
+
+      - name: Commit generated catalyst snapshot
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/dashboard/swing/index.html docs/dashboard/swing/news-catalyst.json
+          if git diff --cached --quiet; then
+            echo "No catalyst changes to commit"
+          else
+            git commit -m "Update HANZ news catalyst snapshot"
+            git push origin main
+          fi
