@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#050914">
-<title>HANZ — Swing Intelligence</title>
+<title>HANZ — Swing Intelligence · V41 Canonical Only</title>
 
 <style>
 :root{
@@ -1063,24 +1063,59 @@ function brokerFlowHtml(row){
 }
 
 function hanzRankingScore(row){
-  // Canonical rank is computed once by the engine. The dashboard must not
-  // invent or modify ranking rules. Fallback is temporary for pre-V10.8.3 rows.
+  // V41 CANONICAL-ONLY:
+  // Ranking must come from the backend engine. No frontend reconstruction,
+  // no technical-score fallback, and no flow-based re-ranking.
   const r=riskObject(row);
   const canonical=Number(r.canonical_rank_score);
-  if(Number.isFinite(canonical)){
-    return Math.max(0,Math.min(100,canonical));
-  }
-  const technical=Math.max(0,Math.min(10,Number(row?.score || 0)))*10;
-  return Math.max(
-    0,
-    Math.min(
-      100,
-      technical +
-      foreignFlowInfo(row).score +
-      insiderInfo(row).score +
-      brokerFlowInfo(row).score
-    )
+  return Number.isFinite(canonical)
+    ? Math.max(0,Math.min(100,canonical))
+    : 0;
+}
+
+function hanzCanonicalEligible(row){
+  // One global gate for EVERY Top-5 / Radar / Selected Candidate view.
+  // A row with stale/pre-CRV2 ranking or failed tradability cannot appear
+  // as a ranked opportunity, regardless of technical setup score.
+  const r=riskObject(row);
+  const version=String(r.canonical_rank_version || "").toUpperCase();
+  const gate=String(row?.risk_gate || r.gate || "MONITOR").toUpperCase();
+  const liqGrade=String(r.liquidity_grade || "").toUpperCase();
+  const avgValue20=Number(r.avg_value20);
+  const score=hanzRankingScore(row);
+  const momentumBlocked=Boolean(r?.momentum_guard?.blocked);
+
+  const canonicalV2 =
+    version.startsWith("CRV2_") ||
+    version.includes("OPPORTUNITY");
+
+  const liquidityPass =
+    r.liquidity_pass === true &&
+    liqGrade !== "FAIL" &&
+    Number.isFinite(avgValue20) &&
+    avgValue20 >= 5000000000;
+
+  return (
+    canonicalV2 &&
+    score > 0 &&
+    liquidityPass &&
+    !momentumBlocked &&
+    gate !== "BLOCKED"
   );
+}
+
+function hanzCanonicalRejectReason(row){
+  const r=riskObject(row);
+  const version=String(r.canonical_rank_version || "");
+  const gate=String(row?.risk_gate || r.gate || "MONITOR").toUpperCase();
+  const avgValue20=Number(r.avg_value20);
+  if(!version || !(version.toUpperCase().startsWith("CRV2_") || version.toUpperCase().includes("OPPORTUNITY"))) return "STALE_RANK_VERSION";
+  if(r.liquidity_pass !== true || String(r.liquidity_grade || "").toUpperCase()==="FAIL") return "LIQUIDITY_FAIL";
+  if(!Number.isFinite(avgValue20) || avgValue20 < 5000000000) return "AVG_VALUE20_BELOW_5B";
+  if(Boolean(r?.momentum_guard?.blocked)) return "MOMENTUM_BLOCKED";
+  if(gate==="BLOCKED") return "RISK_BLOCKED";
+  if(hanzRankingScore(row)<=0) return "ZERO_CANONICAL_SCORE";
+  return "";
 }
 
 function buyStateLabel(row){
@@ -1924,56 +1959,79 @@ async function loadWatchlist(){
     .order("updated_at",{ascending:false});
   if(error) throw error;
 
-  const all=data||[];
-  const byCanonical=(a,b)=>{
-    const diff=hanzRankingScore(b)-hanzRankingScore(a);
-    if(diff!==0) return diff;
-    return Number(b.score||0)-Number(a.score||0);
-  };
+  const raw=data||[];
+
+  // V41: THE DASHBOARD IS DISPLAY-ONLY.
+  // It accepts only candidates already ranked by the CRV2 opportunity engine.
+  const all=raw
+    .filter(hanzCanonicalEligible)
+    .slice()
+    .sort((a,b)=>{
+      const d=hanzRankingScore(b)-hanzRankingScore(a);
+      if(d!==0) return d;
+      return String(a?.ticker||"").localeCompare(String(b?.ticker||""));
+    });
+
+  const rejected=raw
+    .filter(r=>!hanzCanonicalEligible(r))
+    .map(r=>({
+      ticker:r?.ticker,
+      reason:hanzCanonicalRejectReason(r),
+      rank:hanzRankingScore(r),
+      version:riskObject(r)?.canonical_rank_version || null
+    }));
+
+  // Useful one-shot proof after deploy: inspect DevTools Console.
+  console.log("HANZ DASHBOARD V41 CANONICAL-ONLY", {
+    accepted: all.map(r=>({
+      ticker:r.ticker,
+      rank:hanzRankingScore(r),
+      version:riskObject(r)?.canonical_rank_version
+    })),
+    rejected
+  });
 
   const confirmed=all
-    .filter(r=>["EARLY_CONFIRMED_BUY","SWING_BUY"].includes(String(r.state||"")))
-    .sort(byCanonical);
+    .filter(r=>["EARLY_CONFIRMED_BUY","SWING_BUY"].includes(String(r.state||"").toUpperCase()));
 
   const radar=all
-    .filter(r=>[
-      "RADAR_ARMED","RADAR_PRE_ALERT","RADAR_WATCH",
-      "SETUP_READY","PRE_ALERT","EARLY_WATCH",
-      "SWING_CONFIRMING","SWING_WATCH"
-    ].includes(String(r.state||"")))
-    .sort(byCanonical);
+    .filter(r=>!["EARLY_CONFIRMED_BUY","SWING_BUY"].includes(String(r.state||"").toUpperCase()));
 
-  // BUY widgets are BUY-only. Radar is never allowed to impersonate a BUY.
   $("opportunityCount").textContent=confirmed.length;
 
-  if(confirmed.length){
-    const top=confirmed[0];
+  const rankedForHero=[...confirmed,...radar]
+    .sort((a,b)=>hanzRankingScore(b)-hanzRankingScore(a));
+
+  if(rankedForHero.length){
+    const top=rankedForHero[0];
     const ff=foreignFlowInfo(top);
-    $("topCandidate").textContent=top.ticker;
-    $("topCandidateSub").textContent=`Rank ${hanzRankingScore(top)}/100 · ${ff.label}`;
-    $("heroTopCandidate").textContent=top.ticker;
-    $("heroTopSub").textContent=`${buyStateLabel(top)} · Rank ${hanzRankingScore(top)}/100 · Foreign ${ff.label} · Swing ${top.score ?? "—"}/10`;
-    $("lastUpdate").textContent=formatTime(top.updated_at);
-    $("lastUpdateDate").textContent=`${formatDate(top.updated_at)} · Last completed Swing scan`;
-  }else if(radar.length){
-    const top=radar[0];
     const state=String(top.state||"WATCH").replaceAll("_"," ");
-    const ff=foreignFlowInfo(top);
+    const isBuy=["EARLY_CONFIRMED_BUY","SWING_BUY"].includes(String(top.state||"").toUpperCase());
+
     $("topCandidate").textContent=top.ticker;
-    $("topCandidateSub").textContent=`TOP RADAR · Rank ${hanzRankingScore(top)}/100 · ${state}`;
+    $("topCandidateSub").textContent=`V41 · Canonical ${hanzRankingScore(top)}/100 · ${state}`;
     $("heroTopCandidate").textContent=top.ticker;
-    $("heroTopSub").textContent=`HANZ RADAR PICK · ${state} · Rank ${hanzRankingScore(top)}/100 · Foreign ${ff.label} · NOT YET BUY`;
+    $("heroTopSub").textContent=isBuy
+      ? `HANZ CANONICAL BUY · Rank ${hanzRankingScore(top)}/100 · Foreign ${ff.label}`
+      : `HANZ CANONICAL RADAR · ${state} · Rank ${hanzRankingScore(top)}/100 · NOT YET BUY`;
     $("lastUpdate").textContent=formatTime(top.updated_at);
-    $("lastUpdateDate").textContent=`${formatDate(top.updated_at)} · Last completed Swing scan`;
+    $("lastUpdateDate").textContent=`${formatDate(top.updated_at)} · CRV2 opportunity ranking`;
   }else{
     $("topCandidate").textContent="—";
-    $("topCandidateSub").textContent="No qualifying radar candidate";
+    $("topCandidateSub").textContent="V41 · No CRV2-qualified candidate";
     $("heroTopCandidate").textContent="—";
-    $("heroTopSub").textContent="No qualifying HANZ swing setup right now";
+    $("heroTopSub").textContent="No candidate passed canonical ranking + tradability gate";
   }
 
-  renderRanking(radar,true);
-  renderSelectedCandidates([...confirmed,...radar].sort(byCanonical).slice(0,5));
+  // Same canonical list powers every public ranking view.
+  const top5=all.slice(0,5);
+  window.__hanzSignalRows=top5;
+  window.__hanzConfirmedRows=confirmed;
+  window.__hanzRadarRows=radar;
+  window.__hanzCanonicalRejected=rejected;
+
+  renderRanking(top5, true);
+  renderSelectedCandidates(top5);
   renderOpportunities(confirmed);
   renderLiveSignalMonitor(confirmed);
 }
