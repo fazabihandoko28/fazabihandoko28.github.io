@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#050914">
-<title>HANZ — Swing Intelligence · V41 Canonical Only</title>
+<title>HANZ — Swing Intelligence · V42 Opportunity Seeking</title>
 
 <style>
 :root{
@@ -1074,47 +1074,34 @@ function hanzRankingScore(row){
 }
 
 function hanzCanonicalEligible(row){
-  // One global gate for EVERY Top-5 / Radar / Selected Candidate view.
-  // A row with stale/pre-CRV2 ranking or failed tradability cannot appear
-  // as a ranked opportunity, regardless of technical setup score.
+  // V42: rank opportunities, not only "safe" names.
   const r=riskObject(row);
   const version=String(r.canonical_rank_version || "").toUpperCase();
-  const gate=String(row?.risk_gate || r.gate || "MONITOR").toUpperCase();
-  const liqGrade=String(r.liquidity_grade || "").toUpperCase();
-  const avgValue20=Number(r.avg_value20);
   const score=hanzRankingScore(row);
+  const avgValue20=Number(r.avg_value20);
+  const zeroVol=Number(r.zero_volume_days20 || 0);
   const momentumBlocked=Boolean(r?.momentum_guard?.blocked);
-
-  const canonicalV2 =
-    version.startsWith("CRV2_") ||
-    version.includes("OPPORTUNITY");
-
-  const liquidityPass =
-    r.liquidity_pass === true &&
-    liqGrade !== "FAIL" &&
-    Number.isFinite(avgValue20) &&
-    avgValue20 >= 5000000000;
-
-  return (
-    canonicalV2 &&
-    score > 0 &&
-    liquidityPass &&
-    !momentumBlocked &&
-    gate !== "BLOCKED"
-  );
+  const failedBreakout=Boolean(r?.momentum_guard?.failed_breakout);
+  const setupFamily=String(r.setup_family || row?.setup_family || "").toUpperCase();
+  const volStatus=String(r.volatility_status || "").toUpperCase();
+  const canonicalV3=version.startsWith("CRV3_") || version.includes("OPPORTUNITY_SEEKING");
+  const extremeIlliquid=Number.isFinite(avgValue20) && avgValue20<100000000;
+  const hardBroken=momentumBlocked || (failedBreakout && setupFamily==="BREAKOUT") || volStatus==="EXTREME" || zeroVol>=5 || extremeIlliquid;
+  return canonicalV3 && score>0 && !hardBroken;
 }
 
 function hanzCanonicalRejectReason(row){
   const r=riskObject(row);
-  const version=String(r.canonical_rank_version || "");
-  const gate=String(row?.risk_gate || r.gate || "MONITOR").toUpperCase();
+  const version=String(r.canonical_rank_version || "").toUpperCase();
   const avgValue20=Number(r.avg_value20);
-  if(!version || !(version.toUpperCase().startsWith("CRV2_") || version.toUpperCase().includes("OPPORTUNITY"))) return "STALE_RANK_VERSION";
-  if(r.liquidity_pass !== true || String(r.liquidity_grade || "").toUpperCase()==="FAIL") return "LIQUIDITY_FAIL";
-  if(!Number.isFinite(avgValue20) || avgValue20 < 5000000000) return "AVG_VALUE20_BELOW_5B";
-  if(Boolean(r?.momentum_guard?.blocked)) return "MOMENTUM_BLOCKED";
-  if(gate==="BLOCKED") return "RISK_BLOCKED";
-  if(hanzRankingScore(row)<=0) return "ZERO_CANONICAL_SCORE";
+  const setupFamily=String(r.setup_family || row?.setup_family || "").toUpperCase();
+  if(!(version.startsWith("CRV3_") || version.includes("OPPORTUNITY_SEEKING"))) return "STALE_RANK_VERSION";
+  if(Boolean(r?.momentum_guard?.blocked)) return "MOMENTUM_BROKEN";
+  if(Boolean(r?.momentum_guard?.failed_breakout) && setupFamily==="BREAKOUT") return "FAILED_BREAKOUT";
+  if(String(r.volatility_status || "").toUpperCase()==="EXTREME") return "EXTREME_VOLATILITY";
+  if(Number(r.zero_volume_days20 || 0)>=5) return "TOO_MANY_ZERO_VOLUME_DAYS";
+  if(Number.isFinite(avgValue20) && avgValue20<100000000) return "EXTREME_ILLIQUIDITY";
+  if(hanzRankingScore(row)<=0) return "ZERO_OPPORTUNITY_SCORE";
   return "";
 }
 
@@ -1982,7 +1969,7 @@ async function loadWatchlist(){
     }));
 
   // Useful one-shot proof after deploy: inspect DevTools Console.
-  console.log("HANZ DASHBOARD V41 CANONICAL-ONLY", {
+  console.log("HANZ DASHBOARD V42 OPPORTUNITY-SEEKING", {
     accepted: all.map(r=>({
       ticker:r.ticker,
       rank:hanzRankingScore(r),
@@ -2009,18 +1996,18 @@ async function loadWatchlist(){
     const isBuy=["EARLY_CONFIRMED_BUY","SWING_BUY"].includes(String(top.state||"").toUpperCase());
 
     $("topCandidate").textContent=top.ticker;
-    $("topCandidateSub").textContent=`V41 · Canonical ${hanzRankingScore(top)}/100 · ${state}`;
+    $("topCandidateSub").textContent=`V42 · Opportunity ${hanzRankingScore(top)}/100 · ${state}`;
     $("heroTopCandidate").textContent=top.ticker;
     $("heroTopSub").textContent=isBuy
-      ? `HANZ CANONICAL BUY · Rank ${hanzRankingScore(top)}/100 · Foreign ${ff.label}`
-      : `HANZ CANONICAL RADAR · ${state} · Rank ${hanzRankingScore(top)}/100 · NOT YET BUY`;
+      ? `HANZ OPPORTUNITY BUY · Rank ${hanzRankingScore(top)}/100 · Foreign ${ff.label}`
+      : `HANZ OPPORTUNITY RADAR · ${state} · Rank ${hanzRankingScore(top)}/100 · NOT YET BUY`;
     $("lastUpdate").textContent=formatTime(top.updated_at);
-    $("lastUpdateDate").textContent=`${formatDate(top.updated_at)} · CRV2 opportunity ranking`;
+    $("lastUpdateDate").textContent=`${formatDate(top.updated_at)} · CRV3 opportunity-seeking ranking`;
   }else{
     $("topCandidate").textContent="—";
-    $("topCandidateSub").textContent="V41 · No CRV2-qualified candidate";
+    $("topCandidateSub").textContent="V42 · No CRV3 opportunity candidate";
     $("heroTopCandidate").textContent="—";
-    $("heroTopSub").textContent="No candidate passed canonical ranking + tradability gate";
+    $("heroTopSub").textContent="No candidate passed opportunity score + hard-break gate";
   }
 
   // Same canonical list powers every public ranking view.
