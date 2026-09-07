@@ -1,0 +1,12 @@
+{
+  "generated_at": "2026-09-07T17:27:18.426160+00:00",
+  "policy": "HIGH_CONFIDENCE_CAUSAL_ONLY",
+  "selected_tickers": [
+    "JRPT",
+    "AKRA",
+    "NCKL",
+    "ADRO",
+    "SPTO"
+  ],
+  "catalysts": []
+}
