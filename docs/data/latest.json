@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-04T16:57:21.879087+00:00",
+  "generated_at": "2026-09-07T18:20:29.767345+00:00",
   "mode": "PAPER_TRADE_RESEARCH",
   "source": {
     "name": "YAHOO_FINANCE_RESEARCH_ONLY",
@@ -41,8 +41,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 4420.0,
           "technical": {
-            "ema20": 4002.8222308679105,
-            "ema50": 3804.684318718198,
+            "ema20": 4002.8222308614627,
+            "ema50": 3804.685607197617,
             "rsi14": 73.45132743362832,
             "atr14": 145.71428571428572,
             "relative_volume20": 2.0922024673864974,
@@ -70,7 +70,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=202763323900.00",
-            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>4002.8222>3804.6843",
+            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>4002.8222>3804.6856",
             "volume_confirmation": "positive|technical_engine|2026-09-04T00:00:00+00:00|rvol20=2.09",
             "resistance": "positive|technical_engine|2026-09-04T00:00:00+00:00|breakout close=4420.0000>resistance20=4220.0000",
             "risk_reward": "positive|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=2.00;support20=3690.0000;atr14=145.7143",
@@ -96,8 +96,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 1075.0,
           "technical": {
-            "ema20": 1074.4416253629881,
-            "ema50": 1032.330075893637,
+            "ema20": 1074.441625362956,
+            "ema50": 1032.3298587162417,
             "rsi14": 40.54054054054053,
             "atr14": 27.142857142857142,
             "relative_volume20": 1.086787636852005,
@@ -124,7 +124,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=14481054050.00",
-            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>1074.4416>1032.3301",
+            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>1074.4416>1032.3299",
             "volume_confirmation": "neutral|technical_engine|2026-09-04T00:00:00+00:00|rvol20=1.09",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=1125.0000",
             "risk_reward": "positive|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=1.84;support20=1050.0000;atr14=27.1429",
@@ -152,8 +152,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 740.0,
           "technical": {
-            "ema20": 738.459080652789,
-            "ema50": 725.9939630920987,
+            "ema20": 738.4590806532646,
+            "ema50": 725.9952202724232,
             "rsi14": 41.17647058823529,
             "atr14": 16.428571428571427,
             "relative_volume20": 0.6937384574795532,
@@ -181,7 +181,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=11653307250.00",
-            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>738.4591>725.9940",
+            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>738.4591>725.9952",
             "volume_confirmation": "warning|technical_engine|2026-09-04T00:00:00+00:00|rvol20=0.69",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=790.0000",
             "risk_reward": "positive|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=2.00;support20=715.0000;atr14=16.4286",
@@ -209,8 +209,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 20075.0,
           "technical": {
-            "ema20": 19951.333518501822,
-            "ema50": 18896.724631090925,
+            "ema20": 19951.333518514777,
+            "ema50": 18896.739193864392,
             "rsi14": 48.63387978142076,
             "atr14": 535.7142857142857,
             "relative_volume20": 0.3114226203821946,
@@ -238,7 +238,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=29494598625.00",
-            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>19951.3335>18896.7246",
+            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>19951.3335>18896.7392",
             "volume_confirmation": "warning|technical_engine|2026-09-04T00:00:00+00:00|rvol20=0.31",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=21825.0000",
             "risk_reward": "positive|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=1.84;support20=19125.0000;atr14=535.7143",
@@ -266,8 +266,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 1720.0,
           "technical": {
-            "ema20": 1726.6639749435237,
-            "ema50": 1724.3478012128817,
+            "ema20": 1726.6639749433111,
+            "ema50": 1724.3470543816932,
             "rsi14": 52.0,
             "atr14": 19.642857142857142,
             "relative_volume20": 1.9454648226343334,
@@ -295,7 +295,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=5868090100.00",
-            "price_structure": "warning|technical_engine|2026-09-04T00:00:00+00:00|mixed close=1720.0000,ema20=1726.6640,ema50=1724.3478",
+            "price_structure": "warning|technical_engine|2026-09-04T00:00:00+00:00|mixed close=1720.0000,ema20=1726.6640,ema50=1724.3471",
             "volume_confirmation": "positive|technical_engine|2026-09-04T00:00:00+00:00|rvol20=1.95",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=1800.0000",
             "risk_reward": "positive|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=4.00;support20=1700.0000;atr14=19.6429",
@@ -324,8 +324,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 4570.0,
           "technical": {
-            "ema20": 4686.357258586971,
-            "ema50": 4637.500337920769,
+            "ema20": 4686.357258586601,
+            "ema50": 4637.491725027231,
             "rsi14": 45.631067961165044,
             "atr14": 129.28571428571428,
             "relative_volume20": 1.3508726230789267,
@@ -353,7 +353,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=14462217650.00",
-            "price_structure": "warning|technical_engine|2026-09-04T00:00:00+00:00|mixed close=4570.0000,ema20=4686.3573,ema50=4637.5003",
+            "price_structure": "warning|technical_engine|2026-09-04T00:00:00+00:00|mixed close=4570.0000,ema20=4686.3573,ema50=4637.4917",
             "volume_confirmation": "neutral|technical_engine|2026-09-04T00:00:00+00:00|rvol20=1.35",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=4840.0000",
             "risk_reward": "positive|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=2.09;support20=4520.0000;atr14=129.2857",
@@ -380,8 +380,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 1385.0,
           "technical": {
-            "ema20": 1398.0143943178066,
-            "ema50": 1383.6942618651765,
+            "ema20": 1398.01439431837,
+            "ema50": 1383.6934438303215,
             "rsi14": 47.540983606557376,
             "atr14": 37.857142857142854,
             "relative_volume20": 1.335199987362568,
@@ -409,7 +409,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=18049100050.00",
-            "price_structure": "warning|technical_engine|2026-09-04T00:00:00+00:00|mixed close=1385.0000,ema20=1398.0144,ema50=1383.6943",
+            "price_structure": "warning|technical_engine|2026-09-04T00:00:00+00:00|mixed close=1385.0000,ema20=1398.0144,ema50=1383.6934",
             "volume_confirmation": "neutral|technical_engine|2026-09-04T00:00:00+00:00|rvol20=1.34",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=1455.0000",
             "risk_reward": "positive|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=1.85;support20=1350.0000;atr14=37.8571",
@@ -436,8 +436,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 7275.0,
           "technical": {
-            "ema20": 7493.103430630223,
-            "ema50": 7279.504094710069,
+            "ema20": 7493.103430631877,
+            "ema50": 7279.508859039179,
             "rsi14": 38.775510204081634,
             "atr14": 194.64285714285714,
             "relative_volume20": 1.0959528163187402,
@@ -465,7 +465,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=42654520500.00",
-            "price_structure": "warning|technical_engine|2026-09-04T00:00:00+00:00|mixed close=7275.0000,ema20=7493.1034,ema50=7279.5041",
+            "price_structure": "warning|technical_engine|2026-09-04T00:00:00+00:00|mixed close=7275.0000,ema20=7493.1034,ema50=7279.5089",
             "volume_confirmation": "neutral|technical_engine|2026-09-04T00:00:00+00:00|rvol20=1.10",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=8000.0000",
             "risk_reward": "positive|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=3.72;support20=7225.0000;atr14=194.6429",
@@ -492,8 +492,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 775.0,
           "technical": {
-            "ema20": 782.5565503160592,
-            "ema50": 778.3957221354093,
+            "ema20": 782.5565503165907,
+            "ema50": 778.3953195942679,
             "rsi14": 42.42424242424243,
             "atr14": 27.142857142857142,
             "relative_volume20": 0.8769997935293344,
@@ -521,7 +521,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=52970198000.00",
-            "price_structure": "warning|technical_engine|2026-09-04T00:00:00+00:00|mixed close=775.0000,ema20=782.5566,ema50=778.3957",
+            "price_structure": "warning|technical_engine|2026-09-04T00:00:00+00:00|mixed close=775.0000,ema20=782.5566,ema50=778.3953",
             "volume_confirmation": "neutral|technical_engine|2026-09-04T00:00:00+00:00|rvol20=0.88",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=835.0000",
             "risk_reward": "positive|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=2.21;support20=750.0000;atr14=27.1429",
@@ -548,8 +548,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 3120.0,
           "technical": {
-            "ema20": 3097.487228362268,
-            "ema50": 3073.8255694808604,
+            "ema20": 3097.4872283645427,
+            "ema50": 3073.826256322117,
             "rsi14": 54.09836065573771,
             "atr14": 83.57142857142857,
             "relative_volume20": 0.861405437799226,
@@ -577,7 +577,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=290046080750.00",
-            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>3097.4872>3073.8256",
+            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>3097.4872>3073.8263",
             "volume_confirmation": "neutral|technical_engine|2026-09-04T00:00:00+00:00|rvol20=0.86",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=3290.0000",
             "risk_reward": "warning|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=1.13;support20=2970.0000;atr14=83.5714",
@@ -605,8 +605,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 4960.0,
           "technical": {
-            "ema20": 5112.47623021047,
-            "ema50": 5098.564904495014,
+            "ema20": 5112.476230210247,
+            "ema50": 5098.568933384104,
             "rsi14": 40.14869888475836,
             "atr14": 154.64285714285714,
             "relative_volume20": 0.7968023839122823,
@@ -634,7 +634,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=54620073625.00",
-            "price_structure": "warning|technical_engine|2026-09-04T00:00:00+00:00|mixed close=4960.0000,ema20=5112.4762,ema50=5098.5649",
+            "price_structure": "warning|technical_engine|2026-09-04T00:00:00+00:00|mixed close=4960.0000,ema20=5112.4762,ema50=5098.5689",
             "volume_confirmation": "warning|technical_engine|2026-09-04T00:00:00+00:00|rvol20=0.80",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=5575.0000",
             "risk_reward": "positive|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=3.62;support20=4790.0000;atr14=154.6429",
@@ -662,8 +662,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 520.0,
           "technical": {
-            "ema20": 535.8976443416707,
-            "ema50": 532.9649709624191,
+            "ema20": 535.897644341305,
+            "ema50": 532.9658043806738,
             "rsi14": 52.631578947368425,
             "atr14": 29.642857142857142,
             "relative_volume20": 0.7960164091047878,
@@ -691,7 +691,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=69529418075.00",
-            "price_structure": "warning|technical_engine|2026-09-04T00:00:00+00:00|mixed close=520.0000,ema20=535.8976,ema50=532.9650",
+            "price_structure": "warning|technical_engine|2026-09-04T00:00:00+00:00|mixed close=520.0000,ema20=535.8976,ema50=532.9658",
             "volume_confirmation": "warning|technical_engine|2026-09-04T00:00:00+00:00|rvol20=0.80",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=595.0000",
             "risk_reward": "positive|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=2.53;support20=500.0000;atr14=29.6429",
@@ -719,8 +719,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 7225.0,
           "technical": {
-            "ema20": 7254.712895900088,
-            "ema50": 7092.208889802255,
+            "ema20": 7254.712895904134,
+            "ema50": 7092.2093375531995,
             "rsi14": 40.0,
             "atr14": 130.35714285714286,
             "relative_volume20": 0.7737779454750577,
@@ -748,7 +748,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=37727935375.00",
-            "price_structure": "warning|technical_engine|2026-09-04T00:00:00+00:00|mixed close=7225.0000,ema20=7254.7129,ema50=7092.2089",
+            "price_structure": "warning|technical_engine|2026-09-04T00:00:00+00:00|mixed close=7225.0000,ema20=7254.7129,ema50=7092.2093",
             "volume_confirmation": "warning|technical_engine|2026-09-04T00:00:00+00:00|rvol20=0.77",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=7500.0000",
             "risk_reward": "positive|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=1.83;support20=7075.0000;atr14=130.3571",
@@ -776,8 +776,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 1790.0,
           "technical": {
-            "ema20": 1821.5522476791373,
-            "ema50": 1795.6789703012284,
+            "ema20": 1821.5522476785047,
+            "ema50": 1795.6869341821214,
             "rsi14": 40.90909090909091,
             "atr14": 57.857142857142854,
             "relative_volume20": 0.7149169531567181,
@@ -805,7 +805,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=213372789600.00",
-            "price_structure": "warning|technical_engine|2026-09-04T00:00:00+00:00|mixed close=1790.0000,ema20=1821.5522,ema50=1795.6790",
+            "price_structure": "warning|technical_engine|2026-09-04T00:00:00+00:00|mixed close=1790.0000,ema20=1821.5522,ema50=1795.6869",
             "volume_confirmation": "warning|technical_engine|2026-09-04T00:00:00+00:00|rvol20=0.71",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=1965.0000",
             "risk_reward": "positive|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=2.19;support20=1710.0000;atr14=57.8571",
@@ -833,8 +833,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 1795.0,
           "technical": {
-            "ema20": 1835.5871871051643,
-            "ema50": 1764.126031173245,
+            "ema20": 1835.587187105127,
+            "ema50": 1764.125190515744,
             "rsi14": 46.05263157894736,
             "atr14": 58.214285714285715,
             "relative_volume20": 0.4114398466673891,
@@ -862,7 +862,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=13875780625.00",
-            "price_structure": "warning|technical_engine|2026-09-04T00:00:00+00:00|mixed close=1795.0000,ema20=1835.5872,ema50=1764.1260",
+            "price_structure": "warning|technical_engine|2026-09-04T00:00:00+00:00|mixed close=1795.0000,ema20=1835.5872,ema50=1764.1252",
             "volume_confirmation": "warning|technical_engine|2026-09-04T00:00:00+00:00|rvol20=0.41",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=1960.0000",
             "risk_reward": "positive|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=2.06;support20=1715.0000;atr14=58.2143",
@@ -890,8 +890,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 1035.0,
           "technical": {
-            "ema20": 1040.2585746918426,
-            "ema50": 1015.7282876338083,
+            "ema20": 1040.2585746907619,
+            "ema50": 1015.7288622490003,
             "rsi14": 45.65217391304348,
             "atr14": 30.0,
             "relative_volume20": 0.25701530182800425,
@@ -919,7 +919,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=27570614100.00",
-            "price_structure": "warning|technical_engine|2026-09-04T00:00:00+00:00|mixed close=1035.0000,ema20=1040.2586,ema50=1015.7283",
+            "price_structure": "warning|technical_engine|2026-09-04T00:00:00+00:00|mixed close=1035.0000,ema20=1040.2586,ema50=1015.7289",
             "volume_confirmation": "warning|technical_engine|2026-09-04T00:00:00+00:00|rvol20=0.26",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=1140.0000",
             "risk_reward": "positive|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=3.00;support20=1000.0000;atr14=30.0000",
@@ -947,8 +947,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 2740.0,
           "technical": {
-            "ema20": 2747.265422480753,
-            "ema50": 2688.1512428058672,
+            "ema20": 2747.265422480947,
+            "ema50": 2688.1506116074474,
             "rsi14": 39.285714285714285,
             "atr14": 45.0,
             "relative_volume20": 0.2524959652346452,
@@ -976,7 +976,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=1924569050.00",
-            "price_structure": "warning|technical_engine|2026-09-04T00:00:00+00:00|mixed close=2740.0000,ema20=2747.2654,ema50=2688.1512",
+            "price_structure": "warning|technical_engine|2026-09-04T00:00:00+00:00|mixed close=2740.0000,ema20=2747.2654,ema50=2688.1506",
             "volume_confirmation": "warning|technical_engine|2026-09-04T00:00:00+00:00|rvol20=0.25",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=2870.0000",
             "risk_reward": "positive|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=2.17;support20=2680.0000;atr14=45.0000",
@@ -1004,8 +1004,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 358.0,
           "technical": {
-            "ema20": 356.10271733047955,
-            "ema50": 354.6840388184029,
+            "ema20": 356.10271733039093,
+            "ema50": 354.684105781433,
             "rsi14": 54.54545454545455,
             "atr14": 7.428571428571429,
             "relative_volume20": 0.6249992289189525,
@@ -1033,7 +1033,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=8412740130.00",
-            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>356.1027>354.6840",
+            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>356.1027>354.6841",
             "volume_confirmation": "warning|technical_engine|2026-09-04T00:00:00+00:00|rvol20=0.62",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=368.0000",
             "risk_reward": "warning|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=1.00;support20=348.0000;atr14=7.4286",
@@ -1061,8 +1061,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 940.0,
           "technical": {
-            "ema20": 904.260488857304,
-            "ema50": 1239.327730257458,
+            "ema20": 904.2604888521156,
+            "ema50": 1239.333320765577,
             "rsi14": 50.847457627118644,
             "atr14": 78.21428571428571,
             "relative_volume20": 2.9603550027211973,
@@ -1090,7 +1090,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=33887220650.00",
-            "price_structure": "warning|technical_engine|2026-09-04T00:00:00+00:00|mixed close=940.0000,ema20=904.2605,ema50=1239.3277",
+            "price_structure": "warning|technical_engine|2026-09-04T00:00:00+00:00|mixed close=940.0000,ema20=904.2605,ema50=1239.3333",
             "volume_confirmation": "positive|technical_engine|2026-09-04T00:00:00+00:00|rvol20=2.96",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=1155.0000",
             "risk_reward": "warning|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=1.07;support20=740.0000;atr14=78.2143",
@@ -1117,8 +1117,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 4900.0,
           "technical": {
-            "ema20": 4873.317993341298,
-            "ema50": 4947.986183144638,
+            "ema20": 4873.317993341697,
+            "ema50": 4947.98633094592,
             "rsi14": 58.10810810810811,
             "atr14": 90.71428571428571,
             "relative_volume20": 1.008402221942404,
@@ -1146,7 +1146,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=243151475350.00",
-            "price_structure": "warning|technical_engine|2026-09-04T00:00:00+00:00|mixed close=4900.0000,ema20=4873.3180,ema50=4947.9862",
+            "price_structure": "warning|technical_engine|2026-09-04T00:00:00+00:00|mixed close=4900.0000,ema20=4873.3180,ema50=4947.9863",
             "volume_confirmation": "neutral|technical_engine|2026-09-04T00:00:00+00:00|rvol20=1.01",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=5175.0000",
             "risk_reward": "warning|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=1.53;support20=4720.0000;atr14=90.7143",
@@ -1174,8 +1174,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 515.0,
           "technical": {
-            "ema20": 521.729876222446,
-            "ema50": 541.025039271484,
+            "ema20": 521.729876219657,
+            "ema50": 541.0252247771757,
             "rsi14": 54.054054054054056,
             "atr14": 25.071428571428573,
             "relative_volume20": 0.7300465861070865,
@@ -1204,7 +1204,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=24728734900.00",
-            "price_structure": "negative|technical_engine|2026-09-04T00:00:00+00:00|close<521.7299<541.0250",
+            "price_structure": "negative|technical_engine|2026-09-04T00:00:00+00:00|close<521.7299<541.0252",
             "volume_confirmation": "warning|technical_engine|2026-09-04T00:00:00+00:00|rvol20=0.73",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=565.0000",
             "risk_reward": "positive|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=1.99;support20=492.0000;atr14=25.0714",
@@ -1232,8 +1232,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 1685.0,
           "technical": {
-            "ema20": 1746.815978498404,
-            "ema50": 1748.9004420594383,
+            "ema20": 1746.8159784977522,
+            "ema50": 1748.8995456881282,
             "rsi14": 33.92857142857143,
             "atr14": 44.285714285714285,
             "relative_volume20": 0.7101088392230409,
@@ -1262,7 +1262,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=30424307000.00",
-            "price_structure": "negative|technical_engine|2026-09-04T00:00:00+00:00|close<1746.8160<1748.9004",
+            "price_structure": "negative|technical_engine|2026-09-04T00:00:00+00:00|close<1746.8160<1748.8995",
             "volume_confirmation": "warning|technical_engine|2026-09-04T00:00:00+00:00|rvol20=0.71",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=1845.0000",
             "risk_reward": "positive|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=2.29;support20=1615.0000;atr14=44.2857",
@@ -1290,8 +1290,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 204.0,
           "technical": {
-            "ema20": 204.96367145105998,
-            "ema50": 208.19970401893718,
+            "ema20": 204.96367145054325,
+            "ema50": 208.20018289509392,
             "rsi14": 53.57142857142857,
             "atr14": 8.214285714285714,
             "relative_volume20": 0.6632009184714923,
@@ -1320,7 +1320,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=10360745500.00",
-            "price_structure": "negative|technical_engine|2026-09-04T00:00:00+00:00|close<204.9637<208.1997",
+            "price_structure": "negative|technical_engine|2026-09-04T00:00:00+00:00|close<204.9637<208.2002",
             "volume_confirmation": "warning|technical_engine|2026-09-04T00:00:00+00:00|rvol20=0.66",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=224.0000",
             "risk_reward": "positive|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=2.43;support20=198.0000;atr14=8.2143",
@@ -1348,8 +1348,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 685.0,
           "technical": {
-            "ema20": 705.9742346593333,
-            "ema50": 780.0979860665221,
+            "ema20": 705.9742346599977,
+            "ema50": 780.0989217391336,
             "rsi14": 45.23809523809524,
             "atr14": 30.714285714285715,
             "relative_volume20": 0.5424132676531649,
@@ -1378,7 +1378,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=18444554350.00",
-            "price_structure": "negative|technical_engine|2026-09-04T00:00:00+00:00|close<705.9742<780.0980",
+            "price_structure": "negative|technical_engine|2026-09-04T00:00:00+00:00|close<705.9742<780.0989",
             "volume_confirmation": "warning|technical_engine|2026-09-04T00:00:00+00:00|rvol20=0.54",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=810.0000",
             "risk_reward": "positive|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=2.27;support20=630.0000;atr14=30.7143",
@@ -1406,8 +1406,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 810.0,
           "technical": {
-            "ema20": 830.8809655829808,
-            "ema50": 835.1139636675354,
+            "ema20": 830.8809655815672,
+            "ema50": 835.1145493900934,
             "rsi14": 43.90243902439025,
             "atr14": 29.285714285714285,
             "relative_volume20": 0.53396244037572,
@@ -1436,7 +1436,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=60686220625.00",
-            "price_structure": "negative|technical_engine|2026-09-04T00:00:00+00:00|close<830.8810<835.1140",
+            "price_structure": "negative|technical_engine|2026-09-04T00:00:00+00:00|close<830.8810<835.1145",
             "volume_confirmation": "warning|technical_engine|2026-09-04T00:00:00+00:00|rvol20=0.53",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=925.0000",
             "risk_reward": "positive|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=3.93;support20=785.0000;atr14=29.2857",
@@ -1464,8 +1464,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 3360.0,
           "technical": {
-            "ema20": 3403.9551395451062,
-            "ema50": 3523.5616089588875,
+            "ema20": 3403.9551395417025,
+            "ema50": 3523.5631337251843,
             "rsi14": 29.166666666666657,
             "atr14": 117.14285714285714,
             "relative_volume20": 0.5045778149228999,
@@ -1494,7 +1494,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=141096058800.00",
-            "price_structure": "negative|technical_engine|2026-09-04T00:00:00+00:00|close<3403.9551<3523.5616",
+            "price_structure": "negative|technical_engine|2026-09-04T00:00:00+00:00|close<3403.9551<3523.5631",
             "volume_confirmation": "warning|technical_engine|2026-09-04T00:00:00+00:00|rvol20=0.50",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=3940.0000",
             "risk_reward": "positive|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=4.95;support20=3250.0000;atr14=117.1429",
@@ -1522,8 +1522,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 2140.0,
           "technical": {
-            "ema20": 2207.0015275509722,
-            "ema50": 2233.246341748562,
+            "ema20": 2207.00152755117,
+            "ema50": 2233.2411819756094,
             "rsi14": 33.33333333333333,
             "atr14": 80.71428571428571,
             "relative_volume20": 0.4008806622899212,
@@ -1552,7 +1552,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=1156575850.00",
-            "price_structure": "negative|technical_engine|2026-09-04T00:00:00+00:00|close<2207.0015<2233.2463",
+            "price_structure": "negative|technical_engine|2026-09-04T00:00:00+00:00|close<2207.0015<2233.2412",
             "volume_confirmation": "warning|technical_engine|2026-09-04T00:00:00+00:00|rvol20=0.40",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=2430.0000",
             "risk_reward": "positive|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=3.59;support20=2110.0000;atr14=80.7143",
@@ -1580,8 +1580,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 62.0,
           "technical": {
-            "ema20": 62.553800039822875,
-            "ema50": 63.56498158754793,
+            "ema20": 62.55380003983835,
+            "ema50": 63.56498629305815,
             "rsi14": 50.0,
             "atr14": 2.642857142857143,
             "relative_volume20": 0.3313473087796411,
@@ -1638,8 +1638,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 1425.0,
           "technical": {
-            "ema20": 1486.8857294642146,
-            "ema50": 1502.0811889577822,
+            "ema20": 1486.8857294643424,
+            "ema50": 1502.0810411564992,
             "rsi14": 41.02564102564102,
             "atr14": 43.57142857142857,
             "relative_volume20": 0.2927767491777396,
@@ -1668,7 +1668,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=14820708800.00",
-            "price_structure": "negative|technical_engine|2026-09-04T00:00:00+00:00|close<1486.8857<1502.0812",
+            "price_structure": "negative|technical_engine|2026-09-04T00:00:00+00:00|close<1486.8857<1502.0810",
             "volume_confirmation": "warning|technical_engine|2026-09-04T00:00:00+00:00|rvol20=0.29",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=1700.0000",
             "risk_reward": "positive|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=6.31;support20=1400.0000;atr14=43.5714",
@@ -1696,8 +1696,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 2900.0,
           "technical": {
-            "ema20": 2903.3141990402405,
-            "ema50": 2841.730979895227,
+            "ema20": 2903.314199040529,
+            "ema50": 2841.7282669875954,
             "rsi14": 59.64912280701755,
             "atr14": 102.85714285714286,
             "relative_volume20": 0.3916978338356058,
@@ -1725,7 +1725,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=107806257300.00",
-            "price_structure": "warning|technical_engine|2026-09-04T00:00:00+00:00|mixed close=2900.0000,ema20=2903.3142,ema50=2841.7310",
+            "price_structure": "warning|technical_engine|2026-09-04T00:00:00+00:00|mixed close=2900.0000,ema20=2903.3142,ema50=2841.7283",
             "volume_confirmation": "warning|technical_engine|2026-09-04T00:00:00+00:00|rvol20=0.39",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=3180.0000",
             "risk_reward": "warning|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=1.75;support20=2740.0000;atr14=102.8571",
@@ -1753,8 +1753,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 1250.0,
           "technical": {
-            "ema20": 1251.331651327619,
-            "ema50": 1254.3285922217244,
+            "ema20": 1251.3316513274162,
+            "ema50": 1254.3282305432904,
             "rsi14": 46.15384615384615,
             "atr14": 16.071428571428573,
             "relative_volume20": 3.8385417946764324,
@@ -1782,7 +1782,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=4744760200.00",
-            "price_structure": "negative|technical_engine|2026-09-04T00:00:00+00:00|close<1251.3317<1254.3286",
+            "price_structure": "negative|technical_engine|2026-09-04T00:00:00+00:00|close<1251.3317<1254.3282",
             "volume_confirmation": "positive|technical_engine|2026-09-04T00:00:00+00:00|rvol20=3.84",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=1295.0000",
             "risk_reward": "positive|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=2.80;support20=1235.0000;atr14=16.0714",
@@ -1810,8 +1810,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 1560.0,
           "technical": {
-            "ema20": 1619.6299228149983,
-            "ema50": 1682.120239263643,
+            "ema20": 1619.6299228132211,
+            "ema50": 1682.120345332799,
             "rsi14": 27.450980392156865,
             "atr14": 36.42857142857143,
             "relative_volume20": 2.0531333414185036,
@@ -1839,7 +1839,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=22418992575.00",
-            "price_structure": "negative|technical_engine|2026-09-04T00:00:00+00:00|close<1619.6299<1682.1202",
+            "price_structure": "negative|technical_engine|2026-09-04T00:00:00+00:00|close<1619.6299<1682.1203",
             "volume_confirmation": "positive|technical_engine|2026-09-04T00:00:00+00:00|rvol20=2.05",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=1730.0000",
             "risk_reward": "positive|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=4.67;support20=1530.0000;atr14=36.4286",
@@ -1866,8 +1866,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 2610.0,
           "technical": {
-            "ema20": 2610.0341217961954,
-            "ema50": 2644.0145809787164,
+            "ema20": 2610.034121797055,
+            "ema50": 2644.0120457520043,
             "rsi14": 47.368421052631575,
             "atr14": 37.142857142857146,
             "relative_volume20": 0.9774162818149813,
@@ -1895,7 +1895,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=219637954150.00",
-            "price_structure": "negative|technical_engine|2026-09-04T00:00:00+00:00|close<2610.0341<2644.0146",
+            "price_structure": "negative|technical_engine|2026-09-04T00:00:00+00:00|close<2610.0341<2644.0120",
             "volume_confirmation": "neutral|technical_engine|2026-09-04T00:00:00+00:00|rvol20=0.98",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=2730.0000",
             "risk_reward": "positive|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=2.00;support20=2550.0000;atr14=37.1429",
@@ -1922,8 +1922,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 200.0,
           "technical": {
-            "ema20": 201.96024525346317,
-            "ema50": 205.02497735460224,
+            "ema20": 201.96024525354045,
+            "ema50": 205.02502986752867,
             "rsi14": 50.0,
             "atr14": 3.0714285714285716,
             "relative_volume20": 0.8826557339136809,
@@ -1978,8 +1978,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 1050.0,
           "technical": {
-            "ema20": 1081.2021224841792,
-            "ema50": 1128.758340120047,
+            "ema20": 1081.2021224834696,
+            "ema50": 1128.758848677114,
             "rsi14": 29.577464788732385,
             "atr14": 52.142857142857146,
             "relative_volume20": 0.8483478085200726,
@@ -2007,7 +2007,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=24423364950.00",
-            "price_structure": "negative|technical_engine|2026-09-04T00:00:00+00:00|close<1081.2021<1128.7583",
+            "price_structure": "negative|technical_engine|2026-09-04T00:00:00+00:00|close<1081.2021<1128.7588",
             "volume_confirmation": "neutral|technical_engine|2026-09-04T00:00:00+00:00|rvol20=0.85",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=1355.0000",
             "risk_reward": "positive|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=2.77;support20=940.0000;atr14=52.1429",
@@ -2034,8 +2034,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 1310.0,
           "technical": {
-            "ema20": 1355.8028248977482,
-            "ema50": 1371.4617075859323,
+            "ema20": 1355.8028248974892,
+            "ema50": 1371.4625283355065,
             "rsi14": 44.444444444444436,
             "atr14": 43.92857142857143,
             "relative_volume20": 0.8404334116987959,
@@ -2063,7 +2063,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=47514197125.00",
-            "price_structure": "negative|technical_engine|2026-09-04T00:00:00+00:00|close<1355.8028<1371.4617",
+            "price_structure": "negative|technical_engine|2026-09-04T00:00:00+00:00|close<1355.8028<1371.4625",
             "volume_confirmation": "neutral|technical_engine|2026-09-04T00:00:00+00:00|rvol20=0.84",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=1455.0000",
             "risk_reward": "positive|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=3.30;support20=1305.0000;atr14=43.9286",
@@ -2090,8 +2090,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 1790.0,
           "technical": {
-            "ema20": 1791.3083611728593,
-            "ema50": 1804.7975077606416,
+            "ema20": 1791.3083611719574,
+            "ema50": 1804.7971801847375,
             "rsi14": 54.54545454545455,
             "atr14": 32.5,
             "relative_volume20": 1.1049930465182154,
@@ -2120,7 +2120,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=28459258825.00",
-            "price_structure": "negative|technical_engine|2026-09-04T00:00:00+00:00|close<1791.3084<1804.7975",
+            "price_structure": "negative|technical_engine|2026-09-04T00:00:00+00:00|close<1791.3084<1804.7972",
             "volume_confirmation": "neutral|technical_engine|2026-09-04T00:00:00+00:00|rvol20=1.10",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=1850.0000",
             "risk_reward": "warning|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=1.71;support20=1755.0000;atr14=32.5000",
@@ -2147,8 +2147,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 1520.0,
           "technical": {
-            "ema20": 1522.283158927539,
-            "ema50": 1538.979085810758,
+            "ema20": 1522.283158928227,
+            "ema50": 1538.9784076636952,
             "rsi14": 55.55555555555556,
             "atr14": 31.071428571428573,
             "relative_volume20": 0.8261505243333181,
@@ -2177,7 +2177,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=46185378425.00",
-            "price_structure": "negative|technical_engine|2026-09-04T00:00:00+00:00|close<1522.2832<1538.9791",
+            "price_structure": "negative|technical_engine|2026-09-04T00:00:00+00:00|close<1522.2832<1538.9784",
             "volume_confirmation": "neutral|technical_engine|2026-09-04T00:00:00+00:00|rvol20=0.83",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=1570.0000",
             "risk_reward": "warning|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=1.00;support20=1470.0000;atr14=31.0714",
@@ -2205,8 +2205,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 1995.0,
           "technical": {
-            "ema20": 2007.9294316904668,
-            "ema50": 2178.090630997679,
+            "ema20": 2007.9294316900396,
+            "ema50": 2178.089287212546,
             "rsi14": 44.03669724770642,
             "atr14": 81.42857142857143,
             "relative_volume20": 0.519575363542193,
@@ -2235,7 +2235,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=634860345725.00",
-            "price_structure": "negative|technical_engine|2026-09-04T00:00:00+00:00|close<2007.9294<2178.0906",
+            "price_structure": "negative|technical_engine|2026-09-04T00:00:00+00:00|close<2007.9294<2178.0893",
             "volume_confirmation": "warning|technical_engine|2026-09-04T00:00:00+00:00|rvol20=0.52",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=2270.0000",
             "risk_reward": "warning|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=1.67;support20=1830.0000;atr14=81.4286",
@@ -2270,8 +2270,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 2820.0,
           "technical": {
-            "ema20": 2559.027625072879,
-            "ema50": 2497.046054415008,
+            "ema20": 2559.027625074096,
+            "ema50": 2497.046657082279,
             "rsi14": 88.13559322033899,
             "atr14": 82.14285714285714,
             "relative_volume20": 1.6818814309158185,
@@ -2299,7 +2299,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=2183463500.00",
-            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>2559.0276>2497.0461",
+            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>2559.0276>2497.0467",
             "volume_confirmation": "positive|technical_engine|2026-09-04T00:00:00+00:00|rvol20=1.68",
             "resistance": "positive|technical_engine|2026-09-04T00:00:00+00:00|breakout close=2820.0000>resistance20=2720.0000",
             "risk_reward": "positive|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=2.00;support20=2300.0000;atr14=82.1429",
@@ -2332,8 +2332,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 490.0,
           "technical": {
-            "ema20": 461.4875055649927,
-            "ema50": 465.6623729170854,
+            "ema20": 461.4875055649234,
+            "ema50": 465.66233310122954,
             "rsi14": 91.66666666666667,
             "atr14": 11.714285714285714,
             "relative_volume20": 0.7038723796990215,
@@ -2362,7 +2362,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=22065705920.00",
-            "price_structure": "warning|technical_engine|2026-09-04T00:00:00+00:00|mixed close=490.0000,ema20=461.4875,ema50=465.6624",
+            "price_structure": "warning|technical_engine|2026-09-04T00:00:00+00:00|mixed close=490.0000,ema20=461.4875,ema50=465.6623",
             "volume_confirmation": "warning|technical_engine|2026-09-04T00:00:00+00:00|rvol20=0.70",
             "resistance": "positive|technical_engine|2026-09-04T00:00:00+00:00|breakout close=490.0000>resistance20=488.0000",
             "risk_reward": "positive|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=2.00;support20=418.0000;atr14=11.7143",
@@ -2393,8 +2393,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 332.0,
           "technical": {
-            "ema20": 322.47464345274585,
-            "ema50": 316.5572260514119,
+            "ema20": 322.47464345280673,
+            "ema50": 316.5570942474443,
             "rsi14": 51.85185185185185,
             "atr14": 9.0,
             "relative_volume20": 2.1439521288870984,
@@ -2422,7 +2422,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=5842901010.00",
-            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>322.4746>316.5572",
+            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>322.4746>316.5571",
             "volume_confirmation": "positive|technical_engine|2026-09-04T00:00:00+00:00|rvol20=2.14",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=348.0000",
             "risk_reward": "negative|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=0.62;support20=306.0000;atr14=9.0000",
@@ -2453,8 +2453,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 635.0,
           "technical": {
-            "ema20": 620.1488250171927,
-            "ema50": 609.1885579769697,
+            "ema20": 620.1488250173016,
+            "ema50": 609.188341491561,
             "rsi14": 59.25925925925926,
             "atr14": 17.5,
             "relative_volume20": 1.8980158996637206,
@@ -2482,7 +2482,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=7505837225.00",
-            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>620.1488>609.1886",
+            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>620.1488>609.1883",
             "volume_confirmation": "positive|technical_engine|2026-09-04T00:00:00+00:00|rvol20=1.90",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=655.0000",
             "risk_reward": "negative|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=0.44;support20=590.0000;atr14=17.5000",
@@ -2513,8 +2513,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 8800.0,
           "technical": {
-            "ema20": 8650.806683221703,
-            "ema50": 8354.329224824782,
+            "ema20": 8650.806683218252,
+            "ema50": 8354.32549936303,
             "rsi14": 62.5,
             "atr14": 230.35714285714286,
             "relative_volume20": 1.742721739948598,
@@ -2542,7 +2542,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=35548814125.00",
-            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>8650.8067>8354.3292",
+            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>8650.8067>8354.3255",
             "volume_confirmation": "positive|technical_engine|2026-09-04T00:00:00+00:00|rvol20=1.74",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=9000.0000",
             "risk_reward": "negative|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=0.31;support20=8150.0000;atr14=230.3571",
@@ -2573,8 +2573,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 940.0,
           "technical": {
-            "ema20": 824.0976373551838,
-            "ema50": 784.3179164655077,
+            "ema20": 824.0976373547355,
+            "ema50": 784.3195760627704,
             "rsi14": 65.625,
             "atr14": 52.857142857142854,
             "relative_volume20": 1.7054224441405743,
@@ -2602,7 +2602,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=538172969250.00",
-            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>824.0976>784.3179",
+            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>824.0976>784.3196",
             "volume_confirmation": "positive|technical_engine|2026-09-04T00:00:00+00:00|rvol20=1.71",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=955.0000",
             "risk_reward": "negative|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=0.05;support20=665.0000;atr14=52.8571",
@@ -2633,8 +2633,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 1240.0,
           "technical": {
-            "ema20": 1225.7693546604269,
-            "ema50": 1223.2245485127876,
+            "ema20": 1225.7693546615612,
+            "ema50": 1223.2245838041133,
             "rsi14": 56.25,
             "atr14": 25.0,
             "relative_volume20": 1.505479856088434,
@@ -2662,7 +2662,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=18827221125.00",
-            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>1225.7694>1223.2245",
+            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>1225.7694>1223.2246",
             "volume_confirmation": "positive|technical_engine|2026-09-04T00:00:00+00:00|rvol20=1.51",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=1260.0000",
             "risk_reward": "negative|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=0.40;support20=1190.0000;atr14=25.0000",
@@ -2692,8 +2692,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 8150.0,
           "technical": {
-            "ema20": 7798.159361655231,
-            "ema50": 7204.260827882703,
+            "ema20": 7798.159361651933,
+            "ema50": 7204.256524257109,
             "rsi14": 64.1025641025641,
             "atr14": 298.2142857142857,
             "relative_volume20": 1.371233700812513,
@@ -2721,7 +2721,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=22147288000.00",
-            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>7798.1594>7204.2608",
+            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>7798.1594>7204.2565",
             "volume_confirmation": "neutral|technical_engine|2026-09-04T00:00:00+00:00|rvol20=1.37",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=8450.0000",
             "risk_reward": "negative|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=0.28;support20=7075.0000;atr14=298.2143",
@@ -2751,8 +2751,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 1500.0,
           "technical": {
-            "ema20": 1486.9850190684247,
-            "ema50": 1466.0098397376544,
+            "ema20": 1486.9850190687434,
+            "ema50": 1466.0101588145415,
             "rsi14": 45.83333333333333,
             "atr14": 21.785714285714285,
             "relative_volume20": 1.3023588553750967,
@@ -2780,7 +2780,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=4013140500.00",
-            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>1486.9850>1466.0098",
+            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>1486.9850>1466.0102",
             "volume_confirmation": "neutral|technical_engine|2026-09-04T00:00:00+00:00|rvol20=1.30",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=1525.0000",
             "risk_reward": "negative|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=0.62;support20=1460.0000;atr14=21.7857",
@@ -2810,8 +2810,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 2310.0,
           "technical": {
-            "ema20": 2231.7914869172337,
-            "ema50": 2198.0487738369206,
+            "ema20": 2231.791486917567,
+            "ema50": 2198.0508691374607,
             "rsi14": 49.152542372881356,
             "atr14": 85.71428571428571,
             "relative_volume20": 1.207998601476396,
@@ -2839,7 +2839,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=29225480050.00",
-            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>2231.7915>2198.0488",
+            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>2231.7915>2198.0509",
             "volume_confirmation": "neutral|technical_engine|2026-09-04T00:00:00+00:00|rvol20=1.21",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=2450.0000",
             "risk_reward": "negative|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=0.70;support20=2110.0000;atr14=85.7143",
@@ -2869,8 +2869,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 730.0,
           "technical": {
-            "ema20": 706.9320972208504,
-            "ema50": 682.6240492631724,
+            "ema20": 706.9320972208669,
+            "ema50": 682.6237241003497,
             "rsi14": 60.0,
             "atr14": 25.714285714285715,
             "relative_volume20": 1.0120772231979842,
@@ -2898,7 +2898,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=14205944825.00",
-            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>706.9321>682.6240",
+            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>706.9321>682.6237",
             "volume_confirmation": "neutral|technical_engine|2026-09-04T00:00:00+00:00|rvol20=1.01",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=755.0000",
             "risk_reward": "negative|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=0.36;support20=660.0000;atr14=25.7143",
@@ -2928,8 +2928,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 2720.0,
           "technical": {
-            "ema20": 2632.2662873889753,
-            "ema50": 2533.927240549523,
+            "ema20": 2632.266287388539,
+            "ema50": 2533.926237913882,
             "rsi14": 65.4320987654321,
             "atr14": 87.14285714285714,
             "relative_volume20": 0.984832852651084,
@@ -2957,7 +2957,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=111528136500.00",
-            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>2632.2663>2533.9272",
+            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>2632.2663>2533.9262",
             "volume_confirmation": "neutral|technical_engine|2026-09-04T00:00:00+00:00|rvol20=0.98",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=2860.0000",
             "risk_reward": "negative|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=0.54;support20=2460.0000;atr14=87.1429",
@@ -2987,8 +2987,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 940.0,
           "technical": {
-            "ema20": 895.2545932078286,
-            "ema50": 878.4289897869188,
+            "ema20": 895.2545932079088,
+            "ema50": 878.4294938194569,
             "rsi14": 64.1025641025641,
             "atr14": 30.0,
             "relative_volume20": 0.9576633301572646,
@@ -3016,7 +3016,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=8922220300.00",
-            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>895.2546>878.4290",
+            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>895.2546>878.4295",
             "volume_confirmation": "neutral|technical_engine|2026-09-04T00:00:00+00:00|rvol20=0.96",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=975.0000",
             "risk_reward": "negative|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=0.33;support20=835.0000;atr14=30.0000",
@@ -3046,8 +3046,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 2710.0,
           "technical": {
-            "ema20": 2703.465065295648,
-            "ema50": 2659.254640089389,
+            "ema20": 2703.4650652953433,
+            "ema50": 2659.2528737132398,
             "rsi14": 55.0,
             "atr14": 112.85714285714286,
             "relative_volume20": 0.8188500946019995,
@@ -3075,7 +3075,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=22438078350.00",
-            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>2703.4651>2659.2546",
+            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>2703.4651>2659.2529",
             "volume_confirmation": "neutral|technical_engine|2026-09-04T00:00:00+00:00|rvol20=0.82",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=2930.0000",
             "risk_reward": "negative|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=0.73;support20=2410.0000;atr14=112.8571",
@@ -3106,8 +3106,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 2990.0,
           "technical": {
-            "ema20": 2854.653945811392,
-            "ema50": 2824.536757190206,
+            "ema20": 2854.6539458076295,
+            "ema50": 2824.5399659862223,
             "rsi14": 76.59574468085107,
             "atr14": 67.85714285714286,
             "relative_volume20": 1.2653417822782678,
@@ -3136,7 +3136,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=8154880000.00",
-            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>2854.6539>2824.5368",
+            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>2854.6539>2824.5400",
             "volume_confirmation": "neutral|technical_engine|2026-09-04T00:00:00+00:00|rvol20=1.27",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=3050.0000",
             "risk_reward": "negative|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=0.21;support20=2710.0000;atr14=67.8571",
@@ -3167,8 +3167,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 670.0,
           "technical": {
-            "ema20": 630.9383711523615,
-            "ema50": 617.8870391444353,
+            "ema20": 630.9383711520333,
+            "ema50": 617.8865414462375,
             "rsi14": 79.3103448275862,
             "atr14": 28.928571428571427,
             "relative_volume20": 1.016608988393719,
@@ -3197,7 +3197,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=16363915125.00",
-            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>630.9384>617.8870",
+            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>630.9384>617.8865",
             "volume_confirmation": "neutral|technical_engine|2026-09-04T00:00:00+00:00|rvol20=1.02",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=705.0000",
             "risk_reward": "negative|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=0.37;support20=575.0000;atr14=28.9286",
@@ -3228,8 +3228,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 446.0,
           "technical": {
-            "ema20": 434.43127231929697,
-            "ema50": 418.2523451488388,
+            "ema20": 434.4312723198921,
+            "ema50": 418.252158738241,
             "rsi14": 75.43859649122807,
             "atr14": 18.571428571428573,
             "relative_volume20": 0.8189907623362168,
@@ -3258,7 +3258,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=33690085990.00",
-            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>434.4313>418.2523",
+            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>434.4313>418.2522",
             "volume_confirmation": "neutral|technical_engine|2026-09-04T00:00:00+00:00|rvol20=0.82",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=498.0000",
             "risk_reward": "negative|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=0.84;support20=384.0000;atr14=18.5714",
@@ -3289,8 +3289,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 1390.0,
           "technical": {
-            "ema20": 1356.4149223605964,
-            "ema50": 1280.8454740679788,
+            "ema20": 1356.4149223606396,
+            "ema50": 1280.8451036953522,
             "rsi14": 66.66666666666666,
             "atr14": 35.357142857142854,
             "relative_volume20": 0.7020933092842341,
@@ -3319,7 +3319,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=9045527725.00",
-            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>1356.4149>1280.8455",
+            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>1356.4149>1280.8451",
             "volume_confirmation": "warning|technical_engine|2026-09-04T00:00:00+00:00|rvol20=0.70",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=1455.0000",
             "risk_reward": "negative|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=0.59;support20=1280.0000;atr14=35.3571",
@@ -3350,8 +3350,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 700.0,
           "technical": {
-            "ema20": 679.2878364806024,
-            "ema50": 652.9045565479627,
+            "ema20": 679.2878364801835,
+            "ema50": 652.9036172557278,
             "rsi14": 64.44444444444444,
             "atr14": 28.214285714285715,
             "relative_volume20": 0.6336375352905945,
@@ -3380,7 +3380,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=13587581325.00",
-            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>679.2878>652.9046",
+            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>679.2878>652.9036",
             "volume_confirmation": "warning|technical_engine|2026-09-04T00:00:00+00:00|rvol20=0.63",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=730.0000",
             "risk_reward": "negative|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=0.38;support20=620.0000;atr14=28.2143",
@@ -3411,8 +3411,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 955.0,
           "technical": {
-            "ema20": 939.9555448584199,
-            "ema50": 921.0394299852505,
+            "ema20": 939.9555448589697,
+            "ema50": 921.0417284460179,
             "rsi14": 61.53846153846154,
             "atr14": 30.714285714285715,
             "relative_volume20": 0.6237079921843113,
@@ -3441,7 +3441,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=41865982725.00",
-            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>939.9555>921.0394",
+            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>939.9555>921.0417",
             "volume_confirmation": "warning|technical_engine|2026-09-04T00:00:00+00:00|rvol20=0.62",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=990.0000",
             "risk_reward": "negative|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=0.64;support20=900.0000;atr14=30.7143",
@@ -3472,8 +3472,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 26100.0,
           "technical": {
-            "ema20": 25414.954964121673,
-            "ema50": 24721.4954329395,
+            "ema20": 25414.954964123317,
+            "ema50": 24721.50118414825,
             "rsi14": 69.64285714285714,
             "atr14": 453.57142857142856,
             "relative_volume20": 0.6068278852018528,
@@ -3502,7 +3502,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=38182737750.00",
-            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>25414.9550>24721.4954",
+            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>25414.9550>24721.5012",
             "volume_confirmation": "warning|technical_engine|2026-09-04T00:00:00+00:00|rvol20=0.61",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=26775.0000",
             "risk_reward": "negative|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=0.36;support20=24200.0000;atr14=453.5714",
@@ -3533,8 +3533,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 2090.0,
           "technical": {
-            "ema20": 2040.0853137021666,
-            "ema50": 1983.6890235365574,
+            "ema20": 2040.0853136982487,
+            "ema50": 1983.6903193616827,
             "rsi14": 62.41610738255034,
             "atr14": 105.0,
             "relative_volume20": 0.6067246548082552,
@@ -3563,7 +3563,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=74866914550.00",
-            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>2040.0853>1983.6890",
+            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>2040.0853>1983.6903",
             "volume_confirmation": "warning|technical_engine|2026-09-04T00:00:00+00:00|rvol20=0.61",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=2250.0000",
             "risk_reward": "negative|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=0.78;support20=1885.0000;atr14=105.0000",
@@ -3594,8 +3594,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 276.0,
           "technical": {
-            "ema20": 269.13880209178257,
-            "ema50": 268.655175669536,
+            "ema20": 269.13880209190614,
+            "ema50": 268.65524870075797,
             "rsi14": 67.74193548387098,
             "atr14": 8.857142857142858,
             "relative_volume20": 0.5813511609224997,
@@ -3655,8 +3655,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 2790.0,
           "technical": {
-            "ema20": 2675.3860153394944,
-            "ema50": 2573.3620296423874,
+            "ema20": 2675.3860153429423,
+            "ema50": 2573.369055331126,
             "rsi14": 66.66666666666666,
             "atr14": 125.0,
             "relative_volume20": 0.555925159814864,
@@ -3685,7 +3685,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=70178104550.00",
-            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>2675.3860>2573.3620",
+            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>2675.3860>2573.3691",
             "volume_confirmation": "warning|technical_engine|2026-09-04T00:00:00+00:00|rvol20=0.56",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=2870.0000",
             "risk_reward": "negative|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=0.22;support20=2430.0000;atr14=125.0000",
@@ -3716,8 +3716,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 4390.0,
           "technical": {
-            "ema20": 4318.362351880996,
-            "ema50": 4176.345233032593,
+            "ema20": 4318.362351881504,
+            "ema50": 4176.345328047703,
             "rsi14": 57.39130434782609,
             "atr14": 142.85714285714286,
             "relative_volume20": 0.5369697682453825,
@@ -3746,7 +3746,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=255940627050.00",
-            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>4318.3624>4176.3452",
+            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>4318.3624>4176.3453",
             "volume_confirmation": "warning|technical_engine|2026-09-04T00:00:00+00:00|rvol20=0.54",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=4600.0000",
             "risk_reward": "negative|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=0.84;support20=4140.0000;atr14=142.8571",
@@ -3777,8 +3777,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 950.0,
           "technical": {
-            "ema20": 910.4956738526921,
-            "ema50": 858.7835484565555,
+            "ema20": 910.4956738529553,
+            "ema50": 858.7838084129295,
             "rsi14": 57.407407407407405,
             "atr14": 36.07142857142857,
             "relative_volume20": 0.4859150185869902,
@@ -3807,7 +3807,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=19937398250.00",
-            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>910.4957>858.7835",
+            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>910.4957>858.7838",
             "volume_confirmation": "warning|technical_engine|2026-09-04T00:00:00+00:00|rvol20=0.49",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=990.0000",
             "risk_reward": "negative|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=0.35;support20=835.0000;atr14=36.0714",
@@ -3838,8 +3838,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 705.0,
           "technical": {
-            "ema20": 657.3162252602573,
-            "ema50": 646.0052659895659,
+            "ema20": 657.3162252602414,
+            "ema50": 646.0053501458066,
             "rsi14": 60.46511627906977,
             "atr14": 28.928571428571427,
             "relative_volume20": 0.46669923197278185,
@@ -3868,7 +3868,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=88914080975.00",
-            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>657.3162>646.0053",
+            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>657.3162>646.0054",
             "volume_confirmation": "warning|technical_engine|2026-09-04T00:00:00+00:00|rvol20=0.47",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=735.0000",
             "risk_reward": "negative|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=0.26;support20=590.0000;atr14=28.9286",
@@ -3899,8 +3899,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 5450.0,
           "technical": {
-            "ema20": 5401.751287516498,
-            "ema50": 5123.085178933096,
+            "ema20": 5401.751287518768,
+            "ema50": 5123.080866613311,
             "rsi14": 54.716981132075475,
             "atr14": 150.0,
             "relative_volume20": 0.2662561597536959,
@@ -3929,7 +3929,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=8989431625.00",
-            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>5401.7513>5123.0852",
+            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>5401.7513>5123.0809",
             "volume_confirmation": "warning|technical_engine|2026-09-04T00:00:00+00:00|rvol20=0.27",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=5675.0000",
             "risk_reward": "negative|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=0.90;support20=5200.0000;atr14=150.0000",
@@ -3960,8 +3960,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 1905.0,
           "technical": {
-            "ema20": 1844.591088526143,
-            "ema50": 1802.711169252045,
+            "ema20": 1844.5910885267144,
+            "ema50": 1802.7117809683757,
             "rsi14": 69.0909090909091,
             "atr14": 53.57142857142857,
             "relative_volume20": 0.22918431787246965,
@@ -3990,7 +3990,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=8445590550.00",
-            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>1844.5911>1802.7112",
+            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>1844.5911>1802.7118",
             "volume_confirmation": "warning|technical_engine|2026-09-04T00:00:00+00:00|rvol20=0.23",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=1960.0000",
             "risk_reward": "negative|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=0.31;support20=1730.0000;atr14=53.5714",
@@ -4020,8 +4020,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 201200.0,
           "technical": {
-            "ema20": 200459.8838971261,
-            "ema50": 198020.3590113619,
+            "ema20": 200459.883896979,
+            "ema50": 198020.14170275527,
             "rsi14": 39.58785249457701,
             "atr14": 2200.0,
             "relative_volume20": 0.546448087431694,
@@ -4050,7 +4050,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "neutral|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=148209375.00",
-            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>200459.8839>198020.3590",
+            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>200459.8839>198020.1417",
             "volume_confirmation": "warning|technical_engine|2026-09-04T00:00:00+00:00|rvol20=0.55",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=207500.0000",
             "risk_reward": "negative|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=0.39;support20=185050.0000;atr14=2200.0000",
@@ -4081,8 +4081,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 1710.0,
           "technical": {
-            "ema20": 1676.451877729184,
-            "ema50": 1654.2085202972146,
+            "ema20": 1676.4518777291455,
+            "ema50": 1654.208333372062,
             "rsi14": 68.9655172413793,
             "atr14": 19.642857142857142,
             "relative_volume20": 1.4083863582717635,
@@ -4111,7 +4111,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=3396001150.00",
-            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>1676.4519>1654.2085",
+            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>1676.4519>1654.2083",
             "volume_confirmation": "neutral|technical_engine|2026-09-04T00:00:00+00:00|rvol20=1.41",
             "resistance": "warning|technical_engine|2026-09-04T00:00:00+00:00|near resistance20=1720.0000",
             "risk_reward": "negative|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=0.13;support20=1635.0000;atr14=19.6429",
@@ -4142,8 +4142,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 6700.0,
           "technical": {
-            "ema20": 6479.460673955498,
-            "ema50": 6351.213147909162,
+            "ema20": 6479.460673955192,
+            "ema50": 6351.20838358005,
             "rsi14": 69.69696969696969,
             "atr14": 125.0,
             "relative_volume20": 0.9295410027901025,
@@ -4172,7 +4172,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=649373648375.00",
-            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>6479.4607>6351.2131",
+            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>6479.4607>6351.2084",
             "volume_confirmation": "neutral|technical_engine|2026-09-04T00:00:00+00:00|rvol20=0.93",
             "resistance": "warning|technical_engine|2026-09-04T00:00:00+00:00|near resistance20=6800.0000",
             "risk_reward": "negative|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=0.20;support20=6200.0000;atr14=125.0000",
@@ -4203,8 +4203,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 278.0,
           "technical": {
-            "ema20": 277.3589818375749,
-            "ema50": 282.00553191816266,
+            "ema20": 277.35898183776493,
+            "ema50": 282.0056079302509,
             "rsi14": 61.11111111111111,
             "atr14": 6.857142857142857,
             "relative_volume20": 2.3633267733849332,
@@ -4233,7 +4233,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=2075242180.00",
-            "price_structure": "warning|technical_engine|2026-09-04T00:00:00+00:00|mixed close=278.0000,ema20=277.3590,ema50=282.0055",
+            "price_structure": "warning|technical_engine|2026-09-04T00:00:00+00:00|mixed close=278.0000,ema20=277.3590,ema50=282.0056",
             "volume_confirmation": "positive|technical_engine|2026-09-04T00:00:00+00:00|rvol20=2.36",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=288.0000",
             "risk_reward": "negative|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=0.83;support20=266.0000;atr14=6.8571",
@@ -4265,8 +4265,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 1795.0,
           "technical": {
-            "ema20": 1596.5420394923808,
-            "ema50": 1593.2998955283765,
+            "ema20": 1596.5420394944358,
+            "ema50": 1593.3006085941581,
             "rsi14": 70.50359712230215,
             "atr14": 79.28571428571429,
             "relative_volume20": 0.7933040268950866,
@@ -4295,7 +4295,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=50979323050.00",
-            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>1596.5420>1593.2999",
+            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>1596.5420>1593.3006",
             "volume_confirmation": "warning|technical_engine|2026-09-04T00:00:00+00:00|rvol20=0.79",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=1840.0000",
             "risk_reward": "negative|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=0.14;support20=1465.0000;atr14=79.2857",
@@ -4327,8 +4327,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 196.0,
           "technical": {
-            "ema20": 177.00107407418943,
-            "ema50": 160.95852396312938,
+            "ema20": 177.0010740741969,
+            "ema50": 160.95853862260358,
             "rsi14": 73.07692307692308,
             "atr14": 12.571428571428571,
             "relative_volume20": 0.5614191789503636,
@@ -4389,8 +4389,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 1515.0,
           "technical": {
-            "ema20": 1453.8406530091809,
-            "ema50": 1447.9066168588529,
+            "ema20": 1453.8406530090608,
+            "ema50": 1447.9064449267478,
             "rsi14": 70.58823529411765,
             "atr14": 59.642857142857146,
             "relative_volume20": 0.5178669736249437,
@@ -4419,7 +4419,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=1156064300.00",
-            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>1453.8407>1447.9066",
+            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>1453.8407>1447.9064",
             "volume_confirmation": "warning|technical_engine|2026-09-04T00:00:00+00:00|rvol20=0.52",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=1570.0000",
             "risk_reward": "negative|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=0.31;support20=1340.0000;atr14=59.6429",
@@ -4451,8 +4451,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 1180.0,
           "technical": {
-            "ema20": 1063.536742154938,
-            "ema50": 1027.5752087672568,
+            "ema20": 1063.5367421565288,
+            "ema50": 1027.5771293393564,
             "rsi14": 75.67567567567568,
             "atr14": 67.85714285714286,
             "relative_volume20": 0.47485917260330235,
@@ -4481,7 +4481,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=715457766950.00",
-            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>1063.5367>1027.5752",
+            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>1063.5367>1027.5771",
             "volume_confirmation": "warning|technical_engine|2026-09-04T00:00:00+00:00|rvol20=0.47",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=1290.0000",
             "risk_reward": "negative|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=0.33;support20=845.0000;atr14=67.8571",
@@ -4513,8 +4513,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 950.0,
           "technical": {
-            "ema20": 899.6941201420108,
-            "ema50": 863.4462011185933,
+            "ema20": 899.6941201419709,
+            "ema50": 863.447982878141,
             "rsi14": 75.55555555555556,
             "atr14": 39.285714285714285,
             "relative_volume20": 0.44404940273120186,
@@ -4543,7 +4543,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=23566308150.00",
-            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>899.6941>863.4462",
+            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>899.6941>863.4480",
             "volume_confirmation": "warning|technical_engine|2026-09-04T00:00:00+00:00|rvol20=0.44",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=975.0000",
             "risk_reward": "negative|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=0.17;support20=805.0000;atr14=39.2857",
@@ -4575,8 +4575,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 510.0,
           "technical": {
-            "ema20": 496.3593287634372,
-            "ema50": 485.4575952572815,
+            "ema20": 496.35932876346135,
+            "ema50": 485.4572161904618,
             "rsi14": 71.42857142857143,
             "atr14": 7.714285714285714,
             "relative_volume20": 1.0802772543606811,
@@ -4605,7 +4605,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=1473829705.00",
-            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>496.3593>485.4576",
+            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>496.3593>485.4572",
             "volume_confirmation": "neutral|technical_engine|2026-09-04T00:00:00+00:00|rvol20=1.08",
             "resistance": "warning|technical_engine|2026-09-04T00:00:00+00:00|near resistance20=510.0000",
             "risk_reward": "negative|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=0.00;support20=484.0000;atr14=7.7143",
@@ -4637,8 +4637,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 1495.0,
           "technical": {
-            "ema20": 1388.7993989626652,
-            "ema50": 1341.527861286439,
+            "ema20": 1388.7993989612141,
+            "ema50": 1341.5293419075267,
             "rsi14": 70.45454545454545,
             "atr14": 54.642857142857146,
             "relative_volume20": 0.8844095749906123,
@@ -4667,7 +4667,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=65125480200.00",
-            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>1388.7994>1341.5279",
+            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>1388.7994>1341.5293",
             "volume_confirmation": "neutral|technical_engine|2026-09-04T00:00:00+00:00|rvol20=0.88",
             "resistance": "warning|technical_engine|2026-09-04T00:00:00+00:00|near resistance20=1515.0000",
             "risk_reward": "negative|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=0.09;support20=1265.0000;atr14=54.6429",
@@ -4698,8 +4698,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 8725.0,
           "technical": {
-            "ema20": 8663.827409340984,
-            "ema50": 8524.057961378268,
+            "ema20": 8663.827409342188,
+            "ema50": 8524.056609431238,
             "rsi14": 50.0,
             "atr14": 98.21428571428571,
             "relative_volume20": 0.6986833092320572,
@@ -4728,7 +4728,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "neutral|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=557382625.00",
-            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>8663.8274>8524.0580",
+            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>8663.8274>8524.0566",
             "volume_confirmation": "warning|technical_engine|2026-09-04T00:00:00+00:00|rvol20=0.70",
             "resistance": "warning|technical_engine|2026-09-04T00:00:00+00:00|near resistance20=8800.0000",
             "risk_reward": "negative|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=0.38;support20=8525.0000;atr14=98.2143",
@@ -4759,8 +4759,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 1340.0,
           "technical": {
-            "ema20": 1288.1146381061478,
-            "ema50": 1297.6622052433518,
+            "ema20": 1288.1146381049264,
+            "ema50": 1297.66355679829,
             "rsi14": 63.492063492063494,
             "atr14": 53.57142857142857,
             "relative_volume20": 0.7933281251840606,
@@ -4789,7 +4789,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=112378757530.60",
-            "price_structure": "warning|technical_engine|2026-09-04T00:00:00+00:00|mixed close=1340.0000,ema20=1288.1146,ema50=1297.6622",
+            "price_structure": "warning|technical_engine|2026-09-04T00:00:00+00:00|mixed close=1340.0000,ema20=1288.1146,ema50=1297.6636",
             "volume_confirmation": "warning|technical_engine|2026-09-04T00:00:00+00:00|rvol20=0.79",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=1395.0000",
             "risk_reward": "negative|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=0.13;support20=927.9576;atr14=53.5714",
@@ -4820,8 +4820,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 24950.0,
           "technical": {
-            "ema20": 24412.793243199976,
-            "ema50": 24475.920762194703,
+            "ema20": 24412.793243212633,
+            "ema50": 24475.92232714947,
             "rsi14": 67.00507614213197,
             "atr14": 614.2857142857143,
             "relative_volume20": 0.7827461932340645,
@@ -4850,7 +4850,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=102158671500.00",
-            "price_structure": "warning|technical_engine|2026-09-04T00:00:00+00:00|mixed close=24950.0000,ema20=24412.7932,ema50=24475.9208",
+            "price_structure": "warning|technical_engine|2026-09-04T00:00:00+00:00|mixed close=24950.0000,ema20=24412.7932,ema50=24475.9223",
             "volume_confirmation": "warning|technical_engine|2026-09-04T00:00:00+00:00|rvol20=0.78",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=26000.0000",
             "risk_reward": "negative|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=0.56;support20=23075.0000;atr14=614.2857",
@@ -4881,8 +4881,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 3210.0,
           "technical": {
-            "ema20": 3093.5379844386985,
-            "ema50": 3199.5378991837147,
+            "ema20": 3093.537984439868,
+            "ema50": 3199.5402808958165,
             "rsi14": 58.33333333333333,
             "atr14": 95.0,
             "relative_volume20": 0.6873606327583955,
@@ -4911,7 +4911,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=152554838000.00",
-            "price_structure": "warning|technical_engine|2026-09-04T00:00:00+00:00|mixed close=3210.0000,ema20=3093.5380,ema50=3199.5379",
+            "price_structure": "warning|technical_engine|2026-09-04T00:00:00+00:00|mixed close=3210.0000,ema20=3093.5380,ema50=3199.5403",
             "volume_confirmation": "warning|technical_engine|2026-09-04T00:00:00+00:00|rvol20=0.69",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=3320.0000",
             "risk_reward": "negative|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=0.35;support20=2900.0000;atr14=95.0000",
@@ -4942,8 +4942,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 2390.0,
           "technical": {
-            "ema20": 2408.0749076091533,
-            "ema50": 2235.263950030623,
+            "ema20": 2408.0749076092884,
+            "ema50": 2235.2618990704677,
             "rsi14": 41.935483870967744,
             "atr14": 128.57142857142858,
             "relative_volume20": 0.6557333541269216,
@@ -4972,7 +4972,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=206973180450.00",
-            "price_structure": "warning|technical_engine|2026-09-04T00:00:00+00:00|mixed close=2390.0000,ema20=2408.0749,ema50=2235.2640",
+            "price_structure": "warning|technical_engine|2026-09-04T00:00:00+00:00|mixed close=2390.0000,ema20=2408.0749,ema50=2235.2619",
             "volume_confirmation": "warning|technical_engine|2026-09-04T00:00:00+00:00|rvol20=0.66",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=2850.0000",
             "risk_reward": "negative|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=0.88;support20=1865.0000;atr14=128.5714",
@@ -5003,8 +5003,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 356.0,
           "technical": {
-            "ema20": 355.0499631717392,
-            "ema50": 367.53197211147864,
+            "ema20": 355.0499631719448,
+            "ema50": 367.5319476790217,
             "rsi14": 58.82352941176471,
             "atr14": 5.0,
             "relative_volume20": 0.5146772056575356,
@@ -5033,7 +5033,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=11273498200.00",
-            "price_structure": "warning|technical_engine|2026-09-04T00:00:00+00:00|mixed close=356.0000,ema20=355.0500,ema50=367.5320",
+            "price_structure": "warning|technical_engine|2026-09-04T00:00:00+00:00|mixed close=356.0000,ema20=355.0500,ema50=367.5319",
             "volume_confirmation": "warning|technical_engine|2026-09-04T00:00:00+00:00|rvol20=0.51",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=362.0000",
             "risk_reward": "negative|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=0.50;support20=344.0000;atr14=5.0000",
@@ -5064,8 +5064,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 115.0,
           "technical": {
-            "ema20": 112.44732717763833,
-            "ema50": 113.70657512469866,
+            "ema20": 112.44732717747178,
+            "ema50": 113.70652987940797,
             "rsi14": 55.17241379310345,
             "atr14": 4.928571428571429,
             "relative_volume20": 0.31357621791355755,
@@ -5094,7 +5094,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=23941487315.00",
-            "price_structure": "warning|technical_engine|2026-09-04T00:00:00+00:00|mixed close=115.0000,ema20=112.4473,ema50=113.7066",
+            "price_structure": "warning|technical_engine|2026-09-04T00:00:00+00:00|mixed close=115.0000,ema20=112.4473,ema50=113.7065",
             "volume_confirmation": "warning|technical_engine|2026-09-04T00:00:00+00:00|rvol20=0.31",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=125.0000",
             "risk_reward": "negative|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=0.91;support20=104.0000;atr14=4.9286",
@@ -5126,8 +5126,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 690.0,
           "technical": {
-            "ema20": 676.0259945961101,
-            "ema50": 692.558057011313,
+            "ema20": 676.025994596506,
+            "ema50": 692.55822480924,
             "rsi14": 61.904761904761905,
             "atr14": 13.928571428571429,
             "relative_volume20": 2.0751145243869575,
@@ -5156,7 +5156,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=1090080000.00",
-            "price_structure": "warning|technical_engine|2026-09-04T00:00:00+00:00|mixed close=690.0000,ema20=676.0260,ema50=692.5581",
+            "price_structure": "warning|technical_engine|2026-09-04T00:00:00+00:00|mixed close=690.0000,ema20=676.0260,ema50=692.5582",
             "volume_confirmation": "positive|technical_engine|2026-09-04T00:00:00+00:00|rvol20=2.08",
             "resistance": "warning|technical_engine|2026-09-04T00:00:00+00:00|near resistance20=700.0000",
             "risk_reward": "negative|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=0.25;support20=650.0000;atr14=13.9286",
@@ -5187,8 +5187,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 1015.0,
           "technical": {
-            "ema20": 991.4950137672258,
-            "ema50": 993.070397156988,
+            "ema20": 991.4950137667399,
+            "ema50": 993.0700496731554,
             "rsi14": 69.23076923076923,
             "atr14": 16.428571428571427,
             "relative_volume20": 1.49554899133994,
@@ -5217,7 +5217,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=2056593125.00",
-            "price_structure": "warning|technical_engine|2026-09-04T00:00:00+00:00|mixed close=1015.0000,ema20=991.4950,ema50=993.0704",
+            "price_structure": "warning|technical_engine|2026-09-04T00:00:00+00:00|mixed close=1015.0000,ema20=991.4950,ema50=993.0700",
             "volume_confirmation": "neutral|technical_engine|2026-09-04T00:00:00+00:00|rvol20=1.50",
             "resistance": "warning|technical_engine|2026-09-04T00:00:00+00:00|near resistance20=1015.0000",
             "risk_reward": "negative|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=0.00;support20=965.0000;atr14=16.4286",
@@ -5248,8 +5248,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 520.0,
           "technical": {
-            "ema20": 510.4332415732168,
-            "ema50": 513.9632398901597,
+            "ema20": 510.4332415733375,
+            "ema50": 513.9634285541505,
             "rsi14": 61.53846153846153,
             "atr14": 11.071428571428571,
             "relative_volume20": 0.8680375513489836,
@@ -5278,7 +5278,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=1106014400.00",
-            "price_structure": "warning|technical_engine|2026-09-04T00:00:00+00:00|mixed close=520.0000,ema20=510.4332,ema50=513.9632",
+            "price_structure": "warning|technical_engine|2026-09-04T00:00:00+00:00|mixed close=520.0000,ema20=510.4332,ema50=513.9634",
             "volume_confirmation": "neutral|technical_engine|2026-09-04T00:00:00+00:00|rvol20=0.87",
             "resistance": "warning|technical_engine|2026-09-04T00:00:00+00:00|near resistance20=525.0000",
             "risk_reward": "negative|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=0.25;support20=500.0000;atr14=11.0714",
@@ -5309,8 +5309,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 925.0,
           "technical": {
-            "ema20": 902.0795648131655,
-            "ema50": 906.0720186845372,
+            "ema20": 902.0795648134093,
+            "ema50": 906.0713744448274,
             "rsi14": 61.53846153846153,
             "atr14": 16.071428571428573,
             "relative_volume20": 0.8154673429570348,
@@ -5339,7 +5339,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=1546951500.00",
-            "price_structure": "warning|technical_engine|2026-09-04T00:00:00+00:00|mixed close=925.0000,ema20=902.0796,ema50=906.0720",
+            "price_structure": "warning|technical_engine|2026-09-04T00:00:00+00:00|mixed close=925.0000,ema20=902.0796,ema50=906.0714",
             "volume_confirmation": "neutral|technical_engine|2026-09-04T00:00:00+00:00|rvol20=0.82",
             "resistance": "warning|technical_engine|2026-09-04T00:00:00+00:00|near resistance20=925.0000",
             "risk_reward": "negative|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=0.00;support20=885.0000;atr14=16.0714",
@@ -5372,8 +5372,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 3390.0,
           "technical": {
-            "ema20": 3210.0585761439283,
-            "ema50": 3104.6357817604376,
+            "ema20": 3210.0585761475454,
+            "ema50": 3104.6348149661635,
             "rsi14": 72.88135593220339,
             "atr14": 67.14285714285714,
             "relative_volume20": 0.7826711170334125,
@@ -5402,7 +5402,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=630163966250.00",
-            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>3210.0586>3104.6358",
+            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>3210.0586>3104.6348",
             "volume_confirmation": "warning|technical_engine|2026-09-04T00:00:00+00:00|rvol20=0.78",
             "resistance": "warning|technical_engine|2026-09-04T00:00:00+00:00|near resistance20=3430.0000",
             "risk_reward": "negative|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=0.11;support20=3030.0000;atr14=67.1429",
@@ -5435,8 +5435,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 4420.0,
           "technical": {
-            "ema20": 4259.358951965022,
-            "ema50": 4230.6592822484,
+            "ema20": 4259.3589519637235,
+            "ema50": 4230.654769962172,
             "rsi14": 72.72727272727273,
             "atr14": 63.57142857142857,
             "relative_volume20": 0.7732454536971073,
@@ -5465,7 +5465,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=522504198250.00",
-            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>4259.3590>4230.6593",
+            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>4259.3590>4230.6548",
             "volume_confirmation": "warning|technical_engine|2026-09-04T00:00:00+00:00|rvol20=0.77",
             "resistance": "warning|technical_engine|2026-09-04T00:00:00+00:00|near resistance20=4460.0000",
             "risk_reward": "negative|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=0.12;support20=4080.0000;atr14=63.5714",
@@ -5498,8 +5498,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 3940.0,
           "technical": {
-            "ema20": 3744.239696362239,
-            "ema50": 3655.1918954456964,
+            "ema20": 3744.239696362794,
+            "ema50": 3655.1890124512593,
             "rsi14": 76.27118644067797,
             "atr14": 80.0,
             "relative_volume20": 0.7469654731779741,
@@ -5528,7 +5528,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=135607675650.00",
-            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>3744.2397>3655.1919",
+            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>3744.2397>3655.1890",
             "volume_confirmation": "warning|technical_engine|2026-09-04T00:00:00+00:00|rvol20=0.75",
             "resistance": "warning|technical_engine|2026-09-04T00:00:00+00:00|near resistance20=4000.0000",
             "risk_reward": "negative|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=0.15;support20=3550.0000;atr14=80.0000",
@@ -5561,8 +5561,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 372.0,
           "technical": {
-            "ema20": 352.421326233465,
-            "ema50": 342.3537763573009,
+            "ema20": 352.42132623341166,
+            "ema50": 342.35357800194635,
             "rsi14": 72.72727272727272,
             "atr14": 11.142857142857142,
             "relative_volume20": 0.4118365693750336,
@@ -5591,7 +5591,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=4835758700.00",
-            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>352.4213>342.3538",
+            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>352.4213>342.3536",
             "volume_confirmation": "warning|technical_engine|2026-09-04T00:00:00+00:00|rvol20=0.41",
             "resistance": "warning|technical_engine|2026-09-04T00:00:00+00:00|near resistance20=376.0000",
             "risk_reward": "negative|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=0.08;support20=322.0000;atr14=11.1429",
@@ -5625,8 +5625,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 590.0,
           "technical": {
-            "ema20": 490.8086072075494,
-            "ema50": 443.9837235332571,
+            "ema20": 490.8086072078152,
+            "ema50": 443.98368407936357,
             "rsi14": 86.41304347826087,
             "atr14": 26.857142857142858,
             "relative_volume20": 2.589226536844227,
@@ -5687,8 +5687,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 3330.0,
           "technical": {
-            "ema20": 3135.84685456628,
-            "ema50": 2891.3063177337813,
+            "ema20": 3135.8468545664828,
+            "ema50": 2891.3052570422215,
             "rsi14": 84.12698412698413,
             "atr14": 105.71428571428571,
             "relative_volume20": 1.2674901628931545,
@@ -5716,7 +5716,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=16514239350.00",
-            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>3135.8469>2891.3063",
+            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>3135.8469>2891.3053",
             "volume_confirmation": "neutral|technical_engine|2026-09-04T00:00:00+00:00|rvol20=1.27",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=3520.0000",
             "risk_reward": "negative|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=0.34;support20=2770.0000;atr14=105.7143",
@@ -5749,8 +5749,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 2880.0,
           "technical": {
-            "ema20": 2552.6874921564686,
-            "ema50": 2499.469379852132,
+            "ema20": 2552.6874921565122,
+            "ema50": 2499.4689190598965,
             "rsi14": 89.39393939393939,
             "atr14": 94.28571428571429,
             "relative_volume20": 0.9206950908404773,
@@ -5778,7 +5778,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=76858545700.00",
-            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>2552.6875>2499.4694",
+            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>2552.6875>2499.4689",
             "volume_confirmation": "neutral|technical_engine|2026-09-04T00:00:00+00:00|rvol20=0.92",
             "resistance": "neutral|technical_engine|2026-09-04T00:00:00+00:00|room_to_resistance20=2930.0000",
             "risk_reward": "negative|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=0.09;support20=2320.0000;atr14=94.2857",
@@ -5812,8 +5812,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 11250.0,
           "technical": {
-            "ema20": 10123.06834748567,
-            "ema50": 9478.350410830984,
+            "ema20": 10123.068347483082,
+            "ema50": 9478.346691668088,
             "rsi14": 82.83582089552239,
             "atr14": 387.5,
             "relative_volume20": 1.0828867217930789,
@@ -5842,7 +5842,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "positive|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=110451597000.00",
-            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>10123.0683>9478.3504",
+            "price_structure": "positive|technical_engine|2026-09-04T00:00:00+00:00|close>10123.0683>9478.3467",
             "volume_confirmation": "neutral|technical_engine|2026-09-04T00:00:00+00:00|rvol20=1.08",
             "resistance": "warning|technical_engine|2026-09-04T00:00:00+00:00|near resistance20=11325.0000",
             "risk_reward": "negative|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=0.03;support20=8950.0000;atr14=387.5000",
@@ -5873,8 +5873,8 @@
           "signal_timestamp": "2026-09-04T00:00:00+00:00",
           "signal_close": 50.0,
           "technical": {
-            "ema20": 50.000660623105794,
-            "ema50": 50.17022835452885,
+            "ema20": 50.00066062305881,
+            "ema50": 50.17013931179675,
             "rsi14": 50.0,
             "atr14": 0.0,
             "relative_volume20": 0.38403258163016546,
@@ -5903,7 +5903,7 @@
           "audit": {
             "data_freshness": "positive|technical_engine|2026-09-04T00:00:00+00:00|valid",
             "liquidity": "neutral|technical_engine|2026-09-04T00:00:00+00:00|avg_value20=946131000.00",
-            "price_structure": "negative|technical_engine|2026-09-04T00:00:00+00:00|close<50.0007<50.1702",
+            "price_structure": "negative|technical_engine|2026-09-04T00:00:00+00:00|close<50.0007<50.1701",
             "volume_confirmation": "warning|technical_engine|2026-09-04T00:00:00+00:00|rvol20=0.38",
             "resistance": "warning|technical_engine|2026-09-04T00:00:00+00:00|near resistance20=50.0000",
             "risk_reward": "negative|technical_engine|2026-09-04T00:00:00+00:00|proxy_rr=0.00;support20=50.0000;atr14=0.0000",
