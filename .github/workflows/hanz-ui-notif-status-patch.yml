@@ -1,0 +1,56 @@
+name: HANZ UI Notif Status Patch
+
+on:
+  push:
+    paths:
+      - '.github/workflows/hanz-ui-notif-status-patch.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch-ui:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Patch notification status labels only
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          p = Path('docs/dashboard/swing/index.html')
+          s = p.read_text(encoding='utf-8')
+
+          replacements = {
+              '<button id="pushButton" class="secondary-btn" style="display:none">🔔 Push OFF</button>':
+              '<button id="pushButton" class="secondary-btn" style="display:none">🔕 NOTIF OFF</button>',
+              'btn.textContent="🔕 Unsupported";': 'btn.textContent="🚫 NOTIF UNSUPPORTED";',
+              'btn.textContent="🔕 Push Blocked";': 'btn.textContent="🚫 NOTIF BLOCKED";',
+              'btn.textContent="🔔 Push ON";': 'btn.textContent="🔔 NOTIF ON";',
+              'btn.textContent="🔔 Enable Push";': 'btn.textContent="🔕 NOTIF OFF";',
+          }
+
+          changed = 0
+          for old, new in replacements.items():
+              if old in s:
+                  s = s.replace(old, new)
+                  changed += 1
+
+          if changed < 5:
+              raise SystemExit(f'Expected 5 UI replacements, got {changed}. No commit made.')
+
+          p.write_text(s, encoding='utf-8')
+          print('Notification UI labels patched:', changed)
+          PY
+
+      - name: Commit UI-only change
+        run: |
+          git config user.name "HANZ Automation"
+          git config user.email "actions@users.noreply.github.com"
+          git add docs/dashboard/swing/index.html
+          git commit -m "Show actual notification ON/OFF status"
+          git push
