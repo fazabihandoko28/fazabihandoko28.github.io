@@ -1,0 +1,48 @@
+name: HANZ Swing Pre-Entry Monitor
+
+on:
+  workflow_dispatch:
+
+  schedule:
+    # Every 30 minutes from 09:10 to 15:40 WIB.
+    # GitHub cron is UTC: 02:10..08:40 UTC.
+    # Python IDX gate skips lunch break, weekends and exchange holidays.
+    - cron: "10,40 2-8 * * 1-5"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hanz-swing-pre-entry-monitor
+  cancel-in-progress: false
+
+jobs:
+  pre-entry-monitor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    env:
+      PYTHONPATH: src
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+      FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+      HANZ_SWING_DASHBOARD_URL: https://hanzcuan.com/dashboard/swing/
+
+    steps:
+      - name: Checkout HANZ repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Monitor Selected Candidates Entering Buy Area
+        run: |
+          python -m hanz_app.swing_pre_entry_monitor
