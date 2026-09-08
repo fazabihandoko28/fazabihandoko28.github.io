@@ -63,7 +63,10 @@
         <small class="foreign-flow-meta" id="hanzNewsCatalystUpdated">—</small>
       </div>
       <div id="hanzNewsCatalystGrid" class="news-catalyst-grid"></div>`;
-    overview.insertBefore(section, overview.firstElementChild);
+    const ihsg=document.getElementById("hanzIhsgStrip");
+    if(ihsg && ihsg.nextSibling) overview.insertBefore(section,ihsg.nextSibling);
+    else if(ihsg) overview.appendChild(section);
+    else overview.insertBefore(section,overview.firstElementChild);
     return section;
   }
 
@@ -170,6 +173,15 @@
     });
   }
 
+  function loadIhsgDisplay(){
+    if(document.querySelector('script[data-hanz-ihsg="1"]')) return;
+    const script=document.createElement("script");
+    script.src=`./ihsg-display.js?v=1`;
+    script.defer=true;
+    script.dataset.hanzIhsg="1";
+    document.head.appendChild(script);
+  }
+
   async function load(){
     addStyles();
     if(!ensureRoot()) return;
@@ -186,6 +198,7 @@
   }
 
   function start(){
+    loadIhsgDisplay();
     load();
     setInterval(bindRadarRows,1000);
     setInterval(load,120000);
