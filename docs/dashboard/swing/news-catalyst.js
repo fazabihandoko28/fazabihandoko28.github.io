@@ -15,6 +15,16 @@
     const style=document.createElement("style");
     style.id=STYLE_ID;
     style.textContent=`
+      /* Compact main page: Selected HANZ Candidates stays as hidden data source only. */
+      .candidate-section{display:none!important}
+      .rank{cursor:pointer;transition:.16s ease;border:1px solid transparent}
+      .rank:hover,.rank:focus{border-color:rgba(40,224,162,.38);background:rgba(40,224,162,.055);outline:none;transform:translateY(-1px)}
+      .rank:after{content:"›";color:var(--green);font-size:15px;font-weight:900;margin-left:2px}
+      .radar-detail-hint{margin-top:10px;color:var(--muted);font-size:8px;line-height:1.5}
+      .radar-chart-wrap{margin-top:14px}
+      .radar-chart-title{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
+      .radar-chart-title strong{font-size:11px}.radar-chart-title span{color:var(--muted);font-size:8px}
+
       .news-catalyst-wrap{margin-top:12px}
       .news-catalyst-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:10px}
       .news-catalyst-head h2{margin:0;font-size:17px}
@@ -93,9 +103,77 @@
     }).join("");
   }
 
+  function copyChartIntoDetail(index){
+    const chartButton=document.querySelector(`[data-candidate-chart="${index}"]`);
+    const chartModal=document.getElementById("candidateChartModal");
+    const chartBody=document.getElementById("candidateChartBody");
+    const detailBody=document.getElementById("candidateDetailIndicators");
+    if(!chartButton || !chartModal || !chartBody || !detailBody) return;
+
+    let integrated=document.getElementById("radarIntegratedChart");
+    if(integrated) integrated.remove();
+
+    integrated=document.createElement("div");
+    integrated.id="radarIntegratedChart";
+    integrated.className="radar-chart-wrap";
+    integrated.innerHTML='<div class="radar-chart-title"><strong>PRICE + TECHNICAL CHART</strong><span>60 completed daily bars</span></div><div class="mover-empty">Loading chart…</div>';
+    detailBody.appendChild(integrated);
+
+    chartModal.style.visibility="hidden";
+    chartButton.click();
+
+    let tries=0;
+    const timer=setInterval(()=>{
+      tries+=1;
+      const loading=chartBody.textContent.trim().toLowerCase().startsWith("loading chart");
+      if(!loading || tries>=40){
+        clearInterval(timer);
+        const target=document.getElementById("radarIntegratedChart");
+        if(target){
+          target.innerHTML=`<div class="radar-chart-title"><strong>PRICE + TECHNICAL CHART</strong><span>60 completed daily bars</span></div>${chartBody.innerHTML}`;
+        }
+        chartModal.classList.remove("show");
+        chartModal.style.visibility="";
+      }
+    },150);
+  }
+
+  function openRadarDetail(index){
+    const detailButton=document.querySelector(`[data-candidate-detail="${index}"]`);
+    if(!detailButton) return;
+    detailButton.click();
+    const detailBody=document.getElementById("candidateDetailIndicators");
+    if(detailBody && !detailBody.querySelector(".radar-detail-hint")){
+      const hint=document.createElement("div");
+      hint.className="radar-detail-hint";
+      hint.textContent="Opened directly from HANZ Opportunity Radar · indicators and chart are detail-only so the main page stays compact.";
+      detailBody.appendChild(hint);
+    }
+    copyChartIntoDetail(index);
+  }
+
+  function bindRadarRows(){
+    const rows=[...document.querySelectorAll("#ranking .rank")];
+    rows.forEach((row,index)=>{
+      if(row.dataset.compactRadarBound==="1") return;
+      row.dataset.compactRadarBound="1";
+      row.setAttribute("role","button");
+      row.setAttribute("tabindex","0");
+      row.setAttribute("aria-label",`Open HANZ candidate detail ${index+1}`);
+      row.addEventListener("click",()=>openRadarDetail(index));
+      row.addEventListener("keydown",event=>{
+        if(event.key==="Enter" || event.key===" "){
+          event.preventDefault();
+          openRadarDetail(index);
+        }
+      });
+    });
+  }
+
   async function load(){
     addStyles();
     if(!ensureRoot()) return;
+    bindRadarRows();
     try{
       const response=await fetch(`./news-catalyst.json?ts=${Date.now()}`,{cache:"no-store"});
       if(!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -107,7 +185,12 @@
     }
   }
 
-  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",load);
-  else load();
-  setInterval(load,120000);
+  function start(){
+    load();
+    setInterval(bindRadarRows,1000);
+    setInterval(load,120000);
+  }
+
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",start);
+  else start();
 })();
