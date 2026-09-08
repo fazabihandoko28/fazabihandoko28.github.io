@@ -16,7 +16,7 @@
       .ihsg-change.down{color:var(--red)}
       .ihsg-change.flat{color:var(--muted)}
       .ihsg-meta{text-align:right;color:var(--muted);font-size:8px;line-height:1.45}
-      @media(max-width:700px){.ihsg-strip{align-items:flex-start}.ihsg-value{font-size:20px}.ihsg-meta{max-width:125px}}
+      @media(max-width:700px){.ihsg-strip{align-items:flex-start}.ihsg-value{font-size:20px}.ihsg-meta{max-width:135px}}
     `;
     document.head.appendChild(style);
   }
@@ -36,6 +36,15 @@
     }).format(d) + " WIB";
   }
 
+  function fmtMarketDate(v){
+    if(!v) return "latest trading day";
+    const d=new Date(`${v}T12:00:00+07:00`);
+    if(Number.isNaN(d.getTime())) return v;
+    return new Intl.DateTimeFormat("en-GB",{
+      timeZone:"Asia/Jakarta",day:"2-digit",month:"short",year:"numeric"
+    }).format(d);
+  }
+
   function ensureRoot(){
     let root=document.getElementById(ROOT_ID);
     if(root) return root;
@@ -53,7 +62,7 @@
         </div>
         <div id="ihsgChange" class="ihsg-change flat">—</div>
       </div>
-      <div id="ihsgMeta" class="ihsg-meta">Refresh 3× per trading day<br>09:10 · 11:10 · 14:10 WIB</div>`;
+      <div id="ihsgMeta" class="ihsg-meta">Loading IHSG snapshot…</div>`;
 
     const news=document.getElementById("hanzNewsCatalyst");
     if(news) overview.insertBefore(root,news);
@@ -79,7 +88,12 @@
       change.textContent="Waiting market data";
       change.className="ihsg-change flat";
     }
-    meta.innerHTML=`Last HANZ call: ${fmtUpdated(data?.updated_at)}<br>Server refresh only while IDX is open`;
+
+    const isLive=String(data?.quote_type||"").toUpperCase()==="LIVE";
+    const headline=isLive
+      ? `LIVE · ${fmtMarketDate(data?.market_date)}`
+      : `LAST CLOSE · ${fmtMarketDate(data?.market_date)}`;
+    meta.innerHTML=`${headline}<br>HANZ refresh: ${fmtUpdated(data?.updated_at)}`;
   }
 
   async function load(){
