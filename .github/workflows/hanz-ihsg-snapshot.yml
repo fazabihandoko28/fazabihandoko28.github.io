@@ -4,9 +4,11 @@ on:
   workflow_dispatch:
 
   schedule:
-    # WIB market-hours snapshots only: 09:10, 11:10, 14:10.
-    # GitHub cron uses UTC.
+    # GitHub cron uses UTC. WIB = UTC+7.
+    # Intraday: 09:10, 11:10, 14:10 WIB.
+    # Post-close final snapshot: 16:20 WIB.
     - cron: "10 2,4,7 * * 1-5"
+    - cron: "20 9 * * 1-5"
 
 permissions:
   contents: write
@@ -40,7 +42,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Refresh IHSG snapshot only during live IDX session
+      - name: Refresh IHSG snapshot
         run: |
           python -m hanz_app.ihsg_snapshot
 
