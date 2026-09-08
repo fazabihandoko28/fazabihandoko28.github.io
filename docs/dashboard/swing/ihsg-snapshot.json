@@ -1,0 +1,10 @@
+{
+  "symbol": "IHSG",
+  "price": null,
+  "previous_close": null,
+  "change": null,
+  "change_pct": null,
+  "quote_at": null,
+  "updated_at": null,
+  "policy": "REFRESH_ONLY_DURING_IDX_OPEN"
+}
