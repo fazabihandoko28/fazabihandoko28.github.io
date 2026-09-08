@@ -25,7 +25,7 @@
       .radar-chart-title{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
       .radar-chart-title strong{font-size:11px}.radar-chart-title span{color:var(--muted);font-size:8px}
 
-      .news-catalyst-wrap{margin-top:12px}
+      .news-catalyst-wrap{margin:0 0 12px}
       .news-catalyst-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:10px}
       .news-catalyst-head h2{margin:0;font-size:17px}
       .news-catalyst-head p{margin:3px 0 0;color:var(--muted);font-size:10px}
@@ -63,7 +63,7 @@
         <small class="foreign-flow-meta" id="hanzNewsCatalystUpdated">—</small>
       </div>
       <div id="hanzNewsCatalystGrid" class="news-catalyst-grid"></div>`;
-    overview.appendChild(section);
+    overview.insertBefore(section, overview.firstElementChild);
     return section;
   }
 
