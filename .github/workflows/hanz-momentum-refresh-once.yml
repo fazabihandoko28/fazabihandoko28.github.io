@@ -44,3 +44,5 @@ jobs:
       - name: Refresh all completed-bar momentum entry scores
         run: |
           python -m hanz_app.momentum_refresh_once
+
+# Touch 2026-09-09: trigger immediate refresh after scorer deployment.
