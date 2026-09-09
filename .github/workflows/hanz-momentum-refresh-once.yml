@@ -1,0 +1,46 @@
+name: HANZ Momentum Entry Refresh Once
+
+on:
+  push:
+    paths:
+      - '.github/workflows/hanz-momentum-refresh-once.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hanz-momentum-refresh-once
+  cancel-in-progress: true
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    env:
+      PYTHONPATH: src
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+      FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+      HANZ_SWING_RUN_ONCE: "1"
+      HANZ_SWING_MAX_SYMBOLS_PER_CYCLE: "220"
+
+    steps:
+      - name: Checkout HANZ repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Refresh all completed-bar momentum entry scores
+        run: |
+          python -m hanz_app.momentum_refresh_once
