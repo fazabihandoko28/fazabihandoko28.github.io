@@ -1,19 +1,23 @@
-"""Runtime entry point that installs the HANZ single momentum-entry scorer."""
+"""Runtime entry point for HANZ single momentum-entry scoring + early trigger."""
 
 from . import swing_trading_engine as engine
 from .momentum_entry_score import momentum_entry_score
+from .early_momentum_trigger import install as install_early_momentum_trigger
 
 
-# Keep the CRV3 prefix for dashboard backwards compatibility while the
-# underlying score is now the single Momentum Entry Score (MES1).
-SCORE_VERSION = "CRV3_MES1_2026_09_10_MOMENTUM_ENTRY"
+# Keep CRV3 prefix for dashboard backwards compatibility.
+SCORE_VERSION = "CRV3_MES2_2026_09_10_EARLY_MOMENTUM_ENTRY"
 
 
 def main():
-    # Replace only the canonical dashboard/ranking score.
-    # Technical state, risk gates, alerts, sizing, and portfolio logic remain intact.
+    # One visible score: momentum-entry score.
     engine.canonical_rank_score = momentum_entry_score
     engine.CANONICAL_RANK_VERSION = SCORE_VERSION
+
+    # Earlier measured confirmation: minor pivot break + volume + structure,
+    # while keeping the existing risk/portfolio/alert safeguards intact.
+    install_early_momentum_trigger(engine)
+
     engine.main()
 
 
