@@ -16,7 +16,14 @@
       .ihsg-change.down{color:var(--red)}
       .ihsg-change.flat{color:var(--muted)}
       .ihsg-meta{text-align:right;color:var(--muted);font-size:8px;line-height:1.45}
-      @media(max-width:700px){.ihsg-strip{align-items:flex-start}.ihsg-value{font-size:20px}.ihsg-meta{max-width:135px}}
+      .hanz-action-badge{display:inline-flex;margin-left:6px;padding:3px 6px;border-radius:999px;font-size:7px;font-weight:950;letter-spacing:.3px;vertical-align:middle;border:1px solid rgba(255,255,255,.12)}
+      .hanz-action-buy{color:#03120d;background:var(--green);border-color:transparent}
+      .hanz-action-wait{color:var(--yellow);background:rgba(255,200,87,.10)}
+      .hanz-action-chase{color:#ffb06e;background:rgba(255,176,110,.10)}
+      .hanz-action-tp{color:#ff8992;background:rgba(255,101,114,.10)}
+      .hanz-action-avoid{color:var(--red);background:rgba(255,101,114,.10)}
+      .hanz-auto-note{margin-top:5px;color:var(--muted);font-size:7px;line-height:1.35}
+      @media(max-width:700px){.ihsg-strip{align-items:flex-start}.ihsg-value{font-size:20px}.ihsg-meta{max-width:135px}.hanz-action-badge{display:flex;width:max-content;margin:4px 0 0}}
     `;
     document.head.appendChild(style);
   }
@@ -43,6 +50,72 @@
     return new Intl.DateTimeFormat("en-GB",{
       timeZone:"Asia/Jakarta",day:"2-digit",month:"short",year:"numeric"
     }).format(d);
+  }
+
+  function riskObject(row){
+    const raw=row?.risk_validation;
+    if(raw && typeof raw==="object") return raw;
+    if(typeof raw==="string"){
+      try{return JSON.parse(raw);}catch(_e){return {};}
+    }
+    return {};
+  }
+
+  function actionMeta(action){
+    const a=String(action||"WAIT").toUpperCase();
+    if(a==="BUY") return {label:"BUY",cls:"hanz-action-buy"};
+    if(a==="DO_NOT_CHASE") return {label:"DO NOT CHASE",cls:"hanz-action-chase"};
+    if(a==="TP_RISK") return {label:"TP RISK",cls:"hanz-action-tp"};
+    if(a==="AVOID") return {label:"AVOID",cls:"hanz-action-avoid"};
+    return {label:"WAIT",cls:"hanz-action-wait"};
+  }
+
+  function renderAutoDecisions(){
+    const rows=Array.isArray(window.__hanzSignalRows)?window.__hanzSignalRows:[];
+    const rankEls=[...document.querySelectorAll("#ranking .rank")];
+    if(!rows.length || !rankEls.length) return;
+
+    rankEls.forEach((el,i)=>{
+      const row=rows[i]; if(!row) return;
+      const rv=riskObject(row);
+      const action=rv.hanz_action || "WAIT";
+      const meta=actionMeta(action);
+      const symbol=el.querySelector(".rank-symbol");
+      if(symbol){
+        let badge=symbol.querySelector(".hanz-action-badge");
+        if(!badge){badge=document.createElement("span");badge.className="hanz-action-badge";symbol.appendChild(badge);}
+        badge.className=`hanz-action-badge ${meta.cls}`;
+        badge.textContent=meta.label;
+        badge.title=rv.hanz_action_reason || "HANZ automatic trade decision";
+      }
+    });
+
+    const top=rows[0];
+    if(top){
+      const rv=riskObject(top), meta=actionMeta(rv.hanz_action);
+      const sub=document.getElementById("heroTopSub");
+      if(sub){
+        const score=Number(rv.canonical_rank_score ?? top.score ?? 0);
+        sub.textContent=`HANZ ${meta.label} · Momentum Entry ${Number.isFinite(score)?Math.round(score):0}/100${rv.hanz_action_reason?` · ${rv.hanz_action_reason}`:""}`;
+      }
+    }
+
+    const detail=document.getElementById("candidateDetailIndicators");
+    const modal=document.getElementById("candidateDetailModal");
+    if(detail && modal?.classList.contains("show")){
+      const title=document.getElementById("candidateDetailTitle")?.textContent||"";
+      const ticker=title.split("·")[0].trim();
+      const row=rows.find(r=>String(r.ticker||"").toUpperCase()===ticker.toUpperCase());
+      if(row){
+        const rv=riskObject(row), meta=actionMeta(rv.hanz_action);
+        let box=document.getElementById("hanzAutomaticDecisionBox");
+        if(!box){
+          box=document.createElement("div"); box.id="hanzAutomaticDecisionBox"; box.className="detail-reason";
+          detail.insertBefore(box,detail.firstChild);
+        }
+        box.innerHTML=`<b>HANZ ACTION:</b> <span class="hanz-action-badge ${meta.cls}">${meta.label}</span><div class="hanz-auto-note">${String(rv.hanz_action_reason||"Automatic decision pending fresh scan.")}</div>`;
+      }
+    }
   }
 
   function ensureRoot(){
@@ -108,11 +181,13 @@
       if(meta) meta.textContent="IHSG snapshot temporarily unavailable";
       console.warn("HANZ IHSG display load failed",error);
     }
+    renderAutoDecisions();
   }
 
   function start(){
     load();
     setInterval(load,300000);
+    setInterval(renderAutoDecisions,1000);
   }
 
   if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",start);
