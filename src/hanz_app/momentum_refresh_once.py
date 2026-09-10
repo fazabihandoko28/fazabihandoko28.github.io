@@ -1,23 +1,19 @@
-"""One-shot completed-bar refresh using the HANZ Momentum Entry Score.
-
-This module exists only to refresh the monitor table immediately after the
-single-score model is deployed, without waiting for the scheduled post-close
-scanner. It uses maintenance_mode=True, so it cannot create a new actionable
-BUY, alert, push, or portfolio action.
-"""
+"""One-shot completed-bar refresh using HANZ Momentum Entry Score + early trigger."""
 
 import json
 
 from . import swing_trading_engine as engine
 from .momentum_entry_score import momentum_entry_score
+from .early_momentum_trigger import install as install_early_momentum_trigger
 
 
-SCORE_VERSION = "CRV3_MES1_2026_09_10_MOMENTUM_ENTRY"
+SCORE_VERSION = "CRV3_MES2_2026_09_10_EARLY_MOMENTUM_ENTRY"
 
 
 def main():
     engine.canonical_rank_score = momentum_entry_score
     engine.CANONICAL_RANK_VERSION = SCORE_VERSION
+    install_early_momentum_trigger(engine)
     engine._REAL_MONEY_CONTEXT = engine.build_real_money_context()
 
     universe = engine.fetch_universe()
@@ -25,7 +21,7 @@ def main():
 
     print(
         f"HANZ MOMENTUM ENTRY ONE-SHOT REFRESH | universe={len(universe)} | "
-        "maintenance_mode=TRUE | new BUY/alert/push=BLOCKED",
+        "early-trigger=V2 | maintenance_mode=TRUE | new BUY/alert/push=BLOCKED",
         flush=True,
     )
 
