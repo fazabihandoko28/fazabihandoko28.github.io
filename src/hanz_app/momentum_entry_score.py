@@ -7,8 +7,9 @@ A high score must not mean merely "strong trend". The model deliberately
 rewards early/improving momentum, usable entry location and remaining upside,
 then penalizes extension, chasing and exhaustion/TP-risk conditions.
 
-This is a deterministic research model and should be calibrated with IDX
-out-of-sample / walk-forward evidence before being treated as validated edge.
+The scorer also writes one automatic HANZ decision into risk_validation:
+BUY / WAIT / DO_NOT_CHASE / TP_RISK / AVOID.  This is the operational layer
+used by the dashboard so the user does not have to re-analyse every chart.
 """
 
 
@@ -25,20 +26,15 @@ def _clamp(value, lo, hi):
     return max(lo, min(hi, value))
 
 
+def _set_decision(rv, action, reason, confidence=None):
+    rv["hanz_action"] = action
+    rv["hanz_action_reason"] = reason
+    if confidence is not None:
+        rv["hanz_action_confidence"] = int(_clamp(confidence, 0, 100))
+
+
 def momentum_entry_score(result, risk_validation):
-    """Return one 0-100 HANZ Momentum Entry Score.
-
-    Weighting:
-      25  early momentum
-      20  volume build-up
-      20  entry location
-      15  upside remaining / risk-reward
-      10  market support
-      10  price-action/trigger quality
-
-    Penalties are applied to the same single score. There is no secondary
-    setup-quality score exposed to the dashboard.
-    """
+    """Return one 0-100 HANZ Momentum Entry Score and persist HANZ action."""
     result = result or {}
     rv = risk_validation or {}
 
@@ -53,20 +49,21 @@ def momentum_entry_score(result, risk_validation):
 
     # Genuine broken/non-tradable conditions remain zero.
     if momentum_guard.get("blocked"):
+        _set_decision(rv, "AVOID", "Momentum structure is broken / hard-blocked.", 95)
         return 0
     if str(rv.get("volatility_status") or "").upper() == "EXTREME":
+        _set_decision(rv, "AVOID", "Extreme volatility: entry quality is not measurable enough.", 95)
         return 0
     zero_vol = n("zero_volume_days20", 0) or 0
     avg_value20 = n("avg_value20")
     if zero_vol >= 5:
+        _set_decision(rv, "AVOID", "Too many zero-volume sessions.", 95)
         return 0
     if avg_value20 is not None and avg_value20 < 100_000_000:
+        _set_decision(rv, "AVOID", "Liquidity is below HANZ minimum tradability threshold.", 95)
         return 0
 
-    # ---------------------------------------------------------
     # 1) EARLY MOMENTUM — 25
-    # Peak score is given to IMPROVING momentum, not mature/extended momentum.
-    # ---------------------------------------------------------
     momentum = 0.0
     rsi = n("daily_rsi")
     rsi_change = n("rsi_change_5d")
@@ -98,7 +95,6 @@ def momentum_entry_score(result, risk_validation):
         elif 0.80 < ema_slope <= 1.50:
             momentum += 3
 
-    # Mild positive returns are preferred to already-exploded moves.
     if ret3 is not None and ret5 is not None:
         if -1.0 <= ret3 <= 3.5 and -1.0 <= ret5 <= 6.0:
             momentum += 4
@@ -107,10 +103,7 @@ def momentum_entry_score(result, risk_validation):
 
     momentum = _clamp(momentum, 0.0, 25.0)
 
-    # ---------------------------------------------------------
     # 2) VOLUME BUILD-UP — 20
-    # Reward accumulation/expansion; do NOT reward volume climax.
-    # ---------------------------------------------------------
     volume = 0.0
     rvol = n("daily_rvol")
     vol_accel = n("volume_accel_5d")
@@ -135,10 +128,7 @@ def momentum_entry_score(result, risk_validation):
 
     volume = _clamp(volume, 0.0, 20.0)
 
-    # ---------------------------------------------------------
     # 3) ENTRY LOCATION — 20
-    # Highest near support/trigger BEFORE price has run away.
-    # ---------------------------------------------------------
     location = 0.0
     support_atr = n("support_distance_atr")
     breakout_dist = n("breakout_distance_pct")
@@ -170,15 +160,13 @@ def momentum_entry_score(result, risk_validation):
 
     location = _clamp(location, 0.0, 20.0)
 
-    # ---------------------------------------------------------
     # 4) UPSIDE REMAINING / R:R — 15
-    # ---------------------------------------------------------
     upside = 0.0
     rr1 = n("rr_target_1")
     rr2 = n("rr_target_2")
     rr_candidates = [x for x in (rr1, rr2) if x is not None]
-    if rr_candidates:
-        rr = max(rr_candidates)
+    rr = max(rr_candidates) if rr_candidates else None
+    if rr is not None:
         if rr >= 3.0:
             upside = 15
         elif rr >= 2.5:
@@ -192,9 +180,7 @@ def momentum_entry_score(result, risk_validation):
         elif rr >= 1.2:
             upside = 2
 
-    # ---------------------------------------------------------
     # 5) MARKET SUPPORT — 10
-    # ---------------------------------------------------------
     market = 0.0
     regime = str(rv.get("market_regime") or "").upper()
     market_score = n("market_score")
@@ -202,8 +188,6 @@ def momentum_entry_score(result, risk_validation):
         market += 8
     elif regime == "YELLOW":
         market += 5
-    elif regime == "RED":
-        market += 0
     if market_score is not None:
         if market_score >= 90:
             market += 2
@@ -211,33 +195,29 @@ def momentum_entry_score(result, risk_validation):
             market += 1
     market = _clamp(market, 0.0, 10.0)
 
-    # ---------------------------------------------------------
     # 6) PRICE-ACTION / TRIGGER QUALITY — 10
-    # Uses existing engine evidence; does not create a second visible score.
-    # ---------------------------------------------------------
     price_action = 0.0
-    if bool(rv.get("trigger_confirmed")) or bool(result.get("trigger_confirmed")):
+    trigger_confirmed = bool(rv.get("trigger_confirmed")) or bool(result.get("trigger_confirmed"))
+    minor_break = bool(result.get("minor_structure_break")) or bool(rv.get("minor_structure_break"))
+    higher_low = bool(result.get("higher_low")) or bool(rv.get("higher_low"))
+    volume_confirm = bool(rv.get("volume_confirm")) or bool(result.get("volume_confirm"))
+
+    if trigger_confirmed:
         price_action += 5
     if setup_family == "EARLY_REVERSAL":
         price_action += 3
-        if bool(result.get("minor_structure_break")):
+        if minor_break:
             price_action += 2
-        elif bool(result.get("higher_low")):
+        elif higher_low:
             price_action += 1
     elif setup_family == "PULLBACK_RETEST":
         price_action += 3
     elif setup_family == "BREAKOUT":
-        # Fresh breakout can be valid, but it is not automatically better
-        # than an earlier entry location.
         price_action += 2
     price_action = _clamp(price_action, 0.0, 10.0)
 
-    # ---------------------------------------------------------
     # EXHAUSTION / TP-RISK PENALTIES
-    # These are the critical difference from the old "stronger = higher" rank.
-    # ---------------------------------------------------------
     penalty = 0.0
-
     if ret3 is not None:
         if ret3 >= 10:
             penalty += 16
@@ -245,7 +225,6 @@ def momentum_entry_score(result, risk_validation):
             penalty += 11
         elif ret3 >= 5:
             penalty += 6
-
     if ret5 is not None:
         if ret5 >= 15:
             penalty += 18
@@ -253,7 +232,6 @@ def momentum_entry_score(result, risk_validation):
             penalty += 12
         elif ret5 >= 8:
             penalty += 7
-
     if rsi is not None:
         if rsi >= 80:
             penalty += 14
@@ -261,7 +239,6 @@ def momentum_entry_score(result, risk_validation):
             penalty += 9
         elif rsi >= 72:
             penalty += 5
-
     if rvol is not None:
         if rvol >= 4.0:
             penalty += 10
@@ -269,14 +246,11 @@ def momentum_entry_score(result, risk_validation):
             penalty += 6
         elif rvol >= 2.5:
             penalty += 3
-
     if vol_accel is not None:
         if vol_accel >= 4.0:
             penalty += 8
         elif vol_accel >= 3.0:
             penalty += 4
-
-    # Negative breakout distance means price is already above the trigger.
     if breakout_dist is not None:
         if breakout_dist <= -7:
             penalty += 18
@@ -284,7 +258,6 @@ def momentum_entry_score(result, risk_validation):
             penalty += 12
         elif breakout_dist <= -3:
             penalty += 7
-
     if entry_status == "WAIT_PULLBACK":
         penalty += 8
     if bool(rv.get("do_not_chase")):
@@ -293,16 +266,63 @@ def momentum_entry_score(result, risk_validation):
         penalty += 6
     if bool(momentum_guard.get("failed_breakout")):
         penalty += 15
-
-    # Keep execution/research state from masquerading as timing quality.
-    # Only a tiny penalty is used; the score remains an entry-timing measure.
     if gate in {"RESEARCH_ONLY", "PAPER_ONLY"}:
         penalty += 1
 
     total = momentum + volume + location + upside + market + price_action - penalty
     total = int(_clamp(round(total), 0, 100))
 
-    # Reuse the existing diagnostics field so no dashboard/schema change is needed.
+    # AUTOMATIC HANZ ACTION. This is intentionally one final operational call.
+    extended = bool(rv.get("do_not_chase")) or (breakout_dist is not None and breakout_dist <= -3.0)
+    exhaustion = (
+        (ret3 is not None and ret3 >= 7.0)
+        or (ret5 is not None and ret5 >= 11.0)
+        or (rsi is not None and rsi >= 75.0)
+    )
+    rr_ok = rr is not None and rr >= 1.7
+    location_ok = entry_status != "WAIT_PULLBACK" and not extended
+    market_ok = regime != "RED"
+    trigger_ok = trigger_confirmed or minor_break
+    volume_ok = volume_confirm or (rvol is not None and 1.05 <= rvol <= 2.5)
+
+    if extended:
+        _set_decision(
+            rv, "DO_NOT_CHASE",
+            "Price has moved too far beyond the usable trigger/entry location; wait for a retest or pullback.",
+            max(70, total),
+        )
+    elif exhaustion and penalty >= 15:
+        _set_decision(
+            rv, "TP_RISK",
+            "Momentum is mature enough that fresh-entry reward is deteriorating and profit-taking risk is elevated.",
+            max(70, min(95, penalty + 55)),
+        )
+    elif total >= 75 and trigger_ok and volume_ok and rr_ok and location_ok and market_ok:
+        _set_decision(
+            rv, "BUY",
+            "Momentum trigger, volume, entry location and risk/reward are aligned for a fresh swing entry.",
+            total,
+        )
+    elif total >= 62 and location_ok and market_ok:
+        missing = []
+        if not trigger_ok:
+            missing.append("trigger")
+        if not volume_ok:
+            missing.append("volume")
+        if not rr_ok:
+            missing.append("R:R")
+        reason = "Setup remains actionable to monitor"
+        if missing:
+            reason += "; waiting for " + ", ".join(missing)
+        reason += "."
+        _set_decision(rv, "WAIT", reason, total)
+    else:
+        _set_decision(
+            rv, "AVOID",
+            "Current momentum/location/risk combination is not good enough for a fresh entry.",
+            max(50, 100 - total),
+        )
+
     rv["opportunity_score_breakdown"] = {
         "early_momentum": round(momentum, 1),
         "volume_build_up": round(volume, 1),
@@ -313,6 +333,6 @@ def momentum_entry_score(result, risk_validation):
         "exhaustion_penalty": round(penalty, 1),
         "setup_family": setup_family,
         "gate": gate,
-        "version": "MES1_2026_09_09_SINGLE_ENTRY_SCORE",
+        "version": "MES3_2026_09_10_AUTO_DECISION",
     }
     return total
