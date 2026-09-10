@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-09-09T12:02:14.492771+00:00",
+  "generated_at": "2026-09-10T06:48:01.906638+00:00",
   "policy": "HIGH_CONFIDENCE_CAUSAL_ONLY",
   "selected_tickers": [
-    "MARK",
     "SPTO",
-    "MNCN",
-    "BJBR",
-    "MIKA"
+    "BSML",
+    "ANTM",
+    "BJTM",
+    "BJBR"
   ],
   "catalysts": []
 }
