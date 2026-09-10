@@ -1,6 +1,8 @@
 (() => {
   const STYLE_ID = "hanz-news-catalyst-style";
   const ROOT_ID = "hanzNewsCatalyst";
+  const SUPABASE_URL = "https://fgyfszkadstmdzqvwppt.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_rBY4VJwPS1T5tm0zPw4tbg_BhApWtfM";
 
   function esc(v){
     return String(v ?? "")
@@ -15,7 +17,6 @@
     const style=document.createElement("style");
     style.id=STYLE_ID;
     style.textContent=`
-      /* Compact main page: Selected HANZ Candidates stays as hidden data source only. */
       .candidate-section{display:none!important}
       .rank{cursor:pointer;transition:.16s ease;border:1px solid transparent}
       .rank:hover,.rank:focus{border-color:rgba(40,224,162,.38);background:rgba(40,224,162,.055);outline:none;transform:translateY(-1px)}
@@ -24,6 +25,9 @@
       .radar-chart-wrap{margin-top:14px}
       .radar-chart-title{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
       .radar-chart-title strong{font-size:11px}.radar-chart-title span{color:var(--muted);font-size:8px}
+      .sr-legend{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 2px}
+      .sr-chip{padding:5px 8px;border-radius:999px;font-size:8px;font-weight:900;border:1px solid rgba(255,255,255,.12);background:rgba(7,14,27,.72)}
+      .sr-support{color:#66e3a4}.sr-resistance{color:#ff9c70}.sr-trigger{color:#48d7ff}
 
       .news-catalyst-wrap{margin:0 0 12px}
       .news-catalyst-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:10px}
@@ -106,6 +110,112 @@
     }).join("");
   }
 
+  function pivotLevels(candles){
+    const rows=(Array.isArray(candles)?candles:[]).map(c=>({
+      high:Number(c.high), low:Number(c.low), close:Number(c.close), volume:Number(c.volume)
+    })).filter(c=>Number.isFinite(c.close)&&Number.isFinite(c.high)&&Number.isFinite(c.low));
+    if(rows.length<12) return null;
+    const data=rows.slice(-60);
+    const latest=data.at(-1).close;
+    const lows=[], highs=[];
+    for(let i=2;i<data.length-2;i++){
+      const d=data[i];
+      if(d.low<=data[i-1].low && d.low<=data[i-2].low && d.low<=data[i+1].low && d.low<=data[i+2].low) lows.push(d.low);
+      if(d.high>=data[i-1].high && d.high>=data[i-2].high && d.high>=data[i+1].high && d.high>=data[i+2].high) highs.push(d.high);
+    }
+    const uniq=(arr,tol=.012)=>{
+      const out=[];
+      arr.sort((a,b)=>a-b).forEach(v=>{
+        if(!out.some(x=>Math.abs(v/x-1)<=tol)) out.push(v);
+      });
+      return out;
+    };
+    const us=uniq(lows), ur=uniq(highs);
+    const supports=us.filter(v=>v<latest).sort((a,b)=>b-a);
+    const resistances=ur.filter(v=>v>latest).sort((a,b)=>a-b);
+    const recent=data.slice(-6,-1);
+    const trigger=recent.length?Math.max(...recent.map(d=>d.high)):null;
+    return {
+      s1:supports[0]??null,s2:supports[1]??null,
+      r1:resistances[0]??null,r2:resistances[1]??null,
+      trigger:Number.isFinite(trigger)?trigger:null,
+      latest,
+      data
+    };
+  }
+
+  function chartScale(data){
+    const close=data.map(d=>d.close);
+    const sma=(vals,p)=>vals.map((_,i)=>i<p-1?null:vals.slice(i-p+1,i+1).reduce((a,b)=>a+b,0)/p);
+    const sd=(vals,p)=>vals.map((_,i)=>{
+      if(i<p-1) return null;
+      const s=vals.slice(i-p+1,i+1),m=s.reduce((a,b)=>a+b,0)/p;
+      return Math.sqrt(s.reduce((a,b)=>a+(b-m)*(b-m),0)/p);
+    });
+    const ma20=sma(close,20),ma50=sma(close,50),sd20=sd(close,20);
+    const up=ma20.map((m,i)=>m===null||sd20[i]===null?null:m+2*sd20[i]);
+    const lo=ma20.map((m,i)=>m===null||sd20[i]===null?null:m-2*sd20[i]);
+    const all=[...close,...ma20.filter(Number.isFinite),...ma50.filter(Number.isFinite),...up.filter(Number.isFinite),...lo.filter(Number.isFinite)];
+    return {min:Math.min(...all),max:Math.max(...all)};
+  }
+
+  async function fetchChartCandles(ticker){
+    const url=`${SUPABASE_URL}/rest/v1/hanz_swing_chart_data?ticker=eq.${encodeURIComponent(ticker)}&select=candles&limit=1`;
+    const r=await fetch(url,{headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`},cache:"no-store"});
+    if(!r.ok) throw new Error(`chart level HTTP ${r.status}`);
+    const rows=await r.json();
+    return rows?.[0]?.candles||[];
+  }
+
+  function addSupportResistanceOverlay(container,levels){
+    if(!container || !levels) return;
+    const svg=container.querySelector(".tech-panel .tech-svg");
+    if(!svg || svg.dataset.srOverlay==="1") return;
+    svg.dataset.srOverlay="1";
+    const W=900,H=330,padY=18;
+    const scale=chartScale(levels.data);
+    const y=v=>H-padY-((v-scale.min)/((scale.max-scale.min)||1))*(H-padY*2);
+    const NS="http://www.w3.org/2000/svg";
+    const specs=[
+      ["S1",levels.s1,"#66e3a4","5 4"],
+      ["S2",levels.s2,"#3fbf86","3 5"],
+      ["BUY TRIGGER",levels.trigger,"#48d7ff","8 4"],
+      ["R1",levels.r1,"#ff9c70","5 4"],
+      ["R2",levels.r2,"#ff6572","3 5"]
+    ].filter(([,v])=>Number.isFinite(v));
+
+    specs.forEach(([label,v,color,dash])=>{
+      const yy=y(v);
+      if(yy<8||yy>H-8) return;
+      const line=document.createElementNS(NS,"line");
+      line.setAttribute("x1","32");line.setAttribute("x2",String(W-8));
+      line.setAttribute("y1",String(yy));line.setAttribute("y2",String(yy));
+      line.setAttribute("stroke",color);line.setAttribute("stroke-width","1.6");
+      line.setAttribute("stroke-dasharray",dash);line.setAttribute("opacity","0.9");
+      svg.appendChild(line);
+      const text=document.createElementNS(NS,"text");
+      text.setAttribute("x",String(W-10));text.setAttribute("y",String(Math.max(12,yy-4)));
+      text.setAttribute("text-anchor","end");text.setAttribute("fill",color);
+      text.setAttribute("font-size","10");text.setAttribute("font-weight","800");
+      text.textContent=`${label} ${Number(v).toLocaleString("en-US",{maximumFractionDigits:2})}`;
+      svg.appendChild(text);
+    });
+
+    const legend=document.createElement("div");
+    legend.className="sr-legend";
+    const chip=(cls,label,v)=>Number.isFinite(v)?`<span class="sr-chip ${cls}">${label} ${Number(v).toLocaleString("en-US",{maximumFractionDigits:2})}</span>`:"";
+    legend.innerHTML=chip("sr-support","S1",levels.s1)+chip("sr-support","S2",levels.s2)+chip("sr-trigger","BUY TRIGGER",levels.trigger)+chip("sr-resistance","R1",levels.r1)+chip("sr-resistance","R2",levels.r2);
+    const panel=svg.closest(".tech-panel");
+    if(panel) panel.appendChild(legend);
+  }
+
+  async function enrichChartWithLevels(container,ticker){
+    try{
+      const candles=await fetchChartCandles(ticker);
+      addSupportResistanceOverlay(container,pivotLevels(candles));
+    }catch(e){ console.warn("HANZ S/R overlay unavailable",e); }
+  }
+
   function copyChartIntoDetail(index){
     const chartButton=document.querySelector(`[data-candidate-chart="${index}"]`);
     const chartModal=document.getElementById("candidateChartModal");
@@ -134,6 +244,9 @@
         const target=document.getElementById("radarIntegratedChart");
         if(target){
           target.innerHTML=`<div class="radar-chart-title"><strong>PRICE + TECHNICAL CHART</strong><span>60 completed daily bars</span></div>${chartBody.innerHTML}`;
+          const title=document.getElementById("candidateChartTitle")?.textContent||"";
+          const ticker=title.split("·")[0].trim();
+          if(ticker) enrichChartWithLevels(target,ticker);
         }
         chartModal.classList.remove("show");
         chartModal.style.visibility="";
@@ -173,6 +286,21 @@
     });
   }
 
+  function bindStandaloneChartOverlay(){
+    const modal=document.getElementById("candidateChartModal");
+    if(!modal || modal.dataset.srObserver==="1") return;
+    modal.dataset.srObserver="1";
+    const obs=new MutationObserver(()=>{
+      if(!modal.classList.contains("show")) return;
+      const body=document.getElementById("candidateChartBody");
+      if(!body?.querySelector(".tech-svg") || body.querySelector('.tech-svg[data-sr-overlay="1"]')) return;
+      const title=document.getElementById("candidateChartTitle")?.textContent||"";
+      const ticker=title.split("·")[0].trim();
+      if(ticker) enrichChartWithLevels(body,ticker);
+    });
+    obs.observe(modal,{subtree:true,childList:true,attributes:true});
+  }
+
   function loadIhsgDisplay(){
     if(document.querySelector('script[data-hanz-ihsg="1"]')) return;
     const script=document.createElement("script");
@@ -186,6 +314,7 @@
     addStyles();
     if(!ensureRoot()) return;
     bindRadarRows();
+    bindStandaloneChartOverlay();
     try{
       const response=await fetch(`./news-catalyst.json?ts=${Date.now()}`,{cache:"no-store"});
       if(!response.ok) throw new Error(`HTTP ${response.status}`);
