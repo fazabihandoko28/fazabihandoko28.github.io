@@ -1038,5 +1038,55 @@
     "source": "YAHOO_FINANCE_RESEARCH_ONLY",
     "recorded_at": "2026-09-09T17:13:47.542708+00:00",
     "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "NCKL",
+    "status": "READY",
+    "signal_timestamp": "2026-09-09T00:00:00+00:00",
+    "signal_close": 1005.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-09-10T17:05:27.529573+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "AKRA",
+    "status": "READY",
+    "signal_timestamp": "2026-09-09T00:00:00+00:00",
+    "signal_close": 1550.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-09-10T17:05:27.529599+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "INDY",
+    "status": "READY",
+    "signal_timestamp": "2026-09-09T00:00:00+00:00",
+    "signal_close": 3120.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-09-10T17:05:27.529613+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "AMMN",
+    "status": "READY",
+    "signal_timestamp": "2026-09-09T00:00:00+00:00",
+    "signal_close": 4910.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-09-10T17:05:27.529623+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "MEDC",
+    "status": "WAIT",
+    "signal_timestamp": "2026-09-09T00:00:00+00:00",
+    "signal_close": 1575.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-09-10T17:05:27.529633+00:00",
+    "outcome": "PENDING"
   }
 ]
