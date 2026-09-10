@@ -1,4 +1,4 @@
-"""One-shot completed-bar refresh using HANZ Momentum Entry Score + early trigger."""
+"""One-shot completed-bar refresh using HANZ Momentum Entry Score + auto decision."""
 
 import json
 
@@ -7,7 +7,7 @@ from .momentum_entry_score import momentum_entry_score
 from .early_momentum_trigger import install as install_early_momentum_trigger
 
 
-SCORE_VERSION = "CRV3_MES2_2026_09_10_EARLY_MOMENTUM_ENTRY"
+SCORE_VERSION = "CRV3_MES3_2026_09_10_AUTO_DECISION"
 
 
 def main():
@@ -21,7 +21,7 @@ def main():
 
     print(
         f"HANZ MOMENTUM ENTRY ONE-SHOT REFRESH | universe={len(universe)} | "
-        "early-trigger=V2 | maintenance_mode=TRUE | new BUY/alert/push=BLOCKED",
+        "auto-decision=MES3 | maintenance_mode=TRUE | broker execution=BLOCKED",
         flush=True,
     )
 
