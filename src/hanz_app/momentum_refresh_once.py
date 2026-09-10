@@ -12,7 +12,7 @@ from . import swing_trading_engine as engine
 from .momentum_entry_score import momentum_entry_score
 
 
-SCORE_VERSION = "MES1_2026_09_09_SINGLE_ENTRY_SCORE"
+SCORE_VERSION = "CRV3_MES1_2026_09_10_MOMENTUM_ENTRY"
 
 
 def main():
