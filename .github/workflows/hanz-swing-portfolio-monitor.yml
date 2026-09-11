@@ -3,11 +3,24 @@ name: HANZ Swing Portfolio Monitor
 on:
   workflow_dispatch:
 
+  # Run immediately after portfolio-monitor code changes too, so alert logic
+  # can be exercised without waiting for the next cron window.
+  push:
+    paths:
+      - "src/hanz_app/swing_portfolio_monitor.py"
+      - "src/hanz_app/portfolio_exit_guard.py"
+      - ".github/workflows/hanz-swing-portfolio-monitor.yml"
+
   schedule:
-    # Every 30 minutes from 09:10 to 15:40 WIB.
+    # PRE-OPEN health checks: 08:15 and 08:45 WIB (UTC 01:15 / 01:45).
+    - cron: "15,45 1 * * 1-5"
+
+    # Live-session checks every 30 minutes from 09:10 to 15:40 WIB.
     # GitHub cron is UTC: 02:10..08:40 UTC.
-    # Python IDX gate skips lunch break, weekends and exchange holidays.
     - cron: "10,40 2-8 * * 1-5"
+
+    # POST-CLOSE health check: 16:20 WIB (UTC 09:20).
+    - cron: "20 9 * * 1-5"
 
 permissions:
   contents: read
