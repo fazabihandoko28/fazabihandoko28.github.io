@@ -5,12 +5,14 @@ import json
 from . import swing_trading_engine as engine
 from .momentum_entry_score import momentum_entry_score
 from .early_momentum_trigger import install as install_early_momentum_trigger
+from .market_data_router import install as install_market_data_router
 
 
-SCORE_VERSION = "CRV3_MES3_2026_09_10_AUTO_DECISION"
+SCORE_VERSION = "CRV3_MES4_2026_09_11_DATA_QUALITY_GATE"
 
 
 def main():
+    install_market_data_router(engine)
     engine.canonical_rank_score = momentum_entry_score
     engine.CANONICAL_RANK_VERSION = SCORE_VERSION
     install_early_momentum_trigger(engine)
@@ -21,7 +23,7 @@ def main():
 
     print(
         f"HANZ MOMENTUM ENTRY ONE-SHOT REFRESH | universe={len(universe)} | "
-        "auto-decision=MES3 | maintenance_mode=TRUE | broker execution=BLOCKED",
+        "auto-decision=MES4 | data-quality-gate=ON | maintenance_mode=TRUE | broker execution=BLOCKED",
         flush=True,
     )
 
