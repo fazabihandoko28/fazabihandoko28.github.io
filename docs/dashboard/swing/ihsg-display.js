@@ -70,15 +70,38 @@
     return {label:"WAIT",cls:"hanz-action-wait"};
   }
 
+  function tickerFromRankElement(el){
+    const symbol=el?.querySelector(".rank-symbol");
+    if(!symbol) return "";
+    const firstText=[...symbol.childNodes].find(n=>n.nodeType===Node.TEXT_NODE && String(n.textContent||"").trim());
+    return String(firstText?.textContent || symbol.textContent || "").trim().split(/\s+/)[0].toUpperCase();
+  }
+
   function renderAutoDecisions(){
     const rows=Array.isArray(window.__hanzSignalRows)?window.__hanzSignalRows:[];
     const rankEls=[...document.querySelectorAll("#ranking .rank")];
     if(!rows.length || !rankEls.length) return;
 
-    rankEls.forEach((el,i)=>{
-      const row=rows[i]; if(!row) return;
+    // Ranking is a BUY list, not a generic radar list. WAIT / AVOID /
+    // DO_NOT_CHASE / TP_RISK may remain elsewhere as radar candidates, but
+    // they must never look like ranked recommendations to the user.
+    let visibleRank=0;
+    rankEls.forEach((el)=>{
+      const ticker=tickerFromRankElement(el);
+      const row=rows.find(r=>String(r?.ticker||"").toUpperCase()===ticker);
+      if(!row){ el.style.display="none"; return; }
       const rv=riskObject(row);
-      const action=rv.hanz_action || "WAIT";
+      const action=String(rv.hanz_action || "WAIT").toUpperCase();
+      if(action!=="BUY"){
+        el.style.display="none";
+        return;
+      }
+
+      el.style.display="";
+      visibleRank += 1;
+      const no=el.querySelector(".rank-no");
+      if(no) no.textContent=`#${visibleRank}`;
+
       const meta=actionMeta(action);
       const symbol=el.querySelector(".rank-symbol");
       if(symbol){
@@ -90,14 +113,28 @@
       }
     });
 
-    const top=rows[0];
+    const buyRows=rows
+      .filter(r=>String(riskObject(r).hanz_action||"").toUpperCase()==="BUY")
+      .sort((a,b)=>Number(riskObject(b).canonical_rank_score||0)-Number(riskObject(a).canonical_rank_score||0));
+
+    const top=buyRows[0];
+    const sub=document.getElementById("heroTopSub");
     if(top){
       const rv=riskObject(top), meta=actionMeta(rv.hanz_action);
-      const sub=document.getElementById("heroTopSub");
       if(sub){
         const score=Number(rv.canonical_rank_score ?? top.score ?? 0);
         sub.textContent=`HANZ ${meta.label} · Momentum Entry ${Number.isFinite(score)?Math.round(score):0}/100${rv.hanz_action_reason?` · ${rv.hanz_action_reason}`:""}`;
       }
+      const heroTicker=document.getElementById("heroTopCandidate");
+      const topTicker=document.getElementById("topCandidate");
+      if(heroTicker) heroTicker.textContent=top.ticker;
+      if(topTicker) topTicker.textContent=top.ticker;
+    }else if(sub){
+      sub.textContent="NO BUY NOW · Radar candidates are not ranked recommendations";
+      const heroTicker=document.getElementById("heroTopCandidate");
+      const topTicker=document.getElementById("topCandidate");
+      if(heroTicker) heroTicker.textContent="—";
+      if(topTicker) topTicker.textContent="—";
     }
 
     const detail=document.getElementById("candidateDetailIndicators");
