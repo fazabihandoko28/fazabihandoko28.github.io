@@ -48,4 +48,4 @@ jobs:
         run: |
           python -m hanz_app.momentum_refresh_once
 
-# Touch 2026-09-11: refresh after MES4 market-data router + data-quality gate.
+# Touch 2026-09-11: refresh after MES5 strict timing + score/action consistency.
