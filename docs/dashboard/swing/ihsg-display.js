@@ -184,7 +184,17 @@
     renderAutoDecisions();
   }
 
+  function loadFibonacci(){
+    if(document.querySelector('script[data-hanz-fib="1"]')) return;
+    const script=document.createElement("script");
+    script.src="./fibonacci-overlay.js?v=1";
+    script.defer=true;
+    script.dataset.hanzFib="1";
+    document.head.appendChild(script);
+  }
+
   function start(){
+    loadFibonacci();
     load();
     setInterval(load,300000);
     setInterval(renderAutoDecisions,1000);
