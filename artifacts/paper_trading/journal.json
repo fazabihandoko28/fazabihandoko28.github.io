@@ -1088,5 +1088,55 @@
     "source": "YAHOO_FINANCE_RESEARCH_ONLY",
     "recorded_at": "2026-09-10T17:05:27.529633+00:00",
     "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "ISAT",
+    "status": "READY",
+    "signal_timestamp": "2026-09-10T00:00:00+00:00",
+    "signal_close": 2400.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-09-11T17:05:06.637928+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "TINS",
+    "status": "READY",
+    "signal_timestamp": "2026-09-10T00:00:00+00:00",
+    "signal_close": 4650.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-09-11T17:05:06.637958+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "CUAN",
+    "status": "READY",
+    "signal_timestamp": "2026-09-10T00:00:00+00:00",
+    "signal_close": 985.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-09-11T17:05:06.637970+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "UNTR",
+    "status": "WAIT",
+    "signal_timestamp": "2026-09-10T00:00:00+00:00",
+    "signal_close": 26375.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-09-11T17:05:06.637980+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "BBCA",
+    "status": "WAIT",
+    "signal_timestamp": "2026-09-10T00:00:00+00:00",
+    "signal_close": 6425.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-09-11T17:05:06.637992+00:00",
+    "outcome": "PENDING"
   }
 ]
