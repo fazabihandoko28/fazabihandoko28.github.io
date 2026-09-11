@@ -8,7 +8,7 @@ from .early_momentum_trigger import install as install_early_momentum_trigger
 from .market_data_router import install as install_market_data_router
 
 
-SCORE_VERSION = "CRV3_MES4_2026_09_11_DATA_QUALITY_GATE"
+SCORE_VERSION = "CRV3_MES5_2026_09_11_STRICT_TIMING"
 
 
 def main():
@@ -23,7 +23,7 @@ def main():
 
     print(
         f"HANZ MOMENTUM ENTRY ONE-SHOT REFRESH | universe={len(universe)} | "
-        "auto-decision=MES4 | data-quality-gate=ON | maintenance_mode=TRUE | broker execution=BLOCKED",
+        "auto-decision=MES5_STRICT_TIMING | data-quality-gate=ON | maintenance_mode=TRUE | broker execution=BLOCKED",
         flush=True,
     )
 
