@@ -7,6 +7,7 @@ from .swing_trading_engine import (
     next_idx_trading_day,
     monitor_swing_portfolio,
 )
+from .portfolio_exit_guard import monitor_early_exit_warnings
 
 
 def run_portfolio_cycle():
@@ -50,17 +51,26 @@ def run_portfolio_cycle():
         )
         return
 
-    # During the session we allow hard price/risk triggers, but defer
-    # structural daily/weekly exits until completed post-close bars.
+    # Core monitor keeps hard-stop/trailing/target logic. Structural daily/
+    # weekly exits remain post-close to avoid treating an unfinished candle as
+    # a confirmed bar.
     summary = monitor_swing_portfolio(
         allow_structural_exit=False
     )
 
+    # New proactive layer: do not stay silent while an open real position is
+    # already materially below its actual entry. It emits EXIT_WARNING /
+    # EXIT_WARNING_STRONG and can escalate to CONFIRMED_SELL_EARLY when loss +
+    # price structure agree.
+    early_exit = monitor_early_exit_warnings()
+
     print(
         "SWING PORTFOLIO cycle complete: "
         + json.dumps(summary)
-        + " | checks=SL/T1/T2/TRAILING/PROTECT_PROFIT"
-        + " | structural exits=DEFERRED_TO_POST_CLOSE",
+        + " | early_exit="
+        + json.dumps(early_exit)
+        + " | checks=SL/T1/T2/TRAILING/PROTECT_PROFIT/EARLY_EXIT"
+        + " | structural daily/weekly exits=DEFERRED_TO_POST_CLOSE",
         flush=True,
     )
 
