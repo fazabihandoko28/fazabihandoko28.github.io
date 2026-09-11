@@ -23,6 +23,9 @@ jobs:
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
       FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+      INDEX_ALPHA_API_KEY: ${{ secrets.INDEX_ALPHA_API_KEY }}
+      ZAPI_API_KEY: ${{ secrets.ZAPI_API_KEY }}
+      HANZ_MARKET_DATA_PRIMARY: "AUTO"
       HANZ_SWING_RUN_ONCE: "1"
       HANZ_SWING_MAX_SYMBOLS_PER_CYCLE: "220"
 
@@ -45,4 +48,4 @@ jobs:
         run: |
           python -m hanz_app.momentum_refresh_once
 
-# Touch 2026-09-10: refresh after MES3 automatic decision layer.
+# Touch 2026-09-11: refresh after MES4 market-data router + data-quality gate.
