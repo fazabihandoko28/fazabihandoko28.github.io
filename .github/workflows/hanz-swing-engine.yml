@@ -26,6 +26,9 @@ jobs:
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
       FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+      INDEX_ALPHA_API_KEY: ${{ secrets.INDEX_ALPHA_API_KEY }}
+      ZAPI_API_KEY: ${{ secrets.ZAPI_API_KEY }}
+      HANZ_MARKET_DATA_PRIMARY: "AUTO"
       HANZ_SWING_DASHBOARD_URL: https://fazabihandoko28.github.io/dashboard/swing/
       HANZ_SWING_RUN_ONCE: "1"
       HANZ_SWING_MAX_SYMBOLS_PER_CYCLE: "220"
