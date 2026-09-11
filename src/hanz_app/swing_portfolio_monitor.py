@@ -39,29 +39,32 @@ def run_portfolio_cycle():
         )
         return
 
-    # Run only while regular market is actually trading.
-    # Lunch break is skipped; POST_CLOSE is handled by the scanner workflow.
-    if market["state"] not in {
+    active_session = market["state"] in {
         "SESSION_1",
         "SESSION_2",
-    }:
+    }
+
+    # Pre-open/lunch/post-close still run the proactive early-exit layer using
+    # the latest completed daily data (and intraday only when the quote is fresh).
+    # This prevents HANZ from staying silent overnight or before the next open.
+    if not active_session:
+        early_exit = monitor_early_exit_warnings()
         print(
-            f"PORTFOLIO MONITOR skipped: market state={market['state']}.",
+            "SWING PORTFOLIO off-session health check complete: "
+            + json.dumps(early_exit)
+            + f" | market_state={market['state']}"
+            + " | hard SL/trailing/target checks deferred to live session",
             flush=True,
         )
         return
 
-    # Core monitor keeps hard-stop/trailing/target logic. Structural daily/
-    # weekly exits remain post-close to avoid treating an unfinished candle as
-    # a confirmed bar.
+    # During live sessions, keep hard-stop/trailing/target logic active.
+    # Structural daily/weekly exits remain post-close to avoid treating an
+    # unfinished candle as a confirmed bar.
     summary = monitor_swing_portfolio(
         allow_structural_exit=False
     )
 
-    # New proactive layer: do not stay silent while an open real position is
-    # already materially below its actual entry. It emits EXIT_WARNING /
-    # EXIT_WARNING_STRONG and can escalate to CONFIRMED_SELL_EARLY when loss +
-    # price structure agree.
     early_exit = monitor_early_exit_warnings()
 
     print(
