@@ -8,39 +8,60 @@ from .support_bounce_intelligence import install as install_support_bounce_intel
 
 
 # Keep CRV3 prefix for dashboard backwards compatibility.
-SCORE_VERSION = "CRV3_MES6_FRESH_BOUNCE_FIRST_2026_09_14"
+SCORE_VERSION = "CRV3_MES7_GRADUATED_OPPORTUNITY_2026_09_14"
 
 
-def actionable_top5_score(result, risk_validation):
-    """Return canonical score only for genuinely actionable fresh-entry names.
+def graduated_top5_score(result, risk_validation):
+    """Balanced Top-5 ranking: soft brake, not full stop.
 
-    The dashboard eligibility rule already rejects canonical score <= 0.  By
-    applying this backend hard gate, old frontend logic can no longer put AVOID,
-    DO_NOT_CHASE, TP_RISK, RESISTANCE_WAIT, or generic WAIT names into Big Rank.
+    HANZ should rank the best *available* opportunities, not demand perfection.
 
-    Allowed:
-      - BUY: fully confirmed fresh entry.
-      - WAIT_TRIGGER: fresh support bounce confirmed, but final trigger/volume/R:R
-        confirmation is still pending.
+    Hard-excluded from Opportunity Top 5:
+      - AVOID: fundamentally/tactically unsuitable for a fresh entry.
+      - hard data/structure blocks already return score 0 inside MES.
+
+    Still rankable, with natural score caps/penalties from MES:
+      - BUY: highest priority when quality is genuinely confirmed.
+      - WAIT_TRIGGER: fresh bounce / early setup awaiting final confirmation.
+      - WAIT: developing setup; may appear below stronger candidates.
+      - RESISTANCE_WAIT: may remain visible only at a low score so it cannot
+        dominate a cleaner support-bounce candidate.
+      - DO_NOT_CHASE / TP_RISK: kept out of the opportunity list because these
+        are management/warning states, not fresh-entry opportunities.
+
+    This prevents the previous binary behaviour where one strict rule emptied
+    the whole radar.
     """
-    score = momentum_entry_score(result, risk_validation)
-    action = str((risk_validation or {}).get("hanz_action") or "").upper()
-    if action not in {"BUY", "WAIT_TRIGGER"}:
-        (risk_validation or {})["top5_excluded"] = True
-        (risk_validation or {})["top5_exclusion_reason"] = (
-            f"HANZ action {action or 'UNKNOWN'} is not actionable for fresh-entry Top 5"
+    rv = risk_validation or {}
+    score = int(momentum_entry_score(result, rv) or 0)
+    action = str(rv.get("hanz_action") or "").upper()
+
+    hard_excluded = action in {"AVOID", "DO_NOT_CHASE", "TP_RISK"}
+    if hard_excluded:
+        rv["top5_excluded"] = True
+        rv["top5_exclusion_reason"] = (
+            f"HANZ action {action or 'UNKNOWN'} is not a fresh-entry opportunity"
         )
         return 0
 
-    (risk_validation or {})["top5_excluded"] = False
-    (risk_validation or {})["top5_exclusion_reason"] = None
+    # Preserve graded opportunity scores. Resistance is a brake, not a wall:
+    # the scoring model already caps RESISTANCE_WAIT <=39, so it can only appear
+    # when the market offers very few better setups.
+    rv["top5_excluded"] = False
+    rv["top5_exclusion_reason"] = None
+    rv["top5_priority_class"] = {
+        "BUY": "A_CONFIRMED",
+        "WAIT_TRIGGER": "B_EARLY",
+        "WAIT": "C_DEVELOPING",
+        "RESISTANCE_WAIT": "D_RESISTANCE",
+    }.get(action, "C_DEVELOPING")
     return score
 
 
 def main():
     install_market_data_router(engine)
     install_support_bounce_intelligence(engine)
-    engine.canonical_rank_score = actionable_top5_score
+    engine.canonical_rank_score = graduated_top5_score
     engine.CANONICAL_RANK_VERSION = SCORE_VERSION
     install_early_momentum_trigger(engine)
     engine.main()
