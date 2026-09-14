@@ -3,6 +3,16 @@ name: HANZ Swing Scanner
 on:
   workflow_dispatch:
 
+  push:
+    branches:
+      - main
+    paths:
+      - "src/hanz_app/momentum_entry_score.py"
+      - "src/hanz_app/support_bounce_intelligence.py"
+      - "src/hanz_app/swing_entry_runner.py"
+      - "src/hanz_app/swing_trading_engine.py"
+      - ".github/workflows/hanz-swing-engine.yml"
+
   schedule:
     # IDX intraday predictive radar.
     # 02:00-08:45 UTC = 09:00-15:45 WIB, Monday-Friday.
