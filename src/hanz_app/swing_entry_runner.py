@@ -8,54 +8,75 @@ from .support_bounce_intelligence import install as install_support_bounce_intel
 
 
 # Keep CRV3 prefix for dashboard backwards compatibility.
-SCORE_VERSION = "CRV3_MES7_GRADUATED_OPPORTUNITY_2026_09_14"
+SCORE_VERSION = "CRV3_MES8_RELATIVE100_BOTTOM_DECILE_2026_09_14"
 
 
 def graduated_top5_score(result, risk_validation):
-    """Balanced Top-5 ranking: soft brake, not full stop.
+    """Relative opportunity ranking for the 100-stock screener universe.
 
-    HANZ should rank the best *available* opportunities, not demand perfection.
+    Doctrine:
+      * Rank the BEST AVAILABLE opportunities first, not only perfect setups.
+      * AVOID is never an opportunity candidate. In a 100-name screener it
+        belongs to the bottom-decile / tail of the ranking (conceptually ranks
+        ~90-100), never Top 5.
+      * BUY / WAIT_TRIGGER / WAIT / RESISTANCE_WAIT remain rankable with graded
+        scores so the radar does not go empty just because nothing is perfect.
+      * DO_NOT_CHASE / TP_RISK are warning/management states and do not belong in
+        the fresh-entry Top 5.
 
-    Hard-excluded from Opportunity Top 5:
-      - AVOID: fundamentally/tactically unsuitable for a fresh entry.
-      - hard data/structure blocks already return score 0 inside MES.
-
-    Still rankable, with natural score caps/penalties from MES:
-      - BUY: highest priority when quality is genuinely confirmed.
-      - WAIT_TRIGGER: fresh bounce / early setup awaiting final confirmation.
-      - WAIT: developing setup; may appear below stronger candidates.
-      - RESISTANCE_WAIT: may remain visible only at a low score so it cannot
-        dominate a cleaner support-bounce candidate.
-      - DO_NOT_CHASE / TP_RISK: kept out of the opportunity list because these
-        are management/warning states, not fresh-entry opportunities.
-
-    This prevents the previous binary behaviour where one strict rule emptied
-    the whole radar.
+    The full screener can still display AVOID rows for transparency, but the
+    opportunity radar must not promote them.
     """
     rv = risk_validation or {}
-    score = int(momentum_entry_score(result, rv) or 0)
+    raw_score = int(momentum_entry_score(result, rv) or 0)
     action = str(rv.get("hanz_action") or "").upper()
 
-    hard_excluded = action in {"AVOID", "DO_NOT_CHASE", "TP_RISK"}
-    if hard_excluded:
+    # Absolute ranking doctrine for AVOID: bottom-decile only.
+    # Keep a tiny 0-9 tail score so full-universe sorting can still order AVOID
+    # names among themselves while guaranteeing they cannot compete with normal
+    # opportunity candidates.
+    if action == "AVOID":
+        tail_score = max(0, min(9, round(raw_score * 9 / 49))) if raw_score > 0 else 0
         rv["top5_excluded"] = True
-        rv["top5_exclusion_reason"] = (
-            f"HANZ action {action or 'UNKNOWN'} is not a fresh-entry opportunity"
-        )
-        return 0
+        rv["top5_exclusion_reason"] = "AVOID belongs to the bottom-decile, not Opportunity Top 5"
+        rv["ranking_bucket"] = "Z_BOTTOM_10_AVOID"
+        rv["relative_rank_policy"] = "BOTTOM_DECILE_90_100"
+        rv["canonical_raw_score_before_bucket"] = raw_score
+        return tail_score
 
-    # Preserve graded opportunity scores. Resistance is a brake, not a wall:
-    # the scoring model already caps RESISTANCE_WAIT <=39, so it can only appear
-    # when the market offers very few better setups.
-    rv["top5_excluded"] = False
-    rv["top5_exclusion_reason"] = None
-    rv["top5_priority_class"] = {
+    # These are not fresh-entry opportunities either. Keep them above AVOID in
+    # the full screener, but out of Opportunity Top 5.
+    if action in {"DO_NOT_CHASE", "TP_RISK"}:
+        rv["top5_excluded"] = True
+        rv["top5_exclusion_reason"] = f"HANZ action {action} is a warning/management state"
+        rv["ranking_bucket"] = "Y_WARNING"
+        rv["canonical_raw_score_before_bucket"] = raw_score
+        return max(10, min(24, raw_score))
+
+    # Rankable opportunity states. Their natural MES score remains the main
+    # differentiator; these floors only preserve category ordering when the raw
+    # score is unusually weak.
+    floors = {
+        "BUY": 70,
+        "WAIT_TRIGGER": 55,
+        "WAIT": 35,
+        "RESISTANCE_WAIT": 20,
+    }
+    priority = {
         "BUY": "A_CONFIRMED",
         "WAIT_TRIGGER": "B_EARLY",
         "WAIT": "C_DEVELOPING",
         "RESISTANCE_WAIT": "D_RESISTANCE",
-    }.get(action, "C_DEVELOPING")
-    return score
+    }
+
+    rv["top5_excluded"] = False
+    rv["top5_exclusion_reason"] = None
+    rv["top5_priority_class"] = priority.get(action, "C_DEVELOPING")
+    rv["ranking_bucket"] = priority.get(action, "C_DEVELOPING")
+    rv["relative_rank_policy"] = "BEST_AVAILABLE_FIRST"
+
+    score = max(floors.get(action, 25), raw_score)
+    return min(100, score)
 
 
 def main():
