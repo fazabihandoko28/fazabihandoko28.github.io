@@ -4,9 +4,15 @@ on:
   workflow_dispatch:
 
   schedule:
-    # 16:10 WIB = 09:10 UTC
-    # Full 200-stock scan only after IDX close.
-    # Python calendar gate blocks weekends and IDX holidays.
+    # IDX intraday predictive radar.
+    # 02:00-08:45 UTC = 09:00-15:45 WIB, Monday-Friday.
+    # The Python market/session gate handles lunch breaks, weekends and IDX holidays.
+    # This lets HANZ continuously detect support bounces / early momentum instead of
+    # waking up only after the exchange has closed.
+    - cron: "*/15 2-8 * * 1-5"
+
+    # 16:10 WIB = 09:10 UTC.
+    # Final completed-bar scan after IDX close.
     - cron: "10 9 * * 1-5"
 
 permissions:
@@ -14,7 +20,7 @@ permissions:
 
 concurrency:
   group: hanz-swing-scanner
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   swing-scan:
@@ -34,6 +40,8 @@ jobs:
       HANZ_SWING_MAX_SYMBOLS_PER_CYCLE: "220"
       HANZ_SWING_TRAILING_ATR_T1: "1.5"
       HANZ_SWING_TRAILING_ATR_T2: "1.0"
+      HANZ_RADAR_INTRADAY_INTERVAL: "15m"
+      HANZ_RADAR_INTRADAY_PERIOD: "5d"
 
     steps:
       - name: Checkout HANZ repository
