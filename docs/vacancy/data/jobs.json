@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-09-15T04:09:13.197239+00:00",
+  "generated_at": "2026-09-15T04:10:49.968502+00:00",
   "sources_attempted": 6,
-  "sources_healthy": 3,
-  "raw_jobs": 200,
-  "matching_jobs": 13,
+  "sources_healthy": 6,
+  "raw_jobs": 1310,
+  "matching_jobs": 81,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 100
+      "jobs": 422
     },
     {
       "name": "Publicis Groupe",
@@ -21,55 +21,439 @@
       "name": "Bosch",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 100
+      "jobs": 500
     },
     {
-      "name": "Airwallex",
-      "provider": "greenhouse",
-      "ok": false,
-      "jobs": 0,
-      "error": "HTTP Error 404: Not Found"
+      "name": "dentsu",
+      "provider": "smartrecruiters",
+      "ok": true,
+      "jobs": 0
     },
     {
-      "name": "Xendit",
-      "provider": "lever",
-      "ok": false,
-      "jobs": 0,
-      "error": "HTTP Error 404: Not Found"
+      "name": "NielsenIQ",
+      "provider": "smartrecruiters",
+      "ok": true,
+      "jobs": 388
     },
     {
-      "name": "ShopBack",
-      "provider": "lever",
-      "ok": false,
-      "jobs": 0,
-      "error": "HTTP Error 404: Not Found"
+      "name": "Visa",
+      "provider": "smartrecruiters",
+      "ok": true,
+      "jobs": 0
     }
   ],
   "jobs": [
     {
+      "id": "sr-744000133818089",
+      "title": "4W Partner Acquisition Assistant Manager",
+      "company": "Grab",
+      "location": "Jakarta, Indonesia",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000133818089-4w-partner-acquisition-assistant-manager",
+      "published_at": "2026-06-24T03:33:19.044Z",
+      "source_verified": true
+    },
+    {
       "id": "sr-744000147833469",
       "title": "Assistant Manager - City Marketing Execution",
       "company": "Grab",
-      "location": "Bandung, id",
-      "url": "https://api.smartrecruiters.com/v1/companies/Grab/postings/744000147833469",
+      "location": "Bandung, Indonesia",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000147833469-assistant-manager-city-marketing-execution",
       "published_at": "2026-09-07T04:46:01.490Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000142594006",
+      "title": "Assistant Marketing Manager, Financial Services",
+      "company": "Grab",
+      "location": "Jakarta, Indonesia",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000142594006-assistant-marketing-manager-financial-services",
+      "published_at": "2026-08-10T09:31:54.721Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000148139949",
+      "title": "City Marketing Execution Associate",
+      "company": "Grab",
+      "location": "Medan, Indonesia",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000148139949-city-marketing-execution-associate",
+      "published_at": "2026-09-08T05:51:49.325Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000122667128",
+      "title": "City Partnership Assistant Manager Medan",
+      "company": "Grab",
+      "location": "Medan, Indonesia",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000122667128-city-partnership-assistant-manager-medan",
+      "published_at": "2026-04-24T12:06:12.866Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000137049582",
+      "title": "Client Partner - Brands & Agencies, GrabAds",
+      "company": "Grab",
+      "location": "Jakarta, Indonesia",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000137049582-client-partner-brands-agencies-grabads",
+      "published_at": "2026-07-10T06:31:08.762Z",
       "source_verified": true
     },
     {
       "id": "sr-744000148732859",
       "title": "Country GrabKios Commercial Manager",
       "company": "Grab",
-      "location": "Jakarta, id",
-      "url": "https://api.smartrecruiters.com/v1/companies/Grab/postings/744000148732859",
+      "location": "Jakarta, Indonesia",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000148732859-country-grabkios-commercial-manager",
       "published_at": "2026-09-10T10:14:21.891Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000141404289",
+      "title": "Food Demand Strategy and Campaign Manager, ID Demand Strategy",
+      "company": "Grab",
+      "location": "Jakarta, Indonesia",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000141404289-food-demand-strategy-and-campaign-manager-id-demand-strategy",
+      "published_at": "2026-08-04T03:47:25.858Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000141167689",
+      "title": "Head, Product Marketing, Financial Services",
+      "company": "Grab",
+      "location": "Jakarta, Indonesia",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000141167689-head-product-marketing-financial-services",
+      "published_at": "2026-08-03T02:29:29.076Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000147411299",
+      "title": "Lead Data Scientist (Analytics) - Digital Marketing",
+      "company": "Grab",
+      "location": "Jakarta, Indonesia",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000147411299-lead-data-scientist-analytics-digital-marketing",
+      "published_at": "2026-09-04T04:21:22.046Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000138605441",
+      "title": "Manager, Communications",
+      "company": "Grab",
+      "location": "Jakarta, Indonesia",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000138605441-manager-communications",
+      "published_at": "2026-07-20T10:29:56.580Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000149254139",
+      "title": "Marketing Execution Assistant Manager - JABODETABEK",
+      "company": "Grab",
+      "location": "Jakarta, Indonesia",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000149254139-marketing-execution-assistant-manager-jabodetabek",
+      "published_at": "2026-09-14T07:28:45.888Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000147145460",
+      "title": "Regional Marketing Manager, B2B",
+      "company": "Grab",
+      "location": "Jakarta, Indonesia",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000147145460-regional-marketing-manager-b2b",
+      "published_at": "2026-09-03T03:33:47.511Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000119356487",
+      "title": "User Growth & Lifecycle Strategy Lead",
+      "company": "Grab",
+      "location": "Jakarta, Indonesia",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000119356487-user-growth-lifecycle-strategy-lead",
+      "published_at": "2026-04-08T12:41:04.734Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000146883669",
+      "title": "Associate Director, Analytics Commercial",
+      "company": "NielsenIQ",
+      "location": "Jakarta, Indonesia",
+      "url": "https://jobs.smartrecruiters.com/NielsenIQ/744000146883669-associate-director-analytics-commercial",
+      "published_at": "2026-09-02T03:16:12.160Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000148664309",
+      "title": "ASEAN Trade Marketing Manager",
+      "company": "Bosch Group",
+      "location": "Petaling Jaya, Malaysia",
+      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000148664309-asean-trade-marketing-manager",
+      "published_at": "2026-09-10T02:42:38.568Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000149245139",
+      "title": "CRM Paid Media SEA Manager",
+      "company": "Bosch Group",
+      "location": "Petaling Jaya, Malaysia",
+      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000149245139-crm-paid-media-sea-manager",
+      "published_at": "2026-09-14T06:33:51.786Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000149286121",
+      "title": "Internship 2026, Human Resources - Content Creator, Employer Branding & HR Admin Support (C/PJ-HRSTH)",
+      "company": "Bosch Group",
+      "location": "Klong Toei, Thailand",
+      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000149286121-internship-2026-human-resources-content-creator-employer-branding-hr-admin-support-c-pj-hrsth",
+      "published_at": "2026-09-14T09:47:40.823Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000148664349",
+      "title": "Trade Marketing Manager - Malaysia",
+      "company": "Bosch Group",
+      "location": "Petaling Jaya, Malaysia",
+      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000148664349-trade-marketing-manager-malaysia",
+      "published_at": "2026-09-10T02:43:03.363Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000143762290",
+      "title": "Assistant Manager, CRM",
+      "company": "Grab",
+      "location": "Petaling Jaya, Malaysia",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000143762290-assistant-manager-crm",
+      "published_at": "2026-08-17T07:42:42.730Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000137836764",
+      "title": "Assistant Manager, Country Business Development",
+      "company": "Grab",
+      "location": "Pasig City, Philippines",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000137836764-assistant-manager-country-business-development",
+      "published_at": "2026-07-15T08:53:35.276Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000141643594",
+      "title": "Assistant Marketing Manager",
+      "company": "Grab",
+      "location": "Pasig City, Philippines",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000141643594-assistant-marketing-manager",
+      "published_at": "2026-08-05T06:23:20.678Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000147179529",
+      "title": "Assistant Marketing Manager, B2B",
+      "company": "Grab",
+      "location": "HCMC, Vietnam",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000147179529-assistant-marketing-manager-b2b",
+      "published_at": "2026-09-03T08:20:23.385Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000147178179",
+      "title": "Assistant Marketing Manager, B2B",
+      "company": "Grab",
+      "location": "Petaling Jaya, Malaysia",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000147178179-assistant-marketing-manager-b2b",
+      "published_at": "2026-09-03T08:15:12.515Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000143021049",
+      "title": "Assistant Marketing Manager, Mobility",
+      "company": "Grab",
+      "location": "Petaling Jaya, Malaysia",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000143021049-assistant-marketing-manager-mobility",
+      "published_at": "2026-08-12T02:53:06.726Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000131809679",
+      "title": "Associate, BD & Strategic Partnerships",
+      "company": "Grab",
+      "location": "Singapore, Singapore",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000131809679-associate-bd-strategic-partnerships",
+      "published_at": "2026-06-12T03:43:28.245Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000144294728",
+      "title": "Associate, Business Development - Omni",
+      "company": "Grab",
+      "location": "HCMC, Vietnam",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000144294728-associate-business-development-omni",
+      "published_at": "2026-08-19T11:44:56.353Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000142822715",
+      "title": "Associate, Campaign and Monetization - GrabFood [Non Self-Serve Business]",
+      "company": "Grab",
+      "location": "Bangkok, Thailand",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000142822715-associate-campaign-and-monetization-grabfood-non-self-serve-business",
+      "published_at": "2026-08-11T09:02:46.052Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000147145779",
+      "title": "Associate, Driver Acquisition",
+      "company": "Grab",
+      "location": "Bangkok, Thailand",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000147145779-associate-driver-acquisition",
+      "published_at": "2026-09-03T03:39:54.604Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000145416309",
+      "title": "Associate, Driver Acquisition",
+      "company": "Grab",
+      "location": "HCMC, Vietnam",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000145416309-associate-driver-acquisition",
+      "published_at": "2026-08-25T04:15:19.171Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000144452594",
+      "title": "Associate, Merchant Acquisition",
+      "company": "Grab",
+      "location": "Hanoi, Vietnam",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000144452594-associate-merchant-acquisition",
+      "published_at": "2026-08-20T03:51:06.141Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000147192955",
+      "title": "Associate, Merchant Acquisition - GrabMart",
+      "company": "Grab",
+      "location": "HCMC, Vietnam",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000147192955-associate-merchant-acquisition-grabmart",
+      "published_at": "2026-09-03T09:03:16.060Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000136148341",
+      "title": "Associate, Merchant Acquisition - GrabMart",
+      "company": "Grab",
+      "location": "HCMC, Vietnam",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000136148341-associate-merchant-acquisition-grabmart",
+      "published_at": "2026-07-07T07:02:02.322Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000135167151",
+      "title": "Associate, User Growth - GrabMart",
+      "company": "Grab",
+      "location": "Bangkok, Thailand",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000135167151-associate-user-growth-grabmart",
+      "published_at": "2026-07-01T05:12:14.685Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000147218279",
+      "title": "Business Development Manager",
+      "company": "Grab",
+      "location": "Petaling Jaya, Malaysia",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000147218279-business-development-manager",
+      "published_at": "2026-09-03T10:52:57.516Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000146883599",
+      "title": "Commercial Lending Specialist",
+      "company": "Grab",
+      "location": "Petaling Jaya, Malaysia",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000146883599-commercial-lending-specialist",
+      "published_at": "2026-09-02T03:15:02.952Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000143237599",
+      "title": "Commercial Strategy Lead – PayLater, Lending & Omnicommerce",
+      "company": "Grab",
+      "location": "Petaling Jaya, Malaysia",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000143237599-commercial-strategy-lead-paylater-lending-omnicommerce",
+      "published_at": "2026-08-13T06:39:32.348Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000126720342",
+      "title": "Communications Lead",
+      "company": "Grab",
+      "location": "HCMC, Vietnam",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000126720342-communications-lead",
+      "published_at": "2026-05-15T15:26:50.325Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000122178068",
+      "title": "Communications Manager",
+      "company": "Grab",
+      "location": "Petaling Jaya, Malaysia",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000122178068-communications-manager",
+      "published_at": "2026-04-22T06:58:53.349Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000145423859",
+      "title": "Communications Manager (Product)",
+      "company": "Grab",
+      "location": "Singapore, Singapore",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000145423859-communications-manager-product",
+      "published_at": "2026-08-25T05:51:47.220Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000143438539",
+      "title": "Communications Senior Manager (Product)",
+      "company": "Grab",
+      "location": "Petaling Jaya, Malaysia",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000143438539-communications-senior-manager-product",
+      "published_at": "2026-08-14T05:02:35.251Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000143438599",
+      "title": "Content Manager",
+      "company": "Grab",
+      "location": "Singapore, Singapore",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000143438599-content-manager",
+      "published_at": "2026-08-14T05:04:16.926Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000141223730",
+      "title": "Content Manager",
+      "company": "Grab",
+      "location": "Petaling Jaya, Malaysia",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000141223730-content-manager",
+      "published_at": "2026-08-03T10:08:27.755Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000144675569",
+      "title": "Head, Merchant Acquisition",
+      "company": "Grab",
+      "location": "Singapore, Singapore",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000144675569-head-merchant-acquisition",
+      "published_at": "2026-08-21T02:09:03.897Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000141167699",
+      "title": "Head, Product Marketing, Financial Services",
+      "company": "Grab",
+      "location": "Petaling Jaya, Malaysia",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000141167699-head-product-marketing-financial-services",
+      "published_at": "2026-08-03T02:30:20.857Z",
       "source_verified": true
     },
     {
       "id": "sr-744000148141980",
       "title": "Intern, Account Management, Commercial",
       "company": "Grab",
-      "location": "Singapore, sg",
-      "url": "https://api.smartrecruiters.com/v1/companies/Grab/postings/744000148141980",
+      "location": "Singapore, Singapore",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000148141980-intern-account-management-commercial",
       "published_at": "2026-09-08T06:12:06.462Z",
       "source_verified": true
     },
@@ -77,8 +461,8 @@
       "id": "sr-744000147418061",
       "title": "Intern, Business Development",
       "company": "Grab",
-      "location": "Singapore, sg",
-      "url": "https://api.smartrecruiters.com/v1/companies/Grab/postings/744000147418061",
+      "location": "Singapore, Singapore",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000147418061-intern-business-development",
       "published_at": "2026-09-04T05:52:31.755Z",
       "source_verified": true
     },
@@ -86,17 +470,26 @@
       "id": "sr-744000147418154",
       "title": "Intern, Commercial Enablement, Sales Enablement",
       "company": "Grab",
-      "location": "Singapore, sg",
-      "url": "https://api.smartrecruiters.com/v1/companies/Grab/postings/744000147418154",
+      "location": "Singapore, Singapore",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000147418154-intern-commercial-enablement-sales-enablement",
       "published_at": "2026-09-04T05:54:44.754Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000147898439",
+      "title": "Intern, Employer Branding and Recruitment Marketing",
+      "company": "Grab",
+      "location": "Petaling Jaya, Malaysia",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000147898439-intern-employer-branding-and-recruitment-marketing",
+      "published_at": "2026-09-07T10:16:09.513Z",
       "source_verified": true
     },
     {
       "id": "sr-744000147417909",
       "title": "Intern, Growth and Marketing (Autonomous Vehicles)",
       "company": "Grab",
-      "location": "Singapore, sg",
-      "url": "https://api.smartrecruiters.com/v1/companies/Grab/postings/744000147417909",
+      "location": "Singapore, Singapore",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000147417909-intern-growth-and-marketing-autonomous-vehicles",
       "published_at": "2026-09-04T05:50:50.417Z",
       "source_verified": true
     },
@@ -104,8 +497,8 @@
       "id": "sr-744000149291839",
       "title": "Intern, Marketing and Partnership (GrabRentals)",
       "company": "Grab",
-      "location": "Singapore, sg",
-      "url": "https://api.smartrecruiters.com/v1/companies/Grab/postings/744000149291839",
+      "location": "Singapore, Singapore",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000149291839-intern-marketing-and-partnership-grabrentals",
       "published_at": "2026-09-14T10:08:27.054Z",
       "source_verified": true
     },
@@ -113,8 +506,8 @@
       "id": "sr-744000149250369",
       "title": "Intern, Partner Acquisition",
       "company": "Grab",
-      "location": "Singapore, sg",
-      "url": "https://api.smartrecruiters.com/v1/companies/Grab/postings/744000149250369",
+      "location": "Singapore, Singapore",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000149250369-intern-partner-acquisition",
       "published_at": "2026-09-14T07:08:39.033Z",
       "source_verified": true
     },
@@ -122,8 +515,8 @@
       "id": "sr-744000149291219",
       "title": "Intern, SG Partnerships",
       "company": "Grab",
-      "location": "Singapore, sg",
-      "url": "https://api.smartrecruiters.com/v1/companies/Grab/postings/744000149291219",
+      "location": "Singapore, Singapore",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000149291219-intern-sg-partnerships",
       "published_at": "2026-09-14T10:06:38.711Z",
       "source_verified": true
     },
@@ -131,36 +524,252 @@
       "id": "sr-744000149291459",
       "title": "Intern, Social Media & Partner Engagement",
       "company": "Grab",
-      "location": "Singapore, sg",
-      "url": "https://api.smartrecruiters.com/v1/companies/Grab/postings/744000149291459",
+      "location": "Singapore, Singapore",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000149291459-intern-social-media-partner-engagement",
       "published_at": "2026-09-14T10:07:31.125Z",
       "source_verified": true
     },
     {
-      "id": "sr-744000149254139",
-      "title": "Marketing Execution Assistant Manager - JABODETABEK",
+      "id": "sr-744000147411329",
+      "title": "Lead Data Scientist (Analytics) - Digital Marketing",
       "company": "Grab",
-      "location": "Jakarta, id",
-      "url": "https://api.smartrecruiters.com/v1/companies/Grab/postings/744000149254139",
-      "published_at": "2026-09-14T07:28:45.888Z",
+      "location": "Petaling Jaya, Malaysia",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000147411329-lead-data-scientist-analytics-digital-marketing",
+      "published_at": "2026-09-04T04:22:00.997Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000142050569",
+      "title": "Lead Product Marketing Manager",
+      "company": "Grab",
+      "location": "Petaling Jaya, Malaysia",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000142050569-lead-product-marketing-manager",
+      "published_at": "2026-08-07T05:48:34.424Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000141408859",
+      "title": "Lead, Business Development - OneGrab",
+      "company": "Grab",
+      "location": "HCMC, Vietnam",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000141408859-lead-business-development-onegrab",
+      "published_at": "2026-08-04T05:05:15.267Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000144003539",
+      "title": "Lead, Strategic Acquisition Project",
+      "company": "Grab",
+      "location": "HCMC, Vietnam",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000144003539-lead-strategic-acquisition-project",
+      "published_at": "2026-08-18T07:47:39.236Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000138782016",
+      "title": "Manager, Agency Partnerships",
+      "company": "Grab",
+      "location": "Singapore, Singapore",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000138782016-manager-agency-partnerships",
+      "published_at": "2026-07-21T05:31:26.507Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000148741809",
+      "title": "Manager, Driver Communications",
+      "company": "Grab",
+      "location": "Petaling Jaya, Malaysia",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000148741809-manager-driver-communications",
+      "published_at": "2026-09-10T10:58:29.108Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000139193219",
+      "title": "Manager, GrabForBusiness Partnerships",
+      "company": "Grab",
+      "location": "HCMC, Vietnam",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000139193219-manager-grabforbusiness-partnerships",
+      "published_at": "2026-07-23T01:57:39.675Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000139193179",
+      "title": "Manager, GrabForBusiness Partnerships",
+      "company": "Grab",
+      "location": "Petaling Jaya, Malaysia",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000139193179-manager-grabforbusiness-partnerships",
+      "published_at": "2026-07-23T01:57:20.242Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000139550697",
+      "title": "Manager, Talent Acquisition, Vietnam",
+      "company": "Grab",
+      "location": "HCMC, Vietnam",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000139550697-manager-talent-acquisition-vietnam",
+      "published_at": "2026-07-24T09:27:16.565Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000147731850",
+      "title": "Manager, User Growth and Seller Programme",
+      "company": "Grab",
+      "location": "Petaling Jaya, Malaysia",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000147731850-manager-user-growth-and-seller-programme",
+      "published_at": "2026-09-07T01:47:43.029Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000133883819",
+      "title": "Marketing Manager - GrabFood, SG",
+      "company": "Grab",
+      "location": "Singapore, Singapore",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000133883819-marketing-manager-grabfood-sg",
+      "published_at": "2026-06-24T08:00:42.585Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000143236769",
+      "title": "Merchant Acquisition Manager",
+      "company": "Grab",
+      "location": "Petaling Jaya, Malaysia",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000143236769-merchant-acquisition-manager",
+      "published_at": "2026-08-13T06:29:13.786Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000148045930",
+      "title": "Merchant Growth Lead",
+      "company": "Grab",
+      "location": "Johor Bahru, Malaysia",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000148045930-merchant-growth-lead",
+      "published_at": "2026-09-08T02:14:18.170Z",
       "source_verified": true
     },
     {
       "id": "sr-744000148458125",
       "title": "Merchant Growth Manager, Emerging",
       "company": "Grab",
-      "location": "Singapore, sg",
-      "url": "https://api.smartrecruiters.com/v1/companies/Grab/postings/744000148458125",
+      "location": "Singapore, Singapore",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000148458125-merchant-growth-manager-emerging",
       "published_at": "2026-09-09T10:07:13.876Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000127128269",
+      "title": "Planner, Integrated Marketing Solutions (GrabAds)",
+      "company": "Grab",
+      "location": "Bangkok, Thailand",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000127128269-planner-integrated-marketing-solutions-grabads",
+      "published_at": "2026-05-19T06:06:31.500Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000147430329",
+      "title": "Regional Assistant Marketing Manager – Financial Services",
+      "company": "Grab",
+      "location": "Petaling Jaya, Malaysia",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000147430329-regional-assistant-marketing-manager-financial-services",
+      "published_at": "2026-09-04T07:10:31.704Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000146617137",
+      "title": "Regional Commercial Process Manager",
+      "company": "Grab",
+      "location": "Singapore, Singapore",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000146617137-regional-commercial-process-manager",
+      "published_at": "2026-09-01T05:34:54.087Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000128359664",
+      "title": "Regional Marketing Manager, GrabMart (SEA)",
+      "company": "Grab",
+      "location": "Petaling Jaya, Malaysia",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000128359664-regional-marketing-manager-grabmart-sea",
+      "published_at": "2026-05-26T03:19:45.530Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000135914849",
+      "title": "Senior Associate, Talent Acquisition Business Partner",
+      "company": "Grab",
+      "location": "Petaling Jaya, Malaysia",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000135914849-senior-associate-talent-acquisition-business-partner",
+      "published_at": "2026-07-06T05:53:02.322Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000141409609",
+      "title": "Senior Data Scientist (Analytics) - Country & Marketing Analytics",
+      "company": "Grab",
+      "location": "Petaling Jaya, Malaysia",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000141409609-senior-data-scientist-analytics-country-marketing-analytics",
+      "published_at": "2026-08-04T05:13:40.715Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000145412609",
+      "title": "Senior Data Scientist (Country and Marketing Analytics)",
+      "company": "Grab",
+      "location": "Bangkok, Thailand",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000145412609-senior-data-scientist-country-and-marketing-analytics",
+      "published_at": "2026-08-25T03:05:41.620Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000145423399",
+      "title": "Senior Manager, Growth Strategy & Planning",
+      "company": "Grab",
+      "location": "Singapore, Singapore",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000145423399-senior-manager-growth-strategy-planning",
+      "published_at": "2026-08-25T05:44:55.518Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000144721390",
+      "title": "Team Lead, Merchant Acquisition",
+      "company": "Grab",
+      "location": "Bangkok, Thailand",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000144721390-team-lead-merchant-acquisition",
+      "published_at": "2026-08-21T09:16:07.188Z",
       "source_verified": true
     },
     {
       "id": "sr-744000148459935",
       "title": "Team Lead, Merchant Acquisition (F&B)",
       "company": "Grab",
-      "location": "Singapore, sg",
-      "url": "https://api.smartrecruiters.com/v1/companies/Grab/postings/744000148459935",
+      "location": "Singapore, Singapore",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000148459935-team-lead-merchant-acquisition-f-b",
       "published_at": "2026-09-09T10:06:08.214Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000146882592",
+      "title": "Consulting Senior Analyst - CBI & Brand",
+      "company": "NielsenIQ",
+      "location": "Pasig City, Philippines",
+      "url": "https://jobs.smartrecruiters.com/NielsenIQ/744000146882592-consulting-senior-analyst-cbi-brand",
+      "published_at": "2026-09-02T03:17:37.479Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000138791550",
+      "title": "Senior Analyst (Quantitative Research) - Consumer Insights & Brand",
+      "company": "NielsenIQ",
+      "location": "Pasig City, Philippines",
+      "url": "https://jobs.smartrecruiters.com/NielsenIQ/744000138791550-senior-analyst-quantitative-research-consumer-insights-brand",
+      "published_at": "2026-07-21T06:53:20.368Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000146452179",
+      "title": "Senior Research Manager - Consumer Insights & Brand",
+      "company": "NielsenIQ",
+      "location": "Pasig City, Philippines",
+      "url": "https://jobs.smartrecruiters.com/NielsenIQ/744000146452179-senior-research-manager-consumer-insights-brand",
+      "published_at": "2026-08-31T11:55:52.547Z",
       "source_verified": true
     }
   ]
