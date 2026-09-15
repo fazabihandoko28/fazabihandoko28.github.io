@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-09-15T04:10:49.968502+00:00",
+  "generated_at": "2026-09-15T11:49:04.606563+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1310,
+  "raw_jobs": 1313,
   "matching_jobs": 81,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 422
+      "jobs": 427
     },
     {
       "name": "Publicis Groupe",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 388
+      "jobs": 386
     },
     {
       "name": "Visa",
@@ -68,6 +68,15 @@
       "location": "Jakarta, Indonesia",
       "url": "https://jobs.smartrecruiters.com/Grab/744000142594006-assistant-marketing-manager-financial-services",
       "published_at": "2026-08-10T09:31:54.721Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000149525991",
+      "title": "Associate, Commercial Enabler & Expansion",
+      "company": "Grab",
+      "location": "Jakarta, Indonesia",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000149525991-associate-commercial-enabler-expansion",
+      "published_at": "2026-09-15T08:04:39.885Z",
       "source_verified": true
     },
     {
@@ -179,15 +188,6 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000148664309",
-      "title": "ASEAN Trade Marketing Manager",
-      "company": "Bosch Group",
-      "location": "Petaling Jaya, Malaysia",
-      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000148664309-asean-trade-marketing-manager",
-      "published_at": "2026-09-10T02:42:38.568Z",
-      "source_verified": true
-    },
-    {
       "id": "sr-744000149245139",
       "title": "CRM Paid Media SEA Manager",
       "company": "Bosch Group",
@@ -203,6 +203,15 @@
       "location": "Klong Toei, Thailand",
       "url": "https://jobs.smartrecruiters.com/BoschGroup/744000149286121-internship-2026-human-resources-content-creator-employer-branding-hr-admin-support-c-pj-hrsth",
       "published_at": "2026-09-14T09:47:40.823Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000149572228",
+      "title": "Manufacturing Engineer (Molding Injection, Machining and/or Assembly Processes)",
+      "company": "Bosch Group",
+      "location": "Hemaraj Eastern Seaboard Industrial Estate, Thailand",
+      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000149572228-manufacturing-engineer-molding-injection-machining-and-or-assembly-processes",
+      "published_at": "2026-09-15T11:02:28.977Z",
       "source_verified": true
     },
     {
@@ -563,15 +572,6 @@
       "location": "HCMC, Vietnam",
       "url": "https://jobs.smartrecruiters.com/Grab/744000144003539-lead-strategic-acquisition-project",
       "published_at": "2026-08-18T07:47:39.236Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000138782016",
-      "title": "Manager, Agency Partnerships",
-      "company": "Grab",
-      "location": "Singapore, Singapore",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000138782016-manager-agency-partnerships",
-      "published_at": "2026-07-21T05:31:26.507Z",
       "source_verified": true
     },
     {
