@@ -1,47 +1,23 @@
 {
-  "generated_at": "2026-09-15T06:55:27.499697+00:00",
+  "generated_at": "2026-09-15T12:20:52.842833+00:00",
   "policy": "HIGH_CONFIDENCE_CAUSAL_ONLY",
   "selected_tickers": [
-    "TKIM",
-    "BBRI",
-    "BJTM",
-    "BMRI",
-    "KBLI"
+    "MARK",
+    "CAMP",
+    "AMMN",
+    "ERAA",
+    "PTBA"
   ],
   "catalysts": [
     {
-      "scope": "STOCK",
-      "ticker": "BBRI",
-      "direction": "POSITIVE",
-      "confidence": "HIGH",
-      "score": 8,
-      "headline": "Saham BBRI, BMRI, dan BBNI Mendadak Menguat Usai Purbaya Dicopot Jadi Menkeu - Kalteng Lima - Kalteng Lima",
-      "source": "Kalteng Lima",
-      "url": "https://news.google.com/rss/articles/CBMiwAFBVV95cUxNZlJEeS1HYUF4RWdCR0w3M3JwZFpsSHFhSDJjcXJZY0l2djRFbFJRNkZ4VjJXZDVibTlsa2VVZHNtMmdtWmc0c1MxdnlscHhLcWFjSWRCUzVQTXZWdDVxX0d1M1ZieXl4LUs1NUdMMkJvZ3NoX3hUN3YwS1pSY3Y5LVdNOVFRaWw5cko5OEwtNEZKUDdwZXdJTkZIdTBpa0RZTUFkVTFoc2hiMUNsNWQ5QXR0dDZ4NlctS3dBNkxqTDfSAcYBQVVfeXFMTkRIVWhnWWNRbFVzSHpGcGhPcHhLVi1IOUotek1iRUlqRkpPYWxpd0JDaVJTUFdaazRtVGRBaGlyMllQUm9aLW9RcG53V0NfRXhVSEE5dTZKMmFfQzhaRGNXcmtDZmYzbnp2YXZySDVlb1JFXzBMaElTZjBBOHBiWUxHR2ZDM290UDE1eXpDRzhWZTBIa1NxOVR0czJ0V25KaDdkNlRIZHpKS0hkTUN2cjRnWDlHbkdXWk1udG9hOXFIbW5kTUNR?oc=5",
-      "published_at": "2026-09-14T11:14:51+00:00",
-      "note": "Likely news-driven: causal wording + direct ticker/company relevance + material-event filter. This is an evidence layer, not a BUY/SELL trigger."
-    },
-    {
-      "scope": "STOCK",
-      "ticker": "BMRI",
-      "direction": "POSITIVE",
-      "confidence": "HIGH",
-      "score": 8,
-      "headline": "Saham BBRI, BMRI, dan BBNI Mendadak Menguat Usai Purbaya Dicopot Jadi Menkeu - Kalteng Lima - Kalteng Lima",
-      "source": "Kalteng Lima",
-      "url": "https://news.google.com/rss/articles/CBMiwAFBVV95cUxNZlJEeS1HYUF4RWdCR0w3M3JwZFpsSHFhSDJjcXJZY0l2djRFbFJRNkZ4VjJXZDVibTlsa2VVZHNtMmdtWmc0c1MxdnlscHhLcWFjSWRCUzVQTXZWdDVxX0d1M1ZieXl4LUs1NUdMMkJvZ3NoX3hUN3YwS1pSY3Y5LVdNOVFRaWw5cko5OEwtNEZKUDdwZXdJTkZIdTBpa0RZTUFkVTFoc2hiMUNsNWQ5QXR0dDZ4NlctS3dBNkxqTDfSAcYBQVVfeXFMTkRIVWhnWWNRbFVzSHpGcGhPcHhLVi1IOUotek1iRUlqRkpPYWxpd0JDaVJTUFdaazRtVGRBaGlyMllQUm9aLW9RcG53V0NfRXhVSEE5dTZKMmFfQzhaRGNXcmtDZmYzbnp2YXZySDVlb1JFXzBMaElTZjBBOHBiWUxHR2ZDM290UDE1eXpDRzhWZTBIa1NxOVR0czJ0V25KaDdkNlRIZHpKS0hkTUN2cjRnWDlHbkdXWk1udG9hOXFIbW5kTUNR?oc=5",
-      "published_at": "2026-09-14T11:14:51+00:00",
-      "note": "Likely news-driven: causal wording + direct ticker/company relevance + material-event filter. This is an evidence layer, not a BUY/SELL trigger."
-    },
-    {
       "scope": "IHSG",
-      "direction": "POSITIVE",
+      "direction": "NEGATIVE",
       "confidence": "HIGH",
-      "score": 7,
-      "headline": "IHSG Lanjutkan Pelemahan ke 6.534, Saham Bank Menguat Setelah Reshuffle Menkeu - fxstreet-id.com",
-      "source": "fxstreet-id.com",
-      "url": "https://news.google.com/rss/articles/CBMixAFBVV95cUxOb3dlSXBTZ1YtNFV0TDlMNnlkNmtfRFNOcmo0Z3ROdUQ3c1RrUXBxNzY1eExJUlpuVGdyZzRVb0UtRWRKRGVHbzdiS0w3ZmJEa1dsREEtNWVTQzhWQmNZamREOExzTkVnb29PUFdQdXNHcDdmWUZIUjQ1Z0xqazYwek14XzlqRmlSbkJNR3Jad1ZoTFowU1F3ZWxNQ3RKTXRRWmRwUUw1cW5HOVBaZnBrNmlJMTdnXzRWREYtT1cxaFh4WGVq0gHEAUFVX3lxTE5vd2VJcFNnVi00VXRMOUw2eWQ2a19EU05yajRndE51RDdzVGtRcHE3NjV4TElSWm5UZ3JnNFVvRS1FZEpEZUdvN2JLTDdmYkRrV2xEQS01ZVNDOFZCY1lqZEQ4THNORWdvb09QV1B1c0dwN2ZZRkhSNDVnTGprNjB6TXhfOWpGaVJuQk1Hclp3VmhMWjBTUXdlbE1DdEpNdFFaZHBRTDVxbkc5UFpmcGs2aUkxN2dfNFZERi1PVzFoWHhYZWo?oc=5",
-      "published_at": "2026-09-14T10:17:47+00:00",
+      "score": 8,
+      "headline": "IHSG Turun Usai Purbaya Yudhi Digantikan Suahasil Nazara sebagai Menkeu - SuaraGarut.ID",
+      "source": "SuaraGarut.ID",
+      "url": "https://news.google.com/rss/articles/CBMibEFVX3lxTE05azVyYzdCMGV6TXdKMXVLYnh2b1BfMWhNTVBtUldFdlQ3N2JIZnVNUXQzNWxwQ2ZSOUZvYTdWQWdIMFhya211c2pmZGlQM21TS19JU3ZSdHpWREtPU283NjloeXVTY0oyc1h4dg?oc=5",
+      "published_at": "2026-09-15T02:26:23+00:00",
       "note": "Likely index news catalyst based on explicit causal headline language. Hidden when causal evidence is weak."
     }
   ]
