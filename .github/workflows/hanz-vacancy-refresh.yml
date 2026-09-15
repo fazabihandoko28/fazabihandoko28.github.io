@@ -1,0 +1,41 @@
+name: Refresh HANZ vacancy feed
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 */6 * * *"
+  push:
+    branches: [main]
+    paths:
+      - "tools/update_vacancies.py"
+      - ".github/workflows/hanz-vacancy-refresh.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: hanz-vacancy-refresh
+  cancel-in-progress: true
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Fetch official ATS feeds
+        run: python tools/update_vacancies.py
+      - name: Commit feed when changed
+        run: |
+          if git diff --quiet -- docs/vacancy/data/jobs.json; then
+            echo "Vacancy feed unchanged"
+            exit 0
+          fi
+          git config user.name "HANZ Opportunity Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add docs/vacancy/data/jobs.json
+          git commit -m "Update HANZ vacancy feed"
+          git push
