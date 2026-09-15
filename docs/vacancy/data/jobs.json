@@ -1,9 +1,167 @@
 {
-  "generated_at": null,
+  "generated_at": "2026-09-15T04:09:13.197239+00:00",
   "sources_attempted": 6,
-  "sources_healthy": 0,
-  "raw_jobs": 0,
-  "matching_jobs": 0,
-  "source_status": [],
-  "jobs": []
+  "sources_healthy": 3,
+  "raw_jobs": 200,
+  "matching_jobs": 13,
+  "source_status": [
+    {
+      "name": "Grab",
+      "provider": "smartrecruiters",
+      "ok": true,
+      "jobs": 100
+    },
+    {
+      "name": "Publicis Groupe",
+      "provider": "smartrecruiters",
+      "ok": true,
+      "jobs": 0
+    },
+    {
+      "name": "Bosch",
+      "provider": "smartrecruiters",
+      "ok": true,
+      "jobs": 100
+    },
+    {
+      "name": "Airwallex",
+      "provider": "greenhouse",
+      "ok": false,
+      "jobs": 0,
+      "error": "HTTP Error 404: Not Found"
+    },
+    {
+      "name": "Xendit",
+      "provider": "lever",
+      "ok": false,
+      "jobs": 0,
+      "error": "HTTP Error 404: Not Found"
+    },
+    {
+      "name": "ShopBack",
+      "provider": "lever",
+      "ok": false,
+      "jobs": 0,
+      "error": "HTTP Error 404: Not Found"
+    }
+  ],
+  "jobs": [
+    {
+      "id": "sr-744000147833469",
+      "title": "Assistant Manager - City Marketing Execution",
+      "company": "Grab",
+      "location": "Bandung, id",
+      "url": "https://api.smartrecruiters.com/v1/companies/Grab/postings/744000147833469",
+      "published_at": "2026-09-07T04:46:01.490Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000148732859",
+      "title": "Country GrabKios Commercial Manager",
+      "company": "Grab",
+      "location": "Jakarta, id",
+      "url": "https://api.smartrecruiters.com/v1/companies/Grab/postings/744000148732859",
+      "published_at": "2026-09-10T10:14:21.891Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000148141980",
+      "title": "Intern, Account Management, Commercial",
+      "company": "Grab",
+      "location": "Singapore, sg",
+      "url": "https://api.smartrecruiters.com/v1/companies/Grab/postings/744000148141980",
+      "published_at": "2026-09-08T06:12:06.462Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000147418061",
+      "title": "Intern, Business Development",
+      "company": "Grab",
+      "location": "Singapore, sg",
+      "url": "https://api.smartrecruiters.com/v1/companies/Grab/postings/744000147418061",
+      "published_at": "2026-09-04T05:52:31.755Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000147418154",
+      "title": "Intern, Commercial Enablement, Sales Enablement",
+      "company": "Grab",
+      "location": "Singapore, sg",
+      "url": "https://api.smartrecruiters.com/v1/companies/Grab/postings/744000147418154",
+      "published_at": "2026-09-04T05:54:44.754Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000147417909",
+      "title": "Intern, Growth and Marketing (Autonomous Vehicles)",
+      "company": "Grab",
+      "location": "Singapore, sg",
+      "url": "https://api.smartrecruiters.com/v1/companies/Grab/postings/744000147417909",
+      "published_at": "2026-09-04T05:50:50.417Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000149291839",
+      "title": "Intern, Marketing and Partnership (GrabRentals)",
+      "company": "Grab",
+      "location": "Singapore, sg",
+      "url": "https://api.smartrecruiters.com/v1/companies/Grab/postings/744000149291839",
+      "published_at": "2026-09-14T10:08:27.054Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000149250369",
+      "title": "Intern, Partner Acquisition",
+      "company": "Grab",
+      "location": "Singapore, sg",
+      "url": "https://api.smartrecruiters.com/v1/companies/Grab/postings/744000149250369",
+      "published_at": "2026-09-14T07:08:39.033Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000149291219",
+      "title": "Intern, SG Partnerships",
+      "company": "Grab",
+      "location": "Singapore, sg",
+      "url": "https://api.smartrecruiters.com/v1/companies/Grab/postings/744000149291219",
+      "published_at": "2026-09-14T10:06:38.711Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000149291459",
+      "title": "Intern, Social Media & Partner Engagement",
+      "company": "Grab",
+      "location": "Singapore, sg",
+      "url": "https://api.smartrecruiters.com/v1/companies/Grab/postings/744000149291459",
+      "published_at": "2026-09-14T10:07:31.125Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000149254139",
+      "title": "Marketing Execution Assistant Manager - JABODETABEK",
+      "company": "Grab",
+      "location": "Jakarta, id",
+      "url": "https://api.smartrecruiters.com/v1/companies/Grab/postings/744000149254139",
+      "published_at": "2026-09-14T07:28:45.888Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000148458125",
+      "title": "Merchant Growth Manager, Emerging",
+      "company": "Grab",
+      "location": "Singapore, sg",
+      "url": "https://api.smartrecruiters.com/v1/companies/Grab/postings/744000148458125",
+      "published_at": "2026-09-09T10:07:13.876Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000148459935",
+      "title": "Team Lead, Merchant Acquisition (F&B)",
+      "company": "Grab",
+      "location": "Singapore, sg",
+      "url": "https://api.smartrecruiters.com/v1/companies/Grab/postings/744000148459935",
+      "published_at": "2026-09-09T10:06:08.214Z",
+      "source_verified": true
+    }
+  ]
 }
