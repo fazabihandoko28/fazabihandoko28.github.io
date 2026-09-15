@@ -20,10 +20,15 @@ SOURCES = [
     ("Grab", "smartrecruiters", "Grab"),
     ("Publicis Groupe", "smartrecruiters", "PublicisGroupe"),
     ("Bosch", "smartrecruiters", "BoschGroup"),
-    ("Airwallex", "greenhouse", "airwallex"),
-    ("Xendit", "lever", "xendit"),
-    ("ShopBack", "lever", "shopback"),
+    ("dentsu", "smartrecruiters", "dentsu"),
+    ("NielsenIQ", "smartrecruiters", "NielsenIQ"),
+    ("Visa", "smartrecruiters", "Visa"),
 ]
+
+COUNTRY_NAMES = {
+    "id": "Indonesia", "sg": "Singapore", "my": "Malaysia", "ph": "Philippines",
+    "th": "Thailand", "vn": "Vietnam", "au": "Australia", "in": "India",
+}
 
 ROLE_TERMS = re.compile(
     r"marketing|growth|brand|campaign|content|communications?|social media|"
@@ -47,21 +52,32 @@ def request_json(url: str) -> object:
 
 
 def smartrecruiters(company: str) -> list[dict]:
-    url = f"https://api.smartrecruiters.com/v1/companies/{company}/postings?limit=100"
-    payload = request_json(url)
-    rows = payload.get("content", []) if isinstance(payload, dict) else []
+    rows, offset = [], 0
+    while offset < 500:
+        url = f"https://api.smartrecruiters.com/v1/companies/{company}/postings?limit=100&offset={offset}"
+        payload = request_json(url)
+        batch = payload.get("content", []) if isinstance(payload, dict) else []
+        rows.extend(batch)
+        offset += len(batch)
+        if len(batch) < 100 or offset >= int(payload.get("totalFound", 0)):
+            break
     jobs = []
     for row in rows:
         location = row.get("location") or {}
+        country = str(location.get("country") or "").strip()
+        country = COUNTRY_NAMES.get(country.lower(), country)
         place = ", ".join(
-            str(v) for v in (location.get("city"), location.get("country")) if v
+            str(v) for v in (location.get("city"), country) if v
         ) or "Location not stated"
+        title = row.get("name") or "Untitled role"
+        slug = re.sub(r"[^a-z0-9]+", "-", title.lower()).strip("-")
+        job_id = row.get("id") or row.get("uuid")
         jobs.append({
-            "id": f"sr-{row.get('id') or row.get('uuid')}",
-            "title": row.get("name") or "Untitled role",
+            "id": f"sr-{job_id}",
+            "title": title,
             "company": (row.get("company") or {}).get("name") or company,
             "location": place,
-            "url": row.get("ref") or f"https://jobs.smartrecruiters.com/{company}",
+            "url": f"https://jobs.smartrecruiters.com/{company}/{job_id}-{slug}",
             "published_at": row.get("releasedDate"),
         })
     return jobs
