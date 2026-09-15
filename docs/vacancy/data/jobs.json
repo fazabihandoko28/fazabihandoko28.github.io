@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-09-15T17:03:15.746765+00:00",
+  "generated_at": "2026-09-15T21:24:52.387630+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1320,
-  "matching_jobs": 81,
+  "raw_jobs": 1318,
+  "matching_jobs": 80,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 429
+      "jobs": 428
     },
     {
       "name": "Publicis Groupe",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 391
+      "jobs": 390
     },
     {
       "name": "Visa",
@@ -95,15 +95,6 @@
       "location": "Medan, Indonesia",
       "url": "https://jobs.smartrecruiters.com/Grab/744000122667128-city-partnership-assistant-manager-medan",
       "published_at": "2026-04-24T12:06:12.866Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000137049582",
-      "title": "Client Partner - Brands & Agencies, GrabAds",
-      "company": "Grab",
-      "location": "Jakarta, Indonesia",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000137049582-client-partner-brands-agencies-grabads",
-      "published_at": "2026-07-10T06:31:08.762Z",
       "source_verified": true
     },
     {
