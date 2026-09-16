@@ -1188,5 +1188,55 @@
     "source": "YAHOO_FINANCE_RESEARCH_ONLY",
     "recorded_at": "2026-09-14T18:48:50.634324+00:00",
     "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "TLKM",
+    "status": "WAIT",
+    "signal_timestamp": "2026-09-15T00:00:00+00:00",
+    "signal_close": 2700.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-09-16T17:41:32.989131+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "HMSP",
+    "status": "WAIT",
+    "signal_timestamp": "2026-09-15T00:00:00+00:00",
+    "signal_close": 660.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-09-16T17:41:32.989163+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "SMRA",
+    "status": "WAIT",
+    "signal_timestamp": "2026-09-15T00:00:00+00:00",
+    "signal_close": 288.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-09-16T17:41:32.989175+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "GGRM",
+    "status": "WAIT",
+    "signal_timestamp": "2026-09-15T00:00:00+00:00",
+    "signal_close": 17875.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-09-16T17:41:32.989185+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "ICBP",
+    "status": "WAIT",
+    "signal_timestamp": "2026-09-15T00:00:00+00:00",
+    "signal_close": 6900.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-09-16T17:41:32.989194+00:00",
+    "outcome": "PENDING"
   }
 ]
