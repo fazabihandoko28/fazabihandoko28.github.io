@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-09-16T04:53:38.931388+00:00",
+  "generated_at": "2026-09-16T11:41:22.953731+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1313,
-  "matching_jobs": 80,
+  "raw_jobs": 1320,
+  "matching_jobs": 79,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 425
+      "jobs": 424
     },
     {
       "name": "Publicis Groupe",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 388
+      "jobs": 396
     },
     {
       "name": "Visa",
@@ -59,15 +59,6 @@
       "location": "Bandung, Indonesia",
       "url": "https://jobs.smartrecruiters.com/Grab/744000147833469-assistant-manager-city-marketing-execution",
       "published_at": "2026-09-07T04:46:01.490Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000142594006",
-      "title": "Assistant Marketing Manager, Financial Services",
-      "company": "Grab",
-      "location": "Jakarta, Indonesia",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000142594006-assistant-marketing-manager-financial-services",
-      "published_at": "2026-08-10T09:31:54.721Z",
       "source_verified": true
     },
     {
@@ -467,12 +458,12 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000147418154",
+      "id": "sr-744000149795174",
       "title": "Intern, Commercial Enablement, Sales Enablement",
       "company": "Grab",
       "location": "Singapore, Singapore",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000147418154-intern-commercial-enablement-sales-enablement",
-      "published_at": "2026-09-04T05:54:44.754Z",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000149795174-intern-commercial-enablement-sales-enablement",
+      "published_at": "2026-09-16T07:57:51.253Z",
       "source_verified": true
     },
     {
