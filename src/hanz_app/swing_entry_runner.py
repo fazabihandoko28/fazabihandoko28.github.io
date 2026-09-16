@@ -102,6 +102,25 @@ def graduated_top5_score(result, risk_validation):
     return min(100, score)
 
 
+def actionable_top5_score(result, risk_validation):
+    """Compatibility gate for the strict fresh-entry Top-5 contract.
+
+    This keeps legacy callers/tests working without changing the canonical
+    full-universe ranking. Non-actionable states are explicitly excluded from a
+    strict Top-5 candidate set; WAIT/WAIT_TRIGGER/BUY keep the same foreign-aware
+    graduated score.
+    """
+    rv = risk_validation or {}
+    score = graduated_top5_score(result, rv)
+    action = str(rv.get("hanz_action") or "").upper()
+    if action in {"AVOID", "DO_NOT_CHASE", "TP_RISK", "RESISTANCE_WAIT"}:
+        rv["top5_excluded"] = True
+        if not rv.get("top5_exclusion_reason"):
+            rv["top5_exclusion_reason"] = f"HANZ action {action} is not a fresh-entry Top 5 candidate"
+        return 0
+    return score
+
+
 def main():
     install_market_data_router(engine)
     install_support_bounce_intelligence(engine)
