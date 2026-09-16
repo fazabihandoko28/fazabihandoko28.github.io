@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-09-16T11:41:22.953731+00:00",
+  "generated_at": "2026-09-16T17:02:16.407478+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1320,
-  "matching_jobs": 79,
+  "raw_jobs": 1315,
+  "matching_jobs": 78,
   "source_status": [
     {
       "name": "Grab",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 396
+      "jobs": 391
     },
     {
       "name": "Visa",
@@ -194,15 +194,6 @@
       "location": "Hemaraj Eastern Seaboard Industrial Estate, Thailand",
       "url": "https://jobs.smartrecruiters.com/BoschGroup/744000149572228-manufacturing-engineer-molding-injection-machining-and-or-assembly-processes",
       "published_at": "2026-09-15T11:02:28.977Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000148664349",
-      "title": "Trade Marketing Manager - Malaysia",
-      "company": "Bosch Group",
-      "location": "Petaling Jaya, Malaysia",
-      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000148664349-trade-marketing-manager-malaysia",
-      "published_at": "2026-09-10T02:43:03.363Z",
       "source_verified": true
     },
     {
