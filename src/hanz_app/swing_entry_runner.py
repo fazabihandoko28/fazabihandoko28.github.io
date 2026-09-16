@@ -5,10 +5,20 @@ from .momentum_entry_score import momentum_entry_score
 from .early_momentum_trigger import install as install_early_momentum_trigger
 from .market_data_router import install as install_market_data_router
 from .support_bounce_intelligence import install as install_support_bounce_intelligence
+from .foreign_entry_intelligence import install as install_foreign_entry_intelligence
 
 
 # Keep CRV3 prefix for dashboard backwards compatibility.
-SCORE_VERSION = "CRV3_MES8_RELATIVE100_BOTTOM_DECILE_2026_09_14"
+SCORE_VERSION = "CRV3_MES8_RELATIVE100_FOREIGN_2026_09_16"
+
+
+def _num(value, default=0.0):
+    try:
+        if value is None:
+            return default
+        return float(value)
+    except (TypeError, ValueError):
+        return default
 
 
 def graduated_top5_score(result, risk_validation):
@@ -23,13 +33,26 @@ def graduated_top5_score(result, risk_validation):
         scores so the radar does not go empty just because nothing is perfect.
       * DO_NOT_CHASE / TP_RISK are warning/management states and do not belong in
         the fresh-entry Top 5.
+      * Foreign flow is a bounded confirmation/ranking input. It can move a
+        technically valid candidate up or down, but it never creates BUY by
+        itself and never bypasses action/risk exclusions.
 
     The full screener can still display AVOID rows for transparency, but the
     opportunity radar must not promote them.
     """
     rv = risk_validation or {}
-    raw_score = int(momentum_entry_score(result, rv) or 0)
+    technical_score = int(momentum_entry_score(result, rv) or 0)
     action = str(rv.get("hanz_action") or "").upper()
+
+    # Foreign activity participates in ranking only after the technical/action
+    # classification has been determined. Keep its influence meaningful but
+    # bounded so a large foreign print cannot manufacture a BUY setup.
+    foreign_score = _num(rv.get("foreign_flow_score"), 0.0)
+    foreign_adjustment = int(max(-12, min(12, round(foreign_score))))
+    rv["technical_score_before_foreign"] = technical_score
+    rv["foreign_rank_adjustment"] = foreign_adjustment
+    rv["foreign_rank_policy"] = "CONFIRMATION_ONLY_BOUNDED_12"
+    raw_score = max(0, min(100, technical_score + foreign_adjustment))
 
     # Absolute ranking doctrine for AVOID: bottom-decile only.
     # Keep a tiny 0-9 tail score so full-universe sorting can still order AVOID
@@ -82,6 +105,7 @@ def graduated_top5_score(result, risk_validation):
 def main():
     install_market_data_router(engine)
     install_support_bounce_intelligence(engine)
+    install_foreign_entry_intelligence(engine)
     engine.canonical_rank_score = graduated_top5_score
     engine.CANONICAL_RANK_VERSION = SCORE_VERSION
     install_early_momentum_trigger(engine)
