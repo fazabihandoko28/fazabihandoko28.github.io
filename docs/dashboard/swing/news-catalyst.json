@@ -1,19 +1,31 @@
 {
-  "generated_at": "2026-09-15T12:20:52.842833+00:00",
+  "generated_at": "2026-09-16T06:57:35.377434+00:00",
   "policy": "HIGH_CONFIDENCE_CAUSAL_ONLY",
   "selected_tickers": [
-    "MARK",
-    "CAMP",
     "AMMN",
-    "ERAA",
-    "PTBA"
+    "BSML",
+    "NISP",
+    "ULTJ",
+    "MARK"
   ],
   "catalysts": [
+    {
+      "scope": "STOCK",
+      "ticker": "AMMN",
+      "direction": "POSITIVE",
+      "confidence": "HIGH",
+      "score": 9,
+      "headline": "Saham AMMN Melonjak Usai Investor Asing Bukukan Net Buy - Readers.id",
+      "source": "Readers.id",
+      "url": "https://news.google.com/rss/articles/CBMiaEFVX3lxTE5sT2VNY2VmQkZfRXB1OEtTRG5hWHEyaFJDLV9zQ1YxS1V4RXNWdzcxQkozWEl2WllsczFXSzVnczcxckxRdVBOdGJyc185Q2ttLWRlRFREN2p1dENRaXJhTEdhRlpMTVI3?oc=5",
+      "published_at": "2026-09-16T03:55:27+00:00",
+      "note": "Likely news-driven: causal wording + direct ticker/company relevance + material-event filter. This is an evidence layer, not a BUY/SELL trigger."
+    },
     {
       "scope": "IHSG",
       "direction": "NEGATIVE",
       "confidence": "HIGH",
-      "score": 8,
+      "score": 7,
       "headline": "IHSG Turun Usai Purbaya Yudhi Digantikan Suahasil Nazara sebagai Menkeu - SuaraGarut.ID",
       "source": "SuaraGarut.ID",
       "url": "https://news.google.com/rss/articles/CBMibEFVX3lxTE05azVyYzdCMGV6TXdKMXVLYnh2b1BfMWhNTVBtUldFdlQ3N2JIZnVNUXQzNWxwQ2ZSOUZvYTdWQWdIMFhya211c2pmZGlQM21TS19JU3ZSdHpWREtPU283NjloeXVTY0oyc1h4dg?oc=5",
