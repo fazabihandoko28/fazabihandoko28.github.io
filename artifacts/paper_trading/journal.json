@@ -1238,5 +1238,55 @@
     "source": "YAHOO_FINANCE_RESEARCH_ONLY",
     "recorded_at": "2026-09-16T17:41:32.989194+00:00",
     "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "AMMN",
+    "status": "WAIT",
+    "signal_timestamp": "2026-09-16T00:00:00+00:00",
+    "signal_close": 5150.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-09-17T17:42:08.013054+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "PGEO",
+    "status": "WAIT",
+    "signal_timestamp": "2026-09-16T00:00:00+00:00",
+    "signal_close": 1040.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-09-17T17:42:08.013079+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "SMRA",
+    "status": "WAIT",
+    "signal_timestamp": "2026-09-16T00:00:00+00:00",
+    "signal_close": 288.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-09-17T17:42:08.013091+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "HMSP",
+    "status": "WAIT",
+    "signal_timestamp": "2026-09-16T00:00:00+00:00",
+    "signal_close": 655.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-09-17T17:42:08.013101+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "ACES",
+    "status": "WAIT",
+    "signal_timestamp": "2026-09-16T00:00:00+00:00",
+    "signal_close": 350.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-09-17T17:42:08.013113+00:00",
+    "outcome": "PENDING"
   }
 ]
