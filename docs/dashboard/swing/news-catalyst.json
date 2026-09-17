@@ -1,11 +1,11 @@
 {
-  "generated_at": "2026-09-17T06:53:00.497698+00:00",
+  "generated_at": "2026-09-17T12:17:38.383545+00:00",
   "policy": "HIGH_CONFIDENCE_CAUSAL_ONLY",
   "selected_tickers": [
-    "ITMG",
     "BRMS",
     "AGII",
     "AMMN",
+    "ERAA",
     "KBLI"
   ],
   "catalysts": [
@@ -15,11 +15,22 @@
       "direction": "POSITIVE",
       "confidence": "HIGH",
       "score": 8,
-      "headline": "Saham AMMN Melonjak Usai Investor Asing Bukukan Net Buy - readers.id",
-      "source": "readers.id",
+      "headline": "Saham AMMN Melonjak Usai Investor Asing Bukukan Net Buy - Readers.id",
+      "source": "Readers.id",
       "url": "https://news.google.com/rss/articles/CBMiaEFVX3lxTE5sT2VNY2VmQkZfRXB1OEtTRG5hWHEyaFJDLV9zQ1YxS1V4RXNWdzcxQkozWEl2WllsczFXSzVnczcxckxRdVBOdGJyc185Q2ttLWRlRFREN2p1dENRaXJhTEdhRlpMTVI3?oc=5",
       "published_at": "2026-09-16T03:55:27+00:00",
       "note": "Likely news-driven: causal wording + direct ticker/company relevance + material-event filter. This is an evidence layer, not a BUY/SELL trigger."
+    },
+    {
+      "scope": "IHSG",
+      "direction": "NEGATIVE",
+      "confidence": "HIGH",
+      "score": 10,
+      "headline": "IHSG Diproyeksi Melemah Usai The Fed Naikkan Suku Bunga Acuan 25 Bps - Readers.id",
+      "source": "Readers.id",
+      "url": "https://news.google.com/rss/articles/CBMihAFBVV95cUxQcTZWbWFhSTRabVAxenBKNTJfUFR2VTZoR0FmWDB2MjZudjFEbGZBejk2UUVpMWMwMDB3NUJ1Y2RxdEhsN0JTZ3J5bEw5V0lkYk10eHFEa2dqQXlQcUlJeDRJN0pxeklQUllURmhQRG96amhuZmhYUDNWRkF4d2NUeFAtRGY?oc=5",
+      "published_at": "2026-09-17T00:00:50+00:00",
+      "note": "Likely index news catalyst based on explicit causal headline language. Hidden when causal evidence is weak."
     }
   ]
 }
