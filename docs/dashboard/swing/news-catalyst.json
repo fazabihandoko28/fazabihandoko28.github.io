@@ -1,12 +1,8 @@
 {
-  "generated_at": "2026-09-18T06:50:10.793847+00:00",
+  "generated_at": "2026-09-18T11:58:08.067103+00:00",
   "policy": "HIGH_CONFIDENCE_CAUSAL_ONLY",
   "selected_tickers": [
-    "JRPT",
-    "PTBA",
-    "MAPI",
-    "AGII",
-    "MARK"
+    "EDGE"
   ],
   "catalysts": [
     {
@@ -14,8 +10,8 @@
       "direction": "NEGATIVE",
       "confidence": "HIGH",
       "score": 9,
-      "headline": "IHSG Diproyeksi Melemah Usai The Fed Naikkan Suku Bunga Acuan 25 Bps - Readers.id",
-      "source": "Readers.id",
+      "headline": "IHSG Diproyeksi Melemah Usai The Fed Naikkan Suku Bunga Acuan 25 Bps - readers.id",
+      "source": "readers.id",
       "url": "https://news.google.com/rss/articles/CBMihAFBVV95cUxQcTZWbWFhSTRabVAxenBKNTJfUFR2VTZoR0FmWDB2MjZudjFEbGZBejk2UUVpMWMwMDB3NUJ1Y2RxdEhsN0JTZ3J5bEw5V0lkYk10eHFEa2dqQXlQcUlJeDRJN0pxeklQUllURmhQRG96amhuZmhYUDNWRkF4d2NUeFAtRGY?oc=5",
       "published_at": "2026-09-17T00:00:50+00:00",
       "note": "Likely index news catalyst based on explicit causal headline language. Hidden when causal evidence is weak."
