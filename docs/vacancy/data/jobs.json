@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-09-17T21:25:59.139300+00:00",
+  "generated_at": "2026-09-18T04:48:35.446891+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
   "raw_jobs": 1314,
-  "matching_jobs": 79,
+  "matching_jobs": 78,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 419
+      "jobs": 418
     },
     {
       "name": "Publicis Groupe",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 395
+      "jobs": 396
     },
     {
       "name": "Visa",
@@ -422,6 +422,15 @@
       "source_verified": true
     },
     {
+      "id": "sr-744000150269709",
+      "title": "GrabForBusiness Planning & Partnerships Manager",
+      "company": "Grab",
+      "location": "Petaling Jaya, Malaysia",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000150269709-grabforbusiness-planning-partnerships-manager",
+      "published_at": "2026-09-18T02:23:13.759Z",
+      "source_verified": true
+    },
+    {
       "id": "sr-744000144675569",
       "title": "Head, Merchant Acquisition",
       "company": "Grab",
@@ -563,24 +572,6 @@
       "location": "Petaling Jaya, Malaysia",
       "url": "https://jobs.smartrecruiters.com/Grab/744000148741809-manager-driver-communications",
       "published_at": "2026-09-10T10:58:29.108Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000139193219",
-      "title": "Manager, GrabForBusiness Partnerships",
-      "company": "Grab",
-      "location": "HCMC, Vietnam",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000139193219-manager-grabforbusiness-partnerships",
-      "published_at": "2026-07-23T01:57:39.675Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000139193179",
-      "title": "Manager, GrabForBusiness Partnerships",
-      "company": "Grab",
-      "location": "Petaling Jaya, Malaysia",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000139193179-manager-grabforbusiness-partnerships",
-      "published_at": "2026-07-23T01:57:20.242Z",
       "source_verified": true
     },
     {
