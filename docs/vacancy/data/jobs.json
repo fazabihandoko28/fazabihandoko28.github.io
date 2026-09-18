@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-09-18T04:48:35.446891+00:00",
+  "generated_at": "2026-09-18T11:20:57.354854+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1314,
-  "matching_jobs": 78,
+  "raw_jobs": 1311,
+  "matching_jobs": 79,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 418
+      "jobs": 424
     },
     {
       "name": "Publicis Groupe",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 396
+      "jobs": 387
     },
     {
       "name": "Visa",
@@ -59,6 +59,15 @@
       "location": "Bandung, Indonesia",
       "url": "https://jobs.smartrecruiters.com/Grab/744000147833469-assistant-manager-city-marketing-execution",
       "published_at": "2026-09-07T04:46:01.490Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000150321529",
+      "title": "Assistant Marketing Manager, Financial Services",
+      "company": "Grab",
+      "location": "Jakarta, Indonesia",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000150321529-assistant-marketing-manager-financial-services",
+      "published_at": "2026-09-18T09:23:48.107Z",
       "source_verified": true
     },
     {
@@ -638,12 +647,12 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000147430329",
+      "id": "sr-744000150308125",
       "title": "Regional Assistant Marketing Manager – Financial Services",
       "company": "Grab",
       "location": "Petaling Jaya, Malaysia",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000147430329-regional-assistant-marketing-manager-financial-services",
-      "published_at": "2026-09-04T07:10:31.704Z",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000150308125-regional-assistant-marketing-manager-financial-services",
+      "published_at": "2026-09-18T08:24:52.013Z",
       "source_verified": true
     },
     {
