@@ -1288,5 +1288,55 @@
     "source": "YAHOO_FINANCE_RESEARCH_ONLY",
     "recorded_at": "2026-09-17T17:42:08.013113+00:00",
     "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "INDY",
+    "status": "WAIT",
+    "signal_timestamp": "2026-09-17T00:00:00+00:00",
+    "signal_close": 2760.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-09-18T17:09:29.247122+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "BSDE",
+    "status": "WAIT",
+    "signal_timestamp": "2026-09-17T00:00:00+00:00",
+    "signal_close": 640.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-09-18T17:09:29.247147+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "KEEN",
+    "status": "WAIT",
+    "signal_timestamp": "2026-09-17T00:00:00+00:00",
+    "signal_close": 860.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-09-18T17:09:29.247155+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "SMRA",
+    "status": "WAIT",
+    "signal_timestamp": "2026-09-17T00:00:00+00:00",
+    "signal_close": 290.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-09-18T17:09:29.247162+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "INDF",
+    "status": "WAIT",
+    "signal_timestamp": "2026-09-17T00:00:00+00:00",
+    "signal_close": 7175.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-09-18T17:09:29.247168+00:00",
+    "outcome": "PENDING"
   }
 ]
