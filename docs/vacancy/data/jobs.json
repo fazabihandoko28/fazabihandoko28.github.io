@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-09-19T11:04:50.846498+00:00",
+  "generated_at": "2026-09-19T15:55:01.736012+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1310,
-  "matching_jobs": 79,
+  "raw_jobs": 1311,
+  "matching_jobs": 80,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 423
+      "jobs": 424
     },
     {
       "name": "Publicis Groupe",
@@ -482,6 +482,15 @@
       "location": "Singapore, Singapore",
       "url": "https://jobs.smartrecruiters.com/Grab/744000149795174-intern-commercial-enablement-sales-enablement",
       "published_at": "2026-09-16T07:57:51.253Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000150507729",
+      "title": "Intern, Content Creation (HungryGoWhere)",
+      "company": "Grab",
+      "location": "Singapore, Singapore",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000150507729-intern-content-creation-hungrygowhere",
+      "published_at": "2026-09-19T15:33:53.673Z",
       "source_verified": true
     },
     {
