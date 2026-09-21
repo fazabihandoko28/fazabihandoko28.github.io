@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-09-21T07:22:57.685783+00:00",
+  "generated_at": "2026-09-21T14:23:32.303048+00:00",
   "policy": "HIGH_CONFIDENCE_CAUSAL_ONLY",
   "selected_tickers": [
-    "PGEO",
-    "MBMA",
-    "AALI",
-    "ANTM",
-    "JRPT"
+    "SIDO",
+    "SMDR",
+    "AGII",
+    "CAMP",
+    "ERAA"
   ],
   "catalysts": []
 }
