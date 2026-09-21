@@ -1338,5 +1338,55 @@
     "source": "YAHOO_FINANCE_RESEARCH_ONLY",
     "recorded_at": "2026-09-18T17:09:29.247168+00:00",
     "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "TBIG",
+    "status": "WAIT",
+    "signal_timestamp": "2026-09-21T00:00:00+00:00",
+    "signal_close": 1465.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-09-21T18:52:03.874959+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "BSDE",
+    "status": "WAIT",
+    "signal_timestamp": "2026-09-21T00:00:00+00:00",
+    "signal_close": 595.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-09-21T18:52:03.874987+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "AVIA",
+    "status": "WAIT",
+    "signal_timestamp": "2026-09-21T00:00:00+00:00",
+    "signal_close": 338.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-09-21T18:52:03.874999+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "BTPS",
+    "status": "WAIT",
+    "signal_timestamp": "2026-09-21T00:00:00+00:00",
+    "signal_close": 995.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-09-21T18:52:03.875009+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "INDF",
+    "status": "WAIT",
+    "signal_timestamp": "2026-09-21T00:00:00+00:00",
+    "signal_close": 7000.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-09-21T18:52:03.875018+00:00",
+    "outcome": "PENDING"
   }
 ]
