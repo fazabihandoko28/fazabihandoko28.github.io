@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-09-21T05:01:26.652716+00:00",
+  "generated_at": "2026-09-21T12:54:03.056686+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1305,
-  "matching_jobs": 80,
+  "raw_jobs": 1312,
+  "matching_jobs": 79,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 425
+      "jobs": 427
     },
     {
       "name": "Publicis Groupe",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 380
+      "jobs": 385
     },
     {
       "name": "Visa",
@@ -188,15 +188,6 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000149286121",
-      "title": "Internship 2026, Human Resources - Content Creator, Employer Branding & HR Admin Support (C/PJ-HRSTH)",
-      "company": "Bosch Group",
-      "location": "Klong Toei, Thailand",
-      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000149286121-internship-2026-human-resources-content-creator-employer-branding-hr-admin-support-c-pj-hrsth",
-      "published_at": "2026-09-14T09:47:40.823Z",
-      "source_verified": true
-    },
-    {
       "id": "sr-744000149572228",
       "title": "Manufacturing Engineer (Molding Injection, Machining and/or Assembly Processes)",
       "company": "Bosch Group",
@@ -311,6 +302,15 @@
       "location": "HCMC, Vietnam",
       "url": "https://jobs.smartrecruiters.com/Grab/744000145416309-associate-driver-acquisition",
       "published_at": "2026-08-25T04:15:19.171Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000150611490",
+      "title": "Associate, Growth & Business Operations, Transport",
+      "company": "Grab",
+      "location": "Singapore, Singapore",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000150611490-associate-growth-business-operations-transport",
+      "published_at": "2026-09-21T07:21:56.043Z",
       "source_verified": true
     },
     {
@@ -680,15 +680,6 @@
       "location": "Pasig City, Philippines",
       "url": "https://jobs.smartrecruiters.com/Grab/744000150018459-senior-associate-talent-acquisition-business-partner",
       "published_at": "2026-09-17T06:31:08.630Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000135914849",
-      "title": "Senior Associate, Talent Acquisition Business Partner",
-      "company": "Grab",
-      "location": "Petaling Jaya, Malaysia",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000135914849-senior-associate-talent-acquisition-business-partner",
-      "published_at": "2026-07-06T05:53:02.322Z",
       "source_verified": true
     },
     {
