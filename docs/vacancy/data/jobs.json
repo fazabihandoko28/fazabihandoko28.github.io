@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-09-20T20:52:04.564289+00:00",
+  "generated_at": "2026-09-21T05:01:26.652716+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1311,
+  "raw_jobs": 1305,
   "matching_jobs": 80,
   "source_status": [
     {
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 386
+      "jobs": 380
     },
     {
       "name": "Visa",
@@ -179,15 +179,6 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000149245139",
-      "title": "CRM Paid Media SEA Manager",
-      "company": "Bosch Group",
-      "location": "Petaling Jaya, Malaysia",
-      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000149245139-crm-paid-media-sea-manager",
-      "published_at": "2026-09-14T06:33:51.786Z",
-      "source_verified": true
-    },
-    {
       "id": "sr-744000150013809",
       "title": "Intern, Corporate Communications",
       "company": "Bosch Group",
@@ -212,6 +203,15 @@
       "location": "Hemaraj Eastern Seaboard Industrial Estate, Thailand",
       "url": "https://jobs.smartrecruiters.com/BoschGroup/744000149572228-manufacturing-engineer-molding-injection-machining-and-or-assembly-processes",
       "published_at": "2026-09-15T11:02:28.977Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000150590679",
+      "title": "[BD] Senior IT Product Marketing Specialist ",
+      "company": "Bosch Group",
+      "location": "Ho Chi Minh, Vietnam",
+      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000150590679-bd-senior-it-product-marketing-specialist",
+      "published_at": "2026-09-21T03:30:33.715Z",
       "source_verified": true
     },
     {
@@ -260,12 +260,12 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000143021049",
+      "id": "sr-744000150586969",
       "title": "Assistant Marketing Manager, Mobility",
       "company": "Grab",
       "location": "Petaling Jaya, Malaysia",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000143021049-assistant-marketing-manager-mobility",
-      "published_at": "2026-08-12T02:53:06.726Z",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000150586969-assistant-marketing-manager-mobility",
+      "published_at": "2026-09-21T02:19:16.540Z",
       "source_verified": true
     },
     {
