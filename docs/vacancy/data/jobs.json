@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-09-21T22:00:31.261525+00:00",
+  "generated_at": "2026-09-22T05:02:18.046141+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1307,
-  "matching_jobs": 79,
+  "raw_jobs": 1316,
+  "matching_jobs": 80,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 424
+      "jobs": 426
     },
     {
       "name": "Publicis Groupe",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 383
+      "jobs": 390
     },
     {
       "name": "Visa",
@@ -95,6 +95,15 @@
       "location": "Medan, Indonesia",
       "url": "https://jobs.smartrecruiters.com/Grab/744000122667128-city-partnership-assistant-manager-medan",
       "published_at": "2026-04-24T12:06:12.866Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000150930189",
+      "title": "Client Partner - Brands & Agencies, GrabAds",
+      "company": "Grab",
+      "location": "Jakarta, Indonesia",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000150930189-client-partner-brands-agencies-grabads",
+      "published_at": "2026-09-22T04:28:38.721Z",
       "source_verified": true
     },
     {
@@ -440,12 +449,12 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000144675569",
+      "id": "sr-744000150928267",
       "title": "Head, Merchant Acquisition",
       "company": "Grab",
       "location": "Singapore, Singapore",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000144675569-head-merchant-acquisition",
-      "published_at": "2026-08-21T02:09:03.897Z",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000150928267-head-merchant-acquisition",
+      "published_at": "2026-09-22T04:04:23.366Z",
       "source_verified": true
     },
     {
