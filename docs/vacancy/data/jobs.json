@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-09-22T05:02:18.046141+00:00",
+  "generated_at": "2026-09-22T11:44:07.348368+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1316,
+  "raw_jobs": 1328,
   "matching_jobs": 80,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 426
+      "jobs": 432
     },
     {
       "name": "Publicis Groupe",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 390
+      "jobs": 396
     },
     {
       "name": "Visa",
@@ -197,21 +197,21 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000149572228",
-      "title": "Manufacturing Engineer (Molding Injection, Machining and/or Assembly Processes)",
-      "company": "Bosch Group",
-      "location": "Hemaraj Eastern Seaboard Industrial Estate, Thailand",
-      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000149572228-manufacturing-engineer-molding-injection-machining-and-or-assembly-processes",
-      "published_at": "2026-09-15T11:02:28.977Z",
-      "source_verified": true
-    },
-    {
       "id": "sr-744000150590679",
       "title": "[BD] Senior IT Product Marketing Specialist ",
       "company": "Bosch Group",
       "location": "Ho Chi Minh, Vietnam",
       "url": "https://jobs.smartrecruiters.com/BoschGroup/744000150590679-bd-senior-it-product-marketing-specialist",
       "published_at": "2026-09-21T03:30:33.715Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000150954564",
+      "title": "[EPC] 5 Embedded Software Engineer (2-5 YoE) - In-Vehicle Network Communication for EU Project",
+      "company": "Bosch Group",
+      "location": "Ho Chi Minh, Vietnam",
+      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000150954564-epc-5-embedded-software-engineer-2-5-yoe-in-vehicle-network-communication-for-eu-project",
+      "published_at": "2026-09-22T07:51:06.148Z",
       "source_verified": true
     },
     {
