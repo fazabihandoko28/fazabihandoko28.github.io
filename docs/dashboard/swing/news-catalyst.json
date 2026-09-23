@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-09-23T06:54:30.363581+00:00",
+  "generated_at": "2026-09-23T12:24:50.123006+00:00",
   "policy": "HIGH_CONFIDENCE_CAUSAL_ONLY",
   "selected_tickers": [
     "PGEO",
-    "JRPT",
+    "GOTO",
     "AGII",
-    "GEMS",
-    "ISAT"
+    "TOTL",
+    "GEMS"
   ],
   "catalysts": []
 }
