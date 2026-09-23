@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-09-22T21:22:52.571431+00:00",
+  "generated_at": "2026-09-23T04:49:15.975359+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1334,
-  "matching_jobs": 80,
+  "raw_jobs": 1332,
+  "matching_jobs": 82,
   "source_status": [
     {
       "name": "Grab",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 397
+      "jobs": 395
     },
     {
       "name": "Visa",
@@ -212,6 +212,15 @@
       "location": "Ho Chi Minh, Vietnam",
       "url": "https://jobs.smartrecruiters.com/BoschGroup/744000150954564-epc-5-embedded-software-engineer-2-5-yoe-in-vehicle-network-communication-for-eu-project",
       "published_at": "2026-09-22T07:51:06.148Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000151278181",
+      "title": "[HRL] Employer Branding Intern",
+      "company": "Bosch Group",
+      "location": "Tân Bình, Vietnam",
+      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000151278181-hrl-employer-branding-intern",
+      "published_at": "2026-09-23T03:56:14.419Z",
       "source_verified": true
     },
     {
@@ -716,6 +725,15 @@
       "location": "Singapore, Singapore",
       "url": "https://jobs.smartrecruiters.com/Grab/744000145423399-senior-manager-growth-strategy-planning",
       "published_at": "2026-08-25T05:44:55.518Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000151208265",
+      "title": "Senior Manager, Regional Group Business Development & Strategic Partnership",
+      "company": "Grab",
+      "location": "Singapore, Singapore",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000151208265-senior-manager-regional-group-business-development-strategic-partnership",
+      "published_at": "2026-09-23T02:22:02.608Z",
       "source_verified": true
     },
     {
