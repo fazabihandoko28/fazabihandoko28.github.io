@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-09-23T04:49:15.975359+00:00",
+  "generated_at": "2026-09-23T11:42:56.756186+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1332,
-  "matching_jobs": 82,
+  "raw_jobs": 1344,
+  "matching_jobs": 80,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 437
+      "jobs": 443
     },
     {
       "name": "Publicis Groupe",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 395
+      "jobs": 401
     },
     {
       "name": "Visa",
@@ -188,15 +188,6 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000150013809",
-      "title": "Intern, Corporate Communications",
-      "company": "Bosch Group",
-      "location": "Singapore, Singapore",
-      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000150013809-intern-corporate-communications",
-      "published_at": "2026-09-17T06:00:40.891Z",
-      "source_verified": true
-    },
-    {
       "id": "sr-744000150590679",
       "title": "[BD] Senior IT Product Marketing Specialist ",
       "company": "Bosch Group",
@@ -320,15 +311,6 @@
       "location": "HCMC, Vietnam",
       "url": "https://jobs.smartrecruiters.com/Grab/744000145416309-associate-driver-acquisition",
       "published_at": "2026-08-25T04:15:19.171Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000150611490",
-      "title": "Associate, Growth & Business Operations, Transport",
-      "company": "Grab",
-      "location": "Singapore, Singapore",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000150611490-associate-growth-business-operations-transport",
-      "published_at": "2026-09-21T07:21:56.043Z",
       "source_verified": true
     },
     {
