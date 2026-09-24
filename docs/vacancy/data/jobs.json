@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-09-24T04:56:54.239562+00:00",
+  "generated_at": "2026-09-24T11:51:18.189210+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1342,
-  "matching_jobs": 81,
+  "raw_jobs": 1350,
+  "matching_jobs": 80,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 440
+      "jobs": 438
     },
     {
       "name": "Publicis Groupe",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 402
+      "jobs": 412
     },
     {
       "name": "Visa",
@@ -43,15 +43,6 @@
     }
   ],
   "jobs": [
-    {
-      "id": "sr-744000133818089",
-      "title": "4W Partner Acquisition Assistant Manager",
-      "company": "Grab",
-      "location": "Jakarta, Indonesia",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000133818089-4w-partner-acquisition-assistant-manager",
-      "published_at": "2026-06-24T03:33:19.044Z",
-      "source_verified": true
-    },
     {
       "id": "sr-744000147833469",
       "title": "Assistant Manager - City Marketing Execution",
@@ -188,6 +179,15 @@
       "source_verified": true
     },
     {
+      "id": "sr-744000151535009",
+      "title": "Intern, Employer Branding",
+      "company": "Bosch Group",
+      "location": "Singapore, Singapore",
+      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000151535009-intern-employer-branding",
+      "published_at": "2026-09-24T06:13:13.450Z",
+      "source_verified": true
+    },
+    {
       "id": "sr-744000150590679",
       "title": "[BD] Senior IT Product Marketing Specialist ",
       "company": "Bosch Group",
@@ -197,12 +197,12 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000150954564",
-      "title": "[EPC] 5 Embedded Software Engineer (2-5 YoE) - In-Vehicle Network Communication for EU Project",
+      "id": "sr-744000151590889",
+      "title": "[EPC] Senior Embedded Software Engineer (with Joining Bonus) _ In-Vehicle Network Communication for EU Project",
       "company": "Bosch Group",
-      "location": "Ho Chi Minh, Vietnam",
-      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000150954564-epc-5-embedded-software-engineer-2-5-yoe-in-vehicle-network-communication-for-eu-project",
-      "published_at": "2026-09-22T07:51:06.148Z",
+      "location": "Ho Chi Minh city, Vietnam",
+      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000151590889-epc-senior-embedded-software-engineer-with-joining-bonus-in-vehicle-network-communication-for-eu-project",
+      "published_at": "2026-09-24T11:04:43.105Z",
       "source_verified": true
     },
     {
@@ -743,15 +743,6 @@
       "location": "Singapore, Singapore",
       "url": "https://jobs.smartrecruiters.com/Grab/744000148459935-team-lead-merchant-acquisition-f-b",
       "published_at": "2026-09-09T10:06:08.214Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000146882592",
-      "title": "Consulting Senior Analyst - CBI & Brand",
-      "company": "NielsenIQ",
-      "location": "Pasig City, Philippines",
-      "url": "https://jobs.smartrecruiters.com/NielsenIQ/744000146882592-consulting-senior-analyst-cbi-brand",
-      "published_at": "2026-09-02T03:17:37.479Z",
       "source_verified": true
     },
     {
