@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-09-23T21:32:46.049167+00:00",
+  "generated_at": "2026-09-24T04:56:54.239562+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1346,
-  "matching_jobs": 80,
+  "raw_jobs": 1342,
+  "matching_jobs": 81,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 442
+      "jobs": 440
     },
     {
       "name": "Publicis Groupe",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 404
+      "jobs": 402
     },
     {
       "name": "Visa",
@@ -557,12 +557,12 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000142050569",
+      "id": "sr-744000151519159",
       "title": "Lead Product Marketing Manager",
       "company": "Grab",
       "location": "Petaling Jaya, Malaysia",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000142050569-lead-product-marketing-manager",
-      "published_at": "2026-08-07T05:48:34.424Z",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000151519159-lead-product-marketing-manager",
+      "published_at": "2026-09-24T02:13:38.335Z",
       "source_verified": true
     },
     {
@@ -716,6 +716,15 @@
       "location": "Singapore, Singapore",
       "url": "https://jobs.smartrecruiters.com/Grab/744000151208265-senior-manager-regional-group-business-development-strategic-partnership",
       "published_at": "2026-09-23T02:22:02.608Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000151520539",
+      "title": "Strategy & Business Operations, Manager (Seller & Growth)",
+      "company": "Grab",
+      "location": "Petaling Jaya, Malaysia",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000151520539-strategy-business-operations-manager-seller-growth",
+      "published_at": "2026-09-24T02:37:39.868Z",
       "source_verified": true
     },
     {
