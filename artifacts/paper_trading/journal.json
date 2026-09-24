@@ -1438,5 +1438,55 @@
     "source": "YAHOO_FINANCE_RESEARCH_ONLY",
     "recorded_at": "2026-09-23T17:55:09.127882+00:00",
     "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "ARNA",
+    "status": "READY",
+    "signal_timestamp": "2026-09-23T00:00:00+00:00",
+    "signal_close": 525.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-09-24T17:54:56.493659+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "TSPC",
+    "status": "WAIT",
+    "signal_timestamp": "2026-09-23T00:00:00+00:00",
+    "signal_close": 2680.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-09-24T17:54:56.493692+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "ADRO",
+    "status": "WAIT",
+    "signal_timestamp": "2026-09-23T00:00:00+00:00",
+    "signal_close": 2600.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-09-24T17:54:56.493705+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "BBRI",
+    "status": "WAIT",
+    "signal_timestamp": "2026-09-23T00:00:00+00:00",
+    "signal_close": 3190.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-09-24T17:54:56.493715+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "CMRY",
+    "status": "WAIT",
+    "signal_timestamp": "2026-09-23T00:00:00+00:00",
+    "signal_close": 4550.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-09-24T17:54:56.493725+00:00",
+    "outcome": "PENDING"
   }
 ]
