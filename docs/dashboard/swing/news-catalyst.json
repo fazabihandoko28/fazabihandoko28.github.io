@@ -1,12 +1,24 @@
 {
-  "generated_at": "2026-09-24T06:54:06.254598+00:00",
+  "generated_at": "2026-09-24T12:24:07.503127+00:00",
   "policy": "HIGH_CONFIDENCE_CAUSAL_ONLY",
   "selected_tickers": [
-    "JRPT",
-    "MAPI",
+    "GOTO",
+    "TOTL",
     "BEEF",
-    "TRIM",
-    "WIIM"
+    "WIIM",
+    "PGEO"
   ],
-  "catalysts": []
+  "catalysts": [
+    {
+      "scope": "IHSG",
+      "direction": "NEGATIVE",
+      "confidence": "HIGH",
+      "score": 7,
+      "headline": "Pembukaan Perdagangan, Rupiah Anjlok karena Dolar AS Menguat Tajam - rri.co.id",
+      "source": "rri.co.id",
+      "url": "https://news.google.com/rss/articles/CBMiogFBVV95cUxOR2tjODJIU2taUU80c2lsTTBtaC05eHducVRHU3dkMUVIRDViS1pnRURwVjBMcWRMRGd1WndCaGZ6RnNqS3RjeUxEYVlmVGhtSktiQmYzdFhsNERPaUZ3MjlaWkdzcVJwZHRLam5JUU5GSVVGeFJxZ3hlenBQR1BaUVk4UU9aazBsOF9Yb1I5Qi1uakprNXhLUnl5MTNxWG5JZlE?oc=5",
+      "published_at": "2026-09-24T04:00:00+00:00",
+      "note": "Likely index news catalyst based on explicit causal headline language. Hidden when causal evidence is weak."
+    }
+  ]
 }
