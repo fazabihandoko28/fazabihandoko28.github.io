@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-09-25T05:02:08.321358+00:00",
+  "generated_at": "2026-09-25T11:55:14.056726+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1341,
-  "matching_jobs": 80,
+  "raw_jobs": 1338,
+  "matching_jobs": 85,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 440
+      "jobs": 444
     },
     {
       "name": "Publicis Groupe",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 401
+      "jobs": 394
     },
     {
       "name": "Visa",
@@ -170,6 +170,15 @@
       "source_verified": true
     },
     {
+      "id": "sr-744000151805299",
+      "title": "APAC Consumer & Marketing Insights Lead - FMCG (G100)",
+      "company": "NielsenIQ",
+      "location": "Jakarta, Indonesia",
+      "url": "https://jobs.smartrecruiters.com/NielsenIQ/744000151805299-apac-consumer-marketing-insights-lead-fmcg-g100",
+      "published_at": "2026-09-25T09:42:29.522Z",
+      "source_verified": true
+    },
+    {
       "id": "sr-744000146883669",
       "title": "Associate Director, Analytics Commercial",
       "company": "NielsenIQ",
@@ -188,15 +197,6 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000150590679",
-      "title": "[BD] Senior IT Product Marketing Specialist ",
-      "company": "Bosch Group",
-      "location": "Ho Chi Minh, Vietnam",
-      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000150590679-bd-senior-it-product-marketing-specialist",
-      "published_at": "2026-09-21T03:30:33.715Z",
-      "source_verified": true
-    },
-    {
       "id": "sr-744000151590889",
       "title": "[EPC] Senior Embedded Software Engineer (with Joining Bonus) _ In-Vehicle Network Communication for EU Project",
       "company": "Bosch Group",
@@ -212,6 +212,15 @@
       "location": "Tân Bình, Vietnam",
       "url": "https://jobs.smartrecruiters.com/BoschGroup/744000151278181-hrl-employer-branding-intern",
       "published_at": "2026-09-23T03:56:14.419Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000151769657",
+      "title": "Acquisition & Market Expansion Lead",
+      "company": "Grab",
+      "location": "Johor Bahru, Malaysia",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000151769657-acquisition-market-expansion-lead",
+      "published_at": "2026-09-25T07:01:57.259Z",
       "source_verified": true
     },
     {
@@ -674,6 +683,15 @@
       "source_verified": true
     },
     {
+      "id": "sr-744000151790519",
+      "title": "Regional Commercial Strategy & Partnerships Manager – Mandarin-Speaking",
+      "company": "Grab",
+      "location": "Petaling Jaya, Malaysia",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000151790519-regional-commercial-strategy-partnerships-manager-mandarin-speaking",
+      "published_at": "2026-09-25T08:32:27.630Z",
+      "source_verified": true
+    },
+    {
       "id": "sr-744000150018459",
       "title": "Senior Associate, Talent Acquisition Business Partner",
       "company": "Grab",
@@ -743,6 +761,33 @@
       "location": "Singapore, Singapore",
       "url": "https://jobs.smartrecruiters.com/Grab/744000148459935-team-lead-merchant-acquisition-f-b",
       "published_at": "2026-09-09T10:06:08.214Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000151806239",
+      "title": "APAC Consumer & Marketing Insights Lead - FMCG (G100)",
+      "company": "NielsenIQ",
+      "location": "Bangkok, Thailand",
+      "url": "https://jobs.smartrecruiters.com/NielsenIQ/744000151806239-apac-consumer-marketing-insights-lead-fmcg-g100",
+      "published_at": "2026-09-25T09:46:06.645Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000151804545",
+      "title": "APAC Consumer & Marketing Insights Lead - FMCG (G100)",
+      "company": "NielsenIQ",
+      "location": "Manila, Philippines",
+      "url": "https://jobs.smartrecruiters.com/NielsenIQ/744000151804545-apac-consumer-marketing-insights-lead-fmcg-g100",
+      "published_at": "2026-09-25T09:44:38.735Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000151805408",
+      "title": "APAC Consumer & Marketing Insights Lead - FMCG (G100)",
+      "company": "NielsenIQ",
+      "location": "Kuala Lumpur, Malaysia",
+      "url": "https://jobs.smartrecruiters.com/NielsenIQ/744000151805408-apac-consumer-marketing-insights-lead-fmcg-g100",
+      "published_at": "2026-09-25T09:43:22.294Z",
       "source_verified": true
     },
     {
