@@ -1488,5 +1488,55 @@
     "source": "YAHOO_FINANCE_RESEARCH_ONLY",
     "recorded_at": "2026-09-24T17:54:56.493725+00:00",
     "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "ARNA",
+    "status": "READY",
+    "signal_timestamp": "2026-09-24T00:00:00+00:00",
+    "signal_close": 530.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-09-25T18:01:57.359419+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "ISAT",
+    "status": "WAIT",
+    "signal_timestamp": "2026-09-24T00:00:00+00:00",
+    "signal_close": 2400.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-09-25T18:01:57.359446+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "INDY",
+    "status": "WAIT",
+    "signal_timestamp": "2026-09-24T00:00:00+00:00",
+    "signal_close": 2780.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-09-25T18:01:57.359458+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "MAPA",
+    "status": "WAIT",
+    "signal_timestamp": "2026-09-24T00:00:00+00:00",
+    "signal_close": 645.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-09-25T18:01:57.359471+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "BMRI",
+    "status": "WAIT",
+    "signal_timestamp": "2026-09-24T00:00:00+00:00",
+    "signal_close": 4070.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-09-25T18:01:57.359482+00:00",
+    "outcome": "PENDING"
   }
 ]
