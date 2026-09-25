@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-09-25T17:15:40.278953+00:00",
+  "generated_at": "2026-09-25T21:37:52.097968+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1345,
+  "raw_jobs": 1340,
   "matching_jobs": 85,
   "source_status": [
     {
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 400
+      "jobs": 395
     },
     {
       "name": "Visa",
