@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-09-25T06:48:28.819646+00:00",
+  "generated_at": "2026-09-25T12:24:06.010586+00:00",
   "policy": "HIGH_CONFIDENCE_CAUSAL_ONLY",
   "selected_tickers": [
-    "JRPT",
-    "MAPI",
-    "TBIG",
     "MDKA",
-    "SSIA"
+    "TBIG",
+    "ARCI",
+    "HRUM",
+    "MAPI"
   ],
   "catalysts": []
 }
