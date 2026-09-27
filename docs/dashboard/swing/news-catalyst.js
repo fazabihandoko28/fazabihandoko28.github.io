@@ -304,7 +304,7 @@
   function loadIhsgDisplay(){
     if(document.querySelector('script[data-hanz-ihsg="1"]')) return;
     const script=document.createElement("script");
-    script.src=`./ihsg-display.js?v=1`;
+    script.src=`/dashboard/swing/ihsg-display.js?v=1`;
     script.defer=true;
     script.dataset.hanzIhsg="1";
     document.head.appendChild(script);
@@ -316,7 +316,7 @@
     bindRadarRows();
     bindStandaloneChartOverlay();
     try{
-      const response=await fetch(`./news-catalyst.json?ts=${Date.now()}`,{cache:"no-store"});
+      const response=await fetch(`/dashboard/swing/news-catalyst.json?ts=${Date.now()}`,{cache:"no-store"});
       if(!response.ok) throw new Error(`HTTP ${response.status}`);
       render(await response.json());
     }catch(error){
