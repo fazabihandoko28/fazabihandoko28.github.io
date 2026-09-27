@@ -165,7 +165,7 @@
   async function load(){
     addStyles(); if(!ensureRoot()) return;
     try{
-      const res=await fetch(`./ihsg-snapshot.json?ts=${Date.now()}`,{cache:"no-store"});
+      const res=await fetch(`/dashboard/swing/ihsg-snapshot.json?ts=${Date.now()}`,{cache:"no-store"});
       if(!res.ok) throw new Error(`HTTP ${res.status}`); render(await res.json());
     }catch(error){const meta=document.getElementById("ihsgMeta");if(meta) meta.textContent="IHSG snapshot temporarily unavailable";console.warn("HANZ IHSG display load failed",error);}
     renderAutoDecisions();
@@ -173,7 +173,7 @@
 
   function loadFibonacci(){
     if(document.querySelector('script[data-hanz-fib="1"]')) return;
-    const script=document.createElement("script");script.src="./fibonacci-overlay.js?v=1";script.defer=true;script.dataset.hanzFib="1";document.head.appendChild(script);
+    const script=document.createElement("script");script.src="/dashboard/swing/fibonacci-overlay.js?v=1";script.defer=true;script.dataset.hanzFib="1";document.head.appendChild(script);
   }
 
   function start(){loadFibonacci();load();setInterval(load,300000);setInterval(renderAutoDecisions,1000);}
