@@ -1,4 +1,4 @@
-name: HANZ Walk-Forward Validation
+name: HANZ 5-Year Walk-Forward Validation
 
 on:
   workflow_dispatch:
@@ -73,6 +73,7 @@ jobs:
             --trades "${{ inputs.trades_csv }}" \
             --windows "${{ inputs.windows_csv }}" \
             --dof-remaining-pct "${{ inputs.dof_remaining_pct }}" \
+            --min-backtest-years 5 \
             --json-out .hanz-wfa/wfa_validation.json \
             --env-out .hanz-wfa/wfa_evidence.env \
             | tee .hanz-wfa/wfa_validation.log
