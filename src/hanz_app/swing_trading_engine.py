@@ -69,6 +69,8 @@ MIN_BUY_SCORE = int(
 # HANZ remains research/paper-only until walk-forward validation has been
 # completed outside the live signal engine and these values are explicitly set.
 STRATEGY_WFA_VALIDATED = os.getenv("HANZ_STRATEGY_WFA_VALIDATED", "0") == "1"
+STRATEGY_BACKTEST_YEARS = os.getenv("HANZ_STRATEGY_BACKTEST_YEARS", "").strip()
+MIN_BACKTEST_YEARS = float(os.getenv("HANZ_MIN_BACKTEST_YEARS", "5"))
 STRATEGY_WFE = safe_wfe_env = os.getenv("HANZ_STRATEGY_WFE", "").strip()
 STRATEGY_OOS_TRADES = int(os.getenv("HANZ_STRATEGY_OOS_TRADES", "0") or 0)
 STRATEGY_WF_WINDOWS = int(os.getenv("HANZ_STRATEGY_WF_WINDOWS", "0") or 0)
@@ -958,9 +960,11 @@ def _strategy_validation_evidence():
     def f(v):
         try: return float(v) if str(v).strip() else None
         except Exception: return None
+    backtest_years=f(STRATEGY_BACKTEST_YEARS)
     wfe=f(STRATEGY_WFE); exp=f(STRATEGY_OOS_EXPECTANCY_R); dof=f(STRATEGY_DOF_REMAINING_PCT)
     dd=f(STRATEGY_OOS_MAX_DD_R); profitable=f(STRATEGY_PROFITABLE_WF_PCT); concentration=f(STRATEGY_MAX_TRADE_PROFIT_SHARE_PCT)
     checks={
+        "five_year_history": backtest_years is not None and backtest_years >= MIN_BACKTEST_YEARS,
         "flag": bool(STRATEGY_WFA_VALIDATED),
         "wfe": wfe is not None and wfe >= MIN_WFE_RATIO,
         "oos_trades": STRATEGY_OOS_TRADES >= MIN_WFA_OOS_TRADES,
@@ -973,7 +977,7 @@ def _strategy_validation_evidence():
         "validated_at": bool(STRATEGY_VALIDATED_AT),
     }
     passed=all(checks.values())
-    return {"passed":passed,"checks":checks,"wfe":wfe,"oos_trades":STRATEGY_OOS_TRADES,"wf_windows":STRATEGY_WF_WINDOWS,"oos_expectancy_r":exp,"dof_remaining_pct":dof,"oos_max_dd_r":dd,"profitable_wf_pct":profitable,"max_trade_profit_share_pct":concentration,"validated_at":STRATEGY_VALIDATED_AT or None}
+    return {"passed":passed,"checks":checks,"backtest_years":backtest_years,"min_backtest_years":MIN_BACKTEST_YEARS,"wfe":wfe,"oos_trades":STRATEGY_OOS_TRADES,"wf_windows":STRATEGY_WF_WINDOWS,"oos_expectancy_r":exp,"dof_remaining_pct":dof,"oos_max_dd_r":dd,"profitable_wf_pct":profitable,"max_trade_profit_share_pct":concentration,"validated_at":STRATEGY_VALIDATED_AT or None}
 
 
 def daily_metrics(df):
