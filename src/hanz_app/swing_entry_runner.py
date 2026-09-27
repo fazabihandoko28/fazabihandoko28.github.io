@@ -67,12 +67,22 @@ def graduated_top5_score(result, risk_validation):
         rv["canonical_raw_score_before_bucket"] = raw_score
         return tail_score
 
-    # These are not fresh-entry opportunities either. Keep them above AVOID in
-    # the full screener, but out of Opportunity Top 5.
-    if action in {"DO_NOT_CHASE", "TP_RISK"}:
+    # DO_NOT_CHASE is not a fresh-entry opportunity and stays out of Top 5.
+    if action == "DO_NOT_CHASE":
         rv["top5_excluded"] = True
-        rv["top5_exclusion_reason"] = f"HANZ action {action} is a warning/management state"
+        rv["top5_exclusion_reason"] = "HANZ action DO_NOT_CHASE is not a fresh-entry opportunity"
         rv["ranking_bucket"] = "Y_WARNING"
+        rv["canonical_raw_score_before_bucket"] = raw_score
+        return max(10, min(24, raw_score))
+
+    # TP_RISK is a caution/watch opportunity, not AVOID. It may appear in the
+    # public opportunity list with a capped score and clear CAUTION labeling.
+    if action == "TP_RISK":
+        rv["top5_excluded"] = False
+        rv["top5_exclusion_reason"] = None
+        rv["top5_priority_class"] = "D_CAUTION"
+        rv["ranking_bucket"] = "D_CAUTION_TP_RISK"
+        rv["relative_rank_policy"] = "BEST_AVAILABLE_CAUTION"
         rv["canonical_raw_score_before_bucket"] = raw_score
         return max(10, min(24, raw_score))
 
