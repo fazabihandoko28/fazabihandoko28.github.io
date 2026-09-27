@@ -1074,10 +1074,14 @@ function hanzRankingScore(row){
 }
 
 function hanzCanonicalEligible(row){
-  // V42: rank opportunities, not only "safe" names.
+  // V43: canonical ranking + strict fresh-entry exclusion gate.
+  // Backend owns classification; frontend must honor explicit Top-5 exclusions.
   const r=riskObject(row);
   const version=String(r.canonical_rank_version || "").toUpperCase();
   const score=hanzRankingScore(row);
+  const action=String(r.hanz_action || row?.hanz_action || "").toUpperCase();
+  const explicitlyExcluded=Boolean(r.top5_excluded);
+  const excludedAction=["AVOID","DO_NOT_CHASE","TP_RISK"].includes(action);
   const avgValue20=Number(r.avg_value20);
   const zeroVol=Number(r.zero_volume_days20 || 0);
   const momentumBlocked=Boolean(r?.momentum_guard?.blocked);
@@ -1087,15 +1091,18 @@ function hanzCanonicalEligible(row){
   const canonicalV3=version.startsWith("CRV3_") || version.includes("OPPORTUNITY_SEEKING");
   const extremeIlliquid=Number.isFinite(avgValue20) && avgValue20<100000000;
   const hardBroken=momentumBlocked || (failedBreakout && setupFamily==="BREAKOUT") || volStatus==="EXTREME" || zeroVol>=5 || extremeIlliquid;
-  return canonicalV3 && score>0 && !hardBroken;
+  return canonicalV3 && score>0 && !hardBroken && !explicitlyExcluded && !excludedAction;
 }
 
 function hanzCanonicalRejectReason(row){
   const r=riskObject(row);
   const version=String(r.canonical_rank_version || "").toUpperCase();
+  const action=String(r.hanz_action || row?.hanz_action || "").toUpperCase();
   const avgValue20=Number(r.avg_value20);
   const setupFamily=String(r.setup_family || row?.setup_family || "").toUpperCase();
   if(!(version.startsWith("CRV3_") || version.includes("OPPORTUNITY_SEEKING"))) return "STALE_RANK_VERSION";
+  if(Boolean(r.top5_excluded)) return String(r.top5_exclusion_reason || "TOP5_EXCLUDED");
+  if(["AVOID","DO_NOT_CHASE","TP_RISK"].includes(action)) return "ACTION_"+action;
   if(Boolean(r?.momentum_guard?.blocked)) return "MOMENTUM_BROKEN";
   if(Boolean(r?.momentum_guard?.failed_breakout) && setupFamily==="BREAKOUT") return "FAILED_BREAKOUT";
   if(String(r.volatility_status || "").toUpperCase()==="EXTREME") return "EXTREME_VOLATILITY";
