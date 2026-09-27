@@ -449,6 +449,13 @@ th{color:var(--muted)}
 .candidate-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .candidate-metric{border:1px solid #1a2a40;background:#08111e;border-radius:11px;padding:9px}
 .candidate-metric span{display:block;color:var(--muted);font-size:8px;letter-spacing:.08em}.candidate-metric strong{font-size:12px}
+.candidate-metric.accent{border-color:rgba(40,224,162,.28);background:rgba(40,224,162,.055)}
+.candidate-metric.caution{border-color:rgba(255,200,87,.28);background:rgba(255,200,87,.045)}
+.candidate-outlook{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.candidate-outlook>div{border:1px solid #1a2a40;background:#08111e;border-radius:11px;padding:9px}
+.candidate-outlook span{display:block;color:var(--muted);font-size:8px;letter-spacing:.08em}
+.candidate-outlook strong{display:block;margin-top:3px;font-size:12px}
+.candidate-warning{font-size:9px;line-height:1.45;padding:8px 9px;border-radius:10px;border:1px solid rgba(255,200,87,.22);background:rgba(255,200,87,.055);color:#ffd98a}
 .candidate-reason{font-size:10px;line-height:1.5;color:#c7d2e4;min-height:44px}
 .candidate-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:auto}
 .candidate-btn{border:1px solid var(--line);background:#0d1a2b;color:var(--text);border-radius:10px;padding:9px 10px;font-size:10px;font-weight:800;cursor:pointer}
@@ -1572,6 +1579,38 @@ function candidateReason(row){
   return parts.length?parts.slice(0,5).join(" · "):"Selected by current HANZ state and canonical ranking.";
 }
 
+function candidateUpsidePct(row){
+  const t1=Number(row?.target_1);
+  const low=Number(row?.entry_low), high=Number(row?.entry_high), current=Number(row?.price);
+  const base=(Number.isFinite(low)&&Number.isFinite(high)&&low>0&&high>0)?(low+high)/2:(Number.isFinite(current)&&current>0?current:NaN);
+  return Number.isFinite(t1)&&Number.isFinite(base)&&base>0 ? ((t1-base)/base)*100 : null;
+}
+
+function candidateSwingHorizon(row){
+  const upside=candidateUpsidePct(row);
+  const atrPct=Number(riskObject(row)?.atr_pct ?? row?.atr_pct);
+  if(!Number.isFinite(upside) || upside<=0) return "—";
+  const dailyMove=(Number.isFinite(atrPct)&&atrPct>0)?Math.max(0.8,atrPct*0.55):2.0;
+  const sessions=Math.max(3,Math.ceil(upside/dailyMove));
+  if(sessions<=5) return "3–7 hari bursa";
+  if(sessions<=10) return "1–2 minggu";
+  if(sessions<=15) return "1–3 minggu";
+  if(sessions<=22) return "2–4 minggu";
+  return "3–6 minggu";
+}
+
+function candidateActionWarning(row){
+  const state=String(row?.state||"").toUpperCase();
+  const gate=String(row?.risk_gate || riskObject(row)?.gate || "").toUpperCase();
+  if(["PRE_ALERT","EARLY_WATCH","SWING_WATCH","SWING_CONFIRMING"].includes(state))
+    return "Belum trigger BUY — tunggu konfirmasi harga/volume.";
+  if(state==="SETUP_READY")
+    return "Setup siap dipantau; tunggu reconfirmation sebelum entry.";
+  if(["RESEARCH_ONLY","PAPER_ONLY"].includes(gate))
+    return `Risk gate: ${gate.replaceAll("_"," ")} — bukan live-money eligible.`;
+  return "";
+}
+
 function renderSelectedCandidates(rows){
   selectedCandidateRows=(rows||[]).slice(0,5);
   $("selectedCandidateCount").textContent=`${selectedCandidateRows.length} selected`;
@@ -1585,6 +1624,10 @@ function renderSelectedCandidates(rows){
     const rank=hanzRankingScore(row);
     const entryLow=Number(row.entry_low), entryHigh=Number(row.entry_high);
     const entry=(Number.isFinite(entryLow)&&Number.isFinite(entryHigh))?`${price(entryLow)} – ${price(entryHigh)}`:"—";
+    const upside=candidateUpsidePct(row);
+    const upsideText=Number.isFinite(upside)?`${upside>=0?"+":""}${upside.toFixed(1)}%`:"—";
+    const horizon=candidateSwingHorizon(row);
+    const warning=candidateActionWarning(row);
     return `<article class="candidate-card">
       <div class="candidate-card-head">
         <div><div class="candidate-symbol">${safe(row.ticker)}</div><div class="candidate-rank">Canonical rank ${rank}/100</div></div>
@@ -1592,10 +1635,17 @@ function renderSelectedCandidates(rows){
       </div>
       <div class="candidate-metrics">
         <div class="candidate-metric"><span>CURRENT</span><strong>${price(row.price)}</strong></div>
-        <div class="candidate-metric"><span>ENTRY ZONE</span><strong>${entry}</strong></div>
-        <div class="candidate-metric"><span>STOP</span><strong>${price(row.stop_loss)}</strong></div>
-        <div class="candidate-metric"><span>T1 / T2</span><strong>${price(row.target1)} / ${price(row.target2)}</strong></div>
+        <div class="candidate-metric accent"><span>ENTRY AREA</span><strong>${entry}</strong></div>
+        <div class="candidate-metric"><span>STOP / INVALIDATION</span><strong>${price(row.stop_loss)}</strong></div>
+        <div class="candidate-metric accent"><span>TARGET 1</span><strong>${price(row.target_1)}</strong></div>
+        <div class="candidate-metric"><span>TARGET 2</span><strong>${price(row.target_2)}</strong></div>
+        <div class="candidate-metric caution"><span>STATUS</span><strong>${safe(state.label)}</strong></div>
       </div>
+      <div class="candidate-outlook">
+        <div><span>POTENSI KE T1</span><strong>${safe(upsideText)}</strong></div>
+        <div><span>ESTIMASI SWING</span><strong>${safe(horizon)}</strong></div>
+      </div>
+      ${warning?`<div class="candidate-warning">${safe(warning)}</div>`:""}
       <div class="candidate-reason">${safe(candidateReason(row))}</div>
       <div class="candidate-actions">
         <button class="candidate-btn primary" type="button" data-candidate-detail="${i}">Indicators</button>
