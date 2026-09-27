@@ -1098,7 +1098,11 @@ function hanzCanonicalEligible(row){
   const canonicalV3=version.startsWith("CRV3_") || version.includes("OPPORTUNITY_SEEKING");
   const extremeIlliquid=Number.isFinite(avgValue20) && avgValue20<100000000;
   const hardBroken=momentumBlocked || (failedBreakout && setupFamily==="BREAKOUT") || volStatus==="EXTREME" || zeroVol>=5 || extremeIlliquid;
-  return canonicalV3 && score>0 && !hardBroken && !explicitlyExcluded && !excludedAction;
+  const entryLow=Number(row?.entry_low), entryHigh=Number(row?.entry_high), t1=Number(row?.target_1);
+  const entryMid=(Number.isFinite(entryLow)&&Number.isFinite(entryHigh)&&entryLow>0&&entryHigh>0)?(entryLow+entryHigh)/2:NaN;
+  const t1UpsidePct=(Number.isFinite(t1)&&Number.isFinite(entryMid)&&entryMid>0)?((t1-entryMid)/entryMid)*100:NaN;
+  const targetSane=!Number.isFinite(t1UpsidePct) || t1UpsidePct>=0.50;
+  return canonicalV3 && score>0 && !hardBroken && !explicitlyExcluded && !excludedAction && targetSane;
 }
 
 function hanzCanonicalRejectReason(row){
