@@ -309,6 +309,19 @@ def momentum_entry_score(result, risk_validation):
         if missing: reason += "; waiting for " + ", ".join(missing)
         reason += "."
         total = min(raw_total, 69)
+    elif (
+        raw_total >= 40
+        and market_ok
+        and not resistance_capped
+        and not extended
+        and rr_ok
+        and not bool(momentum_guard.get("blocked"))
+        and str(rv.get("volatility_status") or "").upper() != "EXTREME"
+        and int(rv.get("zero_volume_days20") or 0) < 5
+    ):
+        action = "WAIT"
+        reason = "Best-available developing setup: not ready for BUY, but strong enough to remain in the Top-5 opportunity watchlist."
+        total = min(raw_total, 54)
     else:
         action = "AVOID"
         reason = "Current timing, momentum, location and risk/reward are not good enough for a fresh entry."
