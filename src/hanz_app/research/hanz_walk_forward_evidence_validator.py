@@ -11,6 +11,7 @@ Expected CSVs:
 Optional columns are tolerated; required columns are checked explicitly.
 """
 import argparse, json, math
+from datetime import datetime, timezone
 from pathlib import Path
 import pandas as pd
 
@@ -19,6 +20,7 @@ DEFAULT_MIN_DOF_REMAINING_PCT=90.0
 DEFAULT_MIN_WFE=0.50       # HANZ implementation policy; configurable
 DEFAULT_MIN_PROFITABLE_WINDOWS_PCT=50.0  # HANZ policy; configurable
 DEFAULT_MAX_TRADE_PROFIT_SHARE_PCT=35.0  # HANZ concentration guard; configurable
+DEFAULT_MIN_BACKTEST_YEARS=5.0
 
 
 def safe_div(a,b):
@@ -31,8 +33,34 @@ def load_csv(path):
     return pd.read_csv(p)
 
 
+def _evidence_span_years(trades, windows):
+    """Return chronological evidence span in years, or None when dates are absent.
+
+    We intentionally use the earliest/latest observed timestamps instead of
+    summing rolling-window durations, because overlapping walk-forward windows
+    can otherwise exaggerate the tested history.
+    """
+    candidates=[]
+    for frame in (trades, windows):
+        for col in (
+            "timestamp","trade_date","entry_date","exit_date",
+            "start_date","end_date","window_start","window_end",
+            "is_start","is_end","oos_start","oos_end",
+        ):
+            if col in frame.columns:
+                parsed=pd.to_datetime(frame[col],errors="coerce",utc=True).dropna()
+                if len(parsed):
+                    candidates.extend([parsed.min(),parsed.max()])
+    if len(candidates)<2:
+        return None
+    start=min(candidates); end=max(candidates)
+    days=(end-start).total_seconds()/86400.0
+    return max(0.0, days/365.2425)
+
+
 def validate(trades, windows, dof_remaining_pct, min_oos_trades=30, min_wfe=0.50,
-             min_profitable_windows_pct=50.0, max_trade_profit_share_pct=35.0):
+             min_profitable_windows_pct=50.0, max_trade_profit_share_pct=35.0,
+             min_backtest_years=DEFAULT_MIN_BACKTEST_YEARS):
     req_t={"r_multiple","is_oos"}; req_w={"window_id","oos_profit_r"}
     missing_t=req_t-set(trades.columns); missing_w=req_w-set(windows.columns)
     if missing_t or missing_w:
@@ -41,6 +69,8 @@ def validate(trades, windows, dof_remaining_pct, min_oos_trades=30, min_wfe=0.50
     t=trades.copy(); t=t[t["is_oos"].astype(str).str.lower().isin(["1","true","yes"])]
     t["r_multiple"]=pd.to_numeric(t["r_multiple"],errors="coerce"); t=t.dropna(subset=["r_multiple"])
     windows=windows.copy(); windows["oos_profit_r"]=pd.to_numeric(windows["oos_profit_r"],errors="coerce")
+
+    evidence_span_years=_evidence_span_years(trades, windows)
 
     oos_trades=len(t)
     expectancy=float(t["r_multiple"].mean()) if oos_trades else None
@@ -71,6 +101,7 @@ def validate(trades, windows, dof_remaining_pct, min_oos_trades=30, min_wfe=0.50
     max_trade_share=(float(positives.max())/pos_sum*100) if pos_sum>0 else None
 
     checks={
+      "five_year_history": evidence_span_years is not None and evidence_span_years>=min_backtest_years,
       "oos_trade_sample": oos_trades>=min_oos_trades,
       "degrees_of_freedom": float(dof_remaining_pct)>=90.0,
       "positive_oos_expectancy": expectancy is not None and expectancy>0,
@@ -86,7 +117,8 @@ def validate(trades, windows, dof_remaining_pct, min_oos_trades=30, min_wfe=0.50
       "oos_expectancy_r":expectancy,"oos_win_rate_pct":wins,"total_oos_r":total_oos_r,
       "wfe":wfe,"oos_max_dd_r":max_dd_r,"profitable_wf_pct":profitable_windows_pct,
       "max_trade_profit_share_pct":max_trade_share,"dof_remaining_pct":float(dof_remaining_pct),
-      "policy":{"min_oos_trades":min_oos_trades,"min_wfe":min_wfe,"min_dof_remaining_pct":90.0,
+      "backtest_years":evidence_span_years,
+      "policy":{"min_backtest_years":min_backtest_years,"min_oos_trades":min_oos_trades,"min_wfe":min_wfe,"min_dof_remaining_pct":90.0,
                 "min_profitable_windows_pct":min_profitable_windows_pct,
                 "max_trade_profit_share_pct":max_trade_profit_share_pct}
     }
@@ -96,6 +128,7 @@ def env_lines(r):
     def val(x): return "" if x is None else (f"{x:.6g}" if isinstance(x,float) else str(x))
     return "\n".join([
       f"HANZ_STRATEGY_WFA_VALIDATED={1 if r['passed'] else 0}",
+      f"HANZ_STRATEGY_BACKTEST_YEARS={val(r['backtest_years'])}",
       f"HANZ_STRATEGY_WFE={val(r['wfe'])}",
       f"HANZ_STRATEGY_OOS_TRADES={r['oos_trades']}",
       f"HANZ_STRATEGY_WF_WINDOWS={r['wf_windows']}",
@@ -104,6 +137,7 @@ def env_lines(r):
       f"HANZ_STRATEGY_OOS_MAX_DD_R={val(r['oos_max_dd_r'])}",
       f"HANZ_STRATEGY_PROFITABLE_WF_PCT={val(r['profitable_wf_pct'])}",
       f"HANZ_STRATEGY_MAX_TRADE_PROFIT_SHARE_PCT={val(r['max_trade_profit_share_pct'])}",
+      f"HANZ_STRATEGY_VALIDATED_AT={datetime.now(timezone.utc).isoformat()}",
     ])
 
 
@@ -111,13 +145,14 @@ def main():
     ap=argparse.ArgumentParser()
     ap.add_argument('--trades',required=True); ap.add_argument('--windows',required=True)
     ap.add_argument('--dof-remaining-pct',required=True,type=float)
+    ap.add_argument('--min-backtest-years',type=float,default=DEFAULT_MIN_BACKTEST_YEARS)
     ap.add_argument('--min-oos-trades',type=int,default=DEFAULT_MIN_OOS_TRADES)
     ap.add_argument('--min-wfe',type=float,default=DEFAULT_MIN_WFE)
     ap.add_argument('--min-profitable-windows-pct',type=float,default=DEFAULT_MIN_PROFITABLE_WINDOWS_PCT)
     ap.add_argument('--max-trade-profit-share-pct',type=float,default=DEFAULT_MAX_TRADE_PROFIT_SHARE_PCT)
     ap.add_argument('--json-out'); ap.add_argument('--env-out')
     a=ap.parse_args()
-    r=validate(load_csv(a.trades),load_csv(a.windows),a.dof_remaining_pct,a.min_oos_trades,a.min_wfe,a.min_profitable_windows_pct,a.max_trade_profit_share_pct)
+    r=validate(load_csv(a.trades),load_csv(a.windows),a.dof_remaining_pct,a.min_oos_trades,a.min_wfe,a.min_profitable_windows_pct,a.max_trade_profit_share_pct,a.min_backtest_years)
     text=json.dumps(r,indent=2)
     print(text); print('\n# Environment evidence\n'+env_lines(r))
     if a.json_out: Path(a.json_out).write_text(text)
