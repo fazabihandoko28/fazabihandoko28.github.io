@@ -1088,7 +1088,7 @@ function hanzCanonicalEligible(row){
   const score=hanzRankingScore(row);
   const action=String(r.hanz_action || row?.hanz_action || "").toUpperCase();
   const explicitlyExcluded=Boolean(r.top5_excluded);
-  const excludedAction=["AVOID","DO_NOT_CHASE","TP_RISK"].includes(action);
+  const excludedAction=["AVOID","DO_NOT_CHASE"].includes(action);
   const avgValue20=Number(r.avg_value20);
   const zeroVol=Number(r.zero_volume_days20 || 0);
   const momentumBlocked=Boolean(r?.momentum_guard?.blocked);
@@ -1109,7 +1109,7 @@ function hanzCanonicalRejectReason(row){
   const setupFamily=String(r.setup_family || row?.setup_family || "").toUpperCase();
   if(!(version.startsWith("CRV3_") || version.includes("OPPORTUNITY_SEEKING"))) return "STALE_RANK_VERSION";
   if(Boolean(r.top5_excluded)) return String(r.top5_exclusion_reason || "TOP5_EXCLUDED");
-  if(["AVOID","DO_NOT_CHASE","TP_RISK"].includes(action)) return "ACTION_"+action;
+  if(["AVOID","DO_NOT_CHASE"].includes(action)) return "ACTION_"+action;
   if(Boolean(r?.momentum_guard?.blocked)) return "MOMENTUM_BROKEN";
   if(Boolean(r?.momentum_guard?.failed_breakout) && setupFamily==="BREAKOUT") return "FAILED_BREAKOUT";
   if(String(r.volatility_status || "").toUpperCase()==="EXTREME") return "EXTREME_VOLATILITY";
@@ -1563,7 +1563,12 @@ let selectedCandidateRows=[];
 
 function candidateStateLabel(row){
   const s=String(row?.state||"").toUpperCase();
+  const action=String(riskObject(row)?.hanz_action || row?.hanz_action || "").toUpperCase();
   if(["SWING_BUY","EARLY_CONFIRMED_BUY"].includes(s)) return {label:"CONFIRMED BUY",cls:"state-buy"};
+  if(action==="TP_RISK") return {label:"CAUTION · TP RISK",cls:"state-watch"};
+  if(action==="RESISTANCE_WAIT") return {label:"WAIT · RESISTANCE",cls:"state-watch"};
+  if(action==="WAIT_TRIGGER") return {label:"WAIT TRIGGER",cls:"state-watch"};
+  if(action==="WAIT") return {label:"WAIT",cls:"state-watch"};
   return {label:s.replaceAll("_"," ")||"WATCH",cls:"state-watch"};
 }
 
@@ -1993,7 +1998,7 @@ async function loadWatchlist(){
     "EARLY_CONFIRMED_BUY","SWING_BUY",
     "RADAR_ARMED","RADAR_PRE_ALERT","RADAR_WATCH",
     "SETUP_READY","PRE_ALERT","EARLY_WATCH",
-    "SWING_CONFIRMING","SWING_WATCH"
+    "SWING_CONFIRMING","SWING_WATCH","NO_SETUP"
   ];
 
   const {data,error}=await supabase
