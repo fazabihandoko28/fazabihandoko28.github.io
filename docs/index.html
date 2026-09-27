@@ -1087,7 +1087,7 @@ function hanzCanonicalEligible(row){
   const version=String(r.canonical_rank_version || "").toUpperCase();
   const score=hanzRankingScore(row);
   const action=String(r.hanz_action || row?.hanz_action || "").toUpperCase();
-  const explicitlyExcluded=Boolean(r.top5_excluded);
+  const explicitlyExcluded=Boolean(r.top5_excluded) && action!=="TP_RISK";
   const excludedAction=["AVOID","DO_NOT_CHASE"].includes(action);
   const avgValue20=Number(r.avg_value20);
   const zeroVol=Number(r.zero_volume_days20 || 0);
@@ -1108,7 +1108,7 @@ function hanzCanonicalRejectReason(row){
   const avgValue20=Number(r.avg_value20);
   const setupFamily=String(r.setup_family || row?.setup_family || "").toUpperCase();
   if(!(version.startsWith("CRV3_") || version.includes("OPPORTUNITY_SEEKING"))) return "STALE_RANK_VERSION";
-  if(Boolean(r.top5_excluded)) return String(r.top5_exclusion_reason || "TOP5_EXCLUDED");
+  if(Boolean(r.top5_excluded) && action!=="TP_RISK") return String(r.top5_exclusion_reason || "TOP5_EXCLUDED");
   if(["AVOID","DO_NOT_CHASE"].includes(action)) return "ACTION_"+action;
   if(Boolean(r?.momentum_guard?.blocked)) return "MOMENTUM_BROKEN";
   if(Boolean(r?.momentum_guard?.failed_breakout) && setupFamily==="BREAKOUT") return "FAILED_BREAKOUT";
