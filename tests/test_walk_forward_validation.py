@@ -66,5 +66,65 @@ class WalkForwardValidatorTests(unittest.TestCase):
         self.assertNotIn("events", payload)
 
 
+class FiveYearEvidenceGateTests(unittest.TestCase):
+    def _validator_module(self):
+        import importlib.util
+
+        path = PROJECT_ROOT / "src" / "hanz_app" / "research" / "hanz_walk_forward_evidence_validator.py"
+        spec = importlib.util.spec_from_file_location("hanz_wfa_evidence_validator", path)
+        module = importlib.util.module_from_spec(spec)
+        assert spec and spec.loader
+        spec.loader.exec_module(module)
+        return module
+
+    def test_research_validator_rejects_less_than_five_years(self) -> None:
+        import pandas as pd
+
+        module = self._validator_module()
+        trades = pd.DataFrame({
+            "window_id": [1] * 30,
+            "trade_id": list(range(30)),
+            "r_multiple": [0.2] * 30,
+            "is_oos": [True] * 30,
+            "trade_date": pd.date_range("2022-01-01", periods=30, freq="30D"),
+        })
+        windows = pd.DataFrame({
+            "window_id": [1, 2],
+            "oos_profit_r": [1.0, 1.0],
+            "is_profit_r": [1.0, 1.0],
+            "is_years": [1.0, 1.0],
+            "oos_years": [0.5, 0.5],
+            "window_start": ["2022-01-01", "2023-01-01"],
+            "window_end": ["2023-01-01", "2024-12-31"],
+        })
+        result = module.validate(trades, windows, 95.0)
+        self.assertFalse(result["checks"]["five_year_history"])
+        self.assertFalse(result["passed"])
+
+    def test_research_validator_accepts_five_year_span_when_other_checks_pass(self) -> None:
+        import pandas as pd
+
+        module = self._validator_module()
+        trades = pd.DataFrame({
+            "window_id": [1] * 40,
+            "trade_id": list(range(40)),
+            "r_multiple": [0.2] * 40,
+            "is_oos": [True] * 40,
+            "trade_date": pd.date_range("2021-01-01", periods=40, freq="45D"),
+        })
+        windows = pd.DataFrame({
+            "window_id": [1, 2, 3],
+            "oos_profit_r": [2.0, 2.0, 2.0],
+            "is_profit_r": [2.0, 2.0, 2.0],
+            "is_years": [1.0, 1.0, 1.0],
+            "oos_years": [1.0, 1.0, 1.0],
+            "window_start": ["2021-01-01", "2022-09-01", "2024-05-01"],
+            "window_end": ["2022-08-31", "2024-04-30", "2026-01-02"],
+        })
+        result = module.validate(trades, windows, 95.0)
+        self.assertTrue(result["checks"]["five_year_history"])
+        self.assertTrue(result["passed"])
+
+
 if __name__ == "__main__":
     unittest.main()
