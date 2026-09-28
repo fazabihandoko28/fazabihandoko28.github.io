@@ -477,10 +477,18 @@ th{color:var(--muted)}
 .tech-details summary{cursor:pointer;padding:12px 14px;font-weight:800;font-size:11px;color:#bcd3ee}
 .tech-details[open] summary{border-bottom:1px solid var(--line)}
 .tech-details .detail-grid{padding:0 12px 12px}
+.tech-chip-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;padding:12px}
+.tech-chip{border:1px solid #263850;background:#0a1524;border-radius:12px;padding:9px;min-width:0}
+.tech-chip span{display:block;color:var(--muted);font-size:8px;font-weight:800;letter-spacing:.08em}
+.tech-chip strong{display:block;margin-top:3px;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tech-chip small{display:block;margin-top:3px;color:#93a5bc;font-size:8px;line-height:1.25}
+.tech-chip.good{border-color:rgba(40,224,162,.3)}
+.tech-chip.caution{border-color:rgba(255,200,87,.3)}
+.tech-chip.risk{border-color:rgba(255,105,135,.3)}
 .detail-reason{margin-top:12px;padding:12px;border:1px solid var(--line);border-radius:14px;color:#c7d2e4;font-size:10px;line-height:1.6}
 .detail-chart-wrap{margin-top:14px;border:1px solid var(--line);border-radius:16px;padding:12px;background:#08111e}.detail-chart-svg{width:100%;height:240px;display:block}
 @media(max-width:900px){.candidate-grid{grid-template-columns:1fr 1fr}.detail-grid{grid-template-columns:1fr 1fr}}
-@media(max-width:620px){.candidate-grid{grid-template-columns:1fr}.candidate-actions{grid-template-columns:1fr}.detail-grid{grid-template-columns:1fr 1fr}.trade-plan-grid{grid-template-columns:1fr 1fr}.detail-chart-svg{height:190px}}
+@media(max-width:620px){.candidate-grid{grid-template-columns:1fr}.candidate-actions{grid-template-columns:1fr}.detail-grid{grid-template-columns:1fr 1fr}.trade-plan-grid{grid-template-columns:1fr 1fr}.tech-chip-grid{grid-template-columns:1fr 1fr}.detail-chart-svg{height:190px}}
 
 
 .tech-chart-grid{display:grid;gap:12px}
@@ -1690,17 +1698,61 @@ function openCandidateDetail(index){
   $("candidateDetailTitle").textContent=`${row.ticker} · ${state.label}`;
   $("candidateDetailSub").textContent=`Rank #${selectedCandidateRows.indexOf(row)+1} · HANZ 5 Best`;
 
-  const techBoxes=[
-    ["Daily Trend",row.daily_trend],
-    ["Weekly Trend",row.weekly_trend],
-    ["Daily RSI",Number.isFinite(Number(row.daily_rsi))?Number(row.daily_rsi).toFixed(1):"—"],
-    ["Weekly RSI",Number.isFinite(Number(row.weekly_rsi))?Number(row.weekly_rsi).toFixed(1):"—"],
-    ["RVOL 20D",Number.isFinite(Number(row.daily_rvol))?Number(row.daily_rvol).toFixed(2)+"x":"—"],
-    ["Breakout",row.breakout?"YES":"NO"],
-    ["Liquidity",row.liquidity_grade||"—"],
-    ["Foreign Flow",ff.label],
-    ["Broker Flow",bf.label],
-    ["Insider",ins.label]
+  const ts=Number(r.technical_score ?? row.score);
+  const cl=Number(r.intraday_close_location ?? r.close_location ?? row.close_location);
+  const rsi=Number(row.daily_rsi ?? r.daily_rsi);
+  const rvol=Number(row.daily_rvol ?? r.daily_rvol);
+  const rr=Number(r.rr_target_2 ?? r.rr_target_1);
+  const liq=String(r.liquidity_grade || row.liquidity_grade || "—").toUpperCase();
+  const techMetrics=[
+    {
+      k:"TS",
+      v:Number.isFinite(ts)?ts.toFixed(0):"—",
+      note:"Technical Score",
+      cls:Number.isFinite(ts)?(ts>=7?"good":ts>=5?"caution":"risk"):""
+    },
+    {
+      k:"CL",
+      v:Number.isFinite(cl)?(cl*100).toFixed(0)+"%":"—",
+      note:"Close Location",
+      cls:Number.isFinite(cl)?(cl>=0.70?"good":cl>=0.50?"caution":"risk"):""
+    },
+    {
+      k:"RSI",
+      v:Number.isFinite(rsi)?rsi.toFixed(1):"—",
+      note:"Daily RSI",
+      cls:Number.isFinite(rsi)?(rsi>=45&&rsi<=68?"good":rsi>72?"caution":""):""
+    },
+    {
+      k:"RVOL",
+      v:Number.isFinite(rvol)?rvol.toFixed(2)+"x":"—",
+      note:"Relative Volume",
+      cls:Number.isFinite(rvol)?(rvol>=1.2&&rvol<=2.5?"good":rvol>=1.0?"caution":""):""
+    },
+    {
+      k:"RR",
+      v:Number.isFinite(rr)?rr.toFixed(2)+"R":"—",
+      note:"Risk / Reward",
+      cls:Number.isFinite(rr)?(rr>=2?"good":rr>=1.5?"caution":"risk"):""
+    },
+    {
+      k:"LIQ",
+      v:liq,
+      note:"Liquidity",
+      cls:["A","B"].includes(liq)?"good":liq==="C"?"caution":liq==="FAIL"?"risk":""
+    },
+    {
+      k:"FF",
+      v:ff.label||"—",
+      note:"Foreign Flow",
+      cls:/ACCUM|BUY|POSITIVE/i.test(ff.label||"")?"good":/SELL|DISTRIB/i.test(ff.label||"")?"risk":""
+    },
+    {
+      k:"BF",
+      v:bf.label||"—",
+      note:"Broker Flow",
+      cls:/ACCUM|BUY|POSITIVE/i.test(bf.label||"")?"good":/SELL|DISTRIB/i.test(bf.label||"")?"risk":""
+    }
   ];
 
   $("candidateDetailIndicators").innerHTML=`
@@ -1716,8 +1768,8 @@ function openCandidateDetail(index){
     </div>
     <div class="trade-summary"><b>Trader note:</b> ${safe(warning || candidateReason(row))}</div>
     <details class="tech-details">
-      <summary>Technical Details</summary>
-      <div class="detail-grid">${techBoxes.map(([k,v])=>`<div class="detail-box"><span>${safe(k)}</span><strong>${safe(v ?? "—")}</strong></div>`).join("")}</div>
+      <summary>Technical Details · TS / CL / RSI / RVOL / RR / LIQ / FF / BF</summary>
+      <div class="tech-chip-grid">${techMetrics.map(m=>`<div class="tech-chip ${safe(m.cls)}"><span>${safe(m.k)}</span><strong>${safe(m.v)}</strong><small>${safe(m.note)}</small></div>`).join("")}</div>
     </details>`;
   $("candidateDetailModal").classList.add("show");
 }
