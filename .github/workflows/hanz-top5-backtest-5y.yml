@@ -1,0 +1,74 @@
+name: HANZ Top 5 Backtest 5Y
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "src/hanz_app/research/generate_top5_5y_backtest.py"
+      - ".github/workflows/hanz-top5-backtest-5y.yml"
+  schedule:
+    - cron: "30 10 * * 1-5"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: hanz-top5-backtest-5y
+  cancel-in-progress: true
+
+jobs:
+  backtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    env:
+      PYTHONPATH: src
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+
+    steps:
+      - name: Checkout HANZ repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -e .
+
+      - name: Generate real 5Y backtest
+        run: python -m hanz_app.research.generate_top5_5y_backtest
+
+      - name: Show generated summary
+        run: cat docs/dashboard/swing/backtest-5y.json
+
+      - name: Commit backtest result
+        run: |
+          git config user.name "HANZ Intelligence Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add docs/dashboard/swing/backtest-5y.json
+          if git diff --cached --quiet; then
+            echo "No backtest changes to commit."
+          else
+            git commit -m "Update HANZ Top 5 5Y backtest"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
+
+      - name: Upload backtest artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: hanz-top5-backtest-5y
+          path: docs/dashboard/swing/backtest-5y.json
+          if-no-files-found: error
+          retention-days: 90
