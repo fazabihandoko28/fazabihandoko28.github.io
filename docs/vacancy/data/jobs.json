@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-09-28T05:29:05.454765+00:00",
+  "generated_at": "2026-09-28T14:02:16.784867+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1341,
-  "matching_jobs": 87,
+  "raw_jobs": 1344,
+  "matching_jobs": 84,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 445
+      "jobs": 446
     },
     {
       "name": "Publicis Groupe",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 396
+      "jobs": 398
     },
     {
       "name": "Visa",
@@ -431,24 +431,6 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000143438599",
-      "title": "Content Manager",
-      "company": "Grab",
-      "location": "Singapore, Singapore",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000143438599-content-manager",
-      "published_at": "2026-08-14T05:04:16.926Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000141223730",
-      "title": "Content Manager",
-      "company": "Grab",
-      "location": "Petaling Jaya, Malaysia",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000141223730-content-manager",
-      "published_at": "2026-08-03T10:08:27.755Z",
-      "source_verified": true
-    },
-    {
       "id": "sr-744000150269709",
       "title": "GrabForBusiness Planning & Partnerships Manager",
       "company": "Grab",
@@ -584,12 +566,12 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000141408859",
+      "id": "sr-744000152140280",
       "title": "Lead, Business Development - OneGrab",
       "company": "Grab",
       "location": "HCMC, Vietnam",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000141408859-lead-business-development-onegrab",
-      "published_at": "2026-08-04T05:05:15.267Z",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000152140280-lead-business-development-onegrab",
+      "published_at": "2026-09-28T10:49:54.290Z",
       "source_verified": true
     },
     {
@@ -806,15 +788,6 @@
       "location": "Pasig City, Philippines",
       "url": "https://jobs.smartrecruiters.com/NielsenIQ/744000138791550-senior-analyst-quantitative-research-consumer-insights-brand",
       "published_at": "2026-07-21T06:53:20.368Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000152069307",
-      "title": "Senior Executive, Consumer & Marketing Insights (Quantitative Research)",
-      "company": "NielsenIQ",
-      "location": "Singapore, Singapore",
-      "url": "https://jobs.smartrecruiters.com/NielsenIQ/744000152069307-senior-executive-consumer-marketing-insights-quantitative-research",
-      "published_at": "2026-09-28T04:13:49.082Z",
       "source_verified": true
     },
     {
