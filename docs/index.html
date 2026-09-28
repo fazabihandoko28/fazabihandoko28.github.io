@@ -1698,8 +1698,8 @@ function openCandidateDetail(index){
   $("candidateDetailTitle").textContent=`${row.ticker} · ${state.label}`;
   $("candidateDetailSub").textContent=`Rank #${selectedCandidateRows.indexOf(row)+1} · HANZ 5 Best`;
 
-  const ts=Number(r.technical_score ?? row.score);
-  const cl=Number(r.intraday_close_location ?? r.close_location ?? row.close_location);
+  const ts=Number(row.trailing_stop ?? r.trailing_stop ?? r.trailing_stop_price);
+  const cl=Number(row.stop_loss ?? r.stop_loss ?? r.cut_loss);
   const rsi=Number(row.daily_rsi ?? r.daily_rsi);
   const rvol=Number(row.daily_rvol ?? r.daily_rvol);
   const rr=Number(r.rr_target_2 ?? r.rr_target_1);
@@ -1707,15 +1707,15 @@ function openCandidateDetail(index){
   const techMetrics=[
     {
       k:"TS",
-      v:Number.isFinite(ts)?ts.toFixed(0):"—",
-      note:"Technical Score",
-      cls:Number.isFinite(ts)?(ts>=7?"good":ts>=5?"caution":"risk"):""
+      v:Number.isFinite(ts)?price(ts):"—",
+      note:"Trailing Stop",
+      cls:"caution"
     },
     {
       k:"CL",
-      v:Number.isFinite(cl)?(cl*100).toFixed(0)+"%":"—",
-      note:"Close Location",
-      cls:Number.isFinite(cl)?(cl>=0.70?"good":cl>=0.50?"caution":"risk"):""
+      v:Number.isFinite(cl)?price(cl):"—",
+      note:"Cut Loss",
+      cls:"risk"
     },
     {
       k:"RSI",
