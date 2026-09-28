@@ -1644,15 +1644,15 @@ function renderSelectedCandidates(rows){
       </div>
       <div class="candidate-metrics">
         <div class="candidate-metric"><span>CURRENT</span><strong>${price(row.price)}</strong></div>
-        <div class="candidate-metric accent"><span>ENTRY AREA</span><strong>${entry}</strong></div>
+        <div class="candidate-metric accent"><span>BUY ZONE</span><strong>${entry}</strong></div>
         <div class="candidate-metric"><span>STOP / INVALIDATION</span><strong>${price(row.stop_loss)}</strong></div>
-        <div class="candidate-metric accent"><span>TARGET 1</span><strong>${price(row.target_1)}</strong></div>
-        <div class="candidate-metric"><span>TARGET 2</span><strong>${price(row.target_2)}</strong></div>
-        <div class="candidate-metric caution"><span>STATUS</span><strong>${safe(state.label)}</strong></div>
+        <div class="candidate-metric accent"><span>TP1</span><strong>${price(row.target_1)}</strong></div>
+        <div class="candidate-metric"><span>TP2</span><strong>${price(row.target_2)}</strong></div>
+        <div class="candidate-metric caution"><span>SIGNAL</span><strong>${safe(state.label)}</strong></div>
       </div>
       <div class="candidate-outlook">
-        <div><span>POTENSI KE T1</span><strong>${safe(upsideText)}</strong></div>
-        <div><span>ESTIMASI SWING</span><strong>${safe(horizon)}</strong></div>
+        <div><span>UPSIDE TP1</span><strong>${safe(upsideText)}</strong></div>
+        <div><span>EST. HOLD</span><strong>${safe(horizon)}</strong></div>
       </div>
       ${warning?`<div class="candidate-warning">${safe(warning)}</div>`:""}
       <div class="candidate-reason">${safe(candidateReason(row))}</div>
