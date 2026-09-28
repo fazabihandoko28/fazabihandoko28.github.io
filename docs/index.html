@@ -1098,6 +1098,25 @@ function hanzRankingScore(row){
     : 0;
 }
 
+
+function effectiveHanzAction(row){
+  const r=riskObject(row);
+  const direct=String(r.hanz_action || row?.hanz_action || "").trim().toUpperCase();
+  if(direct) return direct;
+
+  // Compatibility for older/stale rows that predate hanz_action.
+  const state=String(row?.state || "").trim().toUpperCase();
+  if(["SWING_BUY","EARLY_CONFIRMED_BUY"].includes(state)) return "BUY";
+  if(["PRE_ALERT","EARLY_WATCH","SWING_WATCH","SWING_CONFIRMING","SETUP_READY"].includes(state)) return "WAIT";
+  return "";
+}
+
+function hanzLegacyWaitEligible(row){
+  const state=String(row?.state || "").trim().toUpperCase();
+  const legacyWaitState=["PRE_ALERT","EARLY_WATCH","SWING_WATCH","SWING_CONFIRMING","SETUP_READY"].includes(state);
+  return legacyWaitState && effectiveHanzAction(row)==="WAIT" && hanzRankingScore(row)>0;
+}
+
 function hanzCanonicalEligible(row){
   // V43: canonical ranking + strict fresh-entry exclusion gate.
   // Backend owns classification; frontend must honor explicit Top-5 exclusions.
