@@ -1538,5 +1538,55 @@
     "source": "YAHOO_FINANCE_RESEARCH_ONLY",
     "recorded_at": "2026-09-25T18:01:57.359482+00:00",
     "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "MAPA",
+    "status": "WAIT",
+    "signal_timestamp": "2026-09-28T00:00:00+00:00",
+    "signal_close": 640.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-09-28T20:11:43.087441+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "NISP",
+    "status": "WAIT",
+    "signal_timestamp": "2026-09-28T00:00:00+00:00",
+    "signal_close": 1245.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-09-28T20:11:43.087465+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "BBCA",
+    "status": "WAIT",
+    "signal_timestamp": "2026-09-28T00:00:00+00:00",
+    "signal_close": 6225.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-09-28T20:11:43.087477+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "INKP",
+    "status": "WAIT",
+    "signal_timestamp": "2026-09-28T00:00:00+00:00",
+    "signal_close": 7975.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-09-28T20:11:43.087485+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "TSPC",
+    "status": "WAIT",
+    "signal_timestamp": "2026-09-28T00:00:00+00:00",
+    "signal_close": 2640.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-09-28T20:11:43.087492+00:00",
+    "outcome": "PENDING"
   }
 ]
