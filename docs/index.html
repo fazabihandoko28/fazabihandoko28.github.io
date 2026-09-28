@@ -467,10 +467,20 @@ th{color:var(--muted)}
 .detail-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.detail-head h2{margin:4px 0 2px}
 .detail-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:14px}
 .detail-box{border:1px solid var(--line);background:#0b1626;border-radius:14px;padding:11px}.detail-box span{display:block;color:var(--muted);font-size:8px}.detail-box strong{font-size:12px}
+.trade-plan-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px}
+.trade-plan-box{border:1px solid #243650;background:#0b1626;border-radius:14px;padding:12px}
+.trade-plan-box span{display:block;color:var(--muted);font-size:9px;letter-spacing:.06em}.trade-plan-box strong{display:block;margin-top:4px;font-size:16px}
+.trade-plan-box.primary{border-color:rgba(40,224,162,.35);background:rgba(40,224,162,.055)}
+.trade-plan-box.caution{border-color:rgba(255,200,87,.35);background:rgba(255,200,87,.055)}
+.trade-summary{margin-top:12px;padding:12px;border:1px solid var(--line);border-radius:14px;background:#0b1626;color:#d8e3f2;font-size:11px;line-height:1.55}
+.tech-details{margin-top:12px;border:1px solid var(--line);border-radius:14px;background:#091321;overflow:hidden}
+.tech-details summary{cursor:pointer;padding:12px 14px;font-weight:800;font-size:11px;color:#bcd3ee}
+.tech-details[open] summary{border-bottom:1px solid var(--line)}
+.tech-details .detail-grid{padding:0 12px 12px}
 .detail-reason{margin-top:12px;padding:12px;border:1px solid var(--line);border-radius:14px;color:#c7d2e4;font-size:10px;line-height:1.6}
 .detail-chart-wrap{margin-top:14px;border:1px solid var(--line);border-radius:16px;padding:12px;background:#08111e}.detail-chart-svg{width:100%;height:240px;display:block}
 @media(max-width:900px){.candidate-grid{grid-template-columns:1fr 1fr}.detail-grid{grid-template-columns:1fr 1fr}}
-@media(max-width:620px){.candidate-grid{grid-template-columns:1fr}.candidate-actions{grid-template-columns:1fr}.detail-grid{grid-template-columns:1fr}.detail-chart-svg{height:190px}}
+@media(max-width:620px){.candidate-grid{grid-template-columns:1fr}.candidate-actions{grid-template-columns:1fr}.detail-grid{grid-template-columns:1fr 1fr}.trade-plan-grid{grid-template-columns:1fr 1fr}.detail-chart-svg{height:190px}}
 
 
 .tech-chart-grid{display:grid;gap:12px}
@@ -1657,7 +1667,7 @@ function renderSelectedCandidates(rows){
       ${warning?`<div class="candidate-warning">${safe(warning)}</div>`:""}
       <div class="candidate-reason">${safe(candidateReason(row))}</div>
       <div class="candidate-actions">
-        <button class="candidate-btn primary" type="button" data-candidate-detail="${i}">Indicators</button>
+        <button class="candidate-btn primary" type="button" data-candidate-detail="${i}">Trade Plan</button>
         <button class="candidate-btn" type="button" data-candidate-chart="${i}">View Chart</button>
       </div>
     </article>`;
@@ -1670,20 +1680,45 @@ function renderSelectedCandidates(rows){
 function openCandidateDetail(index){
   const row=selectedCandidateRows[index]; if(!row) return;
   const r=riskObject(row), ff=foreignFlowInfo(row), ins=insiderInfo(row), bf=brokerFlowInfo(row), state=candidateStateLabel(row);
+  const entryLow=Number(row.entry_low), entryHigh=Number(row.entry_high);
+  const buyZone=(Number.isFinite(entryLow)&&Number.isFinite(entryHigh))?`${price(entryLow)} – ${price(entryHigh)}`:"—";
+  const upside=candidateUpsidePct(row);
+  const upsideText=Number.isFinite(upside)?`${upside>=0?"+":""}${upside.toFixed(1)}%`:"—";
+  const horizon=candidateSwingHorizon(row);
+  const warning=candidateActionWarning(row);
+  const action=String(r.hanz_action||row?.hanz_action||state.label||"").replaceAll("_"," ");
   $("candidateDetailTitle").textContent=`${row.ticker} · ${state.label}`;
-  $("candidateDetailSub").textContent=`Canonical rank ${hanzRankingScore(row)}/100 · Swing ${row.score ?? "—"}/10 · Early ${row.early_score ?? "—"}/10`;
-  const boxes=[
-    ["Daily Trend",row.daily_trend],["Weekly Trend",row.weekly_trend],
-    ["Daily RSI",row.daily_rsi],["Weekly RSI",row.weekly_rsi],
+  $("candidateDetailSub").textContent=`Rank #${selectedCandidateRows.indexOf(row)+1} · HANZ 5 Best`;
+
+  const techBoxes=[
+    ["Daily Trend",row.daily_trend],
+    ["Weekly Trend",row.weekly_trend],
+    ["Daily RSI",Number.isFinite(Number(row.daily_rsi))?Number(row.daily_rsi).toFixed(1):"—"],
+    ["Weekly RSI",Number.isFinite(Number(row.weekly_rsi))?Number(row.weekly_rsi).toFixed(1):"—"],
     ["RVOL 20D",Number.isFinite(Number(row.daily_rvol))?Number(row.daily_rvol).toFixed(2)+"x":"—"],
-    ["Breakout",row.breakout?"YES":"NO"],["Breakout Level",row.breakout_level],
-    ["Liquidity",row.liquidity_grade],["Foreign Flow",ff.label],
-    ["Public Insider",ins.label],["Broker Flow",bf.label],
-    ["Risk State",r.risk_state||r.state||"—"]
+    ["Breakout",row.breakout?"YES":"NO"],
+    ["Liquidity",row.liquidity_grade||"—"],
+    ["Foreign Flow",ff.label],
+    ["Broker Flow",bf.label],
+    ["Insider",ins.label]
   ];
-  $("candidateDetailIndicators").innerHTML=`<div class="detail-grid">${boxes.map(([k,v])=>`<div class="detail-box"><span>${safe(k)}</span><strong>${safe(v ?? "—")}</strong></div>`).join("")}</div>
-  <div class="detail-reason"><b>Why selected:</b> ${safe(candidateReason(row))}</div>
-  <div class="detail-reason"><b>Risk / cautions:</b> ${safe(Array.isArray(r.cautions)&&r.cautions.length?r.cautions.join(" · "):"No additional caution recorded.")}</div>`;
+
+  $("candidateDetailIndicators").innerHTML=`
+    <div class="trade-plan-grid">
+      <div class="trade-plan-box caution"><span>SIGNAL</span><strong>${safe(state.label)}</strong></div>
+      <div class="trade-plan-box primary"><span>BUY ZONE</span><strong>${safe(buyZone)}</strong></div>
+      <div class="trade-plan-box primary"><span>TP1</span><strong>${price(row.target_1)}</strong></div>
+      <div class="trade-plan-box"><span>TP2</span><strong>${price(row.target_2)}</strong></div>
+      <div class="trade-plan-box primary"><span>UPSIDE TP1</span><strong>${safe(upsideText)}</strong></div>
+      <div class="trade-plan-box"><span>EST. HOLD</span><strong>${safe(horizon)}</strong></div>
+      <div class="trade-plan-box"><span>STOP / INVALIDATION</span><strong>${price(row.stop_loss)}</strong></div>
+      <div class="trade-plan-box"><span>HANZ ACTION</span><strong>${safe(action)}</strong></div>
+    </div>
+    <div class="trade-summary"><b>Trader note:</b> ${safe(warning || candidateReason(row))}</div>
+    <details class="tech-details">
+      <summary>Technical Details</summary>
+      <div class="detail-grid">${techBoxes.map(([k,v])=>`<div class="detail-box"><span>${safe(k)}</span><strong>${safe(v ?? "—")}</strong></div>`).join("")}</div>
+    </details>`;
   $("candidateDetailModal").classList.add("show");
 }
 
