@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-09-27T21:23:50.437796+00:00",
+  "generated_at": "2026-09-28T05:29:05.454765+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1336,
-  "matching_jobs": 85,
+  "raw_jobs": 1341,
+  "matching_jobs": 87,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 444
+      "jobs": 445
     },
     {
       "name": "Publicis Groupe",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 392
+      "jobs": 396
     },
     {
       "name": "Visa",
@@ -194,6 +194,15 @@
       "location": "Singapore, Singapore",
       "url": "https://jobs.smartrecruiters.com/BoschGroup/744000151535009-intern-employer-branding",
       "published_at": "2026-09-24T06:13:13.450Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000152065179",
+      "title": "Internship in Communication & Media",
+      "company": "Bosch Group",
+      "location": "Petaling Jaya, Malaysia",
+      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000152065179-internship-in-communication-media",
+      "published_at": "2026-09-28T02:23:09.812Z",
       "source_verified": true
     },
     {
@@ -728,12 +737,12 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000151208265",
-      "title": "Senior Manager, Regional Group Business Development & Strategic Partnership",
+      "id": "sr-744000152064949",
+      "title": "Senior Manager, Regional Strategic Partnerships (Deliveries & Dine-out)",
       "company": "Grab",
       "location": "Singapore, Singapore",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000151208265-senior-manager-regional-group-business-development-strategic-partnership",
-      "published_at": "2026-09-23T02:22:02.608Z",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000152064949-senior-manager-regional-strategic-partnerships-deliveries-dine-out",
+      "published_at": "2026-09-28T02:19:45.529Z",
       "source_verified": true
     },
     {
@@ -797,6 +806,15 @@
       "location": "Pasig City, Philippines",
       "url": "https://jobs.smartrecruiters.com/NielsenIQ/744000138791550-senior-analyst-quantitative-research-consumer-insights-brand",
       "published_at": "2026-07-21T06:53:20.368Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000152069307",
+      "title": "Senior Executive, Consumer & Marketing Insights (Quantitative Research)",
+      "company": "NielsenIQ",
+      "location": "Singapore, Singapore",
+      "url": "https://jobs.smartrecruiters.com/NielsenIQ/744000152069307-senior-executive-consumer-marketing-insights-quantitative-research",
+      "published_at": "2026-09-28T04:13:49.082Z",
       "source_verified": true
     },
     {
