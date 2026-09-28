@@ -310,7 +310,7 @@ def momentum_entry_score(result, risk_validation):
         reason += "."
         total = min(raw_total, 69)
     elif (
-        raw_total >= 40
+        raw_total >= 30
         and market_ok
         and not resistance_capped
         and not extended
