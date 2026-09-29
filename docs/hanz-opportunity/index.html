@@ -7895,7 +7895,7 @@ translateTree(document.body);
   function jobFamiliesForText(candidate, text){
     const h = normalize(text || "");
     const hasTerm = term => {
-      const escaped = normalize(term).replace(/[.*+?^${}()|[\]\\]/g, "\\</body>").replace(/\s+/g, "\\s+");
+      const escaped = normalize(term).replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/\s+/g, "\\s+");
       return new RegExp(`\\b${escaped}\\b`, "i").test(h);
     };
     return (candidate?.job_families || []).filter(family =>
