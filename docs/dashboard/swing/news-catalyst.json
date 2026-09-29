@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-09-29T07:38:29.610001+00:00",
+  "generated_at": "2026-09-29T14:26:18.054838+00:00",
   "policy": "HIGH_CONFIDENCE_CAUSAL_ONLY",
   "selected_tickers": [
-    "MEDC",
+    "GEMS",
     "SMIL",
-    "BDMN",
-    "BSML",
-    "HRUM"
+    "MEDC",
+    "AUTO",
+    "CUAN"
   ],
   "catalysts": []
 }
