@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-09-28T23:19:18.616942+00:00",
+  "generated_at": "2026-09-29T05:47:59.805829+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1339,
-  "matching_jobs": 84,
+  "raw_jobs": 1344,
+  "matching_jobs": 85,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 445
+      "jobs": 446
     },
     {
       "name": "Publicis Groupe",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 394
+      "jobs": 398
     },
     {
       "name": "Visa",
@@ -206,12 +206,12 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000151590889",
-      "title": "[EPC] Senior Embedded Software Engineer (with Joining Bonus) _ In-Vehicle Network Communication for EU Project",
+      "id": "sr-744000152320399",
+      "title": "[EPC] Embedded Software Engineer _ In-Vehicle Network Communication for EU Project",
       "company": "Bosch Group",
       "location": "Ho Chi Minh city, Vietnam",
-      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000151590889-epc-senior-embedded-software-engineer-with-joining-bonus-in-vehicle-network-communication-for-eu-project",
-      "published_at": "2026-09-24T11:04:43.105Z",
+      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000152320399-epc-embedded-software-engineer-in-vehicle-network-communication-for-eu-project",
+      "published_at": "2026-09-29T03:34:21.237Z",
       "source_verified": true
     },
     {
@@ -428,6 +428,15 @@
       "location": "Petaling Jaya, Malaysia",
       "url": "https://jobs.smartrecruiters.com/Grab/744000143438539-communications-senior-manager-product",
       "published_at": "2026-08-14T05:02:35.251Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000152318149",
+      "title": "GrabFood Marketing Associate (Other cities)",
+      "company": "Grab",
+      "location": "Bangkok, Thailand",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000152318149-grabfood-marketing-associate-other-cities",
+      "published_at": "2026-09-29T02:46:05.411Z",
       "source_verified": true
     },
     {
