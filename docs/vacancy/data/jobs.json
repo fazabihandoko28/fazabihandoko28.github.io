@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-09-29T05:47:59.805829+00:00",
+  "generated_at": "2026-09-29T12:58:17.955786+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1344,
-  "matching_jobs": 85,
+  "raw_jobs": 1351,
+  "matching_jobs": 84,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 446
+      "jobs": 449
     },
     {
       "name": "Publicis Groupe",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 398
+      "jobs": 402
     },
     {
       "name": "Visa",
@@ -43,6 +43,15 @@
     }
   ],
   "jobs": [
+    {
+      "id": "sr-744000152355464",
+      "title": "Marketing Intern - Surabaya",
+      "company": "Bosch Group",
+      "location": "Surabaya, Indonesia",
+      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000152355464-marketing-intern-surabaya",
+      "published_at": "2026-09-29T08:46:23.647Z",
+      "source_verified": true
+    },
     {
       "id": "sr-744000147833469",
       "title": "Assistant Manager - City Marketing Execution",
@@ -59,15 +68,6 @@
       "location": "Jakarta, Indonesia",
       "url": "https://jobs.smartrecruiters.com/Grab/744000150321529-assistant-marketing-manager-financial-services",
       "published_at": "2026-09-18T09:23:48.107Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000149525991",
-      "title": "Associate, Commercial Enabler & Expansion",
-      "company": "Grab",
-      "location": "Jakarta, Indonesia",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000149525991-associate-commercial-enabler-expansion",
-      "published_at": "2026-09-15T08:04:39.885Z",
       "source_verified": true
     },
     {
@@ -95,15 +95,6 @@
       "location": "Jakarta, Indonesia",
       "url": "https://jobs.smartrecruiters.com/Grab/744000150930189-client-partner-brands-agencies-grabads",
       "published_at": "2026-09-22T04:28:38.721Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000148732859",
-      "title": "Country GrabKios Commercial Manager",
-      "company": "Grab",
-      "location": "Jakarta, Indonesia",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000148732859-country-grabkios-commercial-manager",
-      "published_at": "2026-09-10T10:14:21.891Z",
       "source_verified": true
     },
     {
@@ -188,6 +179,15 @@
       "source_verified": true
     },
     {
+      "id": "sr-744000152384809",
+      "title": "Corporate Communications and Governmental Affairs Officer",
+      "company": "Bosch Group",
+      "location": "Klong Toei, Thailand",
+      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000152384809-corporate-communications-and-governmental-affairs-officer",
+      "published_at": "2026-09-29T10:50:26.550Z",
+      "source_verified": true
+    },
+    {
       "id": "sr-744000151535009",
       "title": "Intern, Employer Branding",
       "company": "Bosch Group",
@@ -215,15 +215,6 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000151278181",
-      "title": "[HRL] Employer Branding Intern",
-      "company": "Bosch Group",
-      "location": "Tân Bình, Vietnam",
-      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000151278181-hrl-employer-branding-intern",
-      "published_at": "2026-09-23T03:56:14.419Z",
-      "source_verified": true
-    },
-    {
       "id": "sr-744000151769657",
       "title": "Acquisition & Market Expansion Lead",
       "company": "Grab",
@@ -233,12 +224,12 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000143762290",
+      "id": "sr-744000152374800",
       "title": "Assistant Manager, CRM",
       "company": "Grab",
       "location": "Petaling Jaya, Malaysia",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000143762290-assistant-manager-crm",
-      "published_at": "2026-08-17T07:42:42.730Z",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000152374800-assistant-manager-crm",
+      "published_at": "2026-09-29T10:04:17.127Z",
       "source_verified": true
     },
     {
