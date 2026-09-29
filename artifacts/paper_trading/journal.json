@@ -1588,5 +1588,55 @@
     "source": "YAHOO_FINANCE_RESEARCH_ONLY",
     "recorded_at": "2026-09-28T20:11:43.087492+00:00",
     "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "ADRO",
+    "status": "WAIT",
+    "signal_timestamp": "2026-09-29T00:00:00+00:00",
+    "signal_close": 2470.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-09-29T18:48:16.212571+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "AADI",
+    "status": "WAIT",
+    "signal_timestamp": "2026-09-29T00:00:00+00:00",
+    "signal_close": 11050.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-09-29T18:48:16.212594+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "CUAN",
+    "status": "WAIT",
+    "signal_timestamp": "2026-09-29T00:00:00+00:00",
+    "signal_close": 885.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-09-29T18:48:16.212601+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "PGEO",
+    "status": "WAIT",
+    "signal_timestamp": "2026-09-29T00:00:00+00:00",
+    "signal_close": 985.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-09-29T18:48:16.212608+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "BFIN",
+    "status": "WAIT",
+    "signal_timestamp": "2026-09-29T00:00:00+00:00",
+    "signal_close": 930.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-09-29T18:48:16.212614+00:00",
+    "outcome": "PENDING"
   }
 ]
