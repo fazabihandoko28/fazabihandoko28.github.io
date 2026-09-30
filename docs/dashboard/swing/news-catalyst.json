@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-09-30T07:40:04.817289+00:00",
+  "generated_at": "2026-09-30T14:23:21.530636+00:00",
   "policy": "HIGH_CONFIDENCE_CAUSAL_ONLY",
   "selected_tickers": [
+    "AMRT",
+    "BJTM",
+    "CLEO",
     "GEMS",
-    "STAA",
-    "JRPT",
-    "MAPI",
-    "DSSA"
+    "JRPT"
   ],
   "catalysts": []
 }
