@@ -451,7 +451,7 @@ th{color:var(--muted)}
 .candidate-metric span{display:block;color:var(--muted);font-size:8px;letter-spacing:.08em}.candidate-metric strong{font-size:12px}
 .candidate-metric.accent{border-color:rgba(40,224,162,.28);background:rgba(40,224,162,.055)}
 .candidate-metric.caution{border-color:rgba(255,200,87,.28);background:rgba(255,200,87,.045)}
-.candidate-outlook{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.candidate-outlook{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
 .candidate-outlook>div{border:1px solid #1a2a40;background:#08111e;border-radius:11px;padding:9px}
 .candidate-outlook span{display:block;color:var(--muted);font-size:8px;letter-spacing:.08em}
 .candidate-outlook strong{display:block;margin-top:3px;font-size:12px}
@@ -494,7 +494,7 @@ th{color:var(--muted)}
 .detail-reason{margin-top:12px;padding:12px;border:1px solid var(--line);border-radius:14px;color:#c7d2e4;font-size:10px;line-height:1.6}
 .detail-chart-wrap{margin-top:14px;border:1px solid var(--line);border-radius:16px;padding:12px;background:#08111e}.detail-chart-svg{width:100%;height:240px;display:block}
 @media(max-width:900px){.candidate-grid{grid-template-columns:1fr 1fr}.detail-grid{grid-template-columns:1fr 1fr}}
-@media(max-width:620px){.candidate-grid{grid-template-columns:1fr}.candidate-actions{grid-template-columns:1fr}.detail-grid{grid-template-columns:1fr 1fr}.trade-plan-grid{grid-template-columns:1fr 1fr}.tech-chip-grid{grid-template-columns:1fr 1fr}.backtest-grid{grid-template-columns:1fr 1fr}.detail-chart-svg{height:190px}}
+@media(max-width:620px){.candidate-grid{grid-template-columns:1fr}.candidate-actions{grid-template-columns:1fr}.candidate-outlook{grid-template-columns:1fr 1fr}.detail-grid{grid-template-columns:1fr 1fr}.trade-plan-grid{grid-template-columns:1fr 1fr}.tech-chip-grid{grid-template-columns:1fr 1fr}.backtest-grid{grid-template-columns:1fr 1fr}.detail-chart-svg{height:190px}}
 
 
 .tech-chart-grid{display:grid;gap:12px}
@@ -1629,6 +1629,81 @@ function fmtPct(v){
   return Number.isFinite(n)?`${n>=0?"+":""}${n.toFixed(1)}%`:"—";
 }
 
+function backtest5yScore(row){
+  if(!row) return null;
+  const signals=Number(row.ready_signals);
+  const win=Number(row.win_rate_pct);
+  const target=Number(row.target_hit_pct);
+  const avg=Number(row.avg_5d_return_pct);
+  const mae=Number(row.worst_mae_pct);
+  let score=0;
+
+  // 4 pts: evidence/sample depth.
+  if(Number.isFinite(signals)){
+    if(signals>=30) score+=4;
+    else if(signals>=20) score+=3;
+    else if(signals>=10) score+=2;
+    else if(signals>=5) score+=1;
+  }
+
+  // 5 pts: resolved-signal win rate.
+  if(Number.isFinite(win)){
+    if(win>=55) score+=5;
+    else if(win>=50) score+=4;
+    else if(win>=45) score+=3;
+    else if(win>=40) score+=2;
+    else if(win>=35) score+=1;
+  }
+
+  // 3 pts: target-hit frequency.
+  if(Number.isFinite(target)){
+    if(target>=45) score+=3;
+    else if(target>=35) score+=2;
+    else if(target>=25) score+=1;
+  }
+
+  // 4 pts: average 5-session return.
+  if(Number.isFinite(avg)){
+    if(avg>=2) score+=4;
+    else if(avg>=1) score+=3;
+    else if(avg>=0.5) score+=2;
+    else if(avg>0) score+=1;
+  }
+
+  // 4 pts: historical adverse excursion control.
+  if(Number.isFinite(mae)){
+    if(mae>=-5) score+=4;
+    else if(mae>=-8) score+=3;
+    else if(mae>=-12) score+=2;
+    else if(mae>=-16) score+=1;
+  }
+
+  const confidence=!Number.isFinite(signals)?"NO DATA":signals>=20?"HIGH":signals>=10?"MEDIUM":signals>=5?"LOW":"VERY LOW";
+  return {score:Math.max(0,Math.min(20,score)),confidence,signals:Number.isFinite(signals)?signals:null};
+}
+
+async function hydrateCandidateBacktestScores(){
+  const nodes=[...document.querySelectorAll("[data-bt5y-ticker]")];
+  if(!nodes.length) return;
+  try{
+    const data=await loadBacktest5y();
+    nodes.forEach(node=>{
+      const ticker=String(node.dataset.bt5yTicker||"").toUpperCase();
+      const row=data?.results?.[ticker];
+      const scored=backtest5yScore(row);
+      if(!scored){
+        node.textContent="—";
+        node.title="5Y backtest not available for current candidate.";
+        return;
+      }
+      node.textContent=`${scored.score}/20 · ${scored.confidence}`;
+      node.title=`5Y backtest score based on sample size, win rate, target hit, average 5D return and worst MAE. Signals: ${scored.signals ?? "—"}`;
+    });
+  }catch(error){
+    nodes.forEach(node=>{node.textContent="—";node.title="5Y backtest unavailable";});
+  }
+}
+
 async function renderBacktest5y(ticker){
   const host=document.getElementById("candidateBacktest5y");
   if(!host) return;
@@ -1746,6 +1821,7 @@ function renderSelectedCandidates(rows){
       <div class="candidate-outlook">
         <div><span>UPSIDE TP1</span><strong>${safe(upsideText)}</strong></div>
         <div><span>EST. HOLD</span><strong>${safe(horizon)}</strong></div>
+        <div><span>BT 5Y SCORE</span><strong data-bt5y-ticker="${safe(row.ticker)}">Loading…</strong></div>
       </div>
       ${warning?`<div class="candidate-warning">${safe(warning)}</div>`:""}
       <div class="candidate-reason">${safe(candidateReason(row))}</div>
@@ -1759,6 +1835,8 @@ function renderSelectedCandidates(rows){
   document.querySelectorAll("[data-candidate-detail]").forEach(btn=>btn.addEventListener("click",()=>openCandidateDetail(Number(btn.dataset.candidateDetail))));
   document.querySelectorAll("[data-candidate-chart]").forEach(btn=>btn.addEventListener("click",()=>openCandidateChart(Number(btn.dataset.candidateChart))));
 }
+  hydrateCandidateBacktestScores();
+
 
 function openCandidateDetail(index){
   const row=selectedCandidateRows[index]; if(!row) return;
