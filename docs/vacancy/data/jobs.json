@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-09-29T22:19:21.941972+00:00",
+  "generated_at": "2026-09-30T05:37:20.189308+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1348,
-  "matching_jobs": 84,
+  "raw_jobs": 1347,
+  "matching_jobs": 78,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 448
+      "jobs": 441
     },
     {
       "name": "Publicis Groupe",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 400
+      "jobs": 406
     },
     {
       "name": "Visa",
@@ -50,15 +50,6 @@
       "location": "Surabaya, Indonesia",
       "url": "https://jobs.smartrecruiters.com/BoschGroup/744000152355464-marketing-intern-surabaya",
       "published_at": "2026-09-29T08:46:23.647Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000147833469",
-      "title": "Assistant Manager - City Marketing Execution",
-      "company": "Grab",
-      "location": "Bandung, Indonesia",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000147833469-assistant-manager-city-marketing-execution",
-      "published_at": "2026-09-07T04:46:01.490Z",
       "source_verified": true
     },
     {
@@ -89,30 +80,12 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000150930189",
-      "title": "Client Partner - Brands & Agencies, GrabAds",
-      "company": "Grab",
-      "location": "Jakarta, Indonesia",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000150930189-client-partner-brands-agencies-grabads",
-      "published_at": "2026-09-22T04:28:38.721Z",
-      "source_verified": true
-    },
-    {
       "id": "sr-744000141404289",
       "title": "Food Demand Strategy and Campaign Manager, ID Demand Strategy",
       "company": "Grab",
       "location": "Jakarta, Indonesia",
       "url": "https://jobs.smartrecruiters.com/Grab/744000141404289-food-demand-strategy-and-campaign-manager-id-demand-strategy",
       "published_at": "2026-08-04T03:47:25.858Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000141167689",
-      "title": "Head, Product Marketing, Financial Services",
-      "company": "Grab",
-      "location": "Jakarta, Indonesia",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000141167689-head-product-marketing-financial-services",
-      "published_at": "2026-08-03T02:29:29.076Z",
       "source_verified": true
     },
     {
@@ -233,6 +206,15 @@
       "source_verified": true
     },
     {
+      "id": "sr-744000152580719",
+      "title": "Assistant Manager, Commercial Operations (Deal Desk)",
+      "company": "Grab",
+      "location": "Petaling Jaya, Malaysia",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000152580719-assistant-manager-commercial-operations-deal-desk",
+      "published_at": "2026-09-30T01:52:53.102Z",
+      "source_verified": true
+    },
+    {
       "id": "sr-744000137836764",
       "title": "Assistant Manager, Country Business Development",
       "company": "Grab",
@@ -248,24 +230,6 @@
       "location": "Pasig City, Philippines",
       "url": "https://jobs.smartrecruiters.com/Grab/744000141643594-assistant-marketing-manager",
       "published_at": "2026-08-05T06:23:20.678Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000147179529",
-      "title": "Assistant Marketing Manager, B2B",
-      "company": "Grab",
-      "location": "HCMC, Vietnam",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000147179529-assistant-marketing-manager-b2b",
-      "published_at": "2026-09-03T08:20:23.385Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000147178179",
-      "title": "Assistant Marketing Manager, B2B",
-      "company": "Grab",
-      "location": "Petaling Jaya, Malaysia",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000147178179-assistant-marketing-manager-b2b",
-      "published_at": "2026-09-03T08:15:12.515Z",
       "source_verified": true
     },
     {
@@ -404,21 +368,12 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000145423859",
-      "title": "Communications Manager (Product)",
-      "company": "Grab",
-      "location": "Singapore, Singapore",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000145423859-communications-manager-product",
-      "published_at": "2026-08-25T05:51:47.220Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000143438539",
+      "id": "sr-744000152588969",
       "title": "Communications Senior Manager (Product)",
       "company": "Grab",
-      "location": "Petaling Jaya, Malaysia",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000143438539-communications-senior-manager-product",
-      "published_at": "2026-08-14T05:02:35.251Z",
+      "location": "Singapore, Singapore",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000152588969-communications-senior-manager-product",
+      "published_at": "2026-09-30T04:47:39.882Z",
       "source_verified": true
     },
     {
@@ -446,15 +401,6 @@
       "location": "Singapore, Singapore",
       "url": "https://jobs.smartrecruiters.com/Grab/744000150928267-head-merchant-acquisition",
       "published_at": "2026-09-22T04:04:23.366Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000141167699",
-      "title": "Head, Product Marketing, Financial Services",
-      "company": "Grab",
-      "location": "Petaling Jaya, Malaysia",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000141167699-head-product-marketing-financial-services",
-      "published_at": "2026-08-03T02:30:20.857Z",
       "source_verified": true
     },
     {
