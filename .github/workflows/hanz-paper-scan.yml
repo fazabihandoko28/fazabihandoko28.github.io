@@ -58,10 +58,10 @@ jobs:
           --input artifacts/paper_scans/latest.json
           --output dashboard/data/decisions.json
           
-      - name: Prepare GitHub Pages site
+      - name: Prepare GitHub Pages research report
         run: |
-          mkdir -p docs/data
-          cp dashboard/index.html docs/index.html
+          mkdir -p docs/research docs/data
+          cp dashboard/index.html docs/research/index.html
           cp dashboard/data/latest.json docs/data/latest.json
           cp dashboard/data/decisions.json docs/data/decisions.json
           cp dashboard/last_update.txt docs/last_update.txt
@@ -77,7 +77,7 @@ jobs:
                   dashboard/last_update.txt \
                   artifacts/paper_scans/latest.json \
                   artifacts/paper_trading/journal.json \
-                  docs/index.html \
+                  docs/research/index.html \
                   docs/data/latest.json \
                   docs/data/decisions.json \
                   docs/last_update.txt \
