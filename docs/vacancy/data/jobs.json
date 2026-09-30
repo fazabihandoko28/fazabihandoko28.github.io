@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-09-30T12:40:10.567521+00:00",
+  "generated_at": "2026-09-30T22:19:35.552565+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
   "raw_jobs": 1353,
-  "matching_jobs": 78,
+  "matching_jobs": 79,
   "source_status": [
     {
       "name": "Grab",
@@ -167,6 +167,15 @@
       "location": "Petaling Jaya, Malaysia",
       "url": "https://jobs.smartrecruiters.com/BoschGroup/744000152065179-internship-in-communication-media",
       "published_at": "2026-09-28T02:23:09.812Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000152687220",
+      "title": "Regional Commercial Terms & Concession Manager",
+      "company": "Bosch Group",
+      "location": "Petaling Jaya, Malaysia",
+      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000152687220-regional-commercial-terms-concession-manager",
+      "published_at": "2026-09-30T13:40:38.739Z",
       "source_verified": true
     },
     {
