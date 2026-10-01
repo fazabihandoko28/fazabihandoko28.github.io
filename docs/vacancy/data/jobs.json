@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-09-30T22:19:35.552565+00:00",
+  "generated_at": "2026-10-01T06:01:23.353806+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1353,
-  "matching_jobs": 79,
+  "raw_jobs": 1349,
+  "matching_jobs": 80,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 439
+      "jobs": 441
     },
     {
       "name": "Publicis Groupe",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 414
+      "jobs": 408
     },
     {
       "name": "Visa",
@@ -230,6 +230,15 @@
       "location": "Pasig City, Philippines",
       "url": "https://jobs.smartrecruiters.com/Grab/744000141643594-assistant-marketing-manager",
       "published_at": "2026-08-05T06:23:20.678Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000152820954",
+      "title": "Assistant Marketing Manager, GrabMaps & Special Projects",
+      "company": "Grab",
+      "location": "Petaling Jaya, Malaysia",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000152820954-assistant-marketing-manager-grabmaps-special-projects",
+      "published_at": "2026-10-01T02:54:32.589Z",
       "source_verified": true
     },
     {
