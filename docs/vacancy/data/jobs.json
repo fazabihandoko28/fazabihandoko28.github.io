@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-10-01T06:01:23.353806+00:00",
+  "generated_at": "2026-10-01T13:23:28.539991+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1349,
-  "matching_jobs": 80,
+  "raw_jobs": 1356,
+  "matching_jobs": 81,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 441
+      "jobs": 448
     },
     {
       "name": "Publicis Groupe",
@@ -50,15 +50,6 @@
       "location": "Surabaya, Indonesia",
       "url": "https://jobs.smartrecruiters.com/BoschGroup/744000152355464-marketing-intern-surabaya",
       "published_at": "2026-09-29T08:46:23.647Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000150321529",
-      "title": "Assistant Marketing Manager, Financial Services",
-      "company": "Grab",
-      "location": "Jakarta, Indonesia",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000150321529-assistant-marketing-manager-financial-services",
-      "published_at": "2026-09-18T09:23:48.107Z",
       "source_verified": true
     },
     {
@@ -149,6 +140,15 @@
       "location": "Jakarta, Indonesia",
       "url": "https://jobs.smartrecruiters.com/NielsenIQ/744000146883669-associate-director-analytics-commercial",
       "published_at": "2026-09-02T03:16:12.160Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000152846464",
+      "title": " [EPC] 3 Embedded Software Engineer _ In-Vehicle Network Communication for EU Project (Fresher)",
+      "company": "Bosch Group",
+      "location": "Ho Chi Minh city, Vietnam",
+      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000152846464-epc-3-embedded-software-engineer-in-vehicle-network-communication-for-eu-project-fresher",
+      "published_at": "2026-10-01T06:43:21.170Z",
       "source_verified": true
     },
     {
@@ -512,12 +512,12 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000151519159",
+      "id": "sr-744000152892756",
       "title": "Lead Product Marketing Manager",
       "company": "Grab",
       "location": "Petaling Jaya, Malaysia",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000151519159-lead-product-marketing-manager",
-      "published_at": "2026-09-24T02:13:38.335Z",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000152892756-lead-product-marketing-manager",
+      "published_at": "2026-10-01T10:20:24.710Z",
       "source_verified": true
     },
     {
@@ -572,6 +572,15 @@
       "location": "Petaling Jaya, Malaysia",
       "url": "https://jobs.smartrecruiters.com/Grab/744000147731850-manager-user-growth-and-seller-programme",
       "published_at": "2026-09-07T01:47:43.029Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000152909100",
+      "title": "Marketing Associate, Marketing Solutions, VN",
+      "company": "Grab",
+      "location": "HCMC, Vietnam",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000152909100-marketing-associate-marketing-solutions-vn",
+      "published_at": "2026-10-01T11:26:42.043Z",
       "source_verified": true
     },
     {
