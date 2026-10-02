@@ -1688,5 +1688,55 @@
     "source": "YAHOO_FINANCE_RESEARCH_ONLY",
     "recorded_at": "2026-10-01T18:58:51.684250+00:00",
     "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "GJTL",
+    "status": "WAIT",
+    "signal_timestamp": "2026-10-02T00:00:00+00:00",
+    "signal_close": 1245.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-10-02T18:36:20.022321+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "BFIN",
+    "status": "WAIT",
+    "signal_timestamp": "2026-10-02T00:00:00+00:00",
+    "signal_close": 910.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-10-02T18:36:20.022348+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "BBRI",
+    "status": "WAIT",
+    "signal_timestamp": "2026-10-02T00:00:00+00:00",
+    "signal_close": 3080.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-10-02T18:36:20.022360+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "SRTG",
+    "status": "WAIT",
+    "signal_timestamp": "2026-10-02T00:00:00+00:00",
+    "signal_close": 1710.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-10-02T18:36:20.022370+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "AMMN",
+    "status": "WAIT",
+    "signal_timestamp": "2026-10-02T00:00:00+00:00",
+    "signal_close": 4240.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-10-02T18:36:20.022380+00:00",
+    "outcome": "PENDING"
   }
 ]
