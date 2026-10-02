@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-10-02T05:43:45.344004+00:00",
+  "generated_at": "2026-10-02T12:41:49.740027+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1352,
+  "raw_jobs": 1354,
   "matching_jobs": 80,
   "source_status": [
     {
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 409
+      "jobs": 411
     },
     {
       "name": "Visa",
@@ -113,15 +113,6 @@
       "location": "Jakarta, Indonesia",
       "url": "https://jobs.smartrecruiters.com/Grab/744000147145460-regional-marketing-manager-b2b",
       "published_at": "2026-09-03T03:33:47.511Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000119356487",
-      "title": "User Growth & Lifecycle Strategy Lead",
-      "company": "Grab",
-      "location": "Jakarta, Indonesia",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000119356487-user-growth-lifecycle-strategy-lead",
-      "published_at": "2026-04-08T12:41:04.734Z",
       "source_verified": true
     },
     {
@@ -230,6 +221,15 @@
       "location": "Pasig City, Philippines",
       "url": "https://jobs.smartrecruiters.com/Grab/744000141643594-assistant-marketing-manager",
       "published_at": "2026-08-05T06:23:20.678Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000153152879",
+      "title": "Assistant Marketing Manager - OneGrab, VN",
+      "company": "Grab",
+      "location": "HCMC, Vietnam",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000153152879-assistant-marketing-manager-onegrab-vn",
+      "published_at": "2026-10-02T11:00:43.882Z",
       "source_verified": true
     },
     {
