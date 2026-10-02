@@ -1,25 +1,12 @@
 {
-  "generated_at": "2026-10-01T15:01:36.629810+00:00",
+  "generated_at": "2026-10-02T07:41:52.221730+00:00",
   "policy": "HIGH_CONFIDENCE_CAUSAL_ONLY",
   "selected_tickers": [
-    "ENRG",
-    "MAPI",
-    "BSML",
     "AMRT",
-    "UNTR"
+    "BSML",
+    "JRPT",
+    "BDMN",
+    "ULTJ"
   ],
-  "catalysts": [
-    {
-      "scope": "STOCK",
-      "ticker": "UNTR",
-      "direction": "POSITIVE",
-      "confidence": "HIGH",
-      "score": 8,
-      "headline": "Saham UNTR Berpotensi Lanjut Menguat Usai Membal Anjlok - SuaraGarut.ID",
-      "source": "SuaraGarut.ID",
-      "url": "https://news.google.com/rss/articles/CBMiekFVX3lxTFBsS09lcENVOHVfTmFhelBfODhiMWs0M3lrZ3dNaFZOYUh6QzVDTXNyMGMxSWhhU2ZmeUE0eXBHSWVHazEybXZKbWxmOWdmWWNVaWpvVTJfbTQtcmRQT0Jzak43NVJHSG5rVVU2XzdNR3VvbXVRRFgtYU53?oc=5",
-      "published_at": "2026-09-30T05:53:16+00:00",
-      "note": "Likely news-driven: causal wording + direct ticker/company relevance + material-event filter. This is an evidence layer, not a BUY/SELL trigger."
-    }
-  ]
+  "catalysts": []
 }
