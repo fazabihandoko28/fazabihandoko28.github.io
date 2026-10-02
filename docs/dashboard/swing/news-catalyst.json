@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-10-02T07:41:52.221730+00:00",
+  "generated_at": "2026-10-02T14:16:51.139342+00:00",
   "policy": "HIGH_CONFIDENCE_CAUSAL_ONLY",
   "selected_tickers": [
-    "AMRT",
-    "BSML",
-    "JRPT",
+    "AALI",
     "BDMN",
-    "ULTJ"
+    "GEMS",
+    "ULTJ",
+    "UNTR"
   ],
   "catalysts": []
 }
