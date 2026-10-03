@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-10-02T22:17:23.272573+00:00",
+  "generated_at": "2026-10-03T05:23:03.457941+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1355,
-  "matching_jobs": 80,
+  "raw_jobs": 1356,
+  "matching_jobs": 79,
   "source_status": [
     {
       "name": "Grab",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 412
+      "jobs": 413
     },
     {
       "name": "Visa",
@@ -149,15 +149,6 @@
       "location": "Klong Toei, Thailand",
       "url": "https://jobs.smartrecruiters.com/BoschGroup/744000152384809-corporate-communications-and-governmental-affairs-officer",
       "published_at": "2026-09-29T10:50:26.550Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000152065179",
-      "title": "Internship in Communication & Media",
-      "company": "Bosch Group",
-      "location": "Petaling Jaya, Malaysia",
-      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000152065179-internship-in-communication-media",
-      "published_at": "2026-09-28T02:23:09.812Z",
       "source_verified": true
     },
     {
