@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-10-03T21:21:05.689151+00:00",
+  "generated_at": "2026-10-04T05:59:27.208665+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1355,
+  "raw_jobs": 1352,
   "matching_jobs": 79,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 443
+      "jobs": 442
     },
     {
       "name": "Publicis Groupe",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 412
+      "jobs": 410
     },
     {
       "name": "Visa",
