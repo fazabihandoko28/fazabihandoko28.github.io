@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-10-04T12:27:15.029349+00:00",
+  "generated_at": "2026-10-04T21:32:10.790146+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1352,
-  "matching_jobs": 79,
+  "raw_jobs": 1350,
+  "matching_jobs": 78,
   "source_status": [
     {
       "name": "Grab",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 410
+      "jobs": 408
     },
     {
       "name": "Visa",
@@ -113,15 +113,6 @@
       "location": "Jakarta, Indonesia",
       "url": "https://jobs.smartrecruiters.com/Grab/744000147145460-regional-marketing-manager-b2b",
       "published_at": "2026-09-03T03:33:47.511Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000151805299",
-      "title": "APAC Consumer & Marketing Insights Lead - FMCG (G100)",
-      "company": "NielsenIQ",
-      "location": "Jakarta, Indonesia",
-      "url": "https://jobs.smartrecruiters.com/NielsenIQ/744000151805299-apac-consumer-marketing-insights-lead-fmcg-g100",
-      "published_at": "2026-09-25T09:42:29.522Z",
       "source_verified": true
     },
     {
