@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-10-04T21:32:10.790146+00:00",
+  "generated_at": "2026-10-05T05:46:54.342139+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
   "raw_jobs": 1350,
-  "matching_jobs": 78,
+  "matching_jobs": 81,
   "source_status": [
     {
       "name": "Grab",
@@ -143,6 +143,15 @@
       "source_verified": true
     },
     {
+      "id": "sr-744000153404609",
+      "title": "Project Leader (Semiconductor)",
+      "company": "Bosch Group",
+      "location": "Batu Kawan, Malaysia",
+      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000153404609-project-leader-semiconductor",
+      "published_at": "2026-10-05T05:27:08.829Z",
+      "source_verified": true
+    },
+    {
       "id": "sr-744000152687220",
       "title": "Regional Commercial Terms & Concession Manager",
       "company": "Bosch Group",
@@ -251,6 +260,15 @@
       "source_verified": true
     },
     {
+      "id": "sr-744000153399359",
+      "title": "Associate, Commercial Planning - Longtail",
+      "company": "Grab",
+      "location": "HCMC, Vietnam",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000153399359-associate-commercial-planning-longtail",
+      "published_at": "2026-10-05T02:58:26.708Z",
+      "source_verified": true
+    },
+    {
       "id": "sr-744000147145779",
       "title": "Associate, Driver Acquisition",
       "company": "Grab",
@@ -350,6 +368,15 @@
       "source_verified": true
     },
     {
+      "id": "sr-744000153399889",
+      "title": "Communications Manager, Singapore",
+      "company": "Grab",
+      "location": "Singapore, Singapore",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000153399889-communications-manager-singapore",
+      "published_at": "2026-10-05T03:18:16.509Z",
+      "source_verified": true
+    },
+    {
       "id": "sr-744000152588969",
       "title": "Communications Senior Manager (Product)",
       "company": "Grab",
@@ -419,15 +446,6 @@
       "location": "Singapore, Singapore",
       "url": "https://jobs.smartrecruiters.com/Grab/744000150507729-intern-content-creation-hungrygowhere",
       "published_at": "2026-09-19T15:33:53.673Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000147898439",
-      "title": "Intern, Employer Branding and Recruitment Marketing",
-      "company": "Grab",
-      "location": "Petaling Jaya, Malaysia",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000147898439-intern-employer-branding-and-recruitment-marketing",
-      "published_at": "2026-09-07T10:16:09.513Z",
       "source_verified": true
     },
     {
@@ -509,6 +527,15 @@
       "location": "HCMC, Vietnam",
       "url": "https://jobs.smartrecruiters.com/Grab/744000144003539-lead-strategic-acquisition-project",
       "published_at": "2026-08-18T07:47:39.236Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000153385439",
+      "title": "Lending Marketing & Communications Specialist",
+      "company": "Grab",
+      "location": "Petaling Jaya, Malaysia",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000153385439-lending-marketing-communications-specialist",
+      "published_at": "2026-10-05T00:54:30.375Z",
       "source_verified": true
     },
     {
