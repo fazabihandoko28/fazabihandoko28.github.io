@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-10-05T05:46:54.342139+00:00",
+  "generated_at": "2026-10-05T14:47:32.124026+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1350,
-  "matching_jobs": 81,
+  "raw_jobs": 1363,
+  "matching_jobs": 84,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 442
+      "jobs": 448
     },
     {
       "name": "Publicis Groupe",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 408
+      "jobs": 415
     },
     {
       "name": "Visa",
@@ -143,6 +143,15 @@
       "source_verified": true
     },
     {
+      "id": "sr-744000153438592",
+      "title": "IT Solution Developer (Semiconductor)",
+      "company": "Bosch Group",
+      "location": "Batu Kawan, Malaysia",
+      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000153438592-it-solution-developer-semiconductor",
+      "published_at": "2026-10-05T08:58:04.495Z",
+      "source_verified": true
+    },
+    {
       "id": "sr-744000153404609",
       "title": "Project Leader (Semiconductor)",
       "company": "Bosch Group",
@@ -158,15 +167,6 @@
       "location": "Petaling Jaya, Malaysia",
       "url": "https://jobs.smartrecruiters.com/BoschGroup/744000152687220-regional-commercial-terms-concession-manager",
       "published_at": "2026-09-30T13:40:38.739Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000152320399",
-      "title": "[EPC] Embedded Software Engineer _ In-Vehicle Network Communication for EU Project",
-      "company": "Bosch Group",
-      "location": "Ho Chi Minh city, Vietnam",
-      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000152320399-epc-embedded-software-engineer-in-vehicle-network-communication-for-eu-project",
-      "published_at": "2026-09-29T03:34:21.237Z",
       "source_verified": true
     },
     {
@@ -251,6 +251,15 @@
       "source_verified": true
     },
     {
+      "id": "sr-744000153509469",
+      "title": "Associate, Business Development",
+      "company": "Grab",
+      "location": "HCMC, Vietnam",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000153509469-associate-business-development",
+      "published_at": "2026-10-05T13:32:40.078Z",
+      "source_verified": true
+    },
+    {
       "id": "sr-744000144294728",
       "title": "Associate, Business Development - Omni",
       "company": "Grab",
@@ -293,6 +302,15 @@
       "location": "Hanoi, Vietnam",
       "url": "https://jobs.smartrecruiters.com/Grab/744000144452594-associate-merchant-acquisition",
       "published_at": "2026-08-20T03:51:06.141Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000153472569",
+      "title": "Associate, Merchant Acquisition & Sales Operations - GrabMart",
+      "company": "Grab",
+      "location": "Bangkok, Thailand",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000153472569-associate-merchant-acquisition-sales-operations-grabmart",
+      "published_at": "2026-10-05T11:24:18.638Z",
       "source_verified": true
     },
     {
@@ -557,6 +575,15 @@
       "source_verified": true
     },
     {
+      "id": "sr-744000153472063",
+      "title": "Manager, Merchant Acquisition - GrabMart",
+      "company": "Grab",
+      "location": "Bangkok, Thailand",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000153472063-manager-merchant-acquisition-grabmart",
+      "published_at": "2026-10-05T11:26:20.987Z",
+      "source_verified": true
+    },
+    {
       "id": "sr-744000139550697",
       "title": "Manager, Talent Acquisition, Vietnam",
       "company": "Grab",
@@ -611,12 +638,12 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000148458125",
+      "id": "sr-744000153419129",
       "title": "Merchant Growth Manager, Emerging",
       "company": "Grab",
       "location": "Singapore, Singapore",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000148458125-merchant-growth-manager-emerging",
-      "published_at": "2026-09-09T10:07:13.876Z",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000153419129-merchant-growth-manager-emerging",
+      "published_at": "2026-10-05T07:28:33.484Z",
       "source_verified": true
     },
     {
@@ -656,12 +683,12 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000150018459",
+      "id": "sr-744000153427615",
       "title": "Senior Associate, Talent Acquisition Business Partner",
       "company": "Grab",
       "location": "Pasig City, Philippines",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000150018459-senior-associate-talent-acquisition-business-partner",
-      "published_at": "2026-09-17T06:31:08.630Z",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000153427615-senior-associate-talent-acquisition-business-partner",
+      "published_at": "2026-10-05T08:16:12.823Z",
       "source_verified": true
     },
     {
