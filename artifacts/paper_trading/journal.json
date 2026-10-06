@@ -1788,5 +1788,55 @@
     "source": "YAHOO_FINANCE_RESEARCH_ONLY",
     "recorded_at": "2026-10-05T21:12:13.955922+00:00",
     "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "PRDA",
+    "status": "READY",
+    "signal_timestamp": "2026-10-06T00:00:00+00:00",
+    "signal_close": 2980.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-10-06T18:59:53.107627+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "PTBA",
+    "status": "READY",
+    "signal_timestamp": "2026-10-06T00:00:00+00:00",
+    "signal_close": 3400.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-10-06T18:59:53.107647+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "INDY",
+    "status": "WAIT",
+    "signal_timestamp": "2026-10-06T00:00:00+00:00",
+    "signal_close": 2710.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-10-06T18:59:53.107653+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "TKIM",
+    "status": "WAIT",
+    "signal_timestamp": "2026-10-06T00:00:00+00:00",
+    "signal_close": 7400.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-10-06T18:59:53.107658+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "BBRI",
+    "status": "WAIT",
+    "signal_timestamp": "2026-10-06T00:00:00+00:00",
+    "signal_close": 3110.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-10-06T18:59:53.107663+00:00",
+    "outcome": "PENDING"
   }
 ]
