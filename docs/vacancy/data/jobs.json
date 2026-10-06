@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-10-06T06:26:15.966945+00:00",
+  "generated_at": "2026-10-06T18:25:26.056989+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1369,
-  "matching_jobs": 84,
+  "raw_jobs": 1374,
+  "matching_jobs": 83,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 453
+      "jobs": 455
     },
     {
       "name": "Publicis Groupe",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 416
+      "jobs": 419
     },
     {
       "name": "Visa",
@@ -43,15 +43,6 @@
     }
   ],
   "jobs": [
-    {
-      "id": "sr-744000152355464",
-      "title": "Marketing Intern - Surabaya",
-      "company": "Bosch Group",
-      "location": "Surabaya, Indonesia",
-      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000152355464-marketing-intern-surabaya",
-      "published_at": "2026-09-29T08:46:23.647Z",
-      "source_verified": true
-    },
     {
       "id": "sr-744000148139949",
       "title": "City Marketing Execution Associate",
@@ -134,15 +125,6 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000152384809",
-      "title": "Corporate Communications and Governmental Affairs Officer",
-      "company": "Bosch Group",
-      "location": "Klong Toei, Thailand",
-      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000152384809-corporate-communications-and-governmental-affairs-officer",
-      "published_at": "2026-09-29T10:50:26.550Z",
-      "source_verified": true
-    },
-    {
       "id": "sr-744000153438592",
       "title": "IT Solution Developer (Semiconductor)",
       "company": "Bosch Group",
@@ -167,6 +149,15 @@
       "location": "Petaling Jaya, Malaysia",
       "url": "https://jobs.smartrecruiters.com/BoschGroup/744000152687220-regional-commercial-terms-concession-manager",
       "published_at": "2026-09-30T13:40:38.739Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000153732809",
+      "title": "[BD] Senior IT Product Marketing Specialist ",
+      "company": "Bosch Group",
+      "location": "Ho Chi Minh, Vietnam",
+      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000153732809-bd-senior-it-product-marketing-specialist",
+      "published_at": "2026-10-06T11:20:03.683Z",
       "source_verified": true
     },
     {
@@ -305,12 +296,12 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000153472569",
+      "id": "sr-744000153738890",
       "title": "Associate, Merchant Acquisition & Sales Operations - GrabMart",
       "company": "Grab",
       "location": "Bangkok, Thailand",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000153472569-associate-merchant-acquisition-sales-operations-grabmart",
-      "published_at": "2026-10-05T11:24:18.638Z",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000153738890-associate-merchant-acquisition-sales-operations-grabmart",
+      "published_at": "2026-10-06T11:51:24.914Z",
       "source_verified": true
     },
     {
