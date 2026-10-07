@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-10-07T13:30:03.806542+00:00",
+  "generated_at": "2026-10-07T23:08:15.979885+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1375,
-  "matching_jobs": 83,
+  "raw_jobs": 1377,
+  "matching_jobs": 82,
   "source_status": [
     {
       "name": "Grab",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 411
+      "jobs": 413
     },
     {
       "name": "Visa",
@@ -113,15 +113,6 @@
       "location": "Jakarta, Indonesia",
       "url": "https://jobs.smartrecruiters.com/NielsenIQ/744000146883669-associate-director-analytics-commercial",
       "published_at": "2026-09-02T03:16:12.160Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000152846464",
-      "title": " [EPC] 3 Embedded Software Engineer _ In-Vehicle Network Communication for EU Project (Fresher)",
-      "company": "Bosch Group",
-      "location": "Ho Chi Minh city, Vietnam",
-      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000152846464-epc-3-embedded-software-engineer-in-vehicle-network-communication-for-eu-project-fresher",
-      "published_at": "2026-10-01T06:43:21.170Z",
       "source_verified": true
     },
     {
