@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-10-07T06:05:12.936618+00:00",
+  "generated_at": "2026-10-07T13:30:03.806542+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1377,
+  "raw_jobs": 1375,
   "matching_jobs": 83,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 461
+      "jobs": 464
     },
     {
       "name": "Publicis Groupe",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 416
+      "jobs": 411
     },
     {
       "name": "Visa",
@@ -143,15 +143,6 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000152687220",
-      "title": "Regional Commercial Terms & Concession Manager",
-      "company": "Bosch Group",
-      "location": "Petaling Jaya, Malaysia",
-      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000152687220-regional-commercial-terms-concession-manager",
-      "published_at": "2026-09-30T13:40:38.739Z",
-      "source_verified": true
-    },
-    {
       "id": "sr-744000153732809",
       "title": "[BD] Senior IT Product Marketing Specialist ",
       "company": "Bosch Group",
@@ -203,6 +194,15 @@
       "location": "Pasig City, Philippines",
       "url": "https://jobs.smartrecruiters.com/Grab/744000137836764-assistant-manager-country-business-development",
       "published_at": "2026-07-15T08:53:35.276Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000154048609",
+      "title": "Assistant Manager, GMS and Campaign - Food",
+      "company": "Grab",
+      "location": "Bangkok, Thailand",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000154048609-assistant-manager-gms-and-campaign-food",
+      "published_at": "2026-10-07T09:13:21.883Z",
       "source_verified": true
     },
     {
