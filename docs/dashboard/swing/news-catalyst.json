@@ -1,24 +1,12 @@
 {
-  "generated_at": "2026-10-07T14:51:56.301411+00:00",
+  "generated_at": "2026-10-08T08:08:19.792079+00:00",
   "policy": "HIGH_CONFIDENCE_CAUSAL_ONLY",
   "selected_tickers": [
+    "JRPT",
     "SPTO",
+    "AUTO",
     "MAPI",
-    "SMDR",
-    "AALI",
-    "ADRO"
+    "PTBA"
   ],
-  "catalysts": [
-    {
-      "scope": "IHSG",
-      "direction": "POSITIVE",
-      "confidence": "HIGH",
-      "score": 8,
-      "headline": "IHSG Berpeluang Menguat Usai FTSE Pertahankan Status Indonesia - Koridor.co.id",
-      "source": "Koridor.co.id",
-      "url": "https://news.google.com/rss/articles/CBMieEFVX3lxTE50TTY5Nk9xRmVuQk1LT1lzMWlsbHZNUzJ4UW9sZnpxdmowVjh2UlFLUkxHVktoMGRabGVxODBtRnNhTUR0Si1zQ29QX0xHeEtUNFZBTGVCUzhqN2Z2dmRBU1pwZFZ6XzBLbjFQTEZhMW45c0FKQnJCWA?oc=5",
-      "published_at": "2026-10-07T01:01:16+00:00",
-      "note": "Likely index news catalyst based on explicit causal headline language. Hidden when causal evidence is weak."
-    }
-  ]
+  "catalysts": []
 }
