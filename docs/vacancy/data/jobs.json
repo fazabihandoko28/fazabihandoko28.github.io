@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-10-07T23:08:15.979885+00:00",
+  "generated_at": "2026-10-08T06:10:48.226725+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1377,
-  "matching_jobs": 82,
+  "raw_jobs": 1373,
+  "matching_jobs": 81,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 464
+      "jobs": 461
     },
     {
       "name": "Publicis Groupe",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 413
+      "jobs": 412
     },
     {
       "name": "Visa",
@@ -59,15 +59,6 @@
       "location": "Medan, Indonesia",
       "url": "https://jobs.smartrecruiters.com/Grab/744000122667128-city-partnership-assistant-manager-medan",
       "published_at": "2026-04-24T12:06:12.866Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000141404289",
-      "title": "Food Demand Strategy and Campaign Manager, ID Demand Strategy",
-      "company": "Grab",
-      "location": "Jakarta, Indonesia",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000141404289-food-demand-strategy-and-campaign-manager-id-demand-strategy",
-      "published_at": "2026-08-04T03:47:25.858Z",
       "source_verified": true
     },
     {
