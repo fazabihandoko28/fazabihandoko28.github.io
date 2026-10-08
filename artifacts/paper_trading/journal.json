@@ -1888,5 +1888,55 @@
     "source": "YAHOO_FINANCE_RESEARCH_ONLY",
     "recorded_at": "2026-10-07T19:27:03.159186+00:00",
     "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "CUAN",
+    "status": "WAIT",
+    "signal_timestamp": "2026-10-08T00:00:00+00:00",
+    "signal_close": 765.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-10-08T19:22:17.067084+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "UNTR",
+    "status": "WAIT",
+    "signal_timestamp": "2026-10-08T00:00:00+00:00",
+    "signal_close": 24350.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-10-08T19:22:17.067105+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "AMMN",
+    "status": "WAIT",
+    "signal_timestamp": "2026-10-08T00:00:00+00:00",
+    "signal_close": 4240.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-10-08T19:22:17.067112+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "BBRI",
+    "status": "WAIT",
+    "signal_timestamp": "2026-10-08T00:00:00+00:00",
+    "signal_close": 3030.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-10-08T19:22:17.067118+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "BNGA",
+    "status": "WAIT",
+    "signal_timestamp": "2026-10-08T00:00:00+00:00",
+    "signal_close": 1685.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-10-08T19:22:17.067123+00:00",
+    "outcome": "PENDING"
   }
 ]
