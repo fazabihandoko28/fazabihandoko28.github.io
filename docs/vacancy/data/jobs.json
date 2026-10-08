@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-10-08T06:10:48.226725+00:00",
+  "generated_at": "2026-10-08T13:36:07.397342+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1373,
+  "raw_jobs": 1386,
   "matching_jobs": 81,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 461
+      "jobs": 467
     },
     {
       "name": "Publicis Groupe",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 412
+      "jobs": 419
     },
     {
       "name": "Visa",
@@ -368,21 +368,21 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000153399889",
+      "id": "sr-744000154367299",
       "title": "Communications Manager, Singapore",
       "company": "Grab",
       "location": "Singapore, Singapore",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000153399889-communications-manager-singapore",
-      "published_at": "2026-10-05T03:18:16.509Z",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000154367299-communications-manager-singapore",
+      "published_at": "2026-10-08T07:59:17.547Z",
       "source_verified": true
     },
     {
-      "id": "sr-744000152588969",
+      "id": "sr-744000154367990",
       "title": "Communications Senior Manager (Product)",
       "company": "Grab",
       "location": "Singapore, Singapore",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000152588969-communications-senior-manager-product",
-      "published_at": "2026-09-30T04:47:39.882Z",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000154367990-communications-senior-manager-product",
+      "published_at": "2026-10-08T08:04:33.177Z",
       "source_verified": true
     },
     {
@@ -638,12 +638,12 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000146617137",
+      "id": "sr-744000154367849",
       "title": "Regional Commercial Process Manager",
       "company": "Grab",
       "location": "Singapore, Singapore",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000146617137-regional-commercial-process-manager",
-      "published_at": "2026-09-01T05:34:54.087Z",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000154367849-regional-commercial-process-manager",
+      "published_at": "2026-10-08T08:01:46.783Z",
       "source_verified": true
     },
     {
@@ -683,12 +683,12 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000145423399",
+      "id": "sr-744000154368139",
       "title": "Senior Manager, Growth Strategy & Planning",
       "company": "Grab",
       "location": "Singapore, Singapore",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000145423399-senior-manager-growth-strategy-planning",
-      "published_at": "2026-08-25T05:44:55.518Z",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000154368139-senior-manager-growth-strategy-planning",
+      "published_at": "2026-10-08T08:03:18.416Z",
       "source_verified": true
     },
     {
