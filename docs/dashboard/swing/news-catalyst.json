@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-10-08T08:08:19.792079+00:00",
+  "generated_at": "2026-10-08T15:44:53.328704+00:00",
   "policy": "HIGH_CONFIDENCE_CAUSAL_ONLY",
   "selected_tickers": [
-    "JRPT",
-    "SPTO",
-    "AUTO",
     "MAPI",
-    "PTBA"
+    "AALI",
+    "BDMN",
+    "GEMS",
+    "INDY"
   ],
   "catalysts": []
 }
