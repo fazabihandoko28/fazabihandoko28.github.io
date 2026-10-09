@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-10-08T23:23:49.493224+00:00",
+  "generated_at": "2026-10-09T06:14:22.340051+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1379,
-  "matching_jobs": 81,
+  "raw_jobs": 1375,
+  "matching_jobs": 82,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 467
+      "jobs": 464
     },
     {
       "name": "Publicis Groupe",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 412
+      "jobs": 411
     },
     {
       "name": "Visa",
@@ -104,6 +104,15 @@
       "location": "Jakarta, Indonesia",
       "url": "https://jobs.smartrecruiters.com/NielsenIQ/744000146883669-associate-director-analytics-commercial",
       "published_at": "2026-09-02T03:16:12.160Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000154575390",
+      "title": " [EPC]  Embedded Software Engineer _ In-Vehicle Network Communication for EU Project (Fresher)",
+      "company": "Bosch Group",
+      "location": "Ho Chi Minh city, Vietnam",
+      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000154575390-epc-embedded-software-engineer-in-vehicle-network-communication-for-eu-project-fresher",
+      "published_at": "2026-10-09T02:47:42.742Z",
       "source_verified": true
     },
     {
@@ -206,12 +215,12 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000152820954",
-      "title": "Assistant Marketing Manager, GrabMaps & Special Projects",
+      "id": "sr-744000154574219",
+      "title": "Assistant Marketing Manager, B2B",
       "company": "Grab",
       "location": "Petaling Jaya, Malaysia",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000152820954-assistant-marketing-manager-grabmaps-special-projects",
-      "published_at": "2026-10-01T02:54:32.589Z",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000154574219-assistant-marketing-manager-b2b",
+      "published_at": "2026-10-09T02:07:30.076Z",
       "source_verified": true
     },
     {
