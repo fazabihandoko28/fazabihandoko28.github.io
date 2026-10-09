@@ -1,11 +1,11 @@
 {
-  "generated_at": "2026-10-08T17:29:09.106417+00:00",
+  "generated_at": "2026-10-09T17:07:28.101175+00:00",
   "universe_size": 200,
   "selected_top5": [
-    "SMIL",
-    "ULTJ",
-    "RAAM",
-    "WTON"
+    "TOWR",
+    "BBKP",
+    "MORA",
+    "RAAM"
   ],
   "methodology": {
     "name": "HANZ no-lookahead 5Y historical replay",
@@ -18,47 +18,26 @@
     "note": "Historical replay uses HANZ core technical decision rules. Live V43 ranking also uses market/flow layers that are not fully reconstructible historically."
   },
   "results": {
-    "ULTJ": {
-      "symbol": "ULTJ",
+    "TOWR": {
+      "symbol": "TOWR",
       "status": "OK",
-      "span_start": "2021-10-08",
-      "span_end": "2026-10-07",
-      "span_years": 5.0,
-      "bars": 1203,
-      "evaluated_events": 1139,
-      "ready_signals": 12,
-      "target_first": 7,
-      "stop_first": 5,
+      "span_start": "2021-10-11",
+      "span_end": "2026-10-08",
+      "span_years": 4.99,
+      "bars": 1198,
+      "evaluated_events": 1134,
+      "ready_signals": 11,
+      "target_first": 2,
+      "stop_first": 8,
       "ambiguous_same_bar": 0,
-      "neither": 0,
-      "resolved_signals": 12,
-      "win_rate_pct": 58.3,
-      "target_hit_pct": 58.3,
-      "stop_hit_pct": 41.7,
-      "avg_5d_return_pct": 2.48,
-      "worst_mae_pct": -10.03,
-      "best_mfe_pct": 27.7
-    },
-    "WTON": {
-      "symbol": "WTON",
-      "status": "OK",
-      "span_start": "2021-10-08",
-      "span_end": "2026-10-07",
-      "span_years": 5.0,
-      "bars": 1202,
-      "evaluated_events": 1138,
-      "ready_signals": 7,
-      "target_first": 0,
-      "stop_first": 6,
-      "ambiguous_same_bar": 1,
-      "neither": 0,
-      "resolved_signals": 7,
-      "win_rate_pct": 0.0,
-      "target_hit_pct": 0.0,
-      "stop_hit_pct": 100.0,
-      "avg_5d_return_pct": -3.66,
-      "worst_mae_pct": -9.82,
-      "best_mfe_pct": 6.31
+      "neither": 1,
+      "resolved_signals": 10,
+      "win_rate_pct": 20.0,
+      "target_hit_pct": 18.2,
+      "stop_hit_pct": 72.7,
+      "avg_5d_return_pct": -4.17,
+      "worst_mae_pct": -23.87,
+      "best_mfe_pct": 9.21
     }
   },
   "errors": {}
