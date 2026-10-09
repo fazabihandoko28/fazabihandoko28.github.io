@@ -1,12 +1,24 @@
 {
-  "generated_at": "2026-10-09T08:07:37.519538+00:00",
+  "generated_at": "2026-10-09T15:23:25.278474+00:00",
   "policy": "HIGH_CONFIDENCE_CAUSAL_ONLY",
   "selected_tickers": [
     "KLBF",
-    "SMIL",
-    "ULTJ",
     "AALI",
-    "BDMN"
+    "AGII",
+    "BDMN",
+    "PRDA"
   ],
-  "catalysts": []
+  "catalysts": [
+    {
+      "scope": "IHSG",
+      "direction": "NEGATIVE",
+      "confidence": "HIGH",
+      "score": 10,
+      "headline": "IHSG Turun 0,75%, Emas Tertekan Usai Risalah The Fed - JournalArta",
+      "source": "JournalArta",
+      "url": "https://news.google.com/rss/articles/CBMilAFBVV95cUxQd3BPS2FKTnNlU3dFOFNGaDVXeVZLblE1Tk81MUVPZ1ZLYzhJR2d0T1NmNjliZlNHMzZUenhENmxZVWhZcDlVUlhDeW9UcjZmVzIwUkg3bVZLMUJsNUg4YzJ4T3BrZ1dQaGhSdldkby1vOVp1WmlyWk5wTWVXZnoxVkJjem51a2RLV2VXUlFzNUZUU1k5?oc=5",
+      "published_at": "2026-10-09T09:51:00+00:00",
+      "note": "Likely index news catalyst based on explicit causal headline language. Hidden when causal evidence is weak."
+    }
+  ]
 }
