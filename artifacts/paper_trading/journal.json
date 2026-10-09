@@ -1938,5 +1938,55 @@
     "source": "YAHOO_FINANCE_RESEARCH_ONLY",
     "recorded_at": "2026-10-08T19:22:17.067123+00:00",
     "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "PRDA",
+    "status": "WAIT",
+    "signal_timestamp": "2026-10-09T00:00:00+00:00",
+    "signal_close": 3080.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-10-09T18:55:23.277494+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "KLBF",
+    "status": "WAIT",
+    "signal_timestamp": "2026-10-09T00:00:00+00:00",
+    "signal_close": 785.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-10-09T18:55:23.277519+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "TINS",
+    "status": "WAIT",
+    "signal_timestamp": "2026-10-09T00:00:00+00:00",
+    "signal_close": 4450.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-10-09T18:55:23.277531+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "CUAN",
+    "status": "WAIT",
+    "signal_timestamp": "2026-10-09T00:00:00+00:00",
+    "signal_close": 770.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-10-09T18:55:23.277541+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "AMMN",
+    "status": "WAIT",
+    "signal_timestamp": "2026-10-09T00:00:00+00:00",
+    "signal_close": 4410.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-10-09T18:55:23.277551+00:00",
+    "outcome": "PENDING"
   }
 ]
