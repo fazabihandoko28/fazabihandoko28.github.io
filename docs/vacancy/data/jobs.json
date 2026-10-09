@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-10-09T06:14:22.340051+00:00",
+  "generated_at": "2026-10-09T13:25:55.188447+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1375,
-  "matching_jobs": 82,
+  "raw_jobs": 1372,
+  "matching_jobs": 79,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 464
+      "jobs": 463
     },
     {
       "name": "Publicis Groupe",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 411
+      "jobs": 409
     },
     {
       "name": "Visa",
@@ -113,24 +113,6 @@
       "location": "Ho Chi Minh city, Vietnam",
       "url": "https://jobs.smartrecruiters.com/BoschGroup/744000154575390-epc-embedded-software-engineer-in-vehicle-network-communication-for-eu-project-fresher",
       "published_at": "2026-10-09T02:47:42.742Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000153438592",
-      "title": "IT Solution Developer (Semiconductor)",
-      "company": "Bosch Group",
-      "location": "Batu Kawan, Malaysia",
-      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000153438592-it-solution-developer-semiconductor",
-      "published_at": "2026-10-05T08:58:04.495Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000153404609",
-      "title": "Project Leader (Semiconductor)",
-      "company": "Bosch Group",
-      "location": "Batu Kawan, Malaysia",
-      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000153404609-project-leader-semiconductor",
-      "published_at": "2026-10-05T05:27:08.829Z",
       "source_verified": true
     },
     {
@@ -476,12 +458,12 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000149250369",
+      "id": "sr-744000154631119",
       "title": "Intern, Partner Acquisition",
       "company": "Grab",
       "location": "Singapore, Singapore",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000149250369-intern-partner-acquisition",
-      "published_at": "2026-09-14T07:08:39.033Z",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000154631119-intern-partner-acquisition",
+      "published_at": "2026-10-09T09:35:35.853Z",
       "source_verified": true
     },
     {
@@ -770,15 +752,6 @@
       "location": "Pasig City, Philippines",
       "url": "https://jobs.smartrecruiters.com/NielsenIQ/744000138791550-senior-analyst-quantitative-research-consumer-insights-brand",
       "published_at": "2026-07-21T06:53:20.368Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000146452179",
-      "title": "Senior Research Manager - Consumer Insights & Brand",
-      "company": "NielsenIQ",
-      "location": "Pasig City, Philippines",
-      "url": "https://jobs.smartrecruiters.com/NielsenIQ/744000146452179-senior-research-manager-consumer-insights-brand",
-      "published_at": "2026-08-31T11:55:52.547Z",
       "source_verified": true
     }
   ]
