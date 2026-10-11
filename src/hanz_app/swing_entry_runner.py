@@ -6,10 +6,12 @@ from .early_momentum_trigger import install as install_early_momentum_trigger
 from .market_data_router import install as install_market_data_router
 from .support_bounce_intelligence import install as install_support_bounce_intelligence
 from .foreign_entry_intelligence import install as install_foreign_entry_intelligence
+from .risk_context_quality import install as install_risk_context_quality
+from .data_quality_v12 import install as install_data_quality_v12
 
 
 # Keep CRV3 prefix for dashboard backwards compatibility.
-SCORE_VERSION = "CRV3_MES8_RELATIVE100_FOREIGN_2026_09_16"
+SCORE_VERSION = "CRV3_MES8_RELATIVE100_FOREIGN_CONTEXT_V12_2026_10_12"
 
 
 def _num(value, default=0.0):
@@ -36,6 +38,8 @@ def graduated_top5_score(result, risk_validation):
       * Foreign flow is a bounded confirmation/ranking input. It can move a
         technically valid candidate up or down, but it never creates BUY by
         itself and never bypasses action/risk exclusions.
+      * V12 context quality adds bounded market-breadth and sector-quality
+        adjustments; context cannot manufacture a BUY or bypass hard gates.
 
     The full screener can still display AVOID rows for transparency, but the
     opportunity radar must not promote them.
@@ -44,20 +48,56 @@ def graduated_top5_score(result, risk_validation):
     technical_score = int(momentum_entry_score(result, rv) or 0)
     action = str(rv.get("hanz_action") or "").upper()
 
-    # Foreign activity participates in ranking only after the technical/action
-    # classification has been determined. Keep its influence meaningful but
-    # bounded so a large foreign print cannot manufacture a BUY setup.
     foreign_score = _num(rv.get("foreign_flow_score"), 0.0)
     foreign_adjustment = int(max(-12, min(12, round(foreign_score))))
     rv["technical_score_before_foreign"] = technical_score
     rv["foreign_rank_adjustment"] = foreign_adjustment
     rv["foreign_rank_policy"] = "CONFIRMATION_ONLY_BOUNDED_12"
-    raw_score = max(0, min(100, technical_score + foreign_adjustment))
 
-    # Absolute ranking doctrine for AVOID: bottom-decile only.
-    # Keep a tiny 0-9 tail score so full-universe sorting can still order AVOID
-    # names among themselves while guaranteeing they cannot compete with normal
-    # opportunity candidates.
+    market_breadth = _num(rv.get("market_breadth_score"), None)
+    sector_score = _num(rv.get("sector_score"), None)
+    context_adjustment = 0
+
+    if market_breadth is not None:
+        if market_breadth >= 70:
+            context_adjustment += 4
+        elif market_breadth >= 55:
+            context_adjustment += 2
+        elif market_breadth < 30:
+            context_adjustment -= 7
+        elif market_breadth < 40:
+            context_adjustment -= 4
+
+    if sector_score is not None:
+        if sector_score >= 70:
+            context_adjustment += 5
+        elif sector_score >= 60:
+            context_adjustment += 3
+        elif sector_score < 20:
+            context_adjustment -= 12
+        elif sector_score < 40:
+            context_adjustment -= 7
+
+    context_adjustment = int(max(-15, min(8, context_adjustment)))
+    rv["context_rank_adjustment"] = context_adjustment
+    rv["context_rank_policy"] = "MARKET_BREADTH_PLUS_SECTOR_BOUNDED"
+
+    data_confidence = _num(rv.get("data_confidence_score"), None)
+    data_adjustment = 0
+    if data_confidence is not None:
+        if data_confidence >= 95:
+            data_adjustment = 2
+        elif data_confidence < 50:
+            data_adjustment = -8
+        elif data_confidence < 70:
+            data_adjustment = -4
+    rv["data_rank_adjustment"] = data_adjustment
+
+    raw_score = max(
+        0,
+        min(100, technical_score + foreign_adjustment + context_adjustment + data_adjustment),
+    )
+
     if action == "AVOID":
         tail_score = max(0, min(9, round(raw_score * 9 / 49))) if raw_score > 0 else 0
         rv["top5_excluded"] = True
@@ -67,7 +107,6 @@ def graduated_top5_score(result, risk_validation):
         rv["canonical_raw_score_before_bucket"] = raw_score
         return tail_score
 
-    # DO_NOT_CHASE is not a fresh-entry opportunity and stays out of Top 5.
     if action == "DO_NOT_CHASE":
         rv["top5_excluded"] = True
         rv["top5_exclusion_reason"] = "HANZ action DO_NOT_CHASE is not a fresh-entry opportunity"
@@ -75,8 +114,6 @@ def graduated_top5_score(result, risk_validation):
         rv["canonical_raw_score_before_bucket"] = raw_score
         return max(10, min(24, raw_score))
 
-    # TP_RISK is a caution/watch opportunity, not AVOID. It may appear in the
-    # public opportunity list with a capped score and clear CAUTION labeling.
     if action == "TP_RISK":
         rv["top5_excluded"] = False
         rv["top5_exclusion_reason"] = None
@@ -86,9 +123,6 @@ def graduated_top5_score(result, risk_validation):
         rv["canonical_raw_score_before_bucket"] = raw_score
         return max(10, min(24, raw_score))
 
-    # Rankable opportunity states. Their natural MES score remains the main
-    # differentiator; these floors only preserve category ordering when the raw
-    # score is unusually weak.
     floors = {
         "BUY": 70,
         "WAIT_TRIGGER": 55,
@@ -113,13 +147,7 @@ def graduated_top5_score(result, risk_validation):
 
 
 def actionable_top5_score(result, risk_validation):
-    """Compatibility gate for the strict fresh-entry Top-5 contract.
-
-    This keeps legacy callers/tests working without changing the canonical
-    full-universe ranking. Non-actionable states are explicitly excluded from a
-    strict Top-5 candidate set; WAIT/WAIT_TRIGGER/BUY keep the same foreign-aware
-    graduated score.
-    """
+    """Compatibility gate for the strict fresh-entry Top-5 contract."""
     rv = risk_validation or {}
     score = graduated_top5_score(result, rv)
     action = str(rv.get("hanz_action") or "").upper()
@@ -135,6 +163,8 @@ def main():
     install_market_data_router(engine)
     install_support_bounce_intelligence(engine)
     install_foreign_entry_intelligence(engine)
+    install_risk_context_quality(engine)
+    install_data_quality_v12(engine)
     engine.canonical_rank_score = graduated_top5_score
     engine.CANONICAL_RANK_VERSION = SCORE_VERSION
     install_early_momentum_trigger(engine)
