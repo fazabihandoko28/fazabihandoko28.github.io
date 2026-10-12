@@ -30,10 +30,27 @@ def main():
         result["tickers"] = [r.get("ticker") for r in rows]
         if not rows:
             issues.append("PMR80_EMPTY")
+        elif sorted(r.get("rank") for r in rows if isinstance(r.get("rank"), int)) != [1, 2, 3, 4, 5]:
+            issues.append("PMR80_INVALID_RANK_SEQUENCE")
         elif len(rows) != 5 or len(set(r.get("ticker") for r in rows)) != len(rows):
             issues.append("PMR80_INVALID_RANKING")
         if any(str(r.get("prediction_label", "")).startswith("PREDICTED_BULLISH") for r in rows):
             issues.append("PMR80_LEGACY_LABEL")
+        bar_dates = [str(r.get("source_bar_at") or "")[:10] for r in rows]
+        if rows and (not all(bar_dates) or len(set(bar_dates)) != 1):
+            issues.append("PMR80_MIXED_OR_MISSING_BAR_DATE")
+        if bar_dates and all(bar_dates):
+            result["source_bar_date"] = bar_dates[0]
+            # Completed daily bars can lag the current session; flag excessive lag,
+            # but never confuse daily bars with real-time quotes.
+            try:
+                bar_day = dt.date.fromisoformat(bar_dates[0])
+                weekdays_elapsed = sum((bar_day + dt.timedelta(days=i)).weekday() < 5 for i in range(1, max(0, (local.date() - bar_day).days) + 1))
+                result["weekday_bar_lag"] = weekdays_elapsed
+                if weekdays_elapsed > 1:
+                    issues.append("PMR80_STALE_SOURCE_BARS")
+            except ValueError:
+                issues.append("PMR80_INVALID_BAR_DATE")
         times = []
         for row in rows:
             raw = row.get("generated_at")
@@ -52,7 +69,7 @@ def main():
     clock = local.hour * 60 + local.minute
     market_window = weekday and 8 * 60 + 35 <= clock <= 16 * 60 + 15
     stale = result.get("publish_age_minutes", 999999) > 15
-    repairable = market_window and (stale or "PMR80_EMPTY" in issues or "PMR80_LEGACY_LABEL" in issues or "PMR80_INVALID_RANKING" in issues or "PMR80_MISSING_TIMESTAMP" in issues)
+    repairable = market_window and (stale or "PMR80_EMPTY" in issues or "PMR80_LEGACY_LABEL" in issues or "PMR80_INVALID_RANKING" in issues or "PMR80_MISSING_TIMESTAMP" in issues or "PMR80_STALE_SOURCE_BARS" in issues or "PMR80_MIXED_OR_MISSING_BAR_DATE" in issues or "PMR80_INVALID_RANK_SEQUENCE" in issues)
     result["recovery_needed"] = bool(repairable)
     print(json.dumps(result, ensure_ascii=False))
     if repairable and os.environ.get("GITHUB_TOKEN") and os.environ.get("GITHUB_REPOSITORY"):
