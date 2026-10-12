@@ -6945,7 +6945,47 @@ def publish_market_movers():
         return {"published": 0, "error": str(exc)}
 
 
+def quarantine_stale_buy(ticker, reason):
+    """Fail closed in persistent monitor, including when Yahoo data is missing."""
+    symbol = clean_ticker(ticker)
+    try:
+        rows = supabase_request(
+            "GET",
+            "hanz_swing_signal_monitor?select=state,daily_bar_at,risk_gate"
+            f"&ticker=eq.{urllib.parse.quote(symbol, safe='')}&limit=1",
+        ) or []
+        if not rows:
+            return
+        row = rows[0]
+        state = str(row.get("state") or "").upper()
+        if state not in BUY_STATES:
+            return
+        bar = row.get("daily_bar_at")
+        try:
+            bar_date = pd.Timestamp(bar).date() if bar else None
+        except (TypeError, ValueError):
+            bar_date = None
+        if bar_date is not None and bar_date >= latest_completed_idx_date():
+            return
+        supabase_request(
+            "PATCH",
+            "hanz_swing_signal_monitor"
+            f"?ticker=eq.{urllib.parse.quote(symbol, safe='')}"
+            "&state=in.(SWING_BUY,EARLY_CONFIRMED_BUY)",
+            {
+                "state": "SETUP_READY",
+                "risk_gate": "BLOCKED",
+                "updated_at": now_iso(),
+            },
+        )
+        print(f"BUY QUARANTINED {symbol}: {reason}", flush=True)
+    except Exception as exc:
+        # Fail visibly: never silently claim the persistent safety gate passed.
+        raise RuntimeError(f"BUY QUARANTINE FAILED {symbol}: {exc}") from exc
+
+
 def scan_symbol(ticker, maintenance_mode=False):
+    quarantine_stale_buy(ticker, "pre-scan stale persisted BUY")
     daily_df = download_frame(
         ticker,
         DAILY_INTERVAL,
@@ -7107,7 +7147,7 @@ def scan_symbol(ticker, maintenance_mode=False):
     #   because maintenance_mode blocks execution side effects below.
     prior_state = str((prior_monitor or {}).get("state") or "").upper()
     maintenance_write = True
-    if maintenance_mode and result.get("state") in BUY_STATES and prior_state not in BUY_STATES:
+    if maintenance_mode and result.get("state") in BUY_STATES:
         result = dict(result)
         result["state"] = "SETUP_READY"
         result["reconfirmed"] = False
