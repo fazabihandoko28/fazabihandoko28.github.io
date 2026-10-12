@@ -56,6 +56,7 @@ jobs:
       HANZ_MARKET_DATA_PRIMARY: "AUTO"
       HANZ_SWING_DASHBOARD_URL: https://fazabihandoko28.github.io/dashboard/swing/
       HANZ_SWING_RUN_ONCE: "1"
+      HANZ_SWING_AFTER_HOURS_SCAN: "1"
       HANZ_SWING_MAX_SYMBOLS_PER_CYCLE: "220"
       HANZ_SWING_TRAILING_ATR_T1: "1.5"
       HANZ_SWING_TRAILING_ATR_T2: "1.0"
