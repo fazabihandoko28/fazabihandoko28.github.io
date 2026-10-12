@@ -150,7 +150,7 @@ def publish(engine):
             continue
         m = monitor.get(ticker) or {}
         if strict:
-            label = "HIGH_CONFIDENCE_CALL_PMR80"
+            label = "RADAR_STRICT_UNVALIDATED"
         elif score >= 65:
             label = "RADAR_NEAR_HIGH_CONF"
         elif score >= 45:
@@ -206,7 +206,7 @@ def publish(engine):
         "high_confidence": sum(1 for r in payload if r["prediction_label"] == "HIGH_CONFIDENCE_CALL_PMR80"),
         "top": [f"{r['ticker']}:{r['prediction_score']}:{r['prediction_label']}" for r in payload],
         "target": f"NEXT_SESSION_HIGH>={TARGET_INTRADAY_UP_PCT:.1f}%",
-        "validation": {"prior": REFERENCE_PRIOR_HIT_RATE_PCT, "recent": REFERENCE_RECENT_HIT_RATE_PCT},
+        "validation": {"status": "EXPLORATORY_NOT_OUT_OF_SAMPLE_VALIDATED", "prior": REFERENCE_PRIOR_HIT_RATE_PCT, "recent": REFERENCE_RECENT_HIT_RATE_PCT},
     }
 
 
