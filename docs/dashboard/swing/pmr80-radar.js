@@ -143,7 +143,7 @@
       ranking.innerHTML=cache.slice(0,5).map((r,i)=>{
         const score=Math.max(0,Math.min(100,Number(r.prediction_score||0)));
         const high=String(r.prediction_label||"").toUpperCase()==="RADAR_STRICT_UNVALIDATED";
-        const badge=high?'<span class="pmr80-badge high">PMR80 HIGH CONF</span>':'<span class="pmr80-badge radar">RADAR</span>';
+        const badge=`<span class="pmr80-badge ${high?'high':'radar'}">${esc(className(r))}</span>`;
         const label=className(r);
         return `<div class="rank" role="button" tabindex="0" data-pmr80-row="1" data-pmr80-index="${i}" title="${esc(r.reason||"")}">
           <div class="rank-no">#${i+1}</div>
