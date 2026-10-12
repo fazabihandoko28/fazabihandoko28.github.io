@@ -73,8 +73,12 @@ def main():
         except (urllib.error.URLError, ValueError) as exc:
             result["recovery_error"] = str(exc)[:250]
     print("HANZ WATCHDOG FINAL: " + json.dumps(result))
+    if repairable and not result.get("recovery_dispatch_status") and result.get("recovery") != "scanner already running or recently triggered":
+        issues.append("RECOVERY_NOT_CONFIRMED")
     if issues:
         print("::warning::HANZ watchdog issues: " + ", ".join(issues))
+    if "RECOVERY_NOT_CONFIRMED" in issues:
+        raise SystemExit(1)
 
 if __name__ == "__main__":
     main()
