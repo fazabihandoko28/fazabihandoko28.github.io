@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-10-12T06:04:07.324406+00:00",
+  "generated_at": "2026-10-12T15:33:41.373353+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1355,
-  "matching_jobs": 78,
+  "raw_jobs": 1356,
+  "matching_jobs": 76,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 457
+      "jobs": 451
     },
     {
       "name": "Publicis Groupe",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 398
+      "jobs": 405
     },
     {
       "name": "Visa",
@@ -98,30 +98,12 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000146883669",
-      "title": "Associate Director, Analytics Commercial",
-      "company": "NielsenIQ",
-      "location": "Jakarta, Indonesia",
-      "url": "https://jobs.smartrecruiters.com/NielsenIQ/744000146883669-associate-director-analytics-commercial",
-      "published_at": "2026-09-02T03:16:12.160Z",
-      "source_verified": true
-    },
-    {
       "id": "sr-744000154575390",
       "title": " [EPC]  Embedded Software Engineer _ In-Vehicle Network Communication for EU Project (Fresher)",
       "company": "Bosch Group",
       "location": "Ho Chi Minh city, Vietnam",
       "url": "https://jobs.smartrecruiters.com/BoschGroup/744000154575390-epc-embedded-software-engineer-in-vehicle-network-communication-for-eu-project-fresher",
       "published_at": "2026-10-09T02:47:42.742Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000153732809",
-      "title": "[BD] Senior IT Product Marketing Specialist ",
-      "company": "Bosch Group",
-      "location": "Ho Chi Minh, Vietnam",
-      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000153732809-bd-senior-it-product-marketing-specialist",
-      "published_at": "2026-10-06T11:20:03.683Z",
       "source_verified": true
     },
     {
@@ -140,6 +122,15 @@
       "location": "Johor Bahru, Malaysia",
       "url": "https://jobs.smartrecruiters.com/Grab/744000151769657-acquisition-market-expansion-lead",
       "published_at": "2026-09-25T07:01:57.259Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000154936662",
+      "title": "Assistant Manager (Regional SMB Ads) - User Growth & Strategy",
+      "company": "Grab",
+      "location": "Petaling Jaya, Malaysia",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000154936662-assistant-manager-regional-smb-ads-user-growth-strategy",
+      "published_at": "2026-10-12T07:27:15.530Z",
       "source_verified": true
     },
     {
@@ -449,12 +440,12 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000149291839",
+      "id": "sr-744000154940614",
       "title": "Intern, Marketing and Partnership (GrabRentals)",
       "company": "Grab",
       "location": "Singapore, Singapore",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000149291839-intern-marketing-and-partnership-grabrentals",
-      "published_at": "2026-09-14T10:08:27.054Z",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000154940614-intern-marketing-and-partnership-grabrentals",
+      "published_at": "2026-10-12T07:48:35.266Z",
       "source_verified": true
     },
     {
@@ -476,12 +467,12 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000149291459",
+      "id": "sr-744000154941124",
       "title": "Intern, Social Media & Partner Engagement",
       "company": "Grab",
       "location": "Singapore, Singapore",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000149291459-intern-social-media-partner-engagement",
-      "published_at": "2026-09-14T10:07:31.125Z",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000154941124-intern-social-media-partner-engagement",
+      "published_at": "2026-10-12T07:47:12.268Z",
       "source_verified": true
     },
     {
@@ -554,15 +545,6 @@
       "location": "HCMC, Vietnam",
       "url": "https://jobs.smartrecruiters.com/Grab/744000152909100-marketing-associate-marketing-solutions-vn",
       "published_at": "2026-10-01T11:26:42.043Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000133883819",
-      "title": "Marketing Manager - GrabFood, SG",
-      "company": "Grab",
-      "location": "Singapore, Singapore",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000133883819-marketing-manager-grabfood-sg",
-      "published_at": "2026-06-24T08:00:42.585Z",
       "source_verified": true
     },
     {
