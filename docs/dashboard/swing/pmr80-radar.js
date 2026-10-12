@@ -10,6 +10,8 @@
   ]);
   let cache = [];
   let applying = false;
+  let loading = false;
+  let failure = "Loading radar data";
 
   const esc = v => String(v ?? "")
     .replaceAll("&","&amp;")
@@ -18,6 +20,7 @@
     .replaceAll('"',"&quot;");
 
   const num = v => {
+    if(v === null || v === undefined || v === "") return null;
     const n = Number(v);
     return Number.isFinite(n) ? n : null;
   };
@@ -116,7 +119,16 @@
   }
 
   function render(){
-    if(applying || !cache.length) return;
+    if(applying) return;
+    if(!cache.length){
+      const ranking=document.getElementById("ranking");
+      if(ranking) ranking.innerHTML='<div class="empty">DATA UNAVAILABLE · '+esc(failure)+'</div>';
+      const status=ensureStatus();
+      if(status) status.innerHTML='<span>'+esc(failure)+'</span><strong>RETRYING · DATA UNAVAILABLE</strong>';
+      for(const id of ["topCandidate","heroTopCandidate","lastUpdate"]) { const el=document.getElementById(id); if(el) el.textContent="—"; }
+      for(const id of ["topCandidateSub","heroTopSub","lastUpdateDate"]) { const el=document.getElementById(id); if(el) el.textContent="DATA UNAVAILABLE · "+failure; }
+      return;
+    }
     const ranking=document.getElementById("ranking");
     if(!ranking) return;
     applying=true;
@@ -125,7 +137,7 @@
       const status=ensureStatus();
       if(status){
         const newest=cache.map(r=>r.generated_at).filter(Boolean).sort().reverse()[0];
-        status.innerHTML=`<span>PMR80 V4 · latest completed-bar ranking · ${strictCount}/5 strict high-confidence</span><strong>${strictCount?"PMR80 ACTIVE":"RADAR MODE"}${newest?` · ${esc(new Date(newest).toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"}))}`:""}</strong>`;
+        status.innerHTML=`<span>PMR80 V4 · latest completed-bar ranking · ${strictCount}/${cache.length} strict high-confidence</span><strong>${strictCount?"PMR80 ACTIVE":"RADAR MODE"}${newest?` · ${esc(new Date(newest).toLocaleTimeString("en-GB",{timeZone:"Asia/Jakarta",hour:"2-digit",minute:"2-digit"})+" WIB")}`:""}</strong>`;
       }
       ranking.innerHTML=cache.slice(0,5).map((r,i)=>{
         const score=Math.max(0,Math.min(100,Number(r.prediction_score||0)));
@@ -144,6 +156,10 @@
       });
 
       const top=cache[0];
+      const last=document.getElementById("lastUpdate");
+      if(last) last.textContent=new Date(top.generated_at).toLocaleTimeString("en-GB",{timeZone:"Asia/Jakarta",hour:"2-digit",minute:"2-digit"})+" WIB";
+      const date=document.getElementById("lastUpdateDate");
+      if(date) date.textContent="Daily reference bar: "+String(top.source_bar_at||"").slice(0,10)+" · ranking refreshed; price is not a live quote";
       if(top){
         const high=String(top.prediction_label||"").toUpperCase()==="HIGH_CONFIDENCE_CALL_PMR80";
         const a=document.getElementById("topCandidate"); if(a) a.textContent=top.ticker;
@@ -154,34 +170,49 @@
     } finally { applying=false; }
   }
 
-  async function fetchRows(){
-    try{
-      const url=`${SUPABASE_URL}/rest/v1/${TABLE}?select=*&order=rank.asc&limit=5&ts=${Date.now()}`;
-      const response=await fetch(url,{headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`},cache:"no-store"});
-      if(!response.ok) throw new Error(`PMR80 HTTP ${response.status}`);
-      const rows=await response.json();
-      if(!Array.isArray(rows) || !rows.length) return;
-      const isV4=rows.every(r=>V4_LABELS.has(String(r.prediction_label||"").toUpperCase()));
-      if(!isV4){
-        const status=ensureStatus();
-        if(status) status.innerHTML='<span>PMR80 V4 is syncing from the latest completed bar…</span><strong>UPDATING</strong>';
-        return;
-      }
-      cache=rows.slice(0,5);
-      render();
-    }catch(err){ console.warn("HANZ PMR80 radar load failed",err); }
+  function validateRows(rows, now=Date.now()){
+    if(!Array.isArray(rows) || !rows.length) throw new Error("Radar returned no data");
+    if(rows.length>5 || new Set(rows.map(r=>r.ticker)).size!==rows.length) throw new Error("Invalid radar ranking");
+    for(const [i,r] of rows.entries()){
+      if(!r.ticker || Number(r.rank)!==i+1 || !V4_LABELS.has(String(r.prediction_label||"").toUpperCase())) throw new Error("Radar model is syncing");
+      const age=now-Date.parse(r.generated_at);
+      const score=num(r.prediction_score);
+      if(!Number.isFinite(age) || age < -60000 || !Number.isFinite(Date.parse(r.source_bar_at)) || score===null || score<0 || score>100 || !(num(r.price)>0)) throw new Error("Invalid radar data");
+      const wib=new Date(now+7*3600000);
+      const minute=wib.getUTCHours()*60+wib.getUTCMinutes();
+      const marketWindow=wib.getUTCDay()>0 && wib.getUTCDay()<6 && minute>=515 && minute<=975;
+      if(marketWindow && age>15*60000) throw new Error("Radar publish is older than 15 minutes");
+    }
+    return rows;
   }
+
+  async function fetchRows(){
+    if(loading) return;
+    loading=true;
+    try{
+      // PostgREST interprets unknown query parameters as column filters.
+      const url=`${SUPABASE_URL}/rest/v1/${TABLE}?select=*&order=rank.asc&limit=5`;
+      const response=await fetch(url,{headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`},cache:"no-store",signal:AbortSignal.timeout(8000)});
+      if(!response.ok) throw new Error(`PMR80 HTTP ${response.status}`);
+      cache=validateRows(await response.json());
+      failure="";
+    }catch(err){
+      cache=[];
+      failure=err.message||"Radar connection failed";
+      console.warn("HANZ PMR80 radar load failed",err);
+    }finally{ loading=false; render(); }
+  }
+
+  window.hanzPmr80={render,fetchRows,validateRows};
 
   function start(){
     addStyles();
     ensureModal();
     fetchRows();
     setInterval(fetchRows,10000);
-    const ranking=document.getElementById("ranking");
-    if(ranking){
-      const obs=new MutationObserver(()=>{ if(cache.length) setTimeout(render,0); });
-      obs.observe(ranking,{childList:true,subtree:true});
-    }
+    document.addEventListener("visibilitychange",()=>{ if(!document.hidden) fetchRows(); });
+    window.addEventListener("online",fetchRows);
+    render();
   }
 
   if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",start);

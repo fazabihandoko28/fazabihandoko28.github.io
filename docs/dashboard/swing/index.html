@@ -2329,9 +2329,11 @@ async function loadWatchlist(){
   renderSelectedCandidates(top5);
   renderOpportunities(confirmed);
   renderLiveSignalMonitor(confirmed);
+  window.hanzPmr80?.render();
 }
 
 function renderRanking(rows,radarMode=false){
+  if(window.hanzPmr80){ window.hanzPmr80.render(); return; }
   if(!rows.length){
     $("ranking").innerHTML='<div class="empty">No confirmed BUY or radar candidate.</div>';
     return;
@@ -3011,6 +3013,7 @@ $("refreshButton").addEventListener("click",loadAll);
   setInterval(loadAll,REFRESH_MS);
 });
 </script>
+<script src="/dashboard/swing/pmr80-radar.js?v=20261012-2" defer></script>
 <script src="./news-catalyst.js" defer></script>
 </body>
 </html>

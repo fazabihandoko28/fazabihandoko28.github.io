@@ -1,6 +1,11 @@
 name: HANZ Autonomous Watchdog
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - "src/hanz_app/autonomous_watchdog.py"
+      - ".github/workflows/hanz-autonomous-watchdog.yml"
   workflow_dispatch:
   schedule:
     # Independent server-side health check, including weekends.

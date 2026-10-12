@@ -30,7 +30,7 @@ def main():
         result["tickers"] = [r.get("ticker") for r in rows]
         if not rows:
             issues.append("PMR80_EMPTY")
-        elif len(rows) > 5 or len(set(r.get("ticker") for r in rows)) != len(rows):
+        elif len(rows) != 5 or len(set(r.get("ticker") for r in rows)) != len(rows):
             issues.append("PMR80_INVALID_RANKING")
         if any(str(r.get("prediction_label", "")).startswith("PREDICTED_BULLISH") for r in rows):
             issues.append("PMR80_LEGACY_LABEL")
@@ -42,8 +42,8 @@ def main():
         if not times:
             issues.append("PMR80_MISSING_TIMESTAMP")
         else:
-            result["last_publish"] = max(times).isoformat()
-            result["publish_age_minutes"] = round((now - max(times)).total_seconds() / 60, 1)
+            result["oldest_publish"] = min(times).isoformat()
+            result["publish_age_minutes"] = round((now - min(times)).total_seconds() / 60, 1)
     except (urllib.error.URLError, ValueError, KeyError) as exc:
         issues.append("SUPABASE_QUERY_FAILED")
         result["error"] = str(exc)[:250]
@@ -51,8 +51,8 @@ def main():
     weekday = local.weekday() < 5
     clock = local.hour * 60 + local.minute
     market_window = weekday and 8 * 60 + 35 <= clock <= 16 * 60 + 15
-    stale = result.get("publish_age_minutes", 999999) > 45
-    repairable = market_window and (stale or "PMR80_EMPTY" in issues or "PMR80_LEGACY_LABEL" in issues)
+    stale = result.get("publish_age_minutes", 999999) > 15
+    repairable = market_window and (stale or "PMR80_EMPTY" in issues or "PMR80_LEGACY_LABEL" in issues or "PMR80_INVALID_RANKING" in issues or "PMR80_MISSING_TIMESTAMP" in issues)
     result["recovery_needed"] = bool(repairable)
     print(json.dumps(result, ensure_ascii=False))
     if repairable and os.environ.get("GITHUB_TOKEN") and os.environ.get("GITHUB_REPOSITORY"):
@@ -63,7 +63,7 @@ def main():
         try:
             runs = request(url, gh).get("workflow_runs", [])
             recent = [r for r in runs if r.get("status") in ("queued", "in_progress") or (
-                r.get("created_at") and (now - dt.datetime.fromisoformat(r["created_at"].replace("Z", "+00:00"))).total_seconds() < 15 * 60)]
+                r.get("conclusion") != "failure" and r.get("created_at") and (now - dt.datetime.fromisoformat(r["created_at"].replace("Z", "+00:00"))).total_seconds() < 15 * 60)]
             if not recent:
                 req = urllib.request.Request("https://api.github.com/repos/" + repo + "/actions/workflows/hanz-swing-engine.yml/dispatches", data=json.dumps({"ref": "main"}).encode(), headers={**gh, "Content-Type": "application/json"}, method="POST")
                 with urllib.request.urlopen(req, timeout=20) as response:

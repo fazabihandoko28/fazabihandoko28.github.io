@@ -7,6 +7,7 @@ on:
     branches:
       - main
     paths:
+      - "src/hanz_app/autonomous_watchdog.py"
       - "src/hanz_app/momentum_entry_score.py"
       - "src/hanz_app/support_bounce_intelligence.py"
       - "src/hanz_app/swing_entry_runner.py"
