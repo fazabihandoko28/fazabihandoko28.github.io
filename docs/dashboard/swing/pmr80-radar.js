@@ -3,11 +3,12 @@
   const SUPABASE_KEY = "sb_publishable_rBY4VJwPS1T5tm0zPw4tbg_BhApWtfM";
   const TABLE = "hanz_premarket_bullish_current";
   const V4_LABELS = new Set([
-    "HIGH_CONFIDENCE_CALL_PMR80",
+    "RADAR_STRICT_UNVALIDATED",
     "RADAR_NEAR_HIGH_CONF",
     "RADAR_CANDIDATE",
     "RADAR_LOW_CONF"
   ]);
+  const className = r => ({RADAR_STRICT_UNVALIDATED:"STRICT · UNVALIDATED",RADAR_NEAR_HIGH_CONF:"NEAR STRICT",RADAR_CANDIDATE:"CANDIDATE",RADAR_LOW_CONF:"LOW SCORE"})[String(r.prediction_label||"").toUpperCase()] || "UNCLASSIFIED";
   let cache = [];
   let applying = false;
   let loading = false;
@@ -81,16 +82,16 @@
   function openModal(index){
     const r=cache[index]; if(!r) return;
     ensureModal();
-    const high=String(r.prediction_label||"").toUpperCase()==="HIGH_CONFIDENCE_CALL_PMR80";
+    const high=String(r.prediction_label||"").toUpperCase()==="RADAR_STRICT_UNVALIDATED";
     const box=document.getElementById("pmr80ModalBox");
     box.innerHTML=`
       <div class="pmr80-modal-head">
-        <div><h3>${esc(r.ticker)} · ${high?"PMR80 HIGH CONF":"HANZ RADAR"}</h3><p>Rank #${Number(r.rank||index+1)} · score ${Number(r.prediction_score||0)}/100 · source bar ${esc(String(r.source_bar_at||"").slice(0,10))}</p></div>
+        <div><h3>${esc(r.ticker)} · ${high?"STRICT · UNVALIDATED":"HANZ RADAR"}</h3><p>Rank #${Number(r.rank||index+1)} · score ${Number(r.prediction_score||0)}/100 · source bar ${esc(String(r.source_bar_at||"").slice(0,10))}</p></div>
         <button class="pmr80-close" id="pmr80CloseBtn" type="button">×</button>
       </div>
       <div class="pmr80-grid">
         <div class="pmr80-box"><span>REFERENCE PRICE</span><strong>${fmtPrice(r.price)}</strong></div>
-        <div class="pmr80-box"><span>CLASS</span><strong>${high?"PMR80 ≥80% HIST.":esc(String(r.prediction_label||"RADAR").replaceAll("_"," "))}</strong></div>
+        <div class="pmr80-box"><span>CLASS</span><strong>${high?"NOT OUT-OF-SAMPLE VALIDATED":esc(String(r.prediction_label||"RADAR").replaceAll("_"," "))}</strong></div>
         <div class="pmr80-box"><span>1D / 3D / 5D</span><strong>${fmtPct(r.ret1_pct)} · ${fmtPct(r.ret3_pct)} · ${fmtPct(r.ret5_pct)}</strong></div>
         <div class="pmr80-box"><span>RVOL</span><strong>${num(r.daily_rvol)===null?"—":Number(r.daily_rvol).toFixed(2)+"x"}</strong></div>
         <div class="pmr80-box"><span>ENTRY ZONE</span><strong>${fmtPrice(r.entry_low)} – ${fmtPrice(r.entry_high)}</strong></div>
@@ -98,7 +99,7 @@
         <div class="pmr80-box"><span>TARGET 1</span><strong>${fmtPrice(r.target_1)}</strong></div>
         <div class="pmr80-box"><span>TARGET 2</span><strong>${fmtPrice(r.target_2)}</strong></div>
       </div>
-      <div class="pmr80-reason"><b>Why ranked:</b> ${esc(r.reason||"No explanation available.")}<br><br><b>Rule:</b> PMR80 badge is only shown for the strict historically validated pattern. Ordinary RADAR rows are relative candidates, not an 80% probability claim and not automatic BUY confirmation.</div>`;
+      <div class="pmr80-reason"><b>Why ranked:</b> ${esc(r.reason||"No explanation available.")}<br><br><b>Rule:</b> STRICT means all technical conditions passed, NOT an independently validated win probability. Ordinary RADAR rows are relative candidates, not an 80% probability claim and not automatic BUY confirmation.</div>`;
     document.getElementById("pmr80CloseBtn").onclick=closeModal;
     const modal=document.getElementById("pmr80DetailModal");
     modal.classList.add("show");
@@ -133,17 +134,17 @@
     if(!ranking) return;
     applying=true;
     try{
-      const strictCount=cache.filter(r=>String(r.prediction_label||"").toUpperCase()==="HIGH_CONFIDENCE_CALL_PMR80").length;
+      const strictCount=cache.filter(r=>String(r.prediction_label||"").toUpperCase()==="RADAR_STRICT_UNVALIDATED").length;
       const status=ensureStatus();
       if(status){
         const newest=cache.map(r=>r.generated_at).filter(Boolean).sort().reverse()[0];
-        status.innerHTML=`<span>PMR80 V4 · latest completed-bar ranking · ${strictCount}/${cache.length} strict high-confidence</span><strong>${strictCount?"PMR80 ACTIVE":"RADAR MODE"}${newest?` · ${esc(new Date(newest).toLocaleTimeString("en-GB",{timeZone:"Asia/Jakarta",hour:"2-digit",minute:"2-digit"})+" WIB")}`:""}</strong>`;
+        status.innerHTML=`<span>PMR80 V4 · latest completed-bar ranking · ${strictCount}/${cache.length} strict unvalidated</span><strong>${strictCount?"STRICT SETUP DETECTED":"RADAR MODE"}${newest?` · ${esc(new Date(newest).toLocaleTimeString("en-GB",{timeZone:"Asia/Jakarta",hour:"2-digit",minute:"2-digit"})+" WIB")}`:""}</strong>`;
       }
       ranking.innerHTML=cache.slice(0,5).map((r,i)=>{
         const score=Math.max(0,Math.min(100,Number(r.prediction_score||0)));
-        const high=String(r.prediction_label||"").toUpperCase()==="HIGH_CONFIDENCE_CALL_PMR80";
+        const high=String(r.prediction_label||"").toUpperCase()==="RADAR_STRICT_UNVALIDATED";
         const badge=high?'<span class="pmr80-badge high">PMR80 HIGH CONF</span>':'<span class="pmr80-badge radar">RADAR</span>';
-        const label=high?"PMR80":"WATCH";
+        const label=className(r);
         return `<div class="rank" role="button" tabindex="0" data-pmr80-row="1" data-pmr80-index="${i}" title="${esc(r.reason||"")}">
           <div class="rank-no">#${i+1}</div>
           <div class="rank-symbol">${esc(r.ticker)} ${badge}</div>
@@ -162,11 +163,11 @@
       const date=document.getElementById("lastUpdateDate");
       if(date) date.textContent="Daily reference bar: "+String(top.source_bar_at||"").slice(0,10)+" · ranking refreshed; price is not a live quote";
       if(top){
-        const high=String(top.prediction_label||"").toUpperCase()==="HIGH_CONFIDENCE_CALL_PMR80";
+        const high=String(top.prediction_label||"").toUpperCase()==="RADAR_STRICT_UNVALIDATED";
         const a=document.getElementById("topCandidate"); if(a) a.textContent=top.ticker;
-        const b=document.getElementById("topCandidateSub"); if(b) b.textContent=`PMR80 V4 · ${top.prediction_score}/100 · ${high?"HIGH CONF":"RADAR"}`;
+        const b=document.getElementById("topCandidateSub"); if(b) b.textContent=`PMR80 V4 · ${top.prediction_score}/100 · ${className(top)}`;
         const c=document.getElementById("heroTopCandidate"); if(c) c.textContent=top.ticker;
-        const d=document.getElementById("heroTopSub"); if(d) d.textContent=high?"PMR80 HIGH-CONFIDENCE BULLISH BEHAVIOR CALL":"HANZ PREMARKET / LIVE RADAR · NOT PMR80 HIGH CONF";
+        const d=document.getElementById("heroTopSub"); if(d) d.textContent=high?"STRICT TECHNICAL SETUP · NOT VALIDATED · NOT BUY":"HANZ DAILY-BAR RADAR · NOT CONFIRMED BUY";
       }
     } finally { applying=false; }
   }
