@@ -7167,29 +7167,28 @@ def backfill_active_chart_cache():
         "failed": 0,
     }
 
+    # One bulk cache read replaces one Supabase round-trip per active ticker.
+    cached_rows = supabase_request(
+        "GET",
+        "hanz_swing_chart_data?select=ticker,source_bar_at&limit=1000",
+    ) or []
+    cache_dates = {
+        clean_ticker(row.get("ticker")): str(row.get("source_bar_at") or "")[:10]
+        for row in cached_rows
+        if row.get("ticker")
+    }
+    target_bar = latest_completed_idx_date().isoformat()
+
     for row in monitor_rows:
         ticker = clean_ticker(row.get("ticker"))
         state = str(row.get("state") or "")
         monitor_bar = str(row.get("daily_bar_at") or "")[:10]
-        target_bar = latest_completed_idx_date().isoformat()
 
         if not ticker or state not in CHART_STATES:
             continue
 
         try:
-            encoded = urllib.parse.quote(ticker, safe="")
-            cached = supabase_request(
-                "GET",
-                "hanz_swing_chart_data"
-                f"?ticker=eq.{encoded}"
-                "&select=ticker,source_bar_at"
-                "&limit=1",
-            ) or []
-
-            cached_bar = (
-                str(cached[0].get("source_bar_at") or "")[:10]
-                if cached else ""
-            )
+            cached_bar = cache_dates.get(ticker, "")
 
             # Cache is current only when it reaches the latest completed IDX
             # trading date. A stale monitor row must not allow an old chart cache
