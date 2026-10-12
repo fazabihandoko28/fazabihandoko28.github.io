@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-10-11T22:01:41.385107+00:00",
+  "generated_at": "2026-10-12T06:04:07.324406+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1363,
-  "matching_jobs": 79,
+  "raw_jobs": 1355,
+  "matching_jobs": 78,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 463
+      "jobs": 457
     },
     {
       "name": "Publicis Groupe",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 400
+      "jobs": 398
     },
     {
       "name": "Visa",
@@ -179,6 +179,15 @@
       "source_verified": true
     },
     {
+      "id": "sr-744000154913299",
+      "title": "Assistant Manager, GrabForBusiness Partnerships",
+      "company": "Grab",
+      "location": "Petaling Jaya, Malaysia",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000154913299-assistant-manager-grabforbusiness-partnerships",
+      "published_at": "2026-10-12T02:17:23.439Z",
+      "source_verified": true
+    },
+    {
       "id": "sr-744000141643594",
       "title": "Assistant Marketing Manager",
       "company": "Grab",
@@ -320,15 +329,6 @@
       "location": "Petaling Jaya, Malaysia",
       "url": "https://jobs.smartrecruiters.com/Grab/744000147218279-business-development-manager",
       "published_at": "2026-09-03T10:52:57.516Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000146883599",
-      "title": "Commercial Lending Specialist",
-      "company": "Grab",
-      "location": "Petaling Jaya, Malaysia",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000146883599-commercial-lending-specialist",
-      "published_at": "2026-09-02T03:15:02.952Z",
       "source_verified": true
     },
     {
@@ -512,15 +512,6 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000153385439",
-      "title": "Lending Marketing & Communications Specialist",
-      "company": "Grab",
-      "location": "Petaling Jaya, Malaysia",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000153385439-lending-marketing-communications-specialist",
-      "published_at": "2026-10-05T00:54:30.375Z",
-      "source_verified": true
-    },
-    {
       "id": "sr-744000148741809",
       "title": "Manager, Driver Communications",
       "company": "Grab",
@@ -545,15 +536,6 @@
       "location": "Bangkok, Thailand",
       "url": "https://jobs.smartrecruiters.com/Grab/744000153472063-manager-merchant-acquisition-grabmart",
       "published_at": "2026-10-05T11:26:20.987Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000139550697",
-      "title": "Manager, Talent Acquisition, Vietnam",
-      "company": "Grab",
-      "location": "HCMC, Vietnam",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000139550697-manager-talent-acquisition-vietnam",
-      "published_at": "2026-07-24T09:27:16.565Z",
       "source_verified": true
     },
     {
@@ -743,6 +725,15 @@
       "location": "Kuala Lumpur, Malaysia",
       "url": "https://jobs.smartrecruiters.com/NielsenIQ/744000151805408-apac-consumer-marketing-insights-lead-fmcg-g100",
       "published_at": "2026-09-25T09:43:22.294Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000154916119",
+      "title": "Panel Communication Specialist (Data Management Chinese Speaker)",
+      "company": "NielsenIQ",
+      "location": "Kuala Lumpur, Malaysia",
+      "url": "https://jobs.smartrecruiters.com/NielsenIQ/744000154916119-panel-communication-specialist-data-management-chinese-speaker",
+      "published_at": "2026-10-12T03:15:46.680Z",
       "source_verified": true
     },
     {
