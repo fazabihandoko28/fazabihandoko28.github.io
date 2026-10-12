@@ -675,8 +675,47 @@ def supabase_request(method, path, payload=None, prefer=None):
         ) from exc
 
 
+# Per-run immutable OHLCV snapshots; never share mutable frames with scoring.
+_BATCH_OHLCV = {}
+
+
+def prefetch_scan_frames(tickers, batch_size=12):
+    """Bounded bulk fetch, per-ticker fallback, no parallel DB writes."""
+    started = time.monotonic()
+    summary = {"requested": len(tickers), "loaded": 0, "failed": 0, "chunks": 0}
+    _BATCH_OHLCV.clear()
+    for interval, period in ((DAILY_INTERVAL, DAILY_PERIOD), (WEEKLY_INTERVAL, WEEKLY_PERIOD)):
+        for offset in range(0, len(tickers), batch_size):
+            group = [normalize_ticker(t) for t in tickers[offset:offset + batch_size]]
+            summary["chunks"] += 1
+            try:
+                raw = yf.download(
+                    group, interval=interval, period=period, auto_adjust=False,
+                    progress=False, threads=4, group_by="ticker", timeout=12,
+                )
+                for symbol in group:
+                    try:
+                        frame = raw[symbol].copy() if isinstance(raw.columns, pd.MultiIndex) else raw.copy()
+                        frame = frame.dropna(subset=["Open", "High", "Low", "Close"])
+                        if frame.empty:
+                            continue
+                        _BATCH_OHLCV[(symbol, interval, period)] = frame
+                        summary["loaded"] += 1
+                    except (KeyError, ValueError):
+                        continue
+            except Exception as exc:
+                print(f"HANZ BULK FETCH chunk failed: {type(exc).__name__}", flush=True)
+    summary["failed"] = 2 * len(tickers) - summary["loaded"]
+    summary["seconds"] = round(time.monotonic() - started, 1)
+    print("HANZ BULK FETCH: " + json.dumps(summary), flush=True)
+    return summary
+
+
 def download_frame(ticker, interval, period):
     symbol = normalize_ticker(ticker)
+    cached = _BATCH_OHLCV.get((symbol, interval, period))
+    if cached is not None and not cached.empty:
+        return cached.copy()
 
     df = yf.download(
         symbol,
@@ -7271,6 +7310,7 @@ def run_cycle():
         _REAL_MONEY_CONTEXT = build_real_money_context()
 
         universe = fetch_universe()
+        prefetch_scan_frames(universe)
         _MARKET_MOVER_ROWS.clear()
         _PULLBACK_RADAR_ROWS.clear()
 
