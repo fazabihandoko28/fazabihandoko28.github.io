@@ -192,9 +192,12 @@ def publish(engine):
         item["rank"] = rank
         payload.append(item)
 
-    engine.supabase_request("DELETE", "hanz_premarket_bullish_current?rank=gte.1")
-    if payload:
-        engine.supabase_request("POST", "hanz_premarket_bullish_current", payload=payload, prefer="return=minimal")
+    # Never erase the last known ranking when source bars are unavailable.
+    if not payload:
+        return {"model": MODEL_VERSION, "published": 0, "source_date": source_date,
+                "status": "SKIPPED_EMPTY_INPUT_PRESERVED_PREVIOUS"}
+    engine.supabase_request("POST", "hanz_premarket_bullish_current?on_conflict=rank",
+                            payload=payload, prefer="resolution=merge-duplicates,return=minimal")
 
     return {
         "model": MODEL_VERSION,
@@ -213,12 +216,13 @@ def install(engine):
     def run_cycle_with_pmr80():
         # Recompute on EVERY scanner cycle. During market hours this still uses
         # the latest completed daily candle, so there is no look-ahead leak.
+        result = original_run_cycle()
         try:
             summary = publish(engine)
             print("HANZ PMR80 LIVE: " + engine.json.dumps(summary, default=str), flush=True)
         except Exception as exc:
             print(f"HANZ PMR80 LIVE failed-soft: {exc}", flush=True)
-        return original_run_cycle()
+        return result
 
     engine.run_cycle = run_cycle_with_pmr80
     print("HANZ PMR80 V4 installed | every-cycle publish | PMR80 strict label only | Top5 radar always", flush=True)
