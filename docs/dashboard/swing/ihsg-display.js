@@ -82,6 +82,7 @@
   }
 
   function renderAutoDecisions(){
+    if(window.hanzPmr80) return; // PMR80 owns this ranking and its hero.
     const rows=Array.isArray(window.__hanzSignalRows)?window.__hanzSignalRows:[];
     const rankEls=[...document.querySelectorAll("#ranking .rank")];
     if(!rows.length || !rankEls.length) return;

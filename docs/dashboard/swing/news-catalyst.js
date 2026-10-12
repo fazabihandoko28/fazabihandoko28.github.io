@@ -304,7 +304,7 @@
   function loadIhsgDisplay(){
     if(document.querySelector('script[data-hanz-ihsg="1"]')) return;
     const script=document.createElement("script");
-    script.src=`/dashboard/swing/ihsg-display.js?v=1`;
+    script.src=`/dashboard/swing/ihsg-display.js?v=20261012-2`;
     script.defer=true;
     script.dataset.hanzIhsg="1";
     document.head.appendChild(script);
