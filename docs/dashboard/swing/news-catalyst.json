@@ -1,24 +1,12 @@
 {
-  "generated_at": "2026-10-12T08:14:08.210403+00:00",
+  "generated_at": "2026-10-12T18:04:24.609882+00:00",
   "policy": "HIGH_CONFIDENCE_CAUSAL_ONLY",
   "selected_tickers": [
-    "MORA",
+    "OMED",
     "PRDA",
     "SMIL",
     "TOWR",
-    "MPMX"
+    "HATM"
   ],
-  "catalysts": [
-    {
-      "scope": "IHSG",
-      "direction": "NEGATIVE",
-      "confidence": "HIGH",
-      "score": 8,
-      "headline": "IHSG Melemah Setelah Dibuka Menguat 12 Oktober 2026 - SuaraGarut.ID",
-      "source": "SuaraGarut.ID",
-      "url": "https://news.google.com/rss/articles/CBMiX0FVX3lxTFBCNjl5OENCV2NaMzRBWExTNEZ1R3JLS2pqZWdqQ0lLVl9OazItUUY0bjJVXy04VUk3dTY5QlNCOENvRURpaFZxNS00MGYxaS1QZG5pTnBwdkZodjZZNnVB?oc=5",
-      "published_at": "2026-10-12T03:09:15+00:00",
-      "note": "Likely index news catalyst based on explicit causal headline language. Hidden when causal evidence is weak."
-    }
-  ]
+  "catalysts": []
 }
