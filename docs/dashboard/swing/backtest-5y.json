@@ -1,11 +1,12 @@
 {
-  "generated_at": "2026-10-09T17:07:28.101175+00:00",
+  "generated_at": "2026-10-12T19:55:32.712050+00:00",
   "universe_size": 200,
   "selected_top5": [
+    "OMED",
+    "PRDA",
+    "SMIL",
     "TOWR",
-    "BBKP",
-    "MORA",
-    "RAAM"
+    "HATM"
   ],
   "methodology": {
     "name": "HANZ no-lookahead 5Y historical replay",
@@ -18,11 +19,32 @@
     "note": "Historical replay uses HANZ core technical decision rules. Live V43 ranking also uses market/flow layers that are not fully reconstructible historically."
   },
   "results": {
+    "PRDA": {
+      "symbol": "PRDA",
+      "status": "OK",
+      "span_start": "2021-10-12",
+      "span_end": "2026-10-09",
+      "span_years": 4.99,
+      "bars": 1198,
+      "evaluated_events": 1134,
+      "ready_signals": 4,
+      "target_first": 1,
+      "stop_first": 3,
+      "ambiguous_same_bar": 0,
+      "neither": 0,
+      "resolved_signals": 4,
+      "win_rate_pct": 25.0,
+      "target_hit_pct": 25.0,
+      "stop_hit_pct": 75.0,
+      "avg_5d_return_pct": -4.43,
+      "worst_mae_pct": -11.55,
+      "best_mfe_pct": 4.92
+    },
     "TOWR": {
       "symbol": "TOWR",
       "status": "OK",
-      "span_start": "2021-10-11",
-      "span_end": "2026-10-08",
+      "span_start": "2021-10-12",
+      "span_end": "2026-10-09",
       "span_years": 4.99,
       "bars": 1198,
       "evaluated_events": 1134,
