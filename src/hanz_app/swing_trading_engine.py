@@ -6958,6 +6958,32 @@ def scan_symbol(ticker, maintenance_mode=False):
         WEEKLY_PERIOD,
     )
 
+    # Fail closed: no stale, missing, future, or invalid completed bar can
+    # preserve an actionable BUY state in the monitor.
+    expected_bar = latest_completed_idx_date()
+    completed_df = daily_df.loc[
+        [pd.Timestamp(idx).date() <= expected_bar for idx in daily_df.index]
+    ].copy()
+    if completed_df.empty:
+        raise RuntimeError(f"BUY_VALIDATION_BLOCKED {ticker}: no completed daily bars")
+    actual_bar = pd.Timestamp(completed_df.index[-1]).date()
+    if actual_bar != expected_bar:
+        raise RuntimeError(
+            f"BUY_VALIDATION_BLOCKED {ticker}: stale daily bar "
+            f"{actual_bar}, expected {expected_bar}"
+        )
+    latest = completed_df.iloc[-1]
+    o, h, l, c, v = (
+        safe_float(latest.get(k))
+        for k in ("Open", "High", "Low", "Close", "Volume")
+    )
+    if (
+        any(x is None or not math.isfinite(x) for x in (o, h, l, c, v))
+        or l <= 0 or v < 0 or h < max(o, c) or l > min(o, c)
+    ):
+        raise RuntimeError(f"BUY_VALIDATION_BLOCKED {ticker}: invalid completed OHLCV")
+    daily_df = completed_df
+
     daily = daily_metrics(daily_df)
     weekly = weekly_metrics(weekly_df)
 
