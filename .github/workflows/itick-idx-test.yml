@@ -1,6 +1,10 @@
 name: iTick IDX Coverage Test
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/itick-idx-test.yml'
   workflow_dispatch:
 
 permissions:
@@ -23,7 +27,7 @@ jobs:
           fi
           echo "ITICK_API_TOKEN detected."
 
-      - name: Test AUTO HATM TOTL VIVA
+      - name: Test MEDC PTBA ASII BFIN AMMN
         shell: python
         run: |
           import os
@@ -35,7 +39,7 @@ jobs:
 
           TOKEN = os.environ["ITICK_API_TOKEN"].strip()
           BASE = "https://api-free.itick.org/stock/quote"
-          TICKERS = ["AUTO", "HATM", "TOTL", "VIVA"]
+          TICKERS = ["MEDC", "PTBA", "ASII", "BFIN", "AMMN"]
           WIB = ZoneInfo("Asia/Jakarta")
 
           def fmt_ts(ms):
@@ -82,7 +86,7 @@ jobs:
                   else:
                       data = payload.get("data") or {}
                       item.update({
-                          "ok": True,
+                          "ok": data.get("ld") is not None and data.get("t") is not None and str(data.get("s", "")).upper() == ticker,
                           "price": data.get("ld"),
                           "open": data.get("o"),
                           "prev_close": data.get("p"),
@@ -126,7 +130,7 @@ jobs:
                   )
 
           print("-" * 78)
-          print(f"SUMMARY: {ok_count}/4 tickers returned successfully")
+          print(f"SUMMARY: {ok_count}/5 tickers returned successfully")
           print("Trading status: 0=Normal, 1=Halt, 2=Delisted, 3=Circuit Breaker")
           print("=" * 78)
 
