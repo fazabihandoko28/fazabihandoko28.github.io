@@ -3,32 +3,15 @@ name: HANZ Swing Scanner
 on:
   workflow_dispatch:
 
-  push:
-    branches:
-      - main
-    paths:
-      - "src/hanz_app/autonomous_watchdog.py"
-      - "src/hanz_app/momentum_entry_score.py"
-      - "src/hanz_app/support_bounce_intelligence.py"
-      - "src/hanz_app/swing_entry_runner.py"
-      - "src/hanz_app/swing_trading_engine.py"
-      - "src/hanz_app/risk_context_quality.py"
-      - "src/hanz_app/data_quality_v12.py"
-      - "src/hanz_app/premarket_bullish_predictor.py"
-      - ".github/workflows/hanz-swing-engine.yml"
-
   schedule:
     # 08:35 WIB = 01:35 UTC. Build today's bullish Top-5 from the latest
     # completed daily bars before the pre-open auction. This is prediction-only;
     # it never creates a confirmed BUY.
     - cron: "35 1 * * 1-5"
 
-    # IDX intraday predictive radar.
-    # 02:00-08:45 UTC = 09:00-15:45 WIB, Monday-Friday.
-    # The Python market/session gate handles lunch breaks, weekends and IDX holidays.
-    # This lets HANZ continuously detect support bounces / early momentum instead of
-    # waking up only after the exchange has closed.
-    - cron: "*/15 2-8 * * 1-5"
+    # Heavy scanner is not scheduled every 15 minutes: it takes longer
+    # than the trigger interval and would continually cancel itself.
+    # Intraday risk monitoring requires a separate lightweight workflow.
 
     # 16:10 WIB = 09:10 UTC.
     # Final completed-bar scan after IDX close.
@@ -39,12 +22,12 @@ permissions:
 
 concurrency:
   group: hanz-swing-scanner
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   swing-scan:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
 
     env:
       PYTHONPATH: src
