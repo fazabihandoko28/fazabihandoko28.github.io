@@ -49,6 +49,19 @@ jobs:
               except Exception:
                   return "—"
 
+          def open_quote(req):
+              try:
+                  return urllib.request.urlopen(req, timeout=20)
+              except urllib.error.HTTPError as exc:
+                  if exc.code != 401:
+                      raise
+                  # Trial and production use different documented endpoints.
+                  production = urllib.request.Request(
+                      req.full_url.replace("api-free.itick.org", "api.itick.org"),
+                      headers=dict(req.header_items()),
+                  )
+                  return urllib.request.urlopen(production, timeout=20)
+
           results = []
 
           for ticker in TICKERS:
@@ -78,7 +91,7 @@ jobs:
               }
 
               try:
-                  with urllib.request.urlopen(req, timeout=20) as resp:
+                  with open_quote(req) as resp:
                       payload = json.loads(resp.read().decode("utf-8"))
 
                   if payload.get("code") != 0:
