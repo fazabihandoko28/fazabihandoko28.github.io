@@ -77,7 +77,7 @@ def main():
         issues.append("RECOVERY_NOT_CONFIRMED")
     if issues:
         print("::warning::HANZ watchdog issues: " + ", ".join(issues))
-    if "RECOVERY_NOT_CONFIRMED" in issues:
+    if "RECOVERY_NOT_CONFIRMED" in issues and os.environ.get("GITHUB_ACTIONS") == "true":
         raise SystemExit(1)
 
 if __name__ == "__main__":
