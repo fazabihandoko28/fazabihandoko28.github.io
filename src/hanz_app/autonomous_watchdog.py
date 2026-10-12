@@ -47,7 +47,8 @@ def main():
                 bar_day = dt.date.fromisoformat(bar_dates[0])
                 weekdays_elapsed = sum((bar_day + dt.timedelta(days=i)).weekday() < 5 for i in range(1, max(0, (local.date() - bar_day).days) + 1))
                 result["weekday_bar_lag"] = weekdays_elapsed
-                if weekdays_elapsed > 1:
+                after_close = local.weekday() < 5 and (local.hour * 60 + local.minute) >= 16 * 60 + 15
+                if weekdays_elapsed > 1 or (after_close and weekdays_elapsed >= 1):
                     issues.append("PMR80_STALE_SOURCE_BARS")
             except ValueError:
                 issues.append("PMR80_INVALID_BAR_DATE")
@@ -67,8 +68,8 @@ def main():
     # Market-session-aware auto recovery: do not repeatedly trigger outside market hours.
     weekday = local.weekday() < 5
     clock = local.hour * 60 + local.minute
-    market_window = weekday and 8 * 60 + 35 <= clock <= 16 * 60 + 15
-    stale = result.get("publish_age_minutes", 999999) > 15
+    market_window = weekday and 8 * 60 + 35 <= clock <= 23 * 60 + 59
+    stale = clock <= 16 * 60 + 15 and result.get("publish_age_minutes", 999999) > 15
     repairable = market_window and (stale or "PMR80_EMPTY" in issues or "PMR80_LEGACY_LABEL" in issues or "PMR80_INVALID_RANKING" in issues or "PMR80_MISSING_TIMESTAMP" in issues or "PMR80_STALE_SOURCE_BARS" in issues or "PMR80_MIXED_OR_MISSING_BAR_DATE" in issues or "PMR80_INVALID_RANKING" in issues)
     result["recovery_needed"] = bool(repairable)
     print(json.dumps(result, ensure_ascii=False))
