@@ -1,0 +1,32 @@
+name: HANZ Autonomous Watchdog
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Independent server-side health check, including weekends.
+    - cron: "*/15 * * * *"
+
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: hanz-autonomous-watchdog
+  cancel-in-progress: false
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Audit market radar and recover stalled scanner
+        env:
+          PYTHONPATH: src
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python -m hanz_app.autonomous_watchdog
