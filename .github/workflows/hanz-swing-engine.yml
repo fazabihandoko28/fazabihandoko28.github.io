@@ -13,9 +13,15 @@ on:
       - "src/hanz_app/swing_trading_engine.py"
       - "src/hanz_app/risk_context_quality.py"
       - "src/hanz_app/data_quality_v12.py"
+      - "src/hanz_app/premarket_bullish_predictor.py"
       - ".github/workflows/hanz-swing-engine.yml"
 
   schedule:
+    # 08:35 WIB = 01:35 UTC. Build today's bullish Top-5 from the latest
+    # completed daily bars before the pre-open auction. This is prediction-only;
+    # it never creates a confirmed BUY.
+    - cron: "35 1 * * 1-5"
+
     # IDX intraday predictive radar.
     # 02:00-08:45 UTC = 09:00-15:45 WIB, Monday-Friday.
     # The Python market/session gate handles lunch breaks, weekends and IDX holidays.
