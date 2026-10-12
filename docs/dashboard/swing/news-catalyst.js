@@ -271,7 +271,7 @@
   function bindRadarRows(){
     const rows=[...document.querySelectorAll("#ranking .rank")];
     rows.forEach((row,index)=>{
-      if(row.dataset.compactRadarBound==="1") return;
+      if(row.dataset.pmr80Row==="1" || row.dataset.compactRadarBound==="1") return;
       row.dataset.compactRadarBound="1";
       row.setAttribute("role","button");
       row.setAttribute("tabindex","0");

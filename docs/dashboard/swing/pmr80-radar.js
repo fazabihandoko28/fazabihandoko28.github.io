@@ -144,7 +144,7 @@
         const high=String(r.prediction_label||"").toUpperCase()==="HIGH_CONFIDENCE_CALL_PMR80";
         const badge=high?'<span class="pmr80-badge high">PMR80 HIGH CONF</span>':'<span class="pmr80-badge radar">RADAR</span>';
         const label=high?"PMR80":"WATCH";
-        return `<div class="rank" data-pmr80-row="1" data-pmr80-index="${i}" title="${esc(r.reason||"")}">
+        return `<div class="rank" role="button" tabindex="0" data-pmr80-row="1" data-pmr80-index="${i}" title="${esc(r.reason||"")}">
           <div class="rank-no">#${i+1}</div>
           <div class="rank-symbol">${esc(r.ticker)} ${badge}</div>
           <div class="rank-track"><div style="width:${score}%"></div></div>
@@ -153,6 +153,7 @@
       }).join("");
       ranking.querySelectorAll('[data-pmr80-row="1"]').forEach(el=>{
         el.addEventListener("click",()=>openModal(Number(el.dataset.pmr80Index||0)));
+        el.addEventListener("keydown",e=>{if(e.key==="Enter" || e.key===" "){e.preventDefault();openModal(Number(el.dataset.pmr80Index||0));}});
       });
 
       const top=cache[0];
