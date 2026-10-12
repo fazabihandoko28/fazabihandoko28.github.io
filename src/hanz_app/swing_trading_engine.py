@@ -5924,7 +5924,9 @@ def latest_completed_idx_date(now=None):
     now = now or jakarta_now()
     market = idx_market_session(now)
 
-    if market.get("is_trading_day") and market.get("allow_final_scan"):
+    # The completed daily candle remains valid after the POST_CLOSE window.
+    # Never roll back to yesterday merely because it is after 16:15 WIB.
+    if market.get("is_trading_day") and (now.hour * 60 + now.minute) >= 16 * 60:
         return now.date()
 
     return previous_idx_trading_day(now.date())
