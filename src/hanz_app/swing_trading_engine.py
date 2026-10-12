@@ -7337,7 +7337,10 @@ def run_cycle():
     # 2) monitor existing portfolio risk.
     # The radar can arm candidates early, but can NEVER create a user-facing BUY.
     # User-facing BUY still waits for post-close completed-bar reconfirmation.
-    if not market["allow_final_scan"]:
+    # Pre-open/off-hours scanning uses ONLY the last completed IDX daily bar.
+    # This is historical-close analysis, never a live quote or forced BUY.
+    offline_scan = os.getenv("HANZ_SWING_AFTER_HOURS_SCAN", "0") == "1" and market["state"] in {"CLOSED_BEFORE_HOURS", "CLOSED_AFTER_HOURS", "CLOSED_WEEKEND", "CLOSED_HOLIDAY"}
+    if not market["allow_final_scan"] and not offline_scan:
         if market["allow_portfolio_monitor"]:
             _REAL_MONEY_CONTEXT = build_real_money_context()
 
