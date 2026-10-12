@@ -185,19 +185,21 @@ def publish(engine):
             "generated_at": engine.now_iso(),
         })
 
-    candidates.sort(key=lambda r: (r["prediction_label"] == "HIGH_CONFIDENCE_CALL_PMR80", r["prediction_score"], r["avg_value20"]), reverse=True)
+    candidates.sort(key=lambda r: (r["prediction_score"], r["avg_value20"]), reverse=True)
     payload = []
     for rank, row in enumerate(candidates[:MAX_ROWS], 1):
         item = dict(row)
         item["rank"] = rank
         payload.append(item)
 
-    # Never erase the last known ranking when source bars are unavailable.
-    if not payload:
+    # A complete Top 5 is required. Do not publish a partial ranking.
+    if len(payload) != MAX_ROWS:
         return {"model": MODEL_VERSION, "published": 0, "source_date": source_date,
-                "status": "SKIPPED_EMPTY_INPUT_PRESERVED_PREVIOUS"}
-    engine.supabase_request("POST", "hanz_premarket_bullish_current?on_conflict=rank",
-                            payload=payload, prefer="resolution=merge-duplicates,return=minimal")
+                "status": "SKIPPED_INCOMPLETE_INPUT_PRESERVED_PREVIOUS"}
+    write_result = engine.supabase_request("POST", "hanz_premarket_bullish_current?on_conflict=rank",
+                                           payload=payload, prefer="resolution=merge-duplicates,return=minimal")
+    if write_result is False:
+        raise RuntimeError("PMR80 ranking upsert failed")
 
     return {
         "model": MODEL_VERSION,
