@@ -8,10 +8,11 @@ from .support_bounce_intelligence import install as install_support_bounce_intel
 from .foreign_entry_intelligence import install as install_foreign_entry_intelligence
 from .risk_context_quality import install as install_risk_context_quality
 from .data_quality_v12 import install as install_data_quality_v12
+from .premarket_bullish_predictor import install as install_premarket_bullish_predictor
 
 
 # Keep CRV3 prefix for dashboard backwards compatibility.
-SCORE_VERSION = "CRV3_MES8_RELATIVE100_FOREIGN_CONTEXT_V12_2026_10_12"
+SCORE_VERSION = "CRV3_MES8_RELATIVE100_FOREIGN_CONTEXT_V12_PREMARKET_2026_10_12"
 
 
 def _num(value, default=0.0):
@@ -168,6 +169,7 @@ def main():
     engine.canonical_rank_score = graduated_top5_score
     engine.CANONICAL_RANK_VERSION = SCORE_VERSION
     install_early_momentum_trigger(engine)
+    install_premarket_bullish_predictor(engine)
     engine.main()
 
 
