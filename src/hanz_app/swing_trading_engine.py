@@ -7008,6 +7008,12 @@ def scan_symbol(ticker, maintenance_mode=False):
         raise RuntimeError(f"BUY_VALIDATION_BLOCKED {ticker}: no completed daily bars")
     actual_bar = pd.Timestamp(completed_df.index[-1]).date()
     if actual_bar != expected_bar:
+        # Repair before scoring, not only later when storing charts.
+        # If the provider cannot supply the exact completed session, fail closed.
+        completed_df, repair_info = ensure_latest_completed_daily_bar(ticker, completed_df)
+        actual_bar = pd.Timestamp(completed_df.index[-1]).date()
+        print(f"DAILY BAR REPAIR {ticker}: {repair_info}", flush=True)
+    if actual_bar != expected_bar:
         raise RuntimeError(
             f"BUY_VALIDATION_BLOCKED {ticker}: stale daily bar "
             f"{actual_bar}, expected {expected_bar}"

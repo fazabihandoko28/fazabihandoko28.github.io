@@ -149,6 +149,16 @@ def publish(engine):
         if score <= 0:
             continue
         m = monitor.get(ticker) or {}
+        # Never attach yesterday's entry/stop/targets to today's candle.
+        # An invalid stop above the reference price is not a usable long setup.
+        # Keep the symbol in prediction-only RADAR, with execution levels hidden.
+        monitor_date = str(m.get("daily_bar_at") or "")[:10]
+        stop = m.get("stop_loss")
+        try:
+            valid_stop = stop is not None and 0 < float(stop) < float(f["price"])
+        except (ValueError, TypeError):
+            valid_stop = False
+        valid_levels = monitor_date == source_date and valid_stop and str(m.get("state") or "").upper() != "MOMENTUM_BROKEN"
         if strict:
             label = "RADAR_STRICT_UNVALIDATED"
         elif score >= 65:
@@ -169,13 +179,13 @@ def publish(engine):
             "ret5_pct": f["ret5_pct"],
             "avg_value20": f["avg_value20"],
             "daily_rvol": f["rvol20"],
-            "entry_status": m.get("entry_status"),
-            "entry_price": m.get("entry_price"),
-            "entry_low": m.get("entry_low"),
-            "entry_high": m.get("entry_high"),
-            "stop_loss": m.get("stop_loss"),
-            "target_1": m.get("target_1"),
-            "target_2": m.get("target_2"),
+            "entry_status": m.get("entry_status") if valid_levels else "UNVALIDATED_LEVELS",
+            "entry_price": m.get("entry_price") if valid_levels else None,
+            "entry_low": m.get("entry_low") if valid_levels else None,
+            "entry_high": m.get("entry_high") if valid_levels else None,
+            "stop_loss": m.get("stop_loss") if valid_levels else None,
+            "target_1": m.get("target_1") if valid_levels else None,
+            "target_2": m.get("target_2") if valid_levels else None,
             "source_bar_at": source_date,
             "reason": (
                 f"{label}: 1D {f['ret1_pct']:+.2f}% · 3D {f['ret3_pct']:+.2f}% · "
