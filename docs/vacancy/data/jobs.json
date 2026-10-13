@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-10-12T15:33:41.373353+00:00",
+  "generated_at": "2026-10-13T00:45:25.110986+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1356,
-  "matching_jobs": 76,
+  "raw_jobs": 1349,
+  "matching_jobs": 75,
   "source_status": [
     {
       "name": "Grab",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 405
+      "jobs": 398
     },
     {
       "name": "Visa",
@@ -104,15 +104,6 @@
       "location": "Ho Chi Minh city, Vietnam",
       "url": "https://jobs.smartrecruiters.com/BoschGroup/744000154575390-epc-embedded-software-engineer-in-vehicle-network-communication-for-eu-project-fresher",
       "published_at": "2026-10-09T02:47:42.742Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000153965188",
-      "title": "[Internship] Employer Branding Intern",
-      "company": "Bosch Group",
-      "location": "Ho Chi Minh, Vietnam",
-      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000153965188-internship-employer-branding-intern",
-      "published_at": "2026-10-07T02:59:14.242Z",
       "source_verified": true
     },
     {
