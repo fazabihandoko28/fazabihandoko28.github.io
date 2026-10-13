@@ -1,6 +1,12 @@
 name: HANZ Swing Scanner
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - "src/hanz_app/swing_trading_engine.py"
+      - "src/hanz_app/premarket_bullish_predictor.py"
+      - ".github/workflows/hanz-swing-engine.yml"
   workflow_dispatch:
 
   schedule:

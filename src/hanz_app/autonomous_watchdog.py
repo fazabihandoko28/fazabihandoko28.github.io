@@ -65,13 +65,25 @@ def main():
     except (urllib.error.URLError, ValueError, KeyError) as exc:
         issues.append("SUPABASE_QUERY_FAILED")
         result["error"] = str(exc)[:250]
+    # Monitor must advance with the last completed IDX session too. A fresh PMR80
+    # publication cannot conceal an outdated 198-symbol signal monitor.
+    try:
+        monitor = request(base + "/rest/v1/hanz_swing_signal_monitor?select=daily_bar_at&limit=500", headers)
+        dates = [str(r.get("daily_bar_at") or "")[:10] for r in monitor]
+        result["monitor_count"] = len(monitor)
+        result["monitor_latest_bar"] = max(dates, default="")
+        if monitor and result.get("source_bar_date") and result["monitor_latest_bar"] < result["source_bar_date"]:
+            issues.append("MONITOR_BEHIND_PMR80")
+    except (urllib.error.URLError, ValueError, KeyError) as exc:
+        issues.append("MONITOR_QUERY_FAILED")
+        result["monitor_error"] = str(exc)[:250]
     # Market-session-aware auto recovery: do not repeatedly trigger outside market hours.
     weekday = local.weekday() < 5
     clock = local.hour * 60 + local.minute
     market_window = weekday and 8 * 60 + 35 <= clock <= 23 * 60 + 59
     # Daily-bar publication age is not quote freshness; recover on invalid/stale source bars instead.
     stale = "PMR80_STALE_SOURCE_BARS" in issues
-    repairable = market_window and (stale or "PMR80_EMPTY" in issues or "PMR80_LEGACY_LABEL" in issues or "PMR80_INVALID_RANKING" in issues or "PMR80_MISSING_TIMESTAMP" in issues or "PMR80_STALE_SOURCE_BARS" in issues or "PMR80_MIXED_OR_MISSING_BAR_DATE" in issues or "PMR80_INVALID_RANKING" in issues)
+    repairable = market_window and (stale or "PMR80_EMPTY" in issues or "PMR80_LEGACY_LABEL" in issues or "PMR80_INVALID_RANKING" in issues or "PMR80_MISSING_TIMESTAMP" in issues or "PMR80_STALE_SOURCE_BARS" in issues or "PMR80_MIXED_OR_MISSING_BAR_DATE" in issues or "MONITOR_BEHIND_PMR80" in issues)
     result["recovery_needed"] = bool(repairable)
     print(json.dumps(result, ensure_ascii=False))
     if repairable and os.environ.get("GITHUB_TOKEN") and os.environ.get("GITHUB_REPOSITORY"):
