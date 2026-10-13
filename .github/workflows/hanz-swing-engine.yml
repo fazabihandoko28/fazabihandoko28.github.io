@@ -13,6 +13,7 @@ on:
     # 08:35 WIB = 01:35 UTC. Build today's bullish Top-5 from the latest
     # completed daily bars before the pre-open auction. This is prediction-only;
     # it never creates a confirmed BUY.
+    - cron: "0 0 * * 1-5"
     - cron: "35 1 * * 1-5"
 
     # Heavy scanner is not scheduled every 15 minutes: it takes longer
@@ -22,6 +23,7 @@ on:
     # 16:10 WIB = 09:10 UTC.
     # Final completed-bar scan after IDX close.
     - cron: "10 9 * * 1-5"
+    - cron: "0 11 * * 1-5"
 
 permissions:
   contents: read
@@ -33,7 +35,7 @@ concurrency:
 jobs:
   swing-scan:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 120
 
     env:
       PYTHONPATH: src
