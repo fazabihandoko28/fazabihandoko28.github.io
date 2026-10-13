@@ -1,0 +1,43 @@
+name: HANZ Code Safety Checks
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/hanz_app/**"
+      - "docs/dashboard/swing/pmr80-radar.js"
+      - ".github/workflows/hanz-code-safety.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Python syntax checks
+        run: python -m compileall -q src/hanz_app
+      - name: Dashboard JavaScript syntax
+        run: node --check docs/dashboard/swing/pmr80-radar.js
+      - name: Enforce source-bar fail-closed guards
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          scanner = Path("src/hanz_app/swing_trading_engine.py").read_text()
+          radar = Path("docs/dashboard/swing/pmr80-radar.js").read_text()
+          predictor = Path("src/hanz_app/premarket_bullish_predictor.py").read_text()
+          watchdog = Path("src/hanz_app/autonomous_watchdog.py").read_text()
+          assert "ensure_latest_completed_daily_bar(ticker, completed_df)" in scanner
+          assert "BUY_VALIDATION_BLOCKED" in scanner
+          assert "Radar publish is older than 15 minutes" not in radar
+          assert "Radar source bar is stale or in the future" in radar
+          assert '"entry_low": m.get("entry_low") if valid_levels else None' in predictor
+          assert 'stale = "PMR80_STALE_SOURCE_BARS" in issues' in watchdog
+          print("HANZ static safety gates passed")
+          PY
