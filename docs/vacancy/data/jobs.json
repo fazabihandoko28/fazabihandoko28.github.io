@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-10-13T00:45:25.110986+00:00",
+  "generated_at": "2026-10-13T14:17:10.596237+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1349,
-  "matching_jobs": 75,
+  "raw_jobs": 1350,
+  "matching_jobs": 74,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 451
+      "jobs": 450
     },
     {
       "name": "Publicis Groupe",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 398
+      "jobs": 400
     },
     {
       "name": "Visa",
@@ -116,12 +116,12 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000154936662",
+      "id": "sr-744000155135449",
       "title": "Assistant Manager (Regional SMB Ads) - User Growth & Strategy",
       "company": "Grab",
       "location": "Petaling Jaya, Malaysia",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000154936662-assistant-manager-regional-smb-ads-user-growth-strategy",
-      "published_at": "2026-10-12T07:27:15.530Z",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000155135449-assistant-manager-regional-smb-ads-user-growth-strategy",
+      "published_at": "2026-10-13T01:00:07.854Z",
       "source_verified": true
     },
     {
@@ -500,15 +500,6 @@
       "location": "Petaling Jaya, Malaysia",
       "url": "https://jobs.smartrecruiters.com/Grab/744000148741809-manager-driver-communications",
       "published_at": "2026-09-10T10:58:29.108Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000152595529",
-      "title": "Manager, Insurance Partnership",
-      "company": "Grab",
-      "location": "Petaling Jaya, Malaysia",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000152595529-manager-insurance-partnership",
-      "published_at": "2026-09-30T06:00:56.613Z",
       "source_verified": true
     },
     {
