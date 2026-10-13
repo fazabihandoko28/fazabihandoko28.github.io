@@ -7371,7 +7371,7 @@ def run_cycle():
             flush=True,
         )
 
-    if (not market["is_trading_day"]) or market.get("state") == "CLOSED_AFTER_HOURS":
+    if (not market["is_trading_day"]) or market.get("state") == "CLOSED_AFTER_HOURS" or (market["is_trading_day"] and now_wib.hour < 9 and not market["allow_final_scan"]):
         # CLOSED-MARKET / AFTER-HOURS COMPLETED-BAR REFRESH
         # Recalculate the ENTIRE enabled universe from the latest completed
         # daily bars on weekends, holidays, OR after IDX operating hours.
