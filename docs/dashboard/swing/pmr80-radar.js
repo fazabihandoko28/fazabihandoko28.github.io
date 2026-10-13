@@ -183,7 +183,11 @@
       const wib=new Date(now+7*3600000);
       const minute=wib.getUTCHours()*60+wib.getUTCMinutes();
       const marketWindow=wib.getUTCDay()>0 && wib.getUTCDay()<6 && minute>=515 && minute<=975;
-      if(marketWindow && age>15*60000) throw new Error("Radar publish is older than 15 minutes");
+      // Daily-bar predictions are not intraday quotes. Check completed-bar age, not publish age.
+      const barDay=String(r.source_bar_at).slice(0,10);
+      const today=new Date(now+7*3600000).toISOString().slice(0,10);
+      const days=Math.floor((Date.parse(today+"T00:00:00Z")-Date.parse(barDay+"T00:00:00Z"))/86400000);
+      if(days<0 || days>5) throw new Error("Radar source bar is stale or in the future");
     }
     return rows;
   }

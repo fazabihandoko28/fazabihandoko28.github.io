@@ -69,7 +69,8 @@ def main():
     weekday = local.weekday() < 5
     clock = local.hour * 60 + local.minute
     market_window = weekday and 8 * 60 + 35 <= clock <= 23 * 60 + 59
-    stale = clock <= 16 * 60 + 15 and result.get("publish_age_minutes", 999999) > 15
+    # Daily-bar publication age is not quote freshness; recover on invalid/stale source bars instead.
+    stale = "PMR80_STALE_SOURCE_BARS" in issues
     repairable = market_window and (stale or "PMR80_EMPTY" in issues or "PMR80_LEGACY_LABEL" in issues or "PMR80_INVALID_RANKING" in issues or "PMR80_MISSING_TIMESTAMP" in issues or "PMR80_STALE_SOURCE_BARS" in issues or "PMR80_MIXED_OR_MISSING_BAR_DATE" in issues or "PMR80_INVALID_RANKING" in issues)
     result["recovery_needed"] = bool(repairable)
     print(json.dumps(result, ensure_ascii=False))
