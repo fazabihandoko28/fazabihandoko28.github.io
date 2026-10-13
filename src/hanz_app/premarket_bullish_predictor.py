@@ -126,7 +126,7 @@ def publish(engine):
     ) or []
     monitor_rows = engine.supabase_request(
         "GET",
-        "hanz_swing_signal_monitor?select=ticker,state,sector,entry_price,entry_low,entry_high,entry_status,stop_loss,target_1,target_2,risk_validation&limit=500",
+        "hanz_swing_signal_monitor?select=ticker,state,sector,daily_bar_at,risk_gate,entry_price,entry_low,entry_high,entry_status,stop_loss,target_1,target_2,risk_validation&limit=500",
     ) or []
     monitor = {str(r.get("ticker") or "").upper(): r for r in monitor_rows if r.get("ticker")}
 
@@ -158,7 +158,7 @@ def publish(engine):
             valid_stop = stop is not None and 0 < float(stop) < float(f["price"])
         except (ValueError, TypeError):
             valid_stop = False
-        valid_levels = monitor_date == source_date and valid_stop and str(m.get("state") or "").upper() != "MOMENTUM_BROKEN"
+        valid_levels = monitor_date == source_date and valid_stop and str(m.get("risk_gate") or "").upper() == "ELIGIBLE" and (m.get("risk_validation") or {}).get("data_same_session_verified") is True and (m.get("risk_validation") or {}).get("actionable") is True
         if strict:
             label = "RADAR_STRICT_UNVALIDATED"
         elif score >= 65:
