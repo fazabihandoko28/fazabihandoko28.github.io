@@ -1988,5 +1988,55 @@
     "source": "YAHOO_FINANCE_RESEARCH_ONLY",
     "recorded_at": "2026-10-09T18:55:23.277551+00:00",
     "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "DSSA",
+    "status": "WAIT",
+    "signal_timestamp": "2026-10-13T00:00:00+00:00",
+    "signal_close": 940.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-10-13T19:56:02.763713+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "UNTR",
+    "status": "WAIT",
+    "signal_timestamp": "2026-10-13T00:00:00+00:00",
+    "signal_close": 24800.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-10-13T19:56:02.763735+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "BNGA",
+    "status": "WAIT",
+    "signal_timestamp": "2026-10-13T00:00:00+00:00",
+    "signal_close": 1675.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-10-13T19:56:02.763742+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "ANTM",
+    "status": "WAIT",
+    "signal_timestamp": "2026-10-13T00:00:00+00:00",
+    "signal_close": 3100.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-10-13T19:56:02.763747+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "ITMG",
+    "status": "WAIT",
+    "signal_timestamp": "2026-10-13T00:00:00+00:00",
+    "signal_close": 25600.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-10-13T19:56:02.763752+00:00",
+    "outcome": "PENDING"
   }
 ]
