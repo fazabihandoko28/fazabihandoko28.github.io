@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-10-13T14:17:10.596237+00:00",
+  "generated_at": "2026-10-13T22:48:52.465781+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1350,
+  "raw_jobs": 1359,
   "matching_jobs": 74,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 450
+      "jobs": 451
     },
     {
       "name": "Publicis Groupe",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 400
+      "jobs": 408
     },
     {
       "name": "Visa",
@@ -665,6 +665,15 @@
       "source_verified": true
     },
     {
+      "id": "sr-744000155273144",
+      "title": "APAC Consumer & Marketing Insights Lead - FMCG (G100)",
+      "company": "NielsenIQ",
+      "location": "Kuala Lumpur, Malaysia",
+      "url": "https://jobs.smartrecruiters.com/NielsenIQ/744000155273144-apac-consumer-marketing-insights-lead-fmcg-g100",
+      "published_at": "2026-10-13T14:16:03.990Z",
+      "source_verified": true
+    },
+    {
       "id": "sr-744000151806239",
       "title": "APAC Consumer & Marketing Insights Lead - FMCG (G100)",
       "company": "NielsenIQ",
@@ -680,15 +689,6 @@
       "location": "Manila, Philippines",
       "url": "https://jobs.smartrecruiters.com/NielsenIQ/744000151804545-apac-consumer-marketing-insights-lead-fmcg-g100",
       "published_at": "2026-09-25T09:44:38.735Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000151805408",
-      "title": "APAC Consumer & Marketing Insights Lead - FMCG (G100)",
-      "company": "NielsenIQ",
-      "location": "Kuala Lumpur, Malaysia",
-      "url": "https://jobs.smartrecruiters.com/NielsenIQ/744000151805408-apac-consumer-marketing-insights-lead-fmcg-g100",
-      "published_at": "2026-09-25T09:43:22.294Z",
       "source_verified": true
     },
     {
