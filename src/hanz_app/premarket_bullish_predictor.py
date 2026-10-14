@@ -126,7 +126,7 @@ def publish(engine):
     ) or []
     monitor_rows = engine.supabase_request(
         "GET",
-        "hanz_swing_signal_monitor?select=ticker,state,sector,entry_price,entry_low,entry_high,entry_status,stop_loss,target_1,target_2,risk_validation&limit=500",
+        "hanz_swing_signal_monitor?select=ticker,state,sector,entry_price,entry_low,entry_high,entry_status,stop_loss,target_1,target_2,risk_validation,daily_bar_at,risk_gate&limit=500",
     ) or []
     monitor = {str(r.get("ticker") or "").upper(): r for r in monitor_rows if r.get("ticker")}
 

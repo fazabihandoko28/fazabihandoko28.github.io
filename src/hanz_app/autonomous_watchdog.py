@@ -72,7 +72,8 @@ def main():
         dates = [str(r.get("daily_bar_at") or "")[:10] for r in monitor]
         result["monitor_count"] = len(monitor)
         result["monitor_latest_bar"] = max(dates, default="")
-        if monitor and result.get("source_bar_date") and result["monitor_latest_bar"] < result["source_bar_date"]:
+        result["monitor_stale_count"] = sum(d < result.get("source_bar_date", "") for d in dates) if result.get("source_bar_date") else None
+        if monitor and result.get("source_bar_date") and any(d < result["source_bar_date"] for d in dates):
             issues.append("MONITOR_BEHIND_PMR80")
     except (urllib.error.URLError, ValueError, KeyError) as exc:
         issues.append("MONITOR_QUERY_FAILED")
