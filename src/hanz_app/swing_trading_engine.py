@@ -3032,14 +3032,14 @@ def risk_levels(
         )
         entry_high = entry_price + (0.25 * atr14)
         entry_note = (
-            "SWING BUY confirmed, but price is extended. "
+            "Technical entry reference only (NOT a confirmed BUY); price is extended. "
             "Prefer pullback into the entry zone; do not chase."
         )
     else:
         entry_status = "ENTRY_ZONE"
         entry_note = (
-            "SWING BUY confirmed. Use the entry zone on the next "
-            "trading session and avoid buying above the upper band."
+            "Technical entry reference only (NOT a confirmed BUY). Consider the zone in the next "
+            "trading session only after independent risk-gate approval; do not chase above the upper band."
         )
 
     # Risk is calculated from ideal/reference entry, not blindly from close.

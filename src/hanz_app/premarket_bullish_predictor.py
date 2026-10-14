@@ -1,14 +1,9 @@
-"""HANZ PMR80 radar.
+"""HANZ PMR80 daily-bar opportunity radar.
 
-The radar always publishes the best five relative candidates from the latest
-completed daily bar.  Only rows that pass the strict empirically validated
-PMR80 rebound rule receive HIGH_CONFIDENCE_CALL_PMR80.  Other rows remain radar
-candidates and must never be presented as >=80% validated calls.
-
-Validation target for the strict rule: next IDX session trades at least +1.0%
-above the signal close.  Historical checks on the persisted HANZ chart cache:
-prior ~45-day window 83.3% (18 observations), recent ~45-day window 86.4%
-(22 observations), using Rp40B minimum 20D average traded value.
+Publishes five relative candidates from completed daily bars, not live quotes.
+STRICT labels are exploratory technical classifications, not validated win rates.
+INVALID_OHLC records are excluded and execution levels require an ELIGIBLE
+canonical risk gate. Never treat the ranking itself as a BUY signal.
 """
 from __future__ import annotations
 
@@ -149,16 +144,29 @@ def publish(engine):
         if score <= 0:
             continue
         m = monitor.get(ticker) or {}
+        risk_meta = m.get("risk_validation")
+        if not isinstance(risk_meta, dict):
+            risk_meta = {}
+        integrity_status = str(risk_meta.get("data_integrity_status") or "").upper()
+        monitor_date = str(m.get("daily_bar_at") or "")[:10]
+        # Invalid OHLC or mismatched monitor bars must not enter the Top 5.
+        if integrity_status != "OK" or monitor_date != source_date:
+            continue
         # Never attach yesterday's entry/stop/targets to today's candle.
         # An invalid stop above the reference price is not a usable long setup.
         # Keep the symbol in prediction-only RADAR, with execution levels hidden.
-        monitor_date = str(m.get("daily_bar_at") or "")[:10]
         stop = m.get("stop_loss")
         try:
             valid_stop = stop is not None and 0 < float(stop) < float(f["price"])
         except (ValueError, TypeError):
             valid_stop = False
-        valid_levels = monitor_date == source_date and valid_stop and str(m.get("state") or "").upper() != "MOMENTUM_BROKEN"
+        valid_levels = (
+            monitor_date == source_date
+            and valid_stop
+            and integrity_status == "OK"
+            and str(m.get("risk_gate") or "").upper() == "ELIGIBLE"
+            and str(m.get("state") or "").upper() != "MOMENTUM_BROKEN"
+        )
         if strict:
             label = "RADAR_STRICT_UNVALIDATED"
         elif score >= 65:
