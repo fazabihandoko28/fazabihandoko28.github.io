@@ -1,12 +1,24 @@
 {
-  "generated_at": "2026-10-13T16:33:39.390949+00:00",
+  "generated_at": "2026-10-14T06:52:13.119968+00:00",
   "policy": "HIGH_CONFIDENCE_CAUSAL_ONLY",
   "selected_tickers": [
-    "PWON",
-    "SMIL",
+    "INTP",
     "CTRA",
+    "HATM",
     "KLBF",
     "PRDA"
   ],
-  "catalysts": []
+  "catalysts": [
+    {
+      "scope": "IHSG",
+      "direction": "NEGATIVE",
+      "confidence": "HIGH",
+      "score": 8,
+      "headline": "IHSG Bergerak Melemah Setelah Sempat Menguat Pagi Ini - bsinews.id",
+      "source": "bsinews.id",
+      "url": "https://news.google.com/rss/articles/CBMiWEFVX3lxTE5DXy1hNkV0RjkxeVpKaEdBOUNGN2psOXNtRGNONFZ4aDBUZGE5UnRub29RLXIzVVllWVVnMjQybDVncW5ESndjSW1XNDA0NS1hbElpY2hUTWE?oc=5",
+      "published_at": "2026-10-14T02:26:15+00:00",
+      "note": "Likely index news catalyst based on explicit causal headline language. Hidden when causal evidence is weak."
+    }
+  ]
 }
