@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-10-13T22:48:52.465781+00:00",
+  "generated_at": "2026-10-14T04:58:35.875635+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1359,
-  "matching_jobs": 74,
+  "raw_jobs": 1356,
+  "matching_jobs": 72,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 451
+      "jobs": 453
     },
     {
       "name": "Publicis Groupe",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 408
+      "jobs": 403
     },
     {
       "name": "Visa",
@@ -161,12 +161,12 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000154913299",
-      "title": "Assistant Manager, GrabForBusiness Partnerships",
+      "id": "sr-744000155411014",
+      "title": "Assistant Manager, Growth Analytics",
       "company": "Grab",
       "location": "Petaling Jaya, Malaysia",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000154913299-assistant-manager-grabforbusiness-partnerships",
-      "published_at": "2026-10-12T02:17:23.439Z",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000155411014-assistant-manager-growth-analytics",
+      "published_at": "2026-10-14T04:19:53.729Z",
       "source_verified": true
     },
     {
@@ -365,15 +365,6 @@
       "location": "Bangkok, Thailand",
       "url": "https://jobs.smartrecruiters.com/Grab/744000152318149-grabfood-marketing-associate-other-cities",
       "published_at": "2026-09-29T02:46:05.411Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000150269709",
-      "title": "GrabForBusiness Planning & Partnerships Manager",
-      "company": "Grab",
-      "location": "Petaling Jaya, Malaysia",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000150269709-grabforbusiness-planning-partnerships-manager",
-      "published_at": "2026-09-18T02:23:13.759Z",
       "source_verified": true
     },
     {
@@ -584,15 +575,6 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000151790519",
-      "title": "Regional Commercial Strategy & Partnerships Manager – Mandarin-Speaking",
-      "company": "Grab",
-      "location": "Petaling Jaya, Malaysia",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000151790519-regional-commercial-strategy-partnerships-manager-mandarin-speaking",
-      "published_at": "2026-09-25T08:32:27.630Z",
-      "source_verified": true
-    },
-    {
       "id": "sr-744000153427615",
       "title": "Senior Associate, Talent Acquisition Business Partner",
       "company": "Grab",
@@ -656,12 +638,12 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000148459935",
+      "id": "sr-744000155407329",
       "title": "Team Lead, Merchant Acquisition (F&B)",
       "company": "Grab",
       "location": "Singapore, Singapore",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000148459935-team-lead-merchant-acquisition-f-b",
-      "published_at": "2026-09-09T10:06:08.214Z",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000155407329-team-lead-merchant-acquisition-f-b",
+      "published_at": "2026-10-14T02:50:21.710Z",
       "source_verified": true
     },
     {
@@ -701,12 +683,12 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000138791550",
+      "id": "sr-744000155406759",
       "title": "Senior Analyst (Quantitative Research) - Consumer Insights & Brand",
       "company": "NielsenIQ",
       "location": "Pasig City, Philippines",
-      "url": "https://jobs.smartrecruiters.com/NielsenIQ/744000138791550-senior-analyst-quantitative-research-consumer-insights-brand",
-      "published_at": "2026-07-21T06:53:20.368Z",
+      "url": "https://jobs.smartrecruiters.com/NielsenIQ/744000155406759-senior-analyst-quantitative-research-consumer-insights-brand",
+      "published_at": "2026-10-14T02:34:42.974Z",
       "source_verified": true
     }
   ]
