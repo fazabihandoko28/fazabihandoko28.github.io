@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-10-14T04:58:35.875635+00:00",
+  "generated_at": "2026-10-14T11:58:32.590977+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1356,
-  "matching_jobs": 72,
+  "raw_jobs": 1354,
+  "matching_jobs": 77,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 453
+      "jobs": 459
     },
     {
       "name": "Publicis Groupe",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 403
+      "jobs": 395
     },
     {
       "name": "Visa",
@@ -43,6 +43,51 @@
     }
   ],
   "jobs": [
+    {
+      "id": "sr-744000155433868",
+      "title": "Corporate Communications Intern",
+      "company": "Bosch Group",
+      "location": "South Jakarta, Indonesia",
+      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000155433868-corporate-communications-intern",
+      "published_at": "2026-10-14T08:00:08.941Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000155438989",
+      "title": "Corporate Strategy & Business Development Intern",
+      "company": "Bosch Group",
+      "location": "South Jakarta, Indonesia",
+      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000155438989-corporate-strategy-business-development-intern",
+      "published_at": "2026-10-14T08:23:40.418Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000155437299",
+      "title": "Marketing & Project Support Two-Wheeler Intern",
+      "company": "Bosch Group",
+      "location": "South Jakarta, Indonesia",
+      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000155437299-marketing-project-support-two-wheeler-intern",
+      "published_at": "2026-10-14T08:16:18.936Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000155437992",
+      "title": "Marketing Automotive Aftermarket Intern",
+      "company": "Bosch Group",
+      "location": "South Jakarta, Indonesia",
+      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000155437992-marketing-automotive-aftermarket-intern",
+      "published_at": "2026-10-14T08:22:56.607Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000155436180",
+      "title": "Sales Controlling & Commercial Intern",
+      "company": "Bosch Group",
+      "location": "South Jakarta, Indonesia",
+      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000155436180-sales-controlling-commercial-intern",
+      "published_at": "2026-10-14T08:15:55.348Z",
+      "source_verified": true
+    },
     {
       "id": "sr-744000148139949",
       "title": "City Marketing Execution Associate",
@@ -95,15 +140,6 @@
       "location": "Jakarta, Indonesia",
       "url": "https://jobs.smartrecruiters.com/Grab/744000147145460-regional-marketing-manager-b2b",
       "published_at": "2026-09-03T03:33:47.511Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000154575390",
-      "title": " [EPC]  Embedded Software Engineer _ In-Vehicle Network Communication for EU Project (Fresher)",
-      "company": "Bosch Group",
-      "location": "Ho Chi Minh city, Vietnam",
-      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000154575390-epc-embedded-software-engineer-in-vehicle-network-communication-for-eu-project-fresher",
-      "published_at": "2026-10-09T02:47:42.742Z",
       "source_verified": true
     },
     {
@@ -314,12 +350,12 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000143237599",
+      "id": "sr-744000155439469",
       "title": "Commercial Strategy Lead – PayLater, Lending & Omnicommerce",
       "company": "Grab",
       "location": "Petaling Jaya, Malaysia",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000143237599-commercial-strategy-lead-paylater-lending-omnicommerce",
-      "published_at": "2026-08-13T06:39:32.348Z",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000155439469-commercial-strategy-lead-paylater-lending-omnicommerce",
+      "published_at": "2026-10-14T08:25:17.732Z",
       "source_verified": true
     },
     {
@@ -455,6 +491,15 @@
       "location": "Singapore, Singapore",
       "url": "https://jobs.smartrecruiters.com/Grab/744000154941124-intern-social-media-partner-engagement",
       "published_at": "2026-10-12T07:47:12.268Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000155452412",
+      "title": "Intern, Talent Acquisition",
+      "company": "Grab",
+      "location": "Singapore, Singapore",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000155452412-intern-talent-acquisition",
+      "published_at": "2026-10-14T09:20:57.163Z",
       "source_verified": true
     },
     {
