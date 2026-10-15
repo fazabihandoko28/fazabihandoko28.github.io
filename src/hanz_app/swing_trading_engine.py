@@ -3782,6 +3782,10 @@ def real_money_validation(
         )
     )
 
+    # A technical setup is not a confirmed BUY when the execution risk gate fails.
+    if gate != "ELIGIBLE":
+        entry_note = f"NO BUY CONFIRMATION: risk gate {gate}. Technical levels are research-only."
+
     return {
         "gate": gate,
         "score": score,
