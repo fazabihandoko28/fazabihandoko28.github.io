@@ -147,6 +147,8 @@ def _latest_daily_snapshot(df):
 def _compare(primary, verifier):
     if not primary or not verifier:
         return {"status": "UNVERIFIED", "verified": False, "block": False, "reason": "Independent IDX verifier unavailable."}
+    if not primary.get("date") or not verifier.get("date") or str(primary["date"])[:10] != str(verifier["date"])[:10]:
+        return {"status": "DATE_MISMATCH", "verified": False, "block": True, "reason": "Independent IDX verifier date does not match primary candle date."}
     diffs = {k: _pct_diff(primary.get(k), verifier.get(k)) for k in ("open", "high", "low", "close")}
     close_diff = diffs.get("close")
     other = [diffs.get(k) for k in ("open", "high", "low") if diffs.get(k) is not None]
@@ -242,12 +244,13 @@ def install(engine):
         rv["data_primary_source"] = dq["primary_source"]
         rv["data_verifier_source"] = dq["verifier_source"]
 
-        if dq.get("block"):
+        if dq.get("block") or not dq.get("verified"):
             rv["actionable"] = False
             rv["gate"] = "BLOCKED"
             blockers = list(rv.get("blockers") or [])
-            if "DATA_MISMATCH" not in blockers:
-                blockers.append("DATA_MISMATCH")
+            reason_code = "DATA_MISMATCH" if dq.get("block") else "DATA_UNVERIFIED"
+            if reason_code not in blockers:
+                blockers.append(reason_code)
             rv["blockers"] = blockers
         elif dq["status"] == "VERIFIED_PRICE_VOLUME_CAUTION":
             cautions = list(rv.get("cautions") or [])
