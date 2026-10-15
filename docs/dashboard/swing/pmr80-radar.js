@@ -128,8 +128,6 @@
       if(ranking) ranking.innerHTML='<div class="empty">DATA UNAVAILABLE · '+esc(failure)+'</div>';
       const status=ensureStatus();
       if(status) status.innerHTML='<span>'+esc(failure)+'</span><strong>RETRYING · DATA UNAVAILABLE</strong>';
-      for(const id of ["topCandidate","heroTopCandidate","lastUpdate"]) { const el=document.getElementById(id); if(el) el.textContent="—"; }
-      for(const id of ["topCandidateSub","heroTopSub","lastUpdateDate"]) { const el=document.getElementById(id); if(el) el.textContent="DATA UNAVAILABLE · "+failure; }
       return;
     }
     const ranking=document.getElementById("pmr80Ranking");
@@ -159,18 +157,7 @@
         el.addEventListener("keydown",e=>{if(e.key==="Enter" || e.key===" "){e.preventDefault();openModal(Number(el.dataset.pmr80Index||0));}});
       });
 
-      const top=cache[0];
-      const last=document.getElementById("lastUpdate");
-      if(last) last.textContent=new Date(top.generated_at).toLocaleTimeString("en-GB",{timeZone:"Asia/Jakarta",hour:"2-digit",minute:"2-digit"})+" WIB";
-      const date=document.getElementById("lastUpdateDate");
-      if(date) date.textContent="Daily reference bar: "+String(top.source_bar_at||"").slice(0,10)+" · ranking refreshed; price is not a live quote";
-      if(top){
-        const high=String(top.prediction_label||"").toUpperCase()==="RADAR_STRICT_UNVALIDATED";
-        const a=document.getElementById("topCandidate"); if(a) a.textContent=top.ticker;
-        const b=document.getElementById("topCandidateSub"); if(b) b.textContent=`PMR80 V4 · ${top.prediction_score}/100 · ${className(top)}`;
-        const c=document.getElementById("heroTopCandidate"); if(c) c.textContent=top.ticker;
-        const d=document.getElementById("heroTopSub"); if(d) d.textContent=high?"STRICT TECHNICAL SETUP · NOT VALIDATED · NOT BUY":"HANZ DAILY-BAR RADAR · NOT CONFIRMED BUY";
-      }
+
     } finally { applying=false; }
   }
 
