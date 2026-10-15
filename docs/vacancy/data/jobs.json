@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-10-15T04:45:57.842706+00:00",
+  "generated_at": "2026-10-15T11:35:28.434259+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1359,
-  "matching_jobs": 78,
+  "raw_jobs": 1350,
+  "matching_jobs": 77,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 459
+      "jobs": 447
     },
     {
       "name": "Publicis Groupe",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 400
+      "jobs": 403
     },
     {
       "name": "Visa",
@@ -122,6 +122,24 @@
       "location": "Jakarta, Indonesia",
       "url": "https://jobs.smartrecruiters.com/Grab/744000149254139-marketing-execution-assistant-manager-jabodetabek",
       "published_at": "2026-09-14T07:28:45.888Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000155689620",
+      "title": "Region Commercial Manager - Central Java and Yogyakarta",
+      "company": "Grab",
+      "location": "Yogyakarta, Indonesia",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000155689620-region-commercial-manager-central-java-and-yogyakarta",
+      "published_at": "2026-10-15T08:09:04.662Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000155691029",
+      "title": "Region Commercial Manager - West Java",
+      "company": "Grab",
+      "location": "Bandung, Indonesia",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000155691029-region-commercial-manager-west-java",
+      "published_at": "2026-10-15T08:12:31.435Z",
       "source_verified": true
     },
     {
@@ -422,24 +440,6 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000148141980",
-      "title": "Intern, Account Management, Commercial",
-      "company": "Grab",
-      "location": "Singapore, Singapore",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000148141980-intern-account-management-commercial",
-      "published_at": "2026-09-08T06:12:06.462Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000147418061",
-      "title": "Intern, Business Development",
-      "company": "Grab",
-      "location": "Singapore, Singapore",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000147418061-intern-business-development",
-      "published_at": "2026-09-04T05:52:31.755Z",
-      "source_verified": true
-    },
-    {
       "id": "sr-744000149795174",
       "title": "Intern, Commercial Enablement, Sales Enablement",
       "company": "Grab",
@@ -485,15 +485,6 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000149291219",
-      "title": "Intern, SG Partnerships",
-      "company": "Grab",
-      "location": "Singapore, Singapore",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000149291219-intern-sg-partnerships",
-      "published_at": "2026-09-14T10:06:38.711Z",
-      "source_verified": true
-    },
-    {
       "id": "sr-744000154941124",
       "title": "Intern, Social Media & Partner Engagement",
       "company": "Grab",
@@ -503,12 +494,12 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000155452412",
+      "id": "sr-744000155706449",
       "title": "Intern, Talent Acquisition",
       "company": "Grab",
       "location": "Singapore, Singapore",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000155452412-intern-talent-acquisition",
-      "published_at": "2026-10-14T09:20:57.163Z",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000155706449-intern-talent-acquisition",
+      "published_at": "2026-10-15T09:14:33.356Z",
       "source_verified": true
     },
     {
