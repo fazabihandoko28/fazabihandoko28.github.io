@@ -46,7 +46,7 @@
       .pmr80-badge.radar{color:var(--yellow);background:rgba(255,200,87,.10);border:1px solid rgba(255,200,87,.18)}
       .pmr80-status{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:0 0 9px;padding:7px 9px;border:1px solid rgba(40,224,162,.14);border-radius:10px;background:rgba(40,224,162,.035);font-size:8px;color:var(--muted)}
       .pmr80-status strong{color:var(--green);font-size:8px}
-      #ranking .rank[data-pmr80-row="1"]{cursor:pointer}
+      #pmr80Ranking .rank[data-pmr80-row="1"]{cursor:pointer}
       #pmr80DetailModal{position:fixed;inset:0;z-index:900;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(1,5,12,.82);backdrop-filter:blur(8px)}
       #pmr80DetailModal.show{display:flex}
       .pmr80-modal-box{width:min(520px,100%);max-height:calc(100vh - 32px);overflow:auto;border:1px solid var(--line);border-radius:20px;background:linear-gradient(160deg,#101b2f,#080f1c);padding:18px;box-shadow:0 30px 90px rgba(0,0,0,.55)}
@@ -109,7 +109,7 @@
   }
 
   function ensureStatus(){
-    const ranking=document.getElementById("ranking");
+    const ranking=document.getElementById("pmr80Ranking");
     if(!ranking) return null;
     let s=document.getElementById("pmr80RadarStatus");
     if(!s){
@@ -124,7 +124,7 @@
   function render(){
     if(applying) return;
     if(!cache.length){
-      const ranking=document.getElementById("ranking");
+      const ranking=document.getElementById("pmr80Ranking");
       if(ranking) ranking.innerHTML='<div class="empty">DATA UNAVAILABLE · '+esc(failure)+'</div>';
       const status=ensureStatus();
       if(status) status.innerHTML='<span>'+esc(failure)+'</span><strong>RETRYING · DATA UNAVAILABLE</strong>';
@@ -132,7 +132,7 @@
       for(const id of ["topCandidateSub","heroTopSub","lastUpdateDate"]) { const el=document.getElementById(id); if(el) el.textContent="DATA UNAVAILABLE · "+failure; }
       return;
     }
-    const ranking=document.getElementById("ranking");
+    const ranking=document.getElementById("pmr80Ranking");
     if(!ranking) return;
     applying=true;
     try{
@@ -216,6 +216,15 @@
   function start(){
     addStyles();
     ensureModal();
+    const main=document.getElementById("ranking");
+    if(main && !document.getElementById("pmr80Ranking")){
+      const section=document.createElement("section");
+      section.id="pmr80Section";
+      section.setAttribute("aria-label","PMR80 exploratory prediction radar");
+      section.style.cssText="margin-top:20px;padding:14px;border:1px solid var(--line);border-radius:14px";
+      section.innerHTML='<h3 style="margin:0 0 10px">PMR80 · Prediction Radar (Not BUY)</h3><div id="pmr80Ranking" class="ranking"></div>';
+      main.parentElement?.appendChild(section);
+    }
     fetchRows();
     setInterval(fetchRows,10000);
     document.addEventListener("visibilitychange",()=>{ if(!document.hidden) fetchRows(); });
