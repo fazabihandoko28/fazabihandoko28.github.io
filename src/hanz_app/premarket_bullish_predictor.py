@@ -158,7 +158,7 @@ def publish(engine):
             valid_stop = stop is not None and 0 < float(stop) < float(f["price"])
         except (ValueError, TypeError):
             valid_stop = False
-        valid_levels = monitor_date == source_date and valid_stop and str(m.get("state") or "").upper() != "MOMENTUM_BROKEN"
+        valid_levels = (monitor_date == source_date and valid_stop and str(m.get("state") or "").upper() != "MOMENTUM_BROKEN" and str(m.get("risk_gate") or "").upper() == "ELIGIBLE" and str(m.get("entry_status") or "").upper() == "ENTRY_ZONE")
         if strict:
             label = "RADAR_STRICT_UNVALIDATED"
         elif score >= 65:
