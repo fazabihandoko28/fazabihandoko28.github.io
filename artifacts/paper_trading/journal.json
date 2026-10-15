@@ -2038,5 +2038,55 @@
     "source": "YAHOO_FINANCE_RESEARCH_ONLY",
     "recorded_at": "2026-10-13T19:56:02.763752+00:00",
     "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "PWON",
+    "status": "READY",
+    "signal_timestamp": "2026-10-14T00:00:00+00:00",
+    "signal_close": 288.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-10-15T17:51:10.999923+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "MARK",
+    "status": "WAIT",
+    "signal_timestamp": "2026-10-14T00:00:00+00:00",
+    "signal_close": 1125.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-10-15T17:51:10.999948+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "INDY",
+    "status": "WAIT",
+    "signal_timestamp": "2026-10-14T00:00:00+00:00",
+    "signal_close": 2550.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-10-15T17:51:10.999960+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "TINS",
+    "status": "WAIT",
+    "signal_timestamp": "2026-10-14T00:00:00+00:00",
+    "signal_close": 4310.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-10-15T17:51:10.999970+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "TKIM",
+    "status": "WAIT",
+    "signal_timestamp": "2026-10-14T00:00:00+00:00",
+    "signal_close": 7125.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-10-15T17:51:10.999983+00:00",
+    "outcome": "PENDING"
   }
 ]
