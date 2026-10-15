@@ -1,9 +1,9 @@
 """HANZ PMR80 radar.
 
 The radar always publishes the best five relative candidates from the latest
-completed daily bar.  Only rows that pass the strict empirically validated
-PMR80 rebound rule receive HIGH_CONFIDENCE_CALL_PMR80.  Other rows remain radar
-candidates and must never be presented as >=80% validated calls.
+completed daily bar.  Strict rebound criteria are exploratory, not independently out-of-sample
+validated. Every row is a radar candidate, never an automatic BUY signal or
+an 80% win-probability claim.
 
 Validation target for the strict rule: next IDX session trades at least +1.0%
 above the signal close.  Historical checks on the persisted HANZ chart cache:
@@ -153,12 +153,25 @@ def publish(engine):
         # An invalid stop above the reference price is not a usable long setup.
         # Keep the symbol in prediction-only RADAR, with execution levels hidden.
         monitor_date = str(m.get("daily_bar_at") or "")[:10]
-        stop = m.get("stop_loss")
-        try:
-            valid_stop = stop is not None and 0 < float(stop) < float(f["price"])
-        except (ValueError, TypeError):
-            valid_stop = False
-        valid_levels = (monitor_date == source_date and valid_stop and str(m.get("state") or "").upper() != "MOMENTUM_BROKEN" and str(m.get("risk_gate") or "").upper() == "ELIGIBLE" and str(m.get("entry_status") or "").upper() == "ENTRY_ZONE")
+        stop = _num(m.get("stop_loss"))
+        entry_low = _num(m.get("entry_low"))
+        entry_high = _num(m.get("entry_high"))
+        target1 = _num(m.get("target_1"))
+        target2 = _num(m.get("target_2"))
+        valid_geometry = (
+            stop is not None and entry_low is not None
+            and entry_high is not None and target1 is not None
+            and target2 is not None
+            and 0 < stop < entry_low <= entry_high < target1 <= target2
+            and stop < float(f["price"])
+        )
+        valid_levels = (
+            monitor_date == source_date
+            and valid_geometry
+            and str(m.get("state") or "").upper() != "MOMENTUM_BROKEN"
+            and str(m.get("risk_gate") or "").upper() == "ELIGIBLE"
+            and str(m.get("entry_status") or "").upper() == "ENTRY_ZONE"
+        )
         if strict:
             label = "RADAR_STRICT_UNVALIDATED"
         elif score >= 65:
