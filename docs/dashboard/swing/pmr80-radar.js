@@ -83,6 +83,8 @@
     const r=cache[index]; if(!r) return;
     ensureModal();
     const high=String(r.prediction_label||"").toUpperCase()==="RADAR_STRICT_UNVALIDATED";
+    const approved=String(r.risk_gate||"").toUpperCase()==="ELIGIBLE" && String(r.entry_status||"").toUpperCase()==="ENTRY_ZONE";
+    const tradeLevel=v=>approved?fmtPrice(v):"NOT VALIDATED";
     const box=document.getElementById("pmr80ModalBox");
     box.innerHTML=`
       <div class="pmr80-modal-head">
@@ -94,10 +96,10 @@
         <div class="pmr80-box"><span>CLASS</span><strong>${high?"NOT OUT-OF-SAMPLE VALIDATED":esc(String(r.prediction_label||"RADAR").replaceAll("_"," "))}</strong></div>
         <div class="pmr80-box"><span>1D / 3D / 5D</span><strong>${fmtPct(r.ret1_pct)} · ${fmtPct(r.ret3_pct)} · ${fmtPct(r.ret5_pct)}</strong></div>
         <div class="pmr80-box"><span>RVOL</span><strong>${num(r.daily_rvol)===null?"—":Number(r.daily_rvol).toFixed(2)+"x"}</strong></div>
-        <div class="pmr80-box"><span>ENTRY ZONE</span><strong>${fmtPrice(r.entry_low)} – ${fmtPrice(r.entry_high)}</strong></div>
-        <div class="pmr80-box"><span>CL / INVALIDATION</span><strong>${fmtPrice(r.stop_loss)}</strong></div>
-        <div class="pmr80-box"><span>TARGET 1</span><strong>${fmtPrice(r.target_1)}</strong></div>
-        <div class="pmr80-box"><span>TARGET 2</span><strong>${fmtPrice(r.target_2)}</strong></div>
+        <div class="pmr80-box"><span>ENTRY ZONE</span><strong>${tradeLevel(r.entry_low)} – ${tradeLevel(r.entry_high)}</strong></div>
+        <div class="pmr80-box"><span>CL / INVALIDATION</span><strong>${tradeLevel(r.stop_loss)}</strong></div>
+        <div class="pmr80-box"><span>TARGET 1</span><strong>${tradeLevel(r.target_1)}</strong></div>
+        <div class="pmr80-box"><span>TARGET 2</span><strong>${tradeLevel(r.target_2)}</strong></div>
       </div>
       <div class="pmr80-reason"><b>Why ranked:</b> ${esc(r.reason||"No explanation available.")}<br><br><b>Rule:</b> STRICT means all technical conditions passed, NOT an independently validated win probability. Ordinary RADAR rows are relative candidates, not an 80% probability claim and not automatic BUY confirmation.</div>`;
     document.getElementById("pmr80CloseBtn").onclick=closeModal;
