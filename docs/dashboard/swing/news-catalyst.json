@@ -1,8 +1,12 @@
 {
-  "generated_at": "2026-10-15T06:40:10.590936+00:00",
+  "generated_at": "2026-10-15T12:15:13.084687+00:00",
   "policy": "HIGH_CONFIDENCE_CAUSAL_ONLY",
   "selected_tickers": [
-    "EDGE"
+    "AVIA",
+    "INTP",
+    "ACES",
+    "BTPS",
+    "CTRA"
   ],
   "catalysts": [
     {
