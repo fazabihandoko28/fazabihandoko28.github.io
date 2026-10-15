@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-10-14T21:44:31.371871+00:00",
+  "generated_at": "2026-10-15T04:45:57.842706+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
   "raw_jobs": 1359,
-  "matching_jobs": 77,
+  "matching_jobs": 78,
   "source_status": [
     {
       "name": "Grab",
@@ -59,15 +59,6 @@
       "location": "South Jakarta, Indonesia",
       "url": "https://jobs.smartrecruiters.com/BoschGroup/744000155438989-corporate-strategy-business-development-intern",
       "published_at": "2026-10-14T08:23:40.418Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000155437299",
-      "title": "Marketing & Project Support Two-Wheeler Intern",
-      "company": "Bosch Group",
-      "location": "South Jakarta, Indonesia",
-      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000155437299-marketing-project-support-two-wheeler-intern",
-      "published_at": "2026-10-14T08:16:18.936Z",
       "source_verified": true
     },
     {
@@ -140,6 +131,24 @@
       "location": "Jakarta, Indonesia",
       "url": "https://jobs.smartrecruiters.com/Grab/744000147145460-regional-marketing-manager-b2b",
       "published_at": "2026-09-03T03:33:47.511Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000155661139",
+      "title": "Business Development Executive",
+      "company": "Bosch Group",
+      "location": "Singapore, Singapore",
+      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000155661139-business-development-executive",
+      "published_at": "2026-10-15T03:59:37.543Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000155628819",
+      "title": "Internship in Marketing",
+      "company": "Bosch Group",
+      "location": "Petaling Jaya, Malaysia",
+      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000155628819-internship-in-marketing",
+      "published_at": "2026-10-15T00:40:29.919Z",
       "source_verified": true
     },
     {
