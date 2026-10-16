@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-10-15T21:27:00.923483+00:00",
+  "generated_at": "2026-10-16T04:36:46.593832+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1346,
+  "raw_jobs": 1340,
   "matching_jobs": 77,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 446
+      "jobs": 444
     },
     {
       "name": "Publicis Groupe",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 400
+      "jobs": 396
     },
     {
       "name": "Visa",
@@ -476,21 +476,21 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000154631119",
+      "id": "sr-744000155903209",
       "title": "Intern, Partner Acquisition",
       "company": "Grab",
       "location": "Singapore, Singapore",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000154631119-intern-partner-acquisition",
-      "published_at": "2026-10-09T09:35:35.853Z",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000155903209-intern-partner-acquisition",
+      "published_at": "2026-10-16T03:11:38.698Z",
       "source_verified": true
     },
     {
-      "id": "sr-744000154941124",
+      "id": "sr-744000155902869",
       "title": "Intern, Social Media & Partner Engagement",
       "company": "Grab",
       "location": "Singapore, Singapore",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000154941124-intern-social-media-partner-engagement",
-      "published_at": "2026-10-12T07:47:12.268Z",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000155902869-intern-social-media-partner-engagement",
+      "published_at": "2026-10-16T03:06:57.294Z",
       "source_verified": true
     },
     {
