@@ -1,8 +1,12 @@
 {
-  "generated_at": "2026-10-16T06:32:22.649133+00:00",
+  "generated_at": "2026-10-16T11:59:20.365054+00:00",
   "policy": "HIGH_CONFIDENCE_CAUSAL_ONLY",
   "selected_tickers": [
-    "EDGE"
+    "INTP",
+    "KINO",
+    "AMAR",
+    "EDGE",
+    "INDF"
   ],
   "catalysts": [
     {
