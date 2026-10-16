@@ -93,7 +93,7 @@
       </div>
       <div class="pmr80-grid">
         <div class="pmr80-box"><span>REFERENCE PRICE</span><strong>${fmtPrice(r.price)}</strong></div>
-        <div class="pmr80-box"><span>CLASS</span><strong>${high?"NOT OUT-OF-SAMPLE VALIDATED":esc(String(r.prediction_label||"RADAR").replaceAll("_"," "))}</strong></div>
+        <div class="pmr80-box"><span>CLASS</span><strong>${"NOT OUT-OF-SAMPLE VALIDATED"}</strong></div>
         <div class="pmr80-box"><span>1D / 3D / 5D</span><strong>${fmtPct(r.ret1_pct)} · ${fmtPct(r.ret3_pct)} · ${fmtPct(r.ret5_pct)}</strong></div>
         <div class="pmr80-box"><span>RVOL</span><strong>${num(r.daily_rvol)===null?"—":Number(r.daily_rvol).toFixed(2)+"x"}</strong></div>
         <div class="pmr80-box"><span>ENTRY ZONE</span><strong>${tradeLevel(r.entry_low)} – ${tradeLevel(r.entry_high)}</strong></div>
