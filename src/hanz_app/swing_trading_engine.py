@@ -6197,7 +6197,21 @@ def upsert_monitor(
         "entry_low": levels.get("entry_low"),
         "entry_high": levels.get("entry_high"),
         "entry_status": levels.get("entry_status"),
-        "entry_note": levels.get("entry_note"),
+        # Never publish the technical setup's optimistic text as a trade signal.
+        # Only independently verified, actionable, eligible results may use it.
+        "entry_note": (
+            risk_validation.get("entry_note") or levels.get("entry_note")
+            if (
+                risk_validation.get("gate") == "ELIGIBLE"
+                and risk_validation.get("actionable") is True
+                and (risk_validation.get("data_quality") or {}).get("verified") is True
+            )
+            else (
+                "NO BUY CONFIRMATION: risk gate "
+                + str(risk_validation.get("gate") or "UNKNOWN")
+                + ". Technical levels are research-only."
+            )
+        ),
         "stop_loss": levels["stop_loss"],
         "target_1": levels["target_1"],
         "target_2": levels["target_2"],
