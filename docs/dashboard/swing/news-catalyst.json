@@ -1,23 +1,19 @@
 {
-  "generated_at": "2026-10-15T12:15:13.084687+00:00",
+  "generated_at": "2026-10-16T06:32:22.649133+00:00",
   "policy": "HIGH_CONFIDENCE_CAUSAL_ONLY",
   "selected_tickers": [
-    "AVIA",
-    "INTP",
-    "ACES",
-    "BTPS",
-    "CTRA"
+    "EDGE"
   ],
   "catalysts": [
     {
       "scope": "IHSG",
       "direction": "NEGATIVE",
       "confidence": "HIGH",
-      "score": 7,
-      "headline": "IHSG Bergerak Melemah Setelah Sempat Menguat Pagi Ini - bsinews.id",
-      "source": "bsinews.id",
-      "url": "https://news.google.com/rss/articles/CBMiWEFVX3lxTE5DXy1hNkV0RjkxeVpKaEdBOUNGN2psOXNtRGNONFZ4aDBUZGE5UnRub29RLXIzVVllWVVnMjQybDVncW5ESndjSW1XNDA0NS1hbElpY2hUTWE?oc=5",
-      "published_at": "2026-10-14T02:26:15+00:00",
+      "score": 8,
+      "headline": "IHSG Makin Anjlok Usai Trading Halt Dibuka, Turun 11,21 Persen ke 5.206 - Kompas.com",
+      "source": "Kompas.com",
+      "url": "https://news.google.com/rss/articles/CBMiuwFBVV95cUxOLXZyU0JoUkV4dUhnbmlxLVBrbUFhV0FmWlpib192anRuV0g4R3QxbVFIb0RPcmlENGJkTU93X3dnWVJrdDZDazAyUUhTZ0lzV2prZ3EwUDdrSnRVOFI4alBFb0p1YXViZjE3YUdjQjlOYXpmVE5GVFQ0enlVNnczNS13TjNTY09mM250Rm8tSkVJS3VYUGRVZ0NmWUROWFhkM1ZrQTdZV0VrQUc1WHluVzA4LVFNRDVEVjZN?oc=5",
+      "published_at": "2026-10-16T02:49:00+00:00",
       "note": "Likely index news catalyst based on explicit causal headline language. Hidden when causal evidence is weak."
     }
   ]
