@@ -2385,10 +2385,6 @@ function renderOpportunities(rows){
 }
 
 function renderLiveSignalMonitor(rows){
-  if(window.__hanzFeedFresh===false){
-    $("liveSignalMonitor").innerHTML='<div class="empty large-empty">DATA STALE / UNVERIFIED — BUY BLOCKED.</div>';
-    return;
-  }
   if(!rows.length){
     $("liveSignalMonitor").innerHTML='<div class="empty large-empty">No confirmed SWING BUY right now.</div>';
     return;
@@ -2577,19 +2573,15 @@ async function loadHealth(){
   const heartbeatMs=Date.parse(state.heartbeat_at || "");
   const heartbeatFresh=Number.isFinite(heartbeatMs) && heartbeatMs<=Date.now() && Date.now()-heartbeatMs<=5*60*1000;
   const online=status==="online" && heartbeatFresh;
-  // Worker heartbeat proves the process is alive, NOT that the market feed is fresh.
-  // Fail closed on an absent or delayed last successful market-data update.
-  const lastSuccessMs=Date.parse(state.last_success_at || "");
-  const feedFresh=Number.isFinite(lastSuccessMs) && lastSuccessMs<=Date.now() && Date.now()-lastSuccessMs<=30*60*1000;
-  window.__hanzFeedFresh=feedFresh;
-  if(!feedFresh){
-    const monitor=$("liveSignalMonitor");
-    if(monitor) monitor.innerHTML='<div class="empty large-empty">DATA STALE / UNVERIFIED — BUY BLOCKED. Check market feed timestamp.</div>';
-  }
-
-  $("engineState").textContent=online && feedFresh ? "ONLINE" : "CHECK";
-  $("mainWorkerStatus").textContent=online ? (feedFresh ? "ONLINE · FEED FRESH" : "ONLINE · FEED STALE") : "STALE / OFFLINE";
-  $("sysStatus").textContent=online && feedFresh ? "ONLINE" : "DEGRADED / STALE";
+  // A successful worker run is not a verified exchange price timestamp.
+  // Never classify an exchange halt or scheduled market break as stale from last_success_at.
+  // Until a verified price timestamp and exchange halt feed exist, expose uncertainty
+  // rather than inventing either LIVE PRICE or STALE PRICE.
+  const feedFresh=null;
+  window.__hanzFeedFresh=null;
+  $("engineState").textContent=online ? "ONLINE" : "CHECK";
+  $("mainWorkerStatus").textContent=online ? "ONLINE · PRICE UNVERIFIED" : "STALE / OFFLINE";
+  $("sysStatus").textContent=online ? "PRICE UNVERIFIED" : "STALE / OFFLINE";
   $("heartbeat").textContent=formatTime(state.heartbeat_at);
   $("lastSuccess").textContent=formatTime(state.last_success_at);
   $("failures").textContent=state.consecutive_failures ?? 0;
@@ -2600,7 +2592,7 @@ async function loadHealth(){
   const marketClosed=market.state.startsWith("CLOSED") || market.state==="CALENDAR UNVERIFIED";
   $("engineLabel").textContent=
     online
-      ? (marketClosed ? "MARKET CLOSED" : "HANZ ONLINE")
+      ? (marketClosed ? "MARKET CLOSED" : "PRICE UNVERIFIED")
       : "CHECK ENGINE";
 }
 
