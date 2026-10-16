@@ -189,12 +189,18 @@ RADAR_PERIOD = os.getenv("HANZ_RADAR_INTRADAY_PERIOD", "5d")
 CHART_LOOKBACK_BARS = int(
     os.getenv("HANZ_SWING_CHART_LOOKBACK_BARS", "130")
 )
+# Chart visibility must cover every monitor state, not just actionable setups.
+# This does NOT relax BUY eligibility or execution risk gates.
 CHART_STATES = {
     "EARLY_WATCH",
     "PRE_ALERT",
     "SETUP_READY",
     "EARLY_CONFIRMED_BUY",
     "SWING_BUY",
+    "RADAR_PRE_ALERT",
+    "RADAR_WATCH",
+    "MOMENTUM_BROKEN",
+    "NO_SETUP",
 }
 
 
