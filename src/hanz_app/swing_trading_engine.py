@@ -3782,10 +3782,9 @@ def real_money_validation(
         result.get("state") in BUY_STATES
         and entry_status != "WAIT_PULLBACK"
         and strategy_validation.get("passed")
-        and (
-            (not RISK_LIVE_GATE_ENABLED)
-            or gate in {"ELIGIBLE", "CAUTION"}
-        )
+        # Never let a configuration toggle or CAUTION bypass execution safety.
+        # Only ELIGIBLE can be actionable; technical candidates remain research-only.
+        and gate == "ELIGIBLE"
     )
 
     # A technical setup is not a confirmed BUY when the execution risk gate fails.
