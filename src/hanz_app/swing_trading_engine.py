@@ -6185,6 +6185,12 @@ def upsert_monitor(
     fundamental,
     risk_validation,
 ):
+    gate = str(risk_validation.get("gate") or "").upper()
+    execution_allowed = gate == "ELIGIBLE"
+    safe_entry_status = levels.get("entry_status") if execution_allowed else "UNVALIDATED_LEVELS"
+    safe_entry_note = levels.get("entry_note") if execution_allowed else (
+        "Technical setup only; execution blocked pending independent verification."
+    )
     payload = {
         "ticker": clean_ticker(ticker),
         "state": result["state"],
@@ -6199,14 +6205,14 @@ def upsert_monitor(
         "daily_rvol": daily["rvol20"],
         "breakout": result["breakout"],
         "breakout_level": daily["prior_high20"],
-        "entry_price": levels.get("entry_price"),
-        "entry_low": levels.get("entry_low"),
-        "entry_high": levels.get("entry_high"),
-        "entry_status": levels.get("entry_status"),
-        "entry_note": levels.get("entry_note"),
-        "stop_loss": levels["stop_loss"],
-        "target_1": levels["target_1"],
-        "target_2": levels["target_2"],
+        "entry_price": levels.get("entry_price") if execution_allowed else None,
+        "entry_low": levels.get("entry_low") if execution_allowed else None,
+        "entry_high": levels.get("entry_high") if execution_allowed else None,
+        "entry_status": safe_entry_status,
+        "entry_note": safe_entry_note,
+        "stop_loss": levels["stop_loss"] if execution_allowed else None,
+        "target_1": levels["target_1"] if execution_allowed else None,
+        "target_2": levels["target_2"] if execution_allowed else None,
         "rr_target_1": levels.get("rr_target_1"),
         "rr_target_2": levels.get("rr_target_2"),
         "target_mode": levels.get("target_mode"),
