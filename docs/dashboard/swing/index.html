@@ -2333,7 +2333,6 @@ async function loadWatchlist(){
 }
 
 function renderRanking(rows,radarMode=false){
-  if(window.hanzPmr80){ window.hanzPmr80.render(); return; }
   if(!rows.length){
     $("ranking").innerHTML='<div class="empty">No confirmed BUY or radar candidate.</div>';
     return;
@@ -2571,11 +2570,13 @@ async function loadHealth(){
   if(!state) return;
 
   const status=String(state.status || "").toLowerCase();
-  const online=status==="online";
+  const heartbeatMs=Date.parse(state.heartbeat_at || "");
+  const heartbeatFresh=Number.isFinite(heartbeatMs) && heartbeatMs<=Date.now() && Date.now()-heartbeatMs<=5*60*1000;
+  const online=status==="online" && heartbeatFresh;
 
   $("engineState").textContent=online ? "ONLINE" : "CHECK";
-  $("mainWorkerStatus").textContent=status.toUpperCase();
-  $("sysStatus").textContent=status.toUpperCase();
+  $("mainWorkerStatus").textContent=online ? "ONLINE" : "STALE / OFFLINE";
+  $("sysStatus").textContent=online ? "ONLINE" : "STALE / OFFLINE";
   $("heartbeat").textContent=formatTime(state.heartbeat_at);
   $("lastSuccess").textContent=formatTime(state.last_success_at);
   $("failures").textContent=state.consecutive_failures ?? 0;
