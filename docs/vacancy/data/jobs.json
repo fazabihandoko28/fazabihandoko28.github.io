@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-10-16T04:36:46.593832+00:00",
+  "generated_at": "2026-10-16T11:29:36.102087+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1340,
+  "raw_jobs": 1345,
   "matching_jobs": 77,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 444
+      "jobs": 445
     },
     {
       "name": "Publicis Groupe",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 396
+      "jobs": 400
     },
     {
       "name": "Visa",
@@ -422,12 +422,12 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000152318149",
+      "id": "sr-744000155956440",
       "title": "GrabFood Marketing Associate (Other cities)",
       "company": "Grab",
       "location": "Bangkok, Thailand",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000152318149-grabfood-marketing-associate-other-cities",
-      "published_at": "2026-09-29T02:46:05.411Z",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000155956440-grabfood-marketing-associate-other-cities",
+      "published_at": "2026-10-16T09:59:45.692Z",
       "source_verified": true
     },
     {
