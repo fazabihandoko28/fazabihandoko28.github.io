@@ -2575,7 +2575,7 @@ function hanzIndexFreshness(observation,nowMs=Date.now()){
   const raw=observation?.price_timestamp||observation?.observed_at||observation?.market_timestamp;
   if(!raw) return "PRICE_UNVERIFIED";
   const ts=Date.parse(raw);
-  if(!Number.isFinite(ts)||ts>nowMs) return "PRICE_UNVERIFIED";
+  if(!Number.isFinite(ts)||ts>nowMs || !/(?:Z|[+-]\d\d:\d\d)$/.test(String(raw))) return "PRICE_UNVERIFIED";
   const market=idxStatusNow();
   if(market.reason!=="Trading Day"||!["SESSION 1","SESSION 2"].includes(market.state)) return "MARKET_NOT_TRADING";
   return nowMs-ts<=15*60*1000?"PRICE_FRESH":"STALE_FEED";
