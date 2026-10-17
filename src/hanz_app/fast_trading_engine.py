@@ -1907,10 +1907,18 @@ def update_fast_health(
     *,
     last_market_bar_at=None,
     data_age_seconds_value=None,
-    data_status="FRESH",
+    data_status="STALE",
     symbols_monitored=0,
     error=None,
 ):
+    # A successful provider request or scanner heartbeat does not prove that
+    # the market price is fresh. Fail closed until a verified bar is supplied.
+    if data_status == "FRESH" and (
+        not last_market_bar_at or symbols_monitored <= 0
+    ):
+        data_status = "STALE"
+        error = error or "Freshness unverified: missing market bar or symbols"
+
     payload = {
         "id": FAST_STATE_ID,
         "last_scan_at": now_iso(),
@@ -1922,30 +1930,11 @@ def update_fast_health(
         "updated_at": now_iso(),
     }
 
-    if preserve_existing:
-        payload = {
-            key: value
-            for key, value in payload.items()
-            if (
-                value is not None
-                or key in {
-                    "ticker",
-                    "state",
-                    "data_status",
-                    "evidence",
-                    "updated_at",
-                }
-            )
-        }
-
     supabase_request(
         "POST",
         "hanz_fast_health?on_conflict=id",
         payload,
-        prefer=(
-            "resolution=merge-duplicates,"
-            "return=minimal"
-        ),
+        prefer="resolution=merge-duplicates,return=minimal",
     )
 
 
