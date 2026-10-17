@@ -1105,14 +1105,36 @@ function hanzRankingScore(row){
 }
 
 
+function hanzExecutionEligible(row){
+  // Frontend fail-closed guard. A technical BUY state is never execution authority.
+  const r=riskObject(row);
+  const gate=String(row?.risk_gate || r.gate || "").toUpperCase();
+  const barDate=String(row?.daily_bar_at || "").slice(0,10);
+  const expectedDate=String(r.data_expected_completed_date || "").slice(0,10);
+  const strategyPassed=r.strategy_validation?.passed === true;
+  const levelKeys=["entry_low","entry_high","stop_loss","target_1","target_2"];
+  const validLevels=levelKeys.every(key=>{
+    const value=row?.[key];
+    return value!==null && value!==undefined && value!=="" &&
+      Number.isFinite(Number(value)) && Number(value)>0;
+  });
+  const killSwitch=String(r.kill_switch || "").toUpperCase();
+  return gate==="ELIGIBLE" && r.actionable===true &&
+    r.data_same_session_verified===true && strategyPassed &&
+    !["WARMUP","ON","ACTIVE","TRIPPED"].includes(killSwitch) &&
+    barDate!=="" && barDate===expectedDate &&
+    String(row?.entry_status || "").toUpperCase()==="ENTRY_ZONE" &&
+    validLevels;
+}
+
 function effectiveHanzAction(row){
   const r=riskObject(row);
   const direct=String(r.hanz_action || row?.hanz_action || "").trim().toUpperCase();
-  if(direct) return direct;
+  if(direct) return direct==="BUY" && !hanzExecutionEligible(row) ? "WAIT" : direct;
 
   // Compatibility for older/stale rows that predate hanz_action.
   const state=String(row?.state || "").trim().toUpperCase();
-  if(["SWING_BUY","EARLY_CONFIRMED_BUY"].includes(state)) return "BUY";
+  if(["SWING_BUY","EARLY_CONFIRMED_BUY"].includes(state)) return hanzExecutionEligible(row) ? "BUY" : "WAIT";
   if(["PRE_ALERT","EARLY_WATCH","SWING_WATCH","SWING_CONFIRMING","SETUP_READY"].includes(state)) return "WAIT";
   return "";
 }
@@ -1736,7 +1758,9 @@ async function renderBacktest5y(ticker){
 function candidateStateLabel(row){
   const s=String(row?.state||"").toUpperCase();
   const action=effectiveHanzAction(row);
-  if(["SWING_BUY","EARLY_CONFIRMED_BUY"].includes(s)) return {label:"CONFIRMED BUY",cls:"state-buy"};
+  if(["SWING_BUY","EARLY_CONFIRMED_BUY"].includes(s)) return hanzExecutionEligible(row)
+    ? {label:"CONFIRMED BUY",cls:"state-buy"}
+    : {label:"TECHNICAL SETUP · NOT BUY",cls:"state-watch"};
   if(action==="TP_RISK") return {label:"CAUTION · TP RISK",cls:"state-watch"};
   if(action==="RESISTANCE_WAIT") return {label:"WAIT · RESISTANCE",cls:"state-watch"};
   if(action==="WAIT_TRIGGER") return {label:"WAIT TRIGGER",cls:"state-watch"};
@@ -1783,7 +1807,9 @@ function candidateActionWarning(row){
     return "Belum trigger BUY — tunggu konfirmasi harga/volume.";
   if(state==="SETUP_READY")
     return "Setup siap dipantau; tunggu reconfirmation sebelum entry.";
-  if(["RESEARCH_ONLY","PAPER_ONLY"].includes(gate))
+  if(["SWING_BUY","EARLY_CONFIRMED_BUY"].includes(state) && !hanzExecutionEligible(row))
+    return "TECHNICAL ONLY — execution blocked pending independent verification.";
+  if(["BLOCKED","MONITOR","RESEARCH_ONLY","PAPER_ONLY"].includes(gate))
     return `Risk gate: ${gate.replaceAll("_"," ")} — bukan live-money eligible.`;
   return "";
 }
@@ -2287,10 +2313,9 @@ async function loadWatchlist(){
   });
 
   const confirmed=all
-    .filter(r=>["EARLY_CONFIRMED_BUY","SWING_BUY"].includes(String(r.state||"").toUpperCase()));
+    .filter(r=>["EARLY_CONFIRMED_BUY","SWING_BUY"].includes(String(r.state||"").toUpperCase()) && hanzExecutionEligible(r));
 
-  const radar=all
-    .filter(r=>!["EARLY_CONFIRMED_BUY","SWING_BUY"].includes(String(r.state||"").toUpperCase()));
+  const radar=all.filter(r=>!confirmed.includes(r));
 
   $("opportunityCount").textContent=confirmed.length;
 
@@ -2300,8 +2325,8 @@ async function loadWatchlist(){
   if(rankedForHero.length){
     const top=rankedForHero[0];
     const ff=foreignFlowInfo(top);
-    const state=String(top.state||"WATCH").replaceAll("_"," ");
-    const isBuy=["EARLY_CONFIRMED_BUY","SWING_BUY"].includes(String(top.state||"").toUpperCase());
+    const state=candidateStateLabel(top).label;
+    const isBuy=hanzExecutionEligible(top) && ["EARLY_CONFIRMED_BUY","SWING_BUY"].includes(String(top.state||"").toUpperCase());
 
     $("topCandidate").textContent=top.ticker;
     $("topCandidateSub").textContent=`V42 · Opportunity ${hanzRankingScore(top)}/100 · ${state}`;
@@ -2340,7 +2365,7 @@ function renderRanking(rows,radarMode=false){
   $("ranking").innerHTML=rows.slice(0,5).map((row,index)=>{
     const rank=hanzRankingScore(row);
     const ff=foreignFlowInfo(row);
-    const state=String(row.state||"").replaceAll("_"," ");
+    const state=candidateStateLabel(row).label;
     return `<div class="rank" title="${safe(state)} · Foreign ${safe(ff.label)} · ${safe(ff.summary)}">
       <div class="rank-no">#${index+1}</div>
       <div class="rank-symbol">${safe(row.ticker)} ${radarMode?'<span class="radar-badge">RADAR</span>':""}</div>
