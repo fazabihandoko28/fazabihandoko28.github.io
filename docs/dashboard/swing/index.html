@@ -2385,6 +2385,11 @@ function renderOpportunities(rows){
 }
 
 function renderLiveSignalMonitor(rows){
+  const gate=hanzIndexGate();
+  if(gate!=="PRICE_FRESH"){
+    $("liveSignalMonitor").innerHTML=`<div class="empty large-empty">IHSG ${gate.replaceAll("_"," ")} — BUY NOT VERIFIED.</div>`;
+    return;
+  }
   if(!rows.length){
     $("liveSignalMonitor").innerHTML='<div class="empty large-empty">No confirmed SWING BUY right now.</div>';
     return;
@@ -2556,8 +2561,58 @@ function renderIdxMarketClock(){
 }
 
 
+/* Exchange event confirmed from BEI notice (16 Oct 2026, 08:58–09:28 WIB).
+   Historical event only: NEVER infer future halts from a falling or frozen index. */
+const IDX_CONFIRMED_HALTS=[
+  {start:"2026-10-16T08:58:00+07:00",end:"2026-10-16T09:28:00+07:00",source:"https://block.idx.id/id"}
+];
+function hanzVerifiedHalt(nowMs=Date.now()){
+  return IDX_CONFIRMED_HALTS.find(h=>nowMs>=Date.parse(h.start)&&nowMs<Date.parse(h.end))||null;
+}
+function hanzIndexFreshness(observation,nowMs=Date.now()){
+  const halt=hanzVerifiedHalt(nowMs);
+  if(halt) return "TRADING_HALT";
+  // Classify market closure before checking whether a price quote exists.
+  const market=idxStatusNow();
+  if(market.reason!=="Trading Day"||!["SESSION 1","SESSION 2"].includes(market.state)) return "MARKET_NOT_TRADING";
+  const raw=observation?.price_timestamp||observation?.observed_at||observation?.market_timestamp;
+  if(!raw) return "PRICE_UNVERIFIED";
+  const ts=Date.parse(raw);
+  if(!Number.isFinite(ts)||ts>nowMs || !/(?:Z|[+-]\d\d:\d\d)$/.test(String(raw))) return "PRICE_UNVERIFIED";
+  return nowMs-ts<=15*60*1000?"PRICE_FRESH":"STALE_FEED";
+}
+async function hanzLoadIndexObservation(){
+  // Fetch the published IHSG snapshot. Never treat its file updated_at as a quote timestamp.
+  try{
+    const res=await fetch("./ihsg-snapshot.json?fresh="+Date.now(),{cache:"no-store"});
+    if(!res.ok) throw new Error("IHSG snapshot HTTP "+res.status);
+    const snap=await res.json();
+    // A midnight placeholder is a daily bar label, not an intraday observation.
+    const quote=String(snap.quote_at||"");
+    const genuineTimestamp=Number.isFinite(Date.parse(quote)) && /(?:Z|[+-]\d\d:\d\d)$/.test(quote) && !/T00:00:00(?:\.0+)?(?:[+-]\d\d:\d\d|Z)$/.test(quote);
+    window.__hanzVerifiedIndexObservation=genuineTimestamp && snap.quote_type!=="LAST_CLOSE"
+      ? {price_timestamp:quote,price:snap.price,market_date:snap.market_date}
+      : null;
+    window.__hanzIndexSnapshotState=String(snap.market_state||"UNKNOWN");
+  }catch(err){
+    window.__hanzVerifiedIndexObservation=null;
+    window.__hanzIndexSnapshotState="SNAPSHOT_UNAVAILABLE";
+    console.warn("IHSG freshness verification unavailable",err);
+  }
+}
+function hanzIndexObservation(){
+  // Do not substitute worker heartbeat, file updated_at, or a midnight daily-bar label.
+  return window.__hanzVerifiedIndexObservation||null;
+}
+function hanzIndexGate(){
+  const status=hanzIndexFreshness(hanzIndexObservation());
+  window.__hanzIndexStatus=status;
+  return status;
+}
+
 /* HEALTH */
 async function loadHealth(){
+  await hanzLoadIndexObservation();
   const {data,error} = await supabase
     .from("hanz_live_state")
     .select("id,status,heartbeat_at,last_success_at,last_error,consecutive_failures,updated_at")
@@ -2573,10 +2628,16 @@ async function loadHealth(){
   const heartbeatMs=Date.parse(state.heartbeat_at || "");
   const heartbeatFresh=Number.isFinite(heartbeatMs) && heartbeatMs<=Date.now() && Date.now()-heartbeatMs<=5*60*1000;
   const online=status==="online" && heartbeatFresh;
-
+  // A successful worker run is not a verified exchange price timestamp.
+  // Never classify an exchange halt or scheduled market break as stale from last_success_at.
+  // Until a verified price timestamp and exchange halt feed exist, expose uncertainty
+  // rather than inventing either LIVE PRICE or STALE PRICE.
+  const indexGate=hanzIndexGate();
+  const feedFresh=indexGate==="PRICE_FRESH";
+  window.__hanzFeedFresh=feedFresh;
   $("engineState").textContent=online ? "ONLINE" : "CHECK";
-  $("mainWorkerStatus").textContent=online ? "ONLINE" : "STALE / OFFLINE";
-  $("sysStatus").textContent=online ? "ONLINE" : "STALE / OFFLINE";
+  $("mainWorkerStatus").textContent=online ? `ONLINE · IHSG ${indexGate.replaceAll("_"," ")}` : "STALE / OFFLINE";
+  $("sysStatus").textContent=online ? `IHSG ${indexGate.replaceAll("_"," ")}` : "STALE / OFFLINE";
   $("heartbeat").textContent=formatTime(state.heartbeat_at);
   $("lastSuccess").textContent=formatTime(state.last_success_at);
   $("failures").textContent=state.consecutive_failures ?? 0;
@@ -2587,7 +2648,7 @@ async function loadHealth(){
   const marketClosed=market.state.startsWith("CLOSED") || market.state==="CALENDAR UNVERIFIED";
   $("engineLabel").textContent=
     online
-      ? (marketClosed ? "MARKET CLOSED" : "HANZ ONLINE")
+      ? (marketClosed ? "MARKET CLOSED" : `IHSG ${indexGate.replaceAll("_"," ")}`)
       : "CHECK ENGINE";
 }
 
