@@ -2580,9 +2580,27 @@ function hanzIndexFreshness(observation,nowMs=Date.now()){
   if(market.reason!=="Trading Day"||!["SESSION 1","SESSION 2"].includes(market.state)) return "MARKET_NOT_TRADING";
   return nowMs-ts<=15*60*1000?"PRICE_FRESH":"STALE_FEED";
 }
+async function hanzLoadIndexObservation(){
+  // Fetch the published IHSG snapshot. Never treat its file updated_at as a quote timestamp.
+  try{
+    const res=await fetch("./ihsg-snapshot.json?fresh="+Date.now(),{cache:"no-store"});
+    if(!res.ok) throw new Error("IHSG snapshot HTTP "+res.status);
+    const snap=await res.json();
+    // A midnight placeholder is a daily bar label, not an intraday observation.
+    const quote=String(snap.quote_at||"");
+    const genuineTimestamp=quote && !/T00:00:00(?:\\.\\d+)?(?:[+-]\\d\\d:\\d\\d|Z)?$/.test(quote);
+    window.__hanzVerifiedIndexObservation=genuineTimestamp && snap.quote_type!=="LAST_CLOSE"
+      ? {price_timestamp:quote,price:snap.price,market_date:snap.market_date}
+      : null;
+    window.__hanzIndexSnapshotState=String(snap.market_state||"UNKNOWN");
+  }catch(err){
+    window.__hanzVerifiedIndexObservation=null;
+    window.__hanzIndexSnapshotState="SNAPSHOT_UNAVAILABLE";
+    console.warn("IHSG freshness verification unavailable",err);
+  }
+}
 function hanzIndexObservation(){
-  // No verified IHSG price observation is currently wired into this dashboard.
-  // Do not substitute worker heartbeat, database update_at or JS clock.
+  // Do not substitute worker heartbeat, file updated_at, or a midnight daily-bar label.
   return window.__hanzVerifiedIndexObservation||null;
 }
 function hanzIndexGate(){
@@ -2593,6 +2611,7 @@ function hanzIndexGate(){
 
 /* HEALTH */
 async function loadHealth(){
+  await hanzLoadIndexObservation();
   const {data,error} = await supabase
     .from("hanz_live_state")
     .select("id,status,heartbeat_at,last_success_at,last_error,consecutive_failures,updated_at")
