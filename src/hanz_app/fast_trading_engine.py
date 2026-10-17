@@ -749,11 +749,13 @@ def prefetch_market_data(
                 flush=True,
             )
 
-    attempted = total_success + total_failed
+    # A failed one-symbol fallback must not override hundreds of successful
+    # requests in the same cycle and open a feed-wide circuit.
+    attempted = _CYCLE_PROVIDER_SUCCESSES + _CYCLE_PROVIDER_FAILURES
 
     if attempted > 0:
         failure_ratio = (
-            total_failed
+            _CYCLE_PROVIDER_FAILURES
             / attempted
         )
 
@@ -762,7 +764,7 @@ def prefetch_market_data(
             > MARKET_CIRCUIT_FAILURE_RATIO
         ):
             _open_market_circuit(
-                "batch failure ratio "
+                "cycle failure ratio "
                 f"{failure_ratio:.0%}"
             )
 

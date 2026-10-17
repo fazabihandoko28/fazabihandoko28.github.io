@@ -19,23 +19,31 @@ def main():
         engine.update_fast_health(error="FAST runtime check: empty universe")
         raise RuntimeError("FAST runtime check: empty universe")
     engine.prefetch_market_data(tickers, engine.INTRADAY_INTERVAL, engine.INTRADAY_PERIOD)
+    missing = []
     for ticker in sorted(tickers):
-        try:
-            engine.download_data(ticker, engine.INTRADAY_INTERVAL, engine.INTRADAY_PERIOD)
-        except engine.MarketDataUnavailable as exc:
-            print(f"FAST runtime missing {ticker}: {exc}", flush=True)
-    engine.publish_cycle_health()
+        # Consume this run's snapshot; do not retry an already missing ticker
+        # immediately and accidentally turn a partial result into a feed outage.
+        cached = engine._cached_market_frame(ticker, engine.INTRADAY_INTERVAL, engine.INTRADAY_PERIOD)
+        if cached is None:
+            missing.append(ticker)
+            continue
+        engine._record_market_bar(engine.normalize_ticker(ticker), engine.INTRADAY_INTERVAL, cached["frame"])
+    written = engine.publish_cycle_health()
     rows = engine.supabase_request("GET", "hanz_fast_health?id=eq.bei-fast&select=*") or []
     row = rows[0] if rows else {}
     runtime_ok = bool(
         row.get("last_market_bar_at")
         and row.get("symbols_monitored") == len(engine._CYCLE_MARKET_BARS)
         and row.get("symbols_monitored", 0) > 0
+        and row.get("last_scan_at") == written["last_scan_at"]
+        and row.get("last_market_bar_at") == written["last_market_bar_at"]
+        and row.get("data_status") == written["data_status"]
     )
     result = {
         "commit": os.getenv("GITHUB_SHA", "local"),
         "runtime_evidence": "PASS" if runtime_ok else "FAIL",
         "universe_count": len(tickers),
+        "missing_symbols": missing,
         "health": row,
     }
     print("HANZ FAST RUNTIME: " + json.dumps(result), flush=True)

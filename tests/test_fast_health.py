@@ -67,6 +67,16 @@ class FastHealthTests(unittest.TestCase):
             engine.download_data("BBCA", engine.INTRADAY_INTERVAL, engine.INTRADAY_PERIOD)
         self.assertEqual(set(engine._CYCLE_MARKET_BARS), {"BBCA.JK"})
 
+    def test_single_missing_ticker_does_not_open_healthy_feed_circuit(self):
+        with patch.multiple(engine, _CYCLE_PROVIDER_SUCCESSES=193, _CYCLE_PROVIDER_FAILURES=5, _PROVIDER_CONSECUTIVE_FAILURES=0, MARKET_FETCH_RETRIES=0, _MARKET_CIRCUIT_OPEN_UNTIL=0), patch.object(engine.yf, "download", return_value=pd.DataFrame()), patch.object(engine, "_open_market_circuit") as trip:
+            engine.prefetch_market_data(["MISSING"], "1m", "5d")
+        trip.assert_not_called()
+
+    def test_feed_wide_failures_still_open_circuit(self):
+        with patch.multiple(engine, _CYCLE_PROVIDER_SUCCESSES=0, _CYCLE_PROVIDER_FAILURES=0, _PROVIDER_CONSECUTIVE_FAILURES=0, MARKET_FETCH_RETRIES=0, _MARKET_CIRCUIT_OPEN_UNTIL=0), patch.object(engine.yf, "download", return_value=pd.DataFrame()), patch.object(engine, "_open_market_circuit") as trip:
+            engine.prefetch_market_data(["MISSING"], "1m", "5d")
+        trip.assert_called_once()
+
 
 if __name__ == "__main__":
     unittest.main()
