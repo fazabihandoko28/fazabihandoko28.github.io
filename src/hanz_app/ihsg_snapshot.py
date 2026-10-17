@@ -1,4 +1,5 @@
 import json
+from datetime import datetime, timedelta
 from pathlib import Path
 
 import yfinance as yf
@@ -40,6 +41,18 @@ def _date_of_index(value):
         except Exception:
             return None
 
+
+def _fresh_live_quote(quote_at, now, quote_type, is_live):
+    if not is_live or quote_type != "LIVE" or not quote_at:
+        return False
+    try:
+        observed = datetime.fromisoformat(str(quote_at).replace("Z", "+00:00"))
+        if observed.tzinfo is None or observed.utcoffset() is None:
+            return False
+        age = now - observed
+        return observed.astimezone(now.tzinfo).date() == now.date() and timedelta(0) <= age <= timedelta(minutes=15)
+    except (TypeError, ValueError, OverflowError):
+        return False
 
 def fetch_ihsg():
     now = jakarta_now()
@@ -120,7 +133,7 @@ def fetch_ihsg():
         "updated_at": now.isoformat(),
         "quote_type": quote_type,
         "market_state": state,
-        "stale": False,
+        "stale": not _fresh_live_quote(quote_at, now, quote_type, is_live),
         "policy": "LIVE_WHEN_OPEN_LAST_CLOSE_WHEN_CLOSED",
     }
 
