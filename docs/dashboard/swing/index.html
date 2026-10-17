@@ -2588,7 +2588,7 @@ async function hanzLoadIndexObservation(){
     const snap=await res.json();
     // A midnight placeholder is a daily bar label, not an intraday observation.
     const quote=String(snap.quote_at||"");
-    const genuineTimestamp=quote && !/T00:00:00(?:\\.\\d+)?(?:[+-]\\d\\d:\\d\\d|Z)?$/.test(quote);
+    const genuineTimestamp=quote && !/T00:00:00(?:\.\d+)?(?:[+-]\d\d:\d\d|Z)?$/.test(quote);
     window.__hanzVerifiedIndexObservation=genuineTimestamp && snap.quote_type!=="LAST_CLOSE"
       ? {price_timestamp:quote,price:snap.price,market_date:snap.market_date}
       : null;
