@@ -1105,14 +1105,27 @@ function hanzRankingScore(row){
 }
 
 
+// Frontend execution permission must never be inferred from a technical state.
+function executionReady(row){
+  const r=riskObject(row);
+  return String(row?.risk_gate || "").toUpperCase()==="ELIGIBLE"
+    && r.actionable===true
+    && r.data_same_session_verified===true
+    && String(r.data_quality_status || "").toUpperCase()==="VERIFIED"
+    && String(r.data_integrity_status || "").toUpperCase()==="OK"
+    && Boolean(String(r.data_verifier_source || "").trim())
+    && String(row?.entry_status || "").toUpperCase()==="ENTRY_ZONE";
+}
+
 function effectiveHanzAction(row){
   const r=riskObject(row);
   const direct=String(r.hanz_action || row?.hanz_action || "").trim().toUpperCase();
+  if(direct==="BUY" && !executionReady(row)) return "WAIT";
   if(direct) return direct;
 
   // Compatibility for older/stale rows that predate hanz_action.
   const state=String(row?.state || "").trim().toUpperCase();
-  if(["SWING_BUY","EARLY_CONFIRMED_BUY"].includes(state)) return "BUY";
+  if(["SWING_BUY","EARLY_CONFIRMED_BUY"].includes(state)) return executionReady(row) ? "BUY" : "WAIT";
   if(["PRE_ALERT","EARLY_WATCH","SWING_WATCH","SWING_CONFIRMING","SETUP_READY"].includes(state)) return "WAIT";
   return "";
 }
@@ -1167,6 +1180,7 @@ function hanzCanonicalRejectReason(row){
 }
 
 function buyStateLabel(row){
+  if(!executionReady(row)) return "TECHNICAL SETUP · NOT BUY";
   return String(row?.state || "SWING_BUY").toUpperCase()==="EARLY_CONFIRMED_BUY"
     ? "EARLY CONFIRMED BUY" : "SWING BUY";
 }
@@ -1736,7 +1750,7 @@ async function renderBacktest5y(ticker){
 function candidateStateLabel(row){
   const s=String(row?.state||"").toUpperCase();
   const action=effectiveHanzAction(row);
-  if(["SWING_BUY","EARLY_CONFIRMED_BUY"].includes(s)) return {label:"CONFIRMED BUY",cls:"state-buy"};
+  if(["SWING_BUY","EARLY_CONFIRMED_BUY"].includes(s)) return executionReady(row) ? {label:"CONFIRMED BUY",cls:"state-buy"} : {label:"TECHNICAL SETUP · NOT BUY",cls:"state-watch"};
   if(action==="TP_RISK") return {label:"CAUTION · TP RISK",cls:"state-watch"};
   if(action==="RESISTANCE_WAIT") return {label:"WAIT · RESISTANCE",cls:"state-watch"};
   if(action==="WAIT_TRIGGER") return {label:"WAIT TRIGGER",cls:"state-watch"};
@@ -1757,6 +1771,7 @@ function candidateReason(row){
 }
 
 function candidateUpsidePct(row){
+  if(!executionReady(row)) return null;
   const t1=Number(row?.target_1);
   const low=Number(row?.entry_low), high=Number(row?.entry_high), current=Number(row?.price);
   const base=(Number.isFinite(low)&&Number.isFinite(high)&&low>0&&high>0)?(low+high)/2:(Number.isFinite(current)&&current>0?current:NaN);
@@ -1779,6 +1794,7 @@ function candidateSwingHorizon(row){
 function candidateActionWarning(row){
   const state=String(row?.state||"").toUpperCase();
   const gate=String(row?.risk_gate || riskObject(row)?.gate || "").toUpperCase();
+  if(!executionReady(row)) return `NOT BUY · execution blocked (${gate || "UNVERIFIED"}); technical ranking only.`;
   if(["PRE_ALERT","EARLY_WATCH","SWING_WATCH","SWING_CONFIRMING"].includes(state))
     return "Belum trigger BUY — tunggu konfirmasi harga/volume.";
   if(state==="SETUP_READY")
@@ -1800,7 +1816,7 @@ function renderSelectedCandidates(rows){
     const state=candidateStateLabel(row);
     const rank=hanzRankingScore(row);
     const entryLow=Number(row.entry_low), entryHigh=Number(row.entry_high);
-    const entry=(Number.isFinite(entryLow)&&Number.isFinite(entryHigh))?`${price(entryLow)} – ${price(entryHigh)}`:"—";
+    const entry=executionReady(row)&&Number.isFinite(entryLow)&&Number.isFinite(entryHigh)&&entryLow>0&&entryHigh>0?`${price(entryLow)} – ${price(entryHigh)}`:"—";
     const upside=candidateUpsidePct(row);
     const upsideText=Number.isFinite(upside)?`${upside>=0?"+":""}${upside.toFixed(1)}%`:"—";
     const horizon=candidateSwingHorizon(row);
@@ -2287,10 +2303,10 @@ async function loadWatchlist(){
   });
 
   const confirmed=all
-    .filter(r=>["EARLY_CONFIRMED_BUY","SWING_BUY"].includes(String(r.state||"").toUpperCase()));
+    .filter(r=>executionReady(r) && ["EARLY_CONFIRMED_BUY","SWING_BUY"].includes(String(r.state||"").toUpperCase()));
 
   const radar=all
-    .filter(r=>!["EARLY_CONFIRMED_BUY","SWING_BUY"].includes(String(r.state||"").toUpperCase()));
+    .filter(r=>!executionReady(r) || !["EARLY_CONFIRMED_BUY","SWING_BUY"].includes(String(r.state||"").toUpperCase()));
 
   $("opportunityCount").textContent=confirmed.length;
 
@@ -2301,7 +2317,7 @@ async function loadWatchlist(){
     const top=rankedForHero[0];
     const ff=foreignFlowInfo(top);
     const state=String(top.state||"WATCH").replaceAll("_"," ");
-    const isBuy=["EARLY_CONFIRMED_BUY","SWING_BUY"].includes(String(top.state||"").toUpperCase());
+    const isBuy=executionReady(top) && ["EARLY_CONFIRMED_BUY","SWING_BUY"].includes(String(top.state||"").toUpperCase());
 
     $("topCandidate").textContent=top.ticker;
     $("topCandidateSub").textContent=`V42 · Opportunity ${hanzRankingScore(top)}/100 · ${state}`;
