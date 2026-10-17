@@ -623,7 +623,7 @@ th{color:var(--muted)}
           <h2>HANZ Opportunity Radar</h2>
           <p>Top 5 opportunity radar stays visible; confirmed BUY is prioritized, but strong developing setups remain visible before confirmation</p>
         </div>
-        <span class="small-tag">SWING LIVE</span>
+        <span class="small-tag" id="swingFreshnessLabel">SWING · UNVERIFIED</span>
       </div>
       <div id="ranking" class="ranking"></div>
     </article>
@@ -2607,6 +2607,8 @@ function hanzIndexObservation(){
 function hanzIndexGate(){
   const status=hanzIndexFreshness(hanzIndexObservation());
   window.__hanzIndexStatus=status;
+  const label=document.getElementById("swingFreshnessLabel");
+  if(label) label.textContent=status==="PRICE_FRESH"?"SWING · LIVE":status==="MARKET_NOT_TRADING"?"SWING · MARKET CLOSED":`SWING · ${status.replaceAll("_"," ")}`;
   return status;
 }
 
