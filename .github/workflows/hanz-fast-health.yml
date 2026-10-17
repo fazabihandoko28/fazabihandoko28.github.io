@@ -1,0 +1,40 @@
+name: HANZ FAST Runtime Evidence
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/hanz_app/fast_trading_engine.py"
+      - "src/hanz_app/fast_health_check.py"
+      - "tests/test_fast_health.py"
+      - ".github/workflows/hanz-fast-health.yml"
+  workflow_dispatch:
+  schedule:
+    - cron: "*/15 2-9 * * 1-5"
+    - cron: "0 2 * * 0,6"
+permissions:
+  contents: read
+concurrency:
+  group: hanz-fast-runtime-evidence
+  cancel-in-progress: false
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: python -m pip install -e .
+      - name: G0 regression checks
+        env:
+          PYTHONPATH: src
+        run: python -m unittest discover -s tests -p test_fast_health.py -v
+      - name: Verify and read back real candle evidence
+        env:
+          PYTHONPATH: src
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          HANZ_FAST_PERIOD: "5d"
+        run: python -m hanz_app.fast_health_check

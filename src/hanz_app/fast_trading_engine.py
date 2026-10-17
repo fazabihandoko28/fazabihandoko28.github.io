@@ -81,6 +81,7 @@ _MARKET_CIRCUIT_OPEN_UNTIL = 0.0
 _PROVIDER_CONSECUTIVE_FAILURES = 0
 _CYCLE_PROVIDER_SUCCESSES = 0
 _CYCLE_PROVIDER_FAILURES = 0
+_CYCLE_MARKET_BARS = {}
 
 
 class MarketDataUnavailable(RuntimeError):
@@ -800,6 +801,7 @@ def download_data(
         ) or 0
 
         if now - fetched_at < ttl:
+            _record_market_bar(symbol, interval, cached["frame"])
             return (
                 symbol,
                 cached["frame"].copy(),
@@ -823,6 +825,7 @@ def download_data(
 
     if cached:
         # This may be an older last-valid frame when Yahoo is currently down.
+        _record_market_bar(symbol, interval, cached["frame"])
         return (
             symbol,
             cached["frame"].copy(),
@@ -862,6 +865,26 @@ def data_age_seconds(frame):
     ).total_seconds()
 
     return max(0, int(age))
+
+
+def _record_market_bar(symbol, interval, frame):
+    """Only frames actually consumed this cycle count as scan evidence."""
+    if str(interval) != str(INTRADAY_INTERVAL):
+        return
+    ts = last_timestamp_utc(frame).to_pydatetime()
+    if ts is not None and not pd.isna(ts):
+        _CYCLE_MARKET_BARS[symbol] = ts
+
+
+def publish_cycle_health():
+    # Use the oldest consumed bar: one fresh ticker must not hide stale ones.
+    oldest = min(_CYCLE_MARKET_BARS.values(), default=None)
+    return update_fast_health(
+        last_market_bar_at=oldest.isoformat() if oldest else None,
+        data_status=_provider_cycle_status(),
+        symbols_monitored=len(_CYCLE_MARKET_BARS),
+        error=_provider_cycle_error(),
+    )
 
 
 def ema(series, length):
@@ -1913,11 +1936,24 @@ def update_fast_health(
 ):
     # A successful provider request or scanner heartbeat does not prove that
     # the market price is fresh. Fail closed until a verified bar is supplied.
-    if data_status == "FRESH" and (
-        not last_market_bar_at or symbols_monitored <= 0
-    ):
+    # Recompute age from the candle, never from a heartbeat or caller-supplied age.
+    verified = False
+    data_age_seconds_value = None
+    if last_market_bar_at:
+        try:
+            bar = datetime.fromisoformat(str(last_market_bar_at).replace("Z", "+00:00"))
+            if bar.tzinfo is None:
+                raise ValueError("Candle timestamp requires timezone")
+            age = (utc_now() - bar.astimezone(timezone.utc)).total_seconds()
+            if not math.isfinite(age) or age < 0:
+                raise ValueError("Invalid or future candle timestamp")
+            data_age_seconds_value = int(age)
+            verified = symbols_monitored > 0 and age <= MAX_DATA_AGE_SECONDS
+        except (ValueError, TypeError, OverflowError):
+            last_market_bar_at = None
+    if data_status == "FRESH" and not verified:
         data_status = "STALE"
-        error = error or "Freshness unverified: missing market bar or symbols"
+        error = error or "Freshness unverified: missing, stale or invalid market bar/symbols"
 
     payload = {
         "id": FAST_STATE_ID,
@@ -1936,6 +1972,7 @@ def update_fast_health(
         payload,
         prefer="resolution=merge-duplicates,return=minimal",
     )
+    return payload
 
 
 def get_symbol_context(ticker):
@@ -3228,6 +3265,7 @@ def run_fast_cycle():
 
     _CYCLE_PROVIDER_SUCCESSES = 0
     _CYCLE_PROVIDER_FAILURES = 0
+    _CYCLE_MARKET_BARS.clear()
 
     print(
         "\n========== HANZ FAST CYCLE ==========",
@@ -3336,18 +3374,11 @@ def run_fast_cycle():
         + scout_confirmed
     )
 
-    provider_status = _provider_cycle_status()
-    provider_error = _provider_cycle_error()
-
-    update_fast_health(
-        data_status=provider_status,
-        symbols_monitored=total,
-        error=provider_error,
-    )
+    health = publish_cycle_health()
 
     print(
         "MARKET DATA cycle health: "
-        f"{provider_status} | "
+        f"{health['data_status']} | "
         f"success={_CYCLE_PROVIDER_SUCCESSES} "
         f"failed={_CYCLE_PROVIDER_FAILURES}",
         flush=True,
