@@ -1105,14 +1105,30 @@ function hanzRankingScore(row){
 }
 
 
+function verifiedExecutionBuy(row){
+  const r=riskObject(row), quality=r.data_quality || {};
+  const gate=String(row?.risk_gate || r.gate || "").toUpperCase();
+  const state=String(row?.state || "").toUpperCase();
+  const primary=String(quality.primary_date || "").slice(0,10);
+  const verifier=String(quality.verifier_date || "").slice(0,10);
+  const bar=String(row?.daily_bar_at || "").slice(0,10);
+  const ageDays=(Date.now()-Date.parse(primary+"T00:00:00Z"))/86400000;
+  return ["SWING_BUY","EARLY_CONFIRMED_BUY"].includes(state)
+    && gate==="ELIGIBLE" && r.actionable===true
+    && quality.verified===true && String(quality.status || "").toUpperCase()==="VERIFIED"
+    && primary.length===10 && primary===verifier && primary===bar
+    && Number.isFinite(ageDays) && ageDays>=0 && ageDays<=4
+    && hanzIndexGate()==="PRICE_FRESH";
+}
+
 function effectiveHanzAction(row){
   const r=riskObject(row);
   const direct=String(r.hanz_action || row?.hanz_action || "").trim().toUpperCase();
-  if(direct) return direct;
+  if(direct) return direct==="BUY" && !verifiedExecutionBuy(row) ? "WAIT" : direct;
 
   // Compatibility for older/stale rows that predate hanz_action.
   const state=String(row?.state || "").trim().toUpperCase();
-  if(["SWING_BUY","EARLY_CONFIRMED_BUY"].includes(state)) return "BUY";
+  if(["SWING_BUY","EARLY_CONFIRMED_BUY"].includes(state)) return verifiedExecutionBuy(row) ? "BUY" : "WAIT";
   if(["PRE_ALERT","EARLY_WATCH","SWING_WATCH","SWING_CONFIRMING","SETUP_READY"].includes(state)) return "WAIT";
   return "";
 }
@@ -1736,7 +1752,7 @@ async function renderBacktest5y(ticker){
 function candidateStateLabel(row){
   const s=String(row?.state||"").toUpperCase();
   const action=effectiveHanzAction(row);
-  if(["SWING_BUY","EARLY_CONFIRMED_BUY"].includes(s)) return {label:"CONFIRMED BUY",cls:"state-buy"};
+  if(["SWING_BUY","EARLY_CONFIRMED_BUY"].includes(s)) return verifiedExecutionBuy(row) ? {label:"CONFIRMED BUY",cls:"state-buy"} : {label:"TECHNICAL SETUP · UNVERIFIED",cls:"state-watch"};
   if(action==="TP_RISK") return {label:"CAUTION · TP RISK",cls:"state-watch"};
   if(action==="RESISTANCE_WAIT") return {label:"WAIT · RESISTANCE",cls:"state-watch"};
   if(action==="WAIT_TRIGGER") return {label:"WAIT TRIGGER",cls:"state-watch"};
@@ -1779,6 +1795,7 @@ function candidateSwingHorizon(row){
 function candidateActionWarning(row){
   const state=String(row?.state||"").toUpperCase();
   const gate=String(row?.risk_gate || riskObject(row)?.gate || "").toUpperCase();
+  if(!verifiedExecutionBuy(row)) return "NOT ACTIONABLE — independent data, freshness and execution safety must be verified.";
   if(["PRE_ALERT","EARLY_WATCH","SWING_WATCH","SWING_CONFIRMING"].includes(state))
     return "Belum trigger BUY — tunggu konfirmasi harga/volume.";
   if(state==="SETUP_READY")
@@ -1847,7 +1864,7 @@ function openCandidateDetail(index){
   const upsideText=Number.isFinite(upside)?`${upside>=0?"+":""}${upside.toFixed(1)}%`:"—";
   const horizon=candidateSwingHorizon(row);
   const warning=candidateActionWarning(row);
-  const action=String(r.hanz_action||row?.hanz_action||state.label||"").replaceAll("_"," ");
+  const action=String(effectiveHanzAction(row)||state.label||"").replaceAll("_"," ");
   $("candidateDetailTitle").textContent=`${row.ticker} · ${state.label}`;
   $("candidateDetailSub").textContent=`Rank #${selectedCandidateRows.indexOf(row)+1} · HANZ 5 Best`;
 
@@ -2254,7 +2271,7 @@ async function loadWatchlist(){
     .order("updated_at",{ascending:false});
   if(error) throw error;
 
-  const raw=data||[];
+  const raw=(data||[]).map(row=>verifiedExecutionBuy(row) ? row : ({...row, entry_price:undefined, entry_low:undefined, entry_high:undefined, stop_loss:undefined, target_1:undefined, target_2:undefined, entry_note:"Technical setup only; BUY not independently verified."}));
 
   // V41: THE DASHBOARD IS DISPLAY-ONLY.
   // It accepts only candidates already ranked by the CRV2 opportunity engine.
@@ -2287,10 +2304,10 @@ async function loadWatchlist(){
   });
 
   const confirmed=all
-    .filter(r=>["EARLY_CONFIRMED_BUY","SWING_BUY"].includes(String(r.state||"").toUpperCase()));
+    .filter(verifiedExecutionBuy);
 
   const radar=all
-    .filter(r=>!["EARLY_CONFIRMED_BUY","SWING_BUY"].includes(String(r.state||"").toUpperCase()));
+    .filter(r=>!verifiedExecutionBuy(r));
 
   $("opportunityCount").textContent=confirmed.length;
 
@@ -2301,7 +2318,7 @@ async function loadWatchlist(){
     const top=rankedForHero[0];
     const ff=foreignFlowInfo(top);
     const state=String(top.state||"WATCH").replaceAll("_"," ");
-    const isBuy=["EARLY_CONFIRMED_BUY","SWING_BUY"].includes(String(top.state||"").toUpperCase());
+    const isBuy=verifiedExecutionBuy(top);
 
     $("topCandidate").textContent=top.ticker;
     $("topCandidateSub").textContent=`V42 · Opportunity ${hanzRankingScore(top)}/100 · ${state}`;
@@ -2340,7 +2357,7 @@ function renderRanking(rows,radarMode=false){
   $("ranking").innerHTML=rows.slice(0,5).map((row,index)=>{
     const rank=hanzRankingScore(row);
     const ff=foreignFlowInfo(row);
-    const state=String(row.state||"").replaceAll("_"," ");
+    const state=(!verifiedExecutionBuy(row) && ["SWING_BUY","EARLY_CONFIRMED_BUY"].includes(String(row.state||"").toUpperCase())) ? "UNVERIFIED TECHNICAL SETUP" : String(row.state||"").replaceAll("_"," ");
     return `<div class="rank" title="${safe(state)} · Foreign ${safe(ff.label)} · ${safe(ff.summary)}">
       <div class="rank-no">#${index+1}</div>
       <div class="rank-symbol">${safe(row.ticker)} ${radarMode?'<span class="radar-badge">RADAR</span>':""}</div>
