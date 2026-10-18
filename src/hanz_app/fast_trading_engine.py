@@ -702,19 +702,38 @@ def prefetch_market_data(
                     time.sleep(delay)
 
         if last_error is not None:
-            for _ in batch:
+            # A failed multi-symbol request does not prove every symbol is
+            # unavailable. Recover each independently before recording failure.
+            recovered_count = 0
+            for symbol in batch:
+                try:
+                    single = yf.download(
+                        tickers=symbol,
+                        interval=interval,
+                        period=period,
+                        auto_adjust=False,
+                        progress=False,
+                        threads=False,
+                        group_by="ticker",
+                        timeout=MARKET_REQUEST_TIMEOUT,
+                    )
+                    frame = _frame_from_batch(single, symbol)
+                    if frame is not None and not frame.empty:
+                        _store_market_frame(symbol, interval, period, frame, 0.0)
+                        _record_provider_result(True)
+                        total_success += 1
+                        recovered_count += 1
+                        continue
+                except Exception as exc:
+                    print(f"MARKET DATA individual fallback {symbol}: {exc}", flush=True)
                 _record_provider_result(False)
-
-            total_failed += len(batch)
+                total_failed += 1
 
             print(
-                "MARKET DATA batch failed "
-                f"{interval}: "
-                + ", ".join(batch)
-                + f" — {last_error}",
+                f"MARKET DATA batch fallback {interval}: "
+                f"{recovered_count}/{len(batch)} recovered",
                 flush=True,
             )
-
             continue
 
         for symbol in batch:
