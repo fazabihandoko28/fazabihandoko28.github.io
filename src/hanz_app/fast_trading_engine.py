@@ -739,6 +739,34 @@ def prefetch_market_data(
             _record_provider_result(True)
             total_success += 1
 
+        # Yahoo may omit thinly traded tickers from a successful batch.
+        # Retry missing symbols individually, accepting only real OHLC data.
+        for symbol in batch:
+            if symbol in batch_success:
+                continue
+            try:
+                single = yf.download(
+                    tickers=symbol,
+                    interval=interval,
+                    period=period,
+                    auto_adjust=False,
+                    progress=False,
+                    threads=False,
+                    group_by="ticker",
+                    timeout=MARKET_REQUEST_TIMEOUT,
+                )
+                recovered = _frame_from_batch(single, symbol)
+                if recovered is None or recovered.empty:
+                    continue
+                _store_market_frame(symbol, interval, period, recovered, 0.0)
+                batch_success.add(symbol)
+                total_success += 1
+                total_failed -= 1
+                _record_provider_result(True)
+                print(f"MARKET DATA recovered {symbol} individually", flush=True)
+            except Exception as exc:
+                print(f"MARKET DATA retry unavailable for {symbol}: {exc}", flush=True)
+
         missing = len(batch) - len(batch_success)
 
         if missing:
