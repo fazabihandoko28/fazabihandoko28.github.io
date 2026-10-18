@@ -41,7 +41,9 @@ def main():
     )
     result = {
         "commit": os.getenv("GITHUB_SHA", "local"),
-        "runtime_evidence": "PASS" if runtime_ok else "FAIL",
+        "runtime_evidence": "PASS" if runtime_ok and not missing else ("PARTIAL" if runtime_ok else "FAIL"),
+        "coverage_complete": not missing,
+        "coverage_count": len(tickers) - len(missing),
         "universe_count": len(tickers),
         "missing_symbols": missing,
         "health": row,
@@ -49,6 +51,8 @@ def main():
     print("HANZ FAST RUNTIME: " + json.dumps(result), flush=True)
     if not runtime_ok:
         raise RuntimeError("No persisted FAST candle evidence")
+    if missing:
+        raise RuntimeError(f"FAST coverage incomplete: {len(tickers) - len(missing)}/{len(tickers)}; missing={missing}")
 
 
 if __name__ == "__main__":
