@@ -1105,14 +1105,32 @@ function hanzRankingScore(row){
 }
 
 
+function hanzVerifiedBuy(row){
+  // Fail closed: a technical SWING_BUY is not an executable BUY.
+  const rv=riskObject(row);
+  const state=String(row?.state||"").toUpperCase();
+  const levels=["entry_price","entry_low","entry_high","stop_loss","target_1"];
+  return ["SWING_BUY","EARLY_CONFIRMED_BUY"].includes(state)
+    && String(row?.risk_gate||"").toUpperCase()==="ELIGIBLE"
+    && String(rv.gate||"").toUpperCase()==="ELIGIBLE"
+    && rv.actionable===true
+    && rv.data_quality?.verified===true
+    && rv.data_same_session_verified===true
+    && rv.strategy_validation?.passed===true
+    && String(row?.entry_status||"").toUpperCase()==="ENTRY_ZONE"
+    && levels.every(k=>Number.isFinite(Number(row?.[k])) && Number(row[k])>0)
+    && hanzIndexGate()==="PRICE_FRESH";
+}
+
 function effectiveHanzAction(row){
   const r=riskObject(row);
   const direct=String(r.hanz_action || row?.hanz_action || "").trim().toUpperCase();
+  if(direct==="BUY") return hanzVerifiedBuy(row) ? "BUY" : "WAIT";
   if(direct) return direct;
 
   // Compatibility for older/stale rows that predate hanz_action.
   const state=String(row?.state || "").trim().toUpperCase();
-  if(["SWING_BUY","EARLY_CONFIRMED_BUY"].includes(state)) return "BUY";
+  if(["SWING_BUY","EARLY_CONFIRMED_BUY"].includes(state)) return hanzVerifiedBuy(row) ? "BUY" : "WAIT";
   if(["PRE_ALERT","EARLY_WATCH","SWING_WATCH","SWING_CONFIRMING","SETUP_READY"].includes(state)) return "WAIT";
   return "";
 }
@@ -1736,7 +1754,10 @@ async function renderBacktest5y(ticker){
 function candidateStateLabel(row){
   const s=String(row?.state||"").toUpperCase();
   const action=effectiveHanzAction(row);
-  if(["SWING_BUY","EARLY_CONFIRMED_BUY"].includes(s)) return {label:"CONFIRMED BUY",cls:"state-buy"};
+  if(["SWING_BUY","EARLY_CONFIRMED_BUY"].includes(s))
+    return hanzVerifiedBuy(row)
+      ? {label:"CONFIRMED BUY",cls:"state-buy"}
+      : {label:"TECHNICAL SETUP · BUY NOT VERIFIED",cls:"state-watch"};
   if(action==="TP_RISK") return {label:"CAUTION · TP RISK",cls:"state-watch"};
   if(action==="RESISTANCE_WAIT") return {label:"WAIT · RESISTANCE",cls:"state-watch"};
   if(action==="WAIT_TRIGGER") return {label:"WAIT TRIGGER",cls:"state-watch"};
@@ -1783,8 +1804,8 @@ function candidateActionWarning(row){
     return "Belum trigger BUY — tunggu konfirmasi harga/volume.";
   if(state==="SETUP_READY")
     return "Setup siap dipantau; tunggu reconfirmation sebelum entry.";
-  if(["RESEARCH_ONLY","PAPER_ONLY"].includes(gate))
-    return `Risk gate: ${gate.replaceAll("_"," ")} — bukan live-money eligible.`;
+  if(gate!=="ELIGIBLE" || !hanzVerifiedBuy(row))
+    return `Execution NOT VERIFIED · Risk gate: ${gate||"UNKNOWN"} — not a live-money BUY.`;
   return "";
 }
 
@@ -2286,11 +2307,8 @@ async function loadWatchlist(){
     rejected
   });
 
-  const confirmed=all
-    .filter(r=>["EARLY_CONFIRMED_BUY","SWING_BUY"].includes(String(r.state||"").toUpperCase()));
-
-  const radar=all
-    .filter(r=>!["EARLY_CONFIRMED_BUY","SWING_BUY"].includes(String(r.state||"").toUpperCase()));
+  const confirmed=all.filter(hanzVerifiedBuy);
+  const radar=all.filter(r=>!hanzVerifiedBuy(r));
 
   $("opportunityCount").textContent=confirmed.length;
 
@@ -2301,10 +2319,10 @@ async function loadWatchlist(){
     const top=rankedForHero[0];
     const ff=foreignFlowInfo(top);
     const state=String(top.state||"WATCH").replaceAll("_"," ");
-    const isBuy=["EARLY_CONFIRMED_BUY","SWING_BUY"].includes(String(top.state||"").toUpperCase());
+    const isBuy=hanzVerifiedBuy(top);
 
     $("topCandidate").textContent=top.ticker;
-    $("topCandidateSub").textContent=`V42 · Opportunity ${hanzRankingScore(top)}/100 · ${state}`;
+    $("topCandidateSub").textContent=`V42 · Opportunity ${hanzRankingScore(top)}/100 · ${isBuy?"VERIFIED BUY":state+" · NOT VERIFIED BUY"}`;
     $("heroTopCandidate").textContent=top.ticker;
     $("heroTopSub").textContent=isBuy
       ? `HANZ OPPORTUNITY BUY · Rank ${hanzRankingScore(top)}/100 · Foreign ${ff.label}`
