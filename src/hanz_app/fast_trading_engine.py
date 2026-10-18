@@ -579,6 +579,7 @@ def prefetch_market_data(
 ):
     """Batch Yahoo requests and populate the last-valid in-memory cache."""
     global _PROVIDER_CONSECUTIVE_FAILURES
+    global _CYCLE_PROVIDER_FAILURES
 
     symbols = sorted({
         normalize_ticker(ticker)
