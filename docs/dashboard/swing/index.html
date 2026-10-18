@@ -1105,14 +1105,32 @@ function hanzRankingScore(row){
 }
 
 
+function hanzExecutionEligible(row){
+  // Fail closed: a technical BUY is never an executable BUY by itself.
+  const r=riskObject(row);
+  const quality=r.data_quality || {};
+  const gate=String(row?.risk_gate || r.gate || "").trim().toUpperCase();
+  const primaryDate=String(quality.primary_date || "").slice(0,10);
+  const verifierDate=String(quality.verifier_date || "").slice(0,10);
+  const barDate=String(row?.daily_bar_at || "").slice(0,10);
+  return gate==="ELIGIBLE"
+    && r.actionable===true
+    && quality.verified===true
+    && String(quality.status || "").toUpperCase()==="VERIFIED"
+    && Boolean(quality.verifier_source)
+    && Boolean(primaryDate) && primaryDate===verifierDate && primaryDate===barDate
+    && String(row?.entry_status || "").toUpperCase()==="ENTRY_ZONE";
+}
+
 function effectiveHanzAction(row){
   const r=riskObject(row);
   const direct=String(r.hanz_action || row?.hanz_action || "").trim().toUpperCase();
+  if(direct==="BUY") return hanzExecutionEligible(row) ? "BUY" : "WAIT";
   if(direct) return direct;
 
-  // Compatibility for older/stale rows that predate hanz_action.
+  // Legacy technical states cannot bypass execution validation.
   const state=String(row?.state || "").trim().toUpperCase();
-  if(["SWING_BUY","EARLY_CONFIRMED_BUY"].includes(state)) return "BUY";
+  if(["SWING_BUY","EARLY_CONFIRMED_BUY"].includes(state)) return hanzExecutionEligible(row) ? "BUY" : "WAIT";
   if(["PRE_ALERT","EARLY_WATCH","SWING_WATCH","SWING_CONFIRMING","SETUP_READY"].includes(state)) return "WAIT";
   return "";
 }
@@ -1167,6 +1185,7 @@ function hanzCanonicalRejectReason(row){
 }
 
 function buyStateLabel(row){
+  if(!hanzExecutionEligible(row)) return "TECHNICAL SETUP · BLOCKED";
   return String(row?.state || "SWING_BUY").toUpperCase()==="EARLY_CONFIRMED_BUY"
     ? "EARLY CONFIRMED BUY" : "SWING BUY";
 }
@@ -1736,7 +1755,9 @@ async function renderBacktest5y(ticker){
 function candidateStateLabel(row){
   const s=String(row?.state||"").toUpperCase();
   const action=effectiveHanzAction(row);
-  if(["SWING_BUY","EARLY_CONFIRMED_BUY"].includes(s)) return {label:"CONFIRMED BUY",cls:"state-buy"};
+  if(["SWING_BUY","EARLY_CONFIRMED_BUY"].includes(s)) return hanzExecutionEligible(row)
+    ? {label:"CONFIRMED BUY",cls:"state-buy"}
+    : {label:"TECHNICAL SETUP · BLOCKED",cls:"state-watch"};
   if(action==="TP_RISK") return {label:"CAUTION · TP RISK",cls:"state-watch"};
   if(action==="RESISTANCE_WAIT") return {label:"WAIT · RESISTANCE",cls:"state-watch"};
   if(action==="WAIT_TRIGGER") return {label:"WAIT TRIGGER",cls:"state-watch"};
