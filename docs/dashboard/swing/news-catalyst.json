@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-10-16T11:59:20.365054+00:00",
+  "generated_at": "2026-10-19T07:04:54.668492+00:00",
   "policy": "HIGH_CONFIDENCE_CAUSAL_ONLY",
   "selected_tickers": [
+    "SMIL",
     "INTP",
-    "KINO",
+    "PRDA",
     "AMAR",
-    "EDGE",
-    "INDF"
+    "BTPN"
   ],
   "catalysts": [
     {
@@ -14,10 +14,10 @@
       "direction": "NEGATIVE",
       "confidence": "HIGH",
       "score": 8,
-      "headline": "IHSG Makin Anjlok Usai Trading Halt Dibuka, Turun 11,21 Persen ke 5.206 - Kompas.com",
-      "source": "Kompas.com",
-      "url": "https://news.google.com/rss/articles/CBMiuwFBVV95cUxOLXZyU0JoUkV4dUhnbmlxLVBrbUFhV0FmWlpib192anRuV0g4R3QxbVFIb0RPcmlENGJkTU93X3dnWVJrdDZDazAyUUhTZ0lzV2prZ3EwUDdrSnRVOFI4alBFb0p1YXViZjE3YUdjQjlOYXpmVE5GVFQ0enlVNnczNS13TjNTY09mM250Rm8tSkVJS3VYUGRVZ0NmWUROWFhkM1ZrQTdZV0VrQUc1WHluVzA4LVFNRDVEVjZN?oc=5",
-      "published_at": "2026-10-16T02:49:00+00:00",
+      "headline": "IHSG Tertekan Usai Anjlok 11,57 Persen - bsinews.id",
+      "source": "bsinews.id",
+      "url": "https://news.google.com/rss/articles/CBMiYEFVX3lxTE5TdEQ5MnpDbmxTQ2VYT1Nnc082M2RYOWR3TWxGZm9udHRIQWFQUkhHXzFJQ1Qxd2FsVlVSTkJFWG9EazIzWlQwQUVNQjVISEI3SEJ3dmlYYThIdmkwdW5LSA?oc=5",
+      "published_at": "2026-10-19T03:01:21+00:00",
       "note": "Likely index news catalyst based on explicit causal headline language. Hidden when causal evidence is weak."
     }
   ]
