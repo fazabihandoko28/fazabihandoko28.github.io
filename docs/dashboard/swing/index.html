@@ -2101,6 +2101,14 @@ function buildCandidateChart(candles){
 
   if(rows.length<35) return '<div class="mover-empty">Chart data insufficient. Need at least 35 completed daily bars.</div>';
 
+  // Fail closed: an apparently current candle without reported trading volume
+  // cannot establish a fresh, trade-verified chart. This catches flat
+  // zero-volume placeholders without inventing market activity.
+  const latestBar=rows[rows.length-1];
+  if(!Number.isFinite(latestBar.volume) || latestBar.volume<=0){
+    return '<div class="mover-empty">Chart unavailable: latest daily bar has no verified trading volume. Data freshness is unverified; do not trade from this chart.</div>';
+  }
+
   const data=rows.slice(-60);
   const close=data.map(d=>d.close);
   const volume=data.map(d=>Number.isFinite(d.volume)?d.volume:0);
