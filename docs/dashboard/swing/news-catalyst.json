@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-10-19T07:04:54.668492+00:00",
+  "generated_at": "2026-10-19T14:48:47.602590+00:00",
   "policy": "HIGH_CONFIDENCE_CAUSAL_ONLY",
   "selected_tickers": [
-    "SMIL",
     "INTP",
-    "PRDA",
-    "AMAR",
-    "BTPN"
+    "MARK",
+    "KINO",
+    "EDGE",
+    "TGKA"
   ],
   "catalysts": [
     {
@@ -14,10 +14,10 @@
       "direction": "NEGATIVE",
       "confidence": "HIGH",
       "score": 8,
-      "headline": "IHSG Tertekan Usai Anjlok 11,57 Persen - bsinews.id",
+      "headline": "IHSG Terancam Melemah Usai Anjlok 11,57 Persen - bsinews.id",
       "source": "bsinews.id",
-      "url": "https://news.google.com/rss/articles/CBMiYEFVX3lxTE5TdEQ5MnpDbmxTQ2VYT1Nnc082M2RYOWR3TWxGZm9udHRIQWFQUkhHXzFJQ1Qxd2FsVlVSTkJFWG9EazIzWlQwQUVNQjVISEI3SEJ3dmlYYThIdmkwdW5LSA?oc=5",
-      "published_at": "2026-10-19T03:01:21+00:00",
+      "url": "https://news.google.com/rss/articles/CBMiVkFVX3lxTFAwbl91ank4VzFKek92UDBmUnBHYm1neVU5aVNSMEJ0cTdSMng5NHk3T05hblN5X25UUXlhOUV5WHBoNVk4Q0c0d3d3amplcmI4LTJ3SUZR?oc=5",
+      "published_at": "2026-10-19T00:34:26+00:00",
       "note": "Likely index news catalyst based on explicit causal headline language. Hidden when causal evidence is weak."
     }
   ]
