@@ -1113,7 +1113,11 @@ function hanzExecutionEligible(row){
   const primaryDate=String(quality.primary_date || "").slice(0,10);
   const verifierDate=String(quality.verifier_date || "").slice(0,10);
   const barDate=String(row?.daily_bar_at || "").slice(0,10);
+  const expectedDate=String(r.data_expected_completed_date || "").slice(0,10);
   return gate==="ELIGIBLE"
+    && r.strategy_validation?.passed===true
+    && Boolean(expectedDate) && expectedDate===barDate
+    && hanzIndexFreshness(hanzIndexObservation())==="PRICE_FRESH"
     && r.actionable===true
     && quality.verified===true
     && String(quality.status || "").toUpperCase()==="VERIFIED"
@@ -2316,10 +2320,11 @@ async function loadWatchlist(){
   });
 
   const confirmed=all
-    .filter(r=>["EARLY_CONFIRMED_BUY","SWING_BUY"].includes(String(r.state||"").toUpperCase()));
+    .filter(r=>["EARLY_CONFIRMED_BUY","SWING_BUY"].includes(String(r.state||"").toUpperCase())
+      && hanzExecutionEligible(r));
 
-  const radar=all
-    .filter(r=>!["EARLY_CONFIRMED_BUY","SWING_BUY"].includes(String(r.state||"").toUpperCase()));
+  // Unverified technical BUY states remain research radar, never confirmed BUY.
+  const radar=all.filter(r=>!confirmed.includes(r));
 
   $("opportunityCount").textContent=confirmed.length;
 
@@ -2330,7 +2335,7 @@ async function loadWatchlist(){
     const top=rankedForHero[0];
     const ff=foreignFlowInfo(top);
     const state=String(top.state||"WATCH").replaceAll("_"," ");
-    const isBuy=["EARLY_CONFIRMED_BUY","SWING_BUY"].includes(String(top.state||"").toUpperCase());
+    const isBuy=confirmed.includes(top);
 
     $("topCandidate").textContent=top.ticker;
     $("topCandidateSub").textContent=`V42 · Opportunity ${hanzRankingScore(top)}/100 · ${state}`;
