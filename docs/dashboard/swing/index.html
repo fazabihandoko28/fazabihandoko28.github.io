@@ -1122,6 +1122,11 @@ function hanzExecutionEligible(row){
     && String(row?.entry_status || "").toUpperCase()==="ENTRY_ZONE";
 }
 
+function hanzConfirmedBuy(row){
+  const state=String(row?.state || "").trim().toUpperCase();
+  return ["SWING_BUY","EARLY_CONFIRMED_BUY"].includes(state) && hanzExecutionEligible(row);
+}
+
 function effectiveHanzAction(row){
   const r=riskObject(row);
   const direct=String(r.hanz_action || row?.hanz_action || "").trim().toUpperCase();
@@ -2099,9 +2104,17 @@ function buildCandidateChart(candles){
     }))
     .filter(c=>Number.isFinite(c.close));
 
-  if(rows.length<35) return '<div class="mover-empty">Chart data insufficient. Need at least 35 completed daily bars.</div>';
+  // Zero-volume provider bars can be carry-forward/no-trade observations.
+  // Never present them as fresh traded candles or use them in indicators.
+  const lastTradedIndex=rows.findLastIndex(c=>Number.isFinite(c.volume)&&c.volume>0);
+  const traded=lastTradedIndex<0?[]:rows.slice(0,lastTradedIndex+1);
+  const zeroVolumeTail=rows.length-traded.length;
+  if(traded.length<35) return '<div class="mover-empty">Chart unavailable: insufficient positive-volume daily bars. Unverified zero-volume dates are not fresh trades.</div>';
+  const chartWarning=zeroVolumeTail>0
+    ? `<div class="mover-empty">UNVERIFIED ZERO-VOLUME BARS: ${zeroVolumeTail} latest daily bar(s) have no reported trading volume. Last positive-volume bar: ${safe(traded.at(-1).date)}. Unverified tail excluded; NOT LIVE and NOT a BUY confirmation.</div>`
+    : "";
 
-  const data=rows.slice(-60);
+  const data=traded.slice(-60);
   const close=data.map(d=>d.close);
   const volume=data.map(d=>Number.isFinite(d.volume)?d.volume:0);
   const dates=data.map(d=>d.date);
@@ -2198,7 +2211,7 @@ function buildCandidateChart(candles){
 
   const latest={close:close.at(-1),ma20:ma20.at(-1),ma50:ma50.at(-1),rsi:rsi.at(-1),macd:macd.at(-1),signal:signal.at(-1),bbUpper:bbUpper.at(-1),bbLower:bbLower.at(-1),volume:volume.at(-1)};
 
-  return `<div class="tech-chart-grid">
+  return `${chartWarning}<div class="tech-chart-grid">
     <div class="tech-panel">
       <div class="tech-panel-head"><strong>CANDLE PRICE · MA20 · MA50 · BOLLINGER BANDS</strong><div class="tech-legend"><span>60 completed daily bars</span><span>Close ${fmtChartNumber(latest.close)}</span><span>MA20 ${fmtChartNumber(latest.ma20)}</span><span>MA50 ${fmtChartNumber(latest.ma50)}</span></div></div>
       <svg class="tech-svg" viewBox="0 0 ${W} ${pH}" preserveAspectRatio="none">
@@ -2307,11 +2320,8 @@ async function loadWatchlist(){
     rejected
   });
 
-  const confirmed=all
-    .filter(r=>["EARLY_CONFIRMED_BUY","SWING_BUY"].includes(String(r.state||"").toUpperCase()));
-
-  const radar=all
-    .filter(r=>!["EARLY_CONFIRMED_BUY","SWING_BUY"].includes(String(r.state||"").toUpperCase()));
+  const confirmed=all.filter(hanzConfirmedBuy);
+  const radar=all.filter(r=>!hanzConfirmedBuy(r));
 
   $("opportunityCount").textContent=confirmed.length;
 
@@ -2322,7 +2332,7 @@ async function loadWatchlist(){
     const top=rankedForHero[0];
     const ff=foreignFlowInfo(top);
     const state=String(top.state||"WATCH").replaceAll("_"," ");
-    const isBuy=["EARLY_CONFIRMED_BUY","SWING_BUY"].includes(String(top.state||"").toUpperCase());
+    const isBuy=hanzConfirmedBuy(top);
 
     $("topCandidate").textContent=top.ticker;
     $("topCandidateSub").textContent=`V42 · Opportunity ${hanzRankingScore(top)}/100 · ${state}`;
