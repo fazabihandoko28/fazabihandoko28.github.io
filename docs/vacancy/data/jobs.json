@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-10-18T20:48:39.897082+00:00",
+  "generated_at": "2026-10-19T04:46:41.884338+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
   "raw_jobs": 1343,
-  "matching_jobs": 77,
+  "matching_jobs": 79,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 445
+      "jobs": 447
     },
     {
       "name": "Publicis Groupe",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 398
+      "jobs": 396
     },
     {
       "name": "Visa",
@@ -440,6 +440,15 @@
       "source_verified": true
     },
     {
+      "id": "sr-744000156224259",
+      "title": "Intern, Account Management, Merchant Growth",
+      "company": "Grab",
+      "location": "Singapore, Singapore",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000156224259-intern-account-management-merchant-growth",
+      "published_at": "2026-10-19T02:54:45.369Z",
+      "source_verified": true
+    },
+    {
       "id": "sr-744000149795174",
       "title": "Intern, Commercial Enablement, Sales Enablement",
       "company": "Grab",
@@ -719,12 +728,21 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000154916119",
+      "id": "sr-744000156221870",
+      "title": "CS Lead Vietnam Consumer Insights & Brand",
+      "company": "NielsenIQ",
+      "location": "Ho Chi Minh City, Vietnam",
+      "url": "https://jobs.smartrecruiters.com/NielsenIQ/744000156221870-cs-lead-vietnam-consumer-insights-brand",
+      "published_at": "2026-10-19T02:01:40.349Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000156225889",
       "title": "Panel Communication Specialist (Data Management Chinese Speaker)",
       "company": "NielsenIQ",
       "location": "Kuala Lumpur, Malaysia",
-      "url": "https://jobs.smartrecruiters.com/NielsenIQ/744000154916119-panel-communication-specialist-data-management-chinese-speaker",
-      "published_at": "2026-10-12T03:15:46.680Z",
+      "url": "https://jobs.smartrecruiters.com/NielsenIQ/744000156225889-panel-communication-specialist-data-management-chinese-speaker",
+      "published_at": "2026-10-19T03:34:12.933Z",
       "source_verified": true
     },
     {
