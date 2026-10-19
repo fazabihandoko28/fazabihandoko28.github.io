@@ -562,13 +562,13 @@ th{color:var(--muted)}
       <small>HANZ INTELLIGENCE NETWORK</small>
       <h1>Swing opportunities.<br>Personal portfolio intelligence.</h1>
       <p>
-        Confirmed BUY scanning (Early Confirmed + Swing) with private per-user swing portfolio monitoring,
+        Technical swing scanning with execution labels gated by independent verification, backtest and risk checks; private per-user swing portfolio monitoring,
         risk levels, targets, alerts and automatic trailing-stop management.
       </p>
     </div>
 
     <div class="hero-top">
-      <span>CURRENT TOP SWING BUY</span>
+      <span>TOP SWING OPPORTUNITY</span>
       <strong id="heroTopCandidate">—</strong>
       <small id="heroTopSub">Waiting for HANZ scan</small>
     </div>
@@ -1104,6 +1104,23 @@ function hanzRankingScore(row){
     : 0;
 }
 
+
+function hanzExecutionEligible(row){
+  // Fail closed: technical BUY is never execution permission.
+  const rv=riskObject(row), q=rv.data_quality || {}, strategy=rv.strategy_validation || {};
+  const state=String(row?.state || "").toUpperCase();
+  const gate=String(row?.risk_gate || rv.gate || "").toUpperCase();
+  const low=Number(row?.entry_low), high=Number(row?.entry_high);
+  const entry=Number(row?.entry_price), stop=Number(row?.stop_loss), target=Number(row?.target_1);
+  const bar=String(row?.daily_bar_at || "").slice(0,10);
+  return ["SWING_BUY","EARLY_CONFIRMED_BUY"].includes(state)
+    && gate==="ELIGIBLE" && rv.actionable===true
+    && q.verified===true && strategy.passed===true
+    && Boolean(bar) && q.primary_date===bar && q.verifier_date===bar
+    && String(row?.entry_status || "").toUpperCase()==="ENTRY_ZONE"
+    && [low,high,entry,stop,target].every(v=>Number.isFinite(v) && v>0)
+    && low<=entry && entry<=high && stop<low && target>high;
+}
 
 function effectiveHanzAction(row){
   const r=riskObject(row);
@@ -1736,7 +1753,10 @@ async function renderBacktest5y(ticker){
 function candidateStateLabel(row){
   const s=String(row?.state||"").toUpperCase();
   const action=effectiveHanzAction(row);
-  if(["SWING_BUY","EARLY_CONFIRMED_BUY"].includes(s)) return {label:"CONFIRMED BUY",cls:"state-buy"};
+  if(["SWING_BUY","EARLY_CONFIRMED_BUY"].includes(s))
+    return hanzExecutionEligible(row)
+      ? {label:"EXECUTION-ELIGIBLE BUY",cls:"state-buy"}
+      : {label:"TECHNICAL SETUP · NOT BUY",cls:"state-watch"};
   if(action==="TP_RISK") return {label:"CAUTION · TP RISK",cls:"state-watch"};
   if(action==="RESISTANCE_WAIT") return {label:"WAIT · RESISTANCE",cls:"state-watch"};
   if(action==="WAIT_TRIGGER") return {label:"WAIT TRIGGER",cls:"state-watch"};
@@ -1779,6 +1799,8 @@ function candidateSwingHorizon(row){
 function candidateActionWarning(row){
   const state=String(row?.state||"").toUpperCase();
   const gate=String(row?.risk_gate || riskObject(row)?.gate || "").toUpperCase();
+  if(["SWING_BUY","EARLY_CONFIRMED_BUY"].includes(state) && !hanzExecutionEligible(row))
+    return "Technical BUY state only — execution blocked until independent data, backtest and risk gates pass.";
   if(["PRE_ALERT","EARLY_WATCH","SWING_WATCH","SWING_CONFIRMING"].includes(state))
     return "Belum trigger BUY — tunggu konfirmasi harga/volume.";
   if(state==="SETUP_READY")
@@ -1800,10 +1822,10 @@ function renderSelectedCandidates(rows){
     const state=candidateStateLabel(row);
     const rank=hanzRankingScore(row);
     const entryLow=Number(row.entry_low), entryHigh=Number(row.entry_high);
-    const entry=(Number.isFinite(entryLow)&&Number.isFinite(entryHigh))?`${price(entryLow)} – ${price(entryHigh)}`:"—";
-    const upside=candidateUpsidePct(row);
+    const entry=(hanzExecutionEligible(row)&&Number.isFinite(entryLow)&&Number.isFinite(entryHigh))?`${price(entryLow)} – ${price(entryHigh)}`:"NOT VALIDATED";
+    const upside=hanzExecutionEligible(row)?candidateUpsidePct(row):null;
     const upsideText=Number.isFinite(upside)?`${upside>=0?"+":""}${upside.toFixed(1)}%`:"—";
-    const horizon=candidateSwingHorizon(row);
+    const horizon=hanzExecutionEligible(row)?candidateSwingHorizon(row):"—";
     const warning=candidateActionWarning(row);
     return `<article class="candidate-card">
       <div class="candidate-card-head">
@@ -1812,10 +1834,10 @@ function renderSelectedCandidates(rows){
       </div>
       <div class="candidate-metrics">
         <div class="candidate-metric"><span>CURRENT</span><strong>${price(row.price)}</strong></div>
-        <div class="candidate-metric accent"><span>BUY ZONE</span><strong>${entry}</strong></div>
-        <div class="candidate-metric"><span>STOP / INVALIDATION</span><strong>${price(row.stop_loss)}</strong></div>
-        <div class="candidate-metric accent"><span>TP1</span><strong>${price(row.target_1)}</strong></div>
-        <div class="candidate-metric"><span>TP2</span><strong>${price(row.target_2)}</strong></div>
+        <div class="candidate-metric accent"><span>ENTRY (GATED)</span><strong>${entry}</strong></div>
+        <div class="candidate-metric"><span>STOP / INVALIDATION</span><strong>${hanzExecutionEligible(row)?price(row.stop_loss):"NOT VALIDATED"}</strong></div>
+        <div class="candidate-metric accent"><span>TP1</span><strong>${hanzExecutionEligible(row)?price(row.target_1):"NOT VALIDATED"}</strong></div>
+        <div class="candidate-metric"><span>TP2</span><strong>${hanzExecutionEligible(row)?price(row.target_2):"NOT VALIDATED"}</strong></div>
         <div class="candidate-metric caution"><span>SIGNAL</span><strong>${safe(state.label)}</strong></div>
       </div>
       <div class="candidate-outlook">
@@ -1826,7 +1848,7 @@ function renderSelectedCandidates(rows){
       ${warning?`<div class="candidate-warning">${safe(warning)}</div>`:""}
       <div class="candidate-reason">${safe(candidateReason(row))}</div>
       <div class="candidate-actions">
-        <button class="candidate-btn primary" type="button" data-candidate-detail="${i}">Trade Plan</button>
+        <button class="candidate-btn primary" type="button" data-candidate-detail="${i}">Research Plan</button>
         <button class="candidate-btn" type="button" data-candidate-chart="${i}">View Chart</button>
       </div>
     </article>`;
@@ -2286,11 +2308,9 @@ async function loadWatchlist(){
     rejected
   });
 
-  const confirmed=all
-    .filter(r=>["EARLY_CONFIRMED_BUY","SWING_BUY"].includes(String(r.state||"").toUpperCase()));
+  const confirmed=all.filter(hanzExecutionEligible);
 
-  const radar=all
-    .filter(r=>!["EARLY_CONFIRMED_BUY","SWING_BUY"].includes(String(r.state||"").toUpperCase()));
+  const radar=all.filter(r=>!hanzExecutionEligible(r));
 
   $("opportunityCount").textContent=confirmed.length;
 
@@ -2301,7 +2321,7 @@ async function loadWatchlist(){
     const top=rankedForHero[0];
     const ff=foreignFlowInfo(top);
     const state=String(top.state||"WATCH").replaceAll("_"," ");
-    const isBuy=["EARLY_CONFIRMED_BUY","SWING_BUY"].includes(String(top.state||"").toUpperCase());
+    const isBuy=hanzExecutionEligible(top);
 
     $("topCandidate").textContent=top.ticker;
     $("topCandidateSub").textContent=`V42 · Opportunity ${hanzRankingScore(top)}/100 · ${state}`;
@@ -2341,7 +2361,8 @@ function renderRanking(rows,radarMode=false){
   $("ranking").innerHTML=rows.slice(0,5).map((row,index)=>{
     const rank=hanzRankingScore(row);
     const ff=foreignFlowInfo(row);
-    const state=String(row.state||"").replaceAll("_"," ");
+    const state=(["SWING_BUY","EARLY_CONFIRMED_BUY"].includes(String(row.state||"").toUpperCase()) && !hanzExecutionEligible(row))
+      ? "TECHNICAL SETUP · NOT BUY" : String(row.state||"").replaceAll("_"," ");
     return `<div class="rank" title="${safe(state)} · Foreign ${safe(ff.label)} · ${safe(ff.summary)}">
       <div class="rank-no">#${index+1}</div>
       <div class="rank-symbol">${safe(row.ticker)} ${radarMode?'<span class="radar-badge">RADAR</span>':""}</div>
