@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-10-19T04:46:41.884338+00:00",
+  "generated_at": "2026-10-19T13:24:45.405988+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1343,
+  "raw_jobs": 1352,
   "matching_jobs": 79,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 447
+      "jobs": 453
     },
     {
       "name": "Publicis Groupe",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 396
+      "jobs": 399
     },
     {
       "name": "Visa",
@@ -548,12 +548,12 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000153472063",
+      "id": "sr-744000156275589",
       "title": "Manager, Merchant Acquisition - GrabMart",
       "company": "Grab",
       "location": "Bangkok, Thailand",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000153472063-manager-merchant-acquisition-grabmart",
-      "published_at": "2026-10-05T11:26:20.987Z",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000156275589-manager-merchant-acquisition-grabmart",
+      "published_at": "2026-10-19T09:49:30.507Z",
       "source_verified": true
     },
     {
