@@ -568,7 +568,7 @@ th{color:var(--muted)}
     </div>
 
     <div class="hero-top">
-      <span>CURRENT TOP SWING BUY</span>
+      <span>TOP SWING OPPORTUNITY</span>
       <strong id="heroTopCandidate">—</strong>
       <small id="heroTopSub">Waiting for HANZ scan</small>
     </div>
@@ -2348,10 +2348,10 @@ async function loadWatchlist(){
   });
 
   const confirmed=all
-    .filter(r=>["EARLY_CONFIRMED_BUY","SWING_BUY"].includes(String(r.state||"").toUpperCase()));
+    .filter(r=>hanzExecutionEligible(r) && ["EARLY_CONFIRMED_BUY","SWING_BUY"].includes(String(r.state||"").toUpperCase()));
 
   const radar=all
-    .filter(r=>!["EARLY_CONFIRMED_BUY","SWING_BUY"].includes(String(r.state||"").toUpperCase()));
+    .filter(r=>!confirmed.includes(r));
 
   $("opportunityCount").textContent=confirmed.length;
 
@@ -2362,7 +2362,7 @@ async function loadWatchlist(){
     const top=rankedForHero[0];
     const ff=foreignFlowInfo(top);
     const state=String(top.state||"WATCH").replaceAll("_"," ");
-    const isBuy=["EARLY_CONFIRMED_BUY","SWING_BUY"].includes(String(top.state||"").toUpperCase());
+    const isBuy=hanzExecutionEligible(top) && ["EARLY_CONFIRMED_BUY","SWING_BUY"].includes(String(top.state||"").toUpperCase());
 
     $("topCandidate").textContent=top.ticker;
     $("topCandidateSub").textContent=`V42 · Opportunity ${hanzRankingScore(top)}/100 · ${state}`;
