@@ -933,14 +933,19 @@ def publish_cycle_health():
     provider_status = _provider_cycle_status()
     age_seconds = (utc_now() - oldest).total_seconds() if oldest else None
     # Reject future-dated bars as well: clock skew must never certify freshness.
-    future_dated = age_seconds is not None and age_seconds < -60
+    # Check every consumed ticker; the oldest-bar check alone can conceal
+    # a future-dated ticker when another ticker has an older valid bar.
+    future_dated = any(
+        (utc_now() - ts).total_seconds() < -60
+        for ts in _CYCLE_MARKET_BARS.values()
+    )
     stale = (age_seconds is None or future_dated
              or age_seconds > MAX_DATA_AGE_SECONDS)
     status = "STALE" if stale else provider_status
     error = _provider_cycle_error()
     if stale:
         detail = ("no intraday candle consumed" if oldest is None
-                  else f"future-dated intraday candle ({int(-age_seconds)}s ahead)" if future_dated
+                  else "future-dated intraday candle detected" if future_dated
                   else f"oldest intraday candle age {int(age_seconds)}s exceeds {MAX_DATA_AGE_SECONDS}s")
         error = f"{error}; {detail}" if error else detail
     return update_fast_health(
