@@ -6175,6 +6175,20 @@ def upsert_chart_data(ticker, daily_df, result):
     }
 
 
+def sanitize_monitor_risk_validation(risk_validation):
+    """Keep nested monitor metadata consistent with execution risk gates."""
+    safe = dict(risk_validation or {})
+    gate = str(safe.get("gate") or "").upper()
+    if gate != "ELIGIBLE" or safe.get("actionable") is not True:
+        safe["entry_status"] = "UNVALIDATED_LEVELS"
+        safe["entry_note"] = (
+            "NO BUY CONFIRMATION: execution eligibility has not passed; "
+            "technical levels are research-only."
+        )
+        safe["actionable"] = False
+    return safe
+
+
 def upsert_monitor(
     ticker,
     daily,
@@ -6185,8 +6199,9 @@ def upsert_monitor(
     fundamental,
     risk_validation,
 ):
+    risk_validation = sanitize_monitor_risk_validation(risk_validation)
     gate = str(risk_validation.get("gate") or "").upper()
-    execution_allowed = gate == "ELIGIBLE"
+    execution_allowed = gate == "ELIGIBLE" and risk_validation.get("actionable") is True
     safe_entry_status = levels.get("entry_status") if execution_allowed else "UNVALIDATED_LEVELS"
     safe_entry_note = levels.get("entry_note") if execution_allowed else (
         "Technical setup only; execution blocked pending independent verification."
