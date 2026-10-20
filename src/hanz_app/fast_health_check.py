@@ -39,9 +39,12 @@ def main():
         and row.get("last_market_bar_at") == written["last_market_bar_at"]
         and row.get("data_status") == written["data_status"]
     )
+    # Persisted candle evidence is not a PASS when its market data is stale.
+    fresh = row.get("data_status") == "FRESH"
+    verified = runtime_ok and fresh
     result = {
         "commit": os.getenv("GITHUB_SHA", "local"),
-        "runtime_evidence": "PASS" if runtime_ok and not missing else ("PARTIAL" if runtime_ok else "FAIL"),
+        "runtime_evidence": "PASS" if verified and not missing else ("PARTIAL" if verified else "FAIL"),
         "coverage_complete": not missing,
         "coverage_count": len(tickers) - len(missing),
         "universe_count": len(tickers),
@@ -51,6 +54,8 @@ def main():
     print("HANZ FAST RUNTIME: " + json.dumps(result), flush=True)
     if not runtime_ok:
         raise RuntimeError("No persisted FAST candle evidence")
+    if not fresh:
+        raise RuntimeError(f"FAST intraday data not fresh: {row.get('data_status')}")
     if missing:
         raise RuntimeError(f"FAST coverage incomplete: {len(tickers) - len(missing)}/{len(tickers)}; missing={missing}")
 
