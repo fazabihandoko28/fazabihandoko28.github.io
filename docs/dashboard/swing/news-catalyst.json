@@ -1,19 +1,15 @@
 {
-  "generated_at": "2026-10-19T14:48:47.602590+00:00",
+  "generated_at": "2026-10-20T06:49:39.286897+00:00",
   "policy": "HIGH_CONFIDENCE_CAUSAL_ONLY",
   "selected_tickers": [
-    "INTP",
-    "MARK",
-    "KINO",
-    "EDGE",
-    "TGKA"
+    "EDGE"
   ],
   "catalysts": [
     {
       "scope": "IHSG",
       "direction": "NEGATIVE",
       "confidence": "HIGH",
-      "score": 8,
+      "score": 7,
       "headline": "IHSG Terancam Melemah Usai Anjlok 11,57 Persen - bsinews.id",
       "source": "bsinews.id",
       "url": "https://news.google.com/rss/articles/CBMiVkFVX3lxTFAwbl91ank4VzFKek92UDBmUnBHYm1neVU5aVNSMEJ0cTdSMng5NHk3T05hblN5X25UUXlhOUV5WHBoNVk4Q0c0d3d3amplcmI4LTJ3SUZR?oc=5",
