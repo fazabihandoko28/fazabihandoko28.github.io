@@ -5,9 +5,9 @@ on:
 
   schedule:
     # GitHub cron uses UTC. WIB = UTC+7.
-    # Intraday: 09:10, 11:10, 14:10 WIB.
+    # Poll every 5 minutes, 09:00–15:55 WIB (Actions may queue/delay).
     # Post-close final snapshot: 16:20 WIB.
-    - cron: "10 2,4,7 * * 1-5"
+    - cron: "*/5 2-8 * * 1-5"
     - cron: "20 9 * * 1-5"
 
 permissions:

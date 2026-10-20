@@ -158,9 +158,15 @@
     if(Number.isFinite(chg)&&Number.isFinite(pct)){
       const sign=chg>0?"+":""; change.textContent=`${sign}${fmt(chg,2)} (${sign}${pct.toFixed(2)}%)`; change.className="ihsg-change "+(chg>0?"up":chg<0?"down":"flat");
     }else{change.textContent="Waiting market data";change.className="ihsg-change flat";}
-    const isLive=String(data?.quote_type||"").toUpperCase()==="LIVE";
-    const headline=isLive?`LIVE · ${fmtMarketDate(data?.market_date)}`:`LAST CLOSE · ${fmtMarketDate(data?.market_date)}`;
-    meta.innerHTML=`${headline}<br>HANZ refresh: ${fmtUpdated(data?.updated_at)}`;
+    const raw=String(data?.quote_at||"");
+    const quoteMs=Date.parse(raw), age=Date.now()-quoteMs;
+    const validQuote=Number.isFinite(quoteMs) && /(?:Z|[+-]\d\d:\d\d)$/.test(raw) && age>=0;
+    const intraday=String(data?.quote_type||"").toUpperCase()==="LIVE";
+    // Re-evaluate age in the browser: the file's stale=false expires too.
+    const fresh=validQuote && age<=15*60*1000 && data?.stale!==true;
+    const status=intraday?(fresh?"FRESH SNAPSHOT":"STALE FEED"):"LAST CLOSE";
+    const headline=`${status} · ${fmtMarketDate(data?.market_date)}`;
+    meta.innerHTML=`${headline}<br>Price time: ${validQuote?fmtUpdated(raw):"Unverified"}<br>HANZ refresh: ${fmtUpdated(data?.updated_at)}`;
   }
 
   async function load(){
@@ -177,6 +183,6 @@
     const script=document.createElement("script");script.src="/dashboard/swing/fibonacci-overlay.js?v=1";script.defer=true;script.dataset.hanzFib="1";document.head.appendChild(script);
   }
 
-  function start(){loadFibonacci();load();setInterval(load,300000);setInterval(renderAutoDecisions,1000);}
+  function start(){loadFibonacci();load();setInterval(load,60000);setInterval(renderAutoDecisions,1000);}
   if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",start); else start();
 })();
