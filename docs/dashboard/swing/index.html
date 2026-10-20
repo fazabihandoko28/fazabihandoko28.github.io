@@ -1778,7 +1778,9 @@ function candidateReason(row){
 }
 
 function candidateUpsidePct(row){
-  const t1=Number(row?.target_1);
+  // A hypothetical target is not an executable upside estimate.
+  if(!hanzExecutionEligible(row) || row?.target_1==null || row.target_1==="") return null;
+  const t1=Number(row.target_1);
   const low=Number(row?.entry_low), high=Number(row?.entry_high), current=Number(row?.price);
   const base=(Number.isFinite(low)&&Number.isFinite(high)&&low>0&&high>0)?(low+high)/2:(Number.isFinite(current)&&current>0?current:NaN);
   return Number.isFinite(t1)&&Number.isFinite(base)&&base>0 ? ((t1-base)/base)*100 : null;
@@ -1798,6 +1800,8 @@ function candidateSwingHorizon(row){
 }
 
 function candidateActionWarning(row){
+  if(!hanzExecutionEligible(row))
+    return "EXECUTION BLOCKED — independent price verification, risk and entry checks have not all passed.";
   const state=String(row?.state||"").toUpperCase();
   const gate=String(row?.risk_gate || riskObject(row)?.gate || "").toUpperCase();
   if(["PRE_ALERT","EARLY_WATCH","SWING_WATCH","SWING_CONFIRMING"].includes(state))
@@ -1820,8 +1824,10 @@ function renderSelectedCandidates(rows){
   grid.innerHTML=selectedCandidateRows.map((row,i)=>{
     const state=candidateStateLabel(row);
     const rank=hanzRankingScore(row);
-    const entryLow=Number(row.entry_low), entryHigh=Number(row.entry_high);
-    const entry=(Number.isFinite(entryLow)&&Number.isFinite(entryHigh))?`${price(entryLow)} – ${price(entryHigh)}`:"—";
+    const executionAllowed=hanzExecutionEligible(row);
+    const entryLow=executionAllowed&&row.entry_low!=null?Number(row.entry_low):NaN;
+    const entryHigh=executionAllowed&&row.entry_high!=null?Number(row.entry_high):NaN;
+    const entry=(entryLow>0&&entryHigh>=entryLow&&Number.isFinite(entryLow)&&Number.isFinite(entryHigh))?`${price(entryLow)} – ${price(entryHigh)}`:"—";
     const upside=candidateUpsidePct(row);
     const upsideText=Number.isFinite(upside)?`${upside>=0?"+":""}${upside.toFixed(1)}%`:"—";
     const horizon=candidateSwingHorizon(row);
@@ -1834,9 +1840,9 @@ function renderSelectedCandidates(rows){
       <div class="candidate-metrics">
         <div class="candidate-metric"><span>CURRENT</span><strong>${price(row.price)}</strong></div>
         <div class="candidate-metric accent"><span>BUY ZONE</span><strong>${entry}</strong></div>
-        <div class="candidate-metric"><span>STOP / INVALIDATION</span><strong>${price(row.stop_loss)}</strong></div>
-        <div class="candidate-metric accent"><span>TP1</span><strong>${price(row.target_1)}</strong></div>
-        <div class="candidate-metric"><span>TP2</span><strong>${price(row.target_2)}</strong></div>
+        <div class="candidate-metric"><span>STOP / INVALIDATION</span><strong>${price(executionAllowed?row.stop_loss:null)}</strong></div>
+        <div class="candidate-metric accent"><span>TP1</span><strong>${price(executionAllowed?row.target_1:null)}</strong></div>
+        <div class="candidate-metric"><span>TP2</span><strong>${price(executionAllowed?row.target_2:null)}</strong></div>
         <div class="candidate-metric caution"><span>SIGNAL</span><strong>${safe(state.label)}</strong></div>
       </div>
       <div class="candidate-outlook">
