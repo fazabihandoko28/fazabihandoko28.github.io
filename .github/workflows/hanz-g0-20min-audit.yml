@@ -1,0 +1,71 @@
+name: HANZ G0 20-Minute Audit
+
+on:
+  schedule:
+    - cron: '*/20 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: hanz-g0-20min-audit
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    name: G0 evidence and freshness audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Audit recent GitHub Actions and freshness evidence
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPOSITORY: ${{ github.repository }}
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json, os, sys, urllib.request
+          from datetime import datetime, timezone
+          repo = os.environ["GH_REPOSITORY"]
+          token = os.environ["GH_TOKEN"]
+          req = urllib.request.Request(
+              f"https://api.github.com/repos/{repo}/actions/runs?per_page=100",
+              headers={"Authorization": f"Bearer {token}", "Accept": "application/vnd.github+json"},
+          )
+          with urllib.request.urlopen(req, timeout=25) as response:
+              runs = json.load(response).get("workflow_runs", [])
+          patterns = {
+              "scanner": ("swing scanner",),
+              "ci": ("hanz ci",),
+              "pages": ("pages",),
+              "watchdog": ("watchdog",),
+              "itick": ("itick", "idx coverage"),
+              "fast": ("fast runtime",),
+          }
+          print("G0 AUDIT UTC:", datetime.now(timezone.utc).isoformat())
+          failures = []
+          for key, names in patterns.items():
+              match = next((r for r in runs if any(n in r.get("name", "").lower() for n in names)
+                            and r.get("name") != "HANZ G0 20-Minute Audit"), None)
+              if not match:
+                  print(f"{key}: UNKNOWN (no run in most recent 100)")
+                  if key in ("scanner", "ci", "pages", "watchdog", "fast"):
+                      failures.append(key + ": missing evidence")
+                  continue
+              print(f"{key}: {match.get('status')}/{match.get('conclusion')} at {match.get('updated_at')} {match.get('html_url')}")
+              if key in ("scanner", "ci", "pages", "watchdog", "fast") and (
+                  match.get("status") != "completed" or match.get("conclusion") != "success"
+              ):
+                  failures.append(key + ": not successful")
+          # This audit does not infer market-data freshness from workflow success.
+          print("DATA_FRESHNESS: UNVERIFIED (requires market candle timestamps)")
+          print("IDX_COVERAGE: UNVERIFIED (requires authorized provider evidence)")
+          print("G0_ALL_DONE: FALSE")
+          if failures:
+              print("BLOCKERS:", "; ".join(failures))
+              sys.exit(1)
+          PY
