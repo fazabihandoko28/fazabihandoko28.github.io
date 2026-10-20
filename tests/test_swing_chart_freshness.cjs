@@ -52,9 +52,9 @@ test("unverified technical BUY remains radar-only and never labels hero as BUY",
   const blocked={...valid,ticker:"BLOCKED",risk_gate:"BLOCKED",risk_validation:{actionable:false,data_quality:{...quality,verified:false}}};
   assert.equal(ctx.hanzExecutionEligible(valid),true);
   assert.equal(ctx.hanzExecutionEligible(blocked),false);
-  assert.match(html,/const confirmed=all\\s*\\.filter\\(r=>hanzExecutionEligible\\(r\\) &&/);
-  assert.match(html,/const isBuy=hanzExecutionEligible\\(top\\) &&/);
-  assert.match(html,/const radar=all\\s*\\.filter\\(r=>!confirmed\\.includes\\(r\\)\\)/);
-  assert.match(html,/<span>TOP SWING OPPORTUNITY<\\/span>/);
-  assert.doesNotMatch(html,/<span>CURRENT TOP SWING BUY<\\/span>/);
+  assert.ok(html.includes('.filter(r=>hanzExecutionEligible(r) && ["EARLY_CONFIRMED_BUY"'));
+  assert.ok(html.includes('const isBuy=hanzExecutionEligible(top) &&'));
+  assert.ok(html.includes('.filter(r=>!confirmed.includes(r));'));
+  assert.ok(html.includes('<span>TOP SWING OPPORTUNITY</span>'));
+  assert.ok(!html.includes('<span>CURRENT TOP SWING BUY</span>'));
 });
