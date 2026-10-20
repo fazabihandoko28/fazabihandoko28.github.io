@@ -36,5 +36,8 @@ jobs:
       - name: Test IHSG display freshness
         run: node --test tests/test_ihsg_display.cjs
 
+      - name: Test swing chart freshness fail-closed
+        run: node --test tests/test_swing_chart_freshness.cjs
+
       - name: Run repository audit
         run: python tools/audit_repository.py

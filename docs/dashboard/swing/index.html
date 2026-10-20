@@ -2257,6 +2257,27 @@ function buildCandidateChart(candles){
   </div>`;
 }
 
+function expectedCompletedIdxDate(){
+  const market=idxStatusNow();
+  const p=market.parts;
+  // A future/unverified exchange calendar must never make a chart "current".
+  if(Number(p.year)!==2026) return "";
+  const today=p.iso;
+  return isIdxTradingIso(today) && p.minutes>16*60+15
+    ? today
+    : nearestTradingDay(today,-1);
+}
+
+function chartFreshnessStatus(sourceBarAt,candles,expectedDate){
+  const expected=String(expectedDate||"").slice(0,10);
+  const source=String(sourceBarAt||"").slice(0,10);
+  const last=Array.isArray(candles)&&candles.length?candles[candles.length-1]:null;
+  const lastDate=String(last?.time||last?.date||last?.trade_date||last?.bar_at||"").slice(0,10);
+  const verified=/^\d{4}-\d{2}-\d{2}$/.test(expected)
+    && source===expected && lastDate===expected;
+  return {ok:verified,expected,source,lastDate};
+}
+
 async function openCandidateChart(index){
   const row=selectedCandidateRows[index]; if(!row) return;
   $("candidateChartTitle").textContent=`${row.ticker} · Price Chart`;
@@ -2265,6 +2286,11 @@ async function openCandidateChart(index){
   try{
     const {data,error}=await supabase.from("hanz_swing_chart_data").select("candles,source_bar_at").eq("ticker",row.ticker).maybeSingle();
     if(error) throw error;
+    const freshness=chartFreshnessStatus(data?.source_bar_at,data?.candles,expectedCompletedIdxDate());
+    if(!freshness.ok){
+      $("candidateChartBody").innerHTML='<div class="mover-empty">Chart unavailable: latest completed IDX daily bar is missing or unverified. Do not trade from this chart.</div>';
+      return;
+    }
     $("candidateChartBody").innerHTML=buildCandidateChart(data?.candles||[]);
   }catch(error){
     $("candidateChartBody").innerHTML=`<div class="mover-empty">Chart unavailable: ${safe(error.message||String(error))}</div>`;
