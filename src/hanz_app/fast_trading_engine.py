@@ -927,13 +927,23 @@ def _record_market_bar(symbol, interval, frame):
 
 
 def publish_cycle_health():
-    # Use the oldest consumed bar: one fresh ticker must not hide stale ones.
+    # A successful provider request is not proof of fresh market candles.
+    # Fail closed when any consumed ticker is stale or no candle was consumed.
     oldest = min(_CYCLE_MARKET_BARS.values(), default=None)
+    provider_status = _provider_cycle_status()
+    age_seconds = (utc_now() - oldest).total_seconds() if oldest else None
+    stale = age_seconds is None or age_seconds > MAX_DATA_AGE_SECONDS
+    status = "STALE" if stale else provider_status
+    error = _provider_cycle_error()
+    if stale:
+        detail = ("no intraday candle consumed" if oldest is None
+                  else f"oldest intraday candle age {int(age_seconds)}s exceeds {MAX_DATA_AGE_SECONDS}s")
+        error = f"{error}; {detail}" if error else detail
     return update_fast_health(
         last_market_bar_at=oldest.isoformat() if oldest else None,
-        data_status=_provider_cycle_status(),
+        data_status=status,
         symbols_monitored=len(_CYCLE_MARKET_BARS),
-        error=_provider_cycle_error(),
+        error=error,
     )
 
 
