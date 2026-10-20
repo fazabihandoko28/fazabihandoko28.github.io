@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-10-20T04:55:53.182763+00:00",
+  "generated_at": "2026-10-20T11:44:08.624558+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1331,
-  "matching_jobs": 79,
+  "raw_jobs": 1313,
+  "matching_jobs": 76,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 450
+      "jobs": 441
     },
     {
       "name": "Publicis Groupe",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 381
+      "jobs": 372
     },
     {
       "name": "Visa",
@@ -323,15 +323,6 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000144452594",
-      "title": "Associate, Merchant Acquisition",
-      "company": "Grab",
-      "location": "Hanoi, Vietnam",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000144452594-associate-merchant-acquisition",
-      "published_at": "2026-08-20T03:51:06.141Z",
-      "source_verified": true
-    },
-    {
       "id": "sr-744000153738890",
       "title": "Associate, Merchant Acquisition & Sales Operations - GrabMart",
       "company": "Grab",
@@ -566,15 +557,6 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000152909100",
-      "title": "Marketing Associate, Marketing Solutions, VN",
-      "company": "Grab",
-      "location": "HCMC, Vietnam",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000152909100-marketing-associate-marketing-solutions-vn",
-      "published_at": "2026-10-01T11:26:42.043Z",
-      "source_verified": true
-    },
-    {
       "id": "sr-744000143236769",
       "title": "Merchant Acquisition Manager",
       "company": "Grab",
@@ -725,15 +707,6 @@
       "location": "Manila, Philippines",
       "url": "https://jobs.smartrecruiters.com/NielsenIQ/744000151804545-apac-consumer-marketing-insights-lead-fmcg-g100",
       "published_at": "2026-09-25T09:44:38.735Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000156221870",
-      "title": "CS Lead Vietnam Consumer Insights & Brand",
-      "company": "NielsenIQ",
-      "location": "Ho Chi Minh City, Vietnam",
-      "url": "https://jobs.smartrecruiters.com/NielsenIQ/744000156221870-cs-lead-vietnam-consumer-insights-brand",
-      "published_at": "2026-10-19T02:01:40.349Z",
       "source_verified": true
     },
     {
