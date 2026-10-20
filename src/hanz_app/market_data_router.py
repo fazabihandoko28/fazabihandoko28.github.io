@@ -14,6 +14,7 @@ never crash the scanner; HANZ falls back to Yahoo and marks verification status.
 from __future__ import annotations
 
 import json
+import math
 import os
 import urllib.parse
 import urllib.request
@@ -144,11 +145,32 @@ def _latest_daily_snapshot(df):
     }
 
 
+def _valid_ohlc(snapshot):
+    """Require complete, finite, positive OHLC inside the reported daily range."""
+    try:
+        values = {key: float(snapshot.get(key)) for key in ("open", "high", "low", "close")}
+    except (TypeError, ValueError, OverflowError):
+        return False
+    if not all(math.isfinite(value) and value > 0 for value in values.values()):
+        return False
+    return (
+        values["low"] <= values["open"] <= values["high"]
+        and values["low"] <= values["close"] <= values["high"]
+    )
+
+
 def _compare(primary, verifier):
     if not primary or not verifier:
         return {"status": "UNVERIFIED", "verified": False, "block": False, "reason": "Independent IDX verifier unavailable."}
     if not primary.get("date") or not verifier.get("date") or str(primary["date"])[:10] != str(verifier["date"])[:10]:
         return {"status": "DATE_MISMATCH", "verified": False, "block": True, "reason": "Independent IDX verifier date does not match primary candle date."}
+    if not _valid_ohlc(primary) or not _valid_ohlc(verifier):
+        return {
+            "status": "UNVERIFIABLE_OHLC",
+            "verified": False,
+            "block": False,
+            "reason": "Missing, non-finite, or inconsistent OHLC data prevents independent price verification.",
+        }
     diffs = {k: _pct_diff(primary.get(k), verifier.get(k)) for k in ("open", "high", "low", "close")}
     close_diff = diffs.get("close")
     other = [diffs.get(k) for k in ("open", "high", "low") if diffs.get(k) is not None]
