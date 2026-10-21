@@ -1,8 +1,23 @@
 """Run the FAST data path and persist candle evidence without generating alerts."""
 import json
 import os
+from datetime import datetime, timezone
 
 from hanz_app import fast_trading_engine as engine
+
+
+def same_instant(left, right):
+    """Compare UTC instants, not PostgREST's ISO formatting of microseconds."""
+    if not left or not right:
+        return False
+    try:
+        a = datetime.fromisoformat(str(left).replace("Z", "+00:00"))
+        b = datetime.fromisoformat(str(right).replace("Z", "+00:00"))
+    except (ValueError, TypeError, OverflowError):
+        return False
+    if a.tzinfo is None or b.tzinfo is None:
+        return False
+    return a.astimezone(timezone.utc) == b.astimezone(timezone.utc)
 
 
 def main():
@@ -35,8 +50,8 @@ def main():
         row.get("last_market_bar_at")
         and row.get("symbols_monitored") == len(engine._CYCLE_MARKET_BARS)
         and row.get("symbols_monitored", 0) > 0
-        and row.get("last_scan_at") == written["last_scan_at"]
-        and row.get("last_market_bar_at") == written["last_market_bar_at"]
+        and same_instant(row.get("last_scan_at"), written["last_scan_at"])
+        and same_instant(row.get("last_market_bar_at"), written["last_market_bar_at"])
         and row.get("data_status") == written["data_status"]
     )
     # Persisted candle evidence is not a PASS when its market data is stale.

@@ -4,6 +4,7 @@ from unittest.mock import patch
 
 import pandas as pd
 from hanz_app import fast_trading_engine as engine
+from hanz_app.fast_health_check import same_instant
 
 
 class FastHealthTests(unittest.TestCase):
@@ -21,6 +22,27 @@ class FastHealthTests(unittest.TestCase):
     def payload(self, **kwargs):
         engine.update_fast_health(**kwargs)
         return self.request.call_args.args[2]
+
+    def test_fast_readback_accepts_postgres_microsecond_normalization(self):
+        # PostgREST drops trailing fractional zeros, even when the same bar was persisted.
+        self.assertTrue(same_instant(
+            "2026-10-21T12:57:14.207140+00:00",
+            "2026-10-21T12:57:14.20714+00:00",
+        ))
+        self.assertTrue(same_instant(
+            "2026-10-21T12:57:14.207140Z",
+            "2026-10-21T19:57:14.20714+07:00",
+        ))
+
+    def test_fast_readback_still_rejects_wrong_missing_or_naive_evidence(self):
+        expected = "2026-10-21T12:57:14.207140+00:00"
+        for actual in (
+            "2026-10-21T12:57:14.207141+00:00",
+            "2026-10-21T12:57:14",
+            "invalid",
+            None,
+        ):
+            self.assertFalse(same_instant(expected, actual), actual)
 
     def test_missing_evidence_never_fresh(self):
         for kwargs in ({}, {"symbols_monitored": 3}, {"last_market_bar_at": self.now.isoformat()}):
