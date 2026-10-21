@@ -30,6 +30,7 @@ def main():
     tickers.update(engine.clean_ticker(r.get("ticker")) for r in monitor)
     tickers.discard("")
     tickers.discard(None)
+    expected_minimum = int(os.getenv("HANZ_EXPECTED_MIN_UNIVERSE", "198"))
     if not tickers:
         engine.update_fast_health(error="FAST runtime check: empty universe")
         raise RuntimeError("FAST runtime check: empty universe")
@@ -56,11 +57,14 @@ def main():
     )
     # Persisted candle evidence is not a PASS when its market data is stale.
     fresh = row.get("data_status") == "FRESH"
-    verified = runtime_ok and fresh
+    universe_complete = len(tickers) >= expected_minimum
+    verified = runtime_ok and fresh and universe_complete
     result = {
         "commit": os.getenv("GITHUB_SHA", "local"),
         "runtime_evidence": "PASS" if verified and not missing else ("PARTIAL" if verified else "FAIL"),
-        "coverage_complete": not missing,
+        "coverage_complete": not missing and universe_complete,
+        "expected_minimum_universe": expected_minimum,
+        "universe_complete": universe_complete,
         "coverage_count": len(tickers) - len(missing),
         "universe_count": len(tickers),
         "missing_symbols": missing,
@@ -71,6 +75,8 @@ def main():
         raise RuntimeError("No persisted FAST candle evidence")
     if not fresh:
         raise RuntimeError(f"FAST intraday data not fresh: {row.get('data_status')}")
+    if not universe_complete:
+        raise RuntimeError(f"FAST universe incomplete: {len(tickers)}/{expected_minimum} minimum")
     if missing:
         raise RuntimeError(f"FAST coverage incomplete: {len(tickers) - len(missing)}/{len(tickers)}; missing={missing}")
 
