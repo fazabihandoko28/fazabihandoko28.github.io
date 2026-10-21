@@ -64,6 +64,9 @@ jobs:
           # This audit does not infer market-data freshness from workflow success.
           print("DATA_FRESHNESS: UNVERIFIED (requires market candle timestamps)")
           print("IDX_COVERAGE: UNVERIFIED (requires authorized provider evidence)")
+          # Workflow success alone cannot certify real-money readiness.
+          # Explicitly block green audits until candle and coverage evidence exists.
+          failures.extend(["market candle freshness unverified", "IDX coverage unverified"])
           print("G0_ALL_DONE: FALSE")
           if failures:
               print("BLOCKERS:", "; ".join(failures))
