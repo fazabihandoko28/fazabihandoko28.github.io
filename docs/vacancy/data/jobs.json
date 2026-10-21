@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-10-20T21:40:20.672048+00:00",
+  "generated_at": "2026-10-21T04:55:11.325957+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1314,
-  "matching_jobs": 76,
+  "raw_jobs": 1334,
+  "matching_jobs": 74,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 437
+      "jobs": 440
     },
     {
       "name": "Publicis Groupe",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 377
+      "jobs": 394
     },
     {
       "name": "Visa",
@@ -43,42 +43,6 @@
     }
   ],
   "jobs": [
-    {
-      "id": "sr-744000155433868",
-      "title": "Corporate Communications Intern",
-      "company": "Bosch Group",
-      "location": "South Jakarta, Indonesia",
-      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000155433868-corporate-communications-intern",
-      "published_at": "2026-10-14T08:00:08.941Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000155438989",
-      "title": "Corporate Strategy & Business Development Intern",
-      "company": "Bosch Group",
-      "location": "South Jakarta, Indonesia",
-      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000155438989-corporate-strategy-business-development-intern",
-      "published_at": "2026-10-14T08:23:40.418Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000155437992",
-      "title": "Marketing Automotive Aftermarket Intern",
-      "company": "Bosch Group",
-      "location": "South Jakarta, Indonesia",
-      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000155437992-marketing-automotive-aftermarket-intern",
-      "published_at": "2026-10-14T08:22:56.607Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000155436180",
-      "title": "Sales Controlling & Commercial Intern",
-      "company": "Bosch Group",
-      "location": "South Jakarta, Indonesia",
-      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000155436180-sales-controlling-commercial-intern",
-      "published_at": "2026-10-14T08:15:55.348Z",
-      "source_verified": true
-    },
     {
       "id": "sr-744000148139949",
       "title": "City Marketing Execution Associate",
@@ -125,21 +89,21 @@
       "source_verified": true
     },
     {
+      "id": "sr-744000156707439",
+      "title": "Merchant Acquisition Lead",
+      "company": "Grab",
+      "location": "Jakarta, Indonesia",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000156707439-merchant-acquisition-lead",
+      "published_at": "2026-10-21T04:09:02.458Z",
+      "source_verified": true
+    },
+    {
       "id": "sr-744000155689620",
       "title": "Region Commercial Manager - Central Java and Yogyakarta",
       "company": "Grab",
       "location": "Yogyakarta, Indonesia",
       "url": "https://jobs.smartrecruiters.com/Grab/744000155689620-region-commercial-manager-central-java-and-yogyakarta",
       "published_at": "2026-10-15T08:09:04.662Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000155691029",
-      "title": "Region Commercial Manager - West Java",
-      "company": "Grab",
-      "location": "Bandung, Indonesia",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000155691029-region-commercial-manager-west-java",
-      "published_at": "2026-10-15T08:12:31.435Z",
       "source_verified": true
     },
     {
@@ -212,6 +176,15 @@
       "location": "Pasig City, Philippines",
       "url": "https://jobs.smartrecruiters.com/Grab/744000137836764-assistant-manager-country-business-development",
       "published_at": "2026-07-15T08:53:35.276Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000156513931",
+      "title": "Assistant Manager, Driver Acquisition Strategy",
+      "company": "Grab",
+      "location": "Marikina City, Philippines",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000156513931-assistant-manager-driver-acquisition-strategy",
+      "published_at": "2026-10-20T09:51:35.607Z",
       "source_verified": true
     },
     {
@@ -707,6 +680,15 @@
       "location": "Manila, Philippines",
       "url": "https://jobs.smartrecruiters.com/NielsenIQ/744000151804545-apac-consumer-marketing-insights-lead-fmcg-g100",
       "published_at": "2026-09-25T09:44:38.735Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000156465530",
+      "title": "CS Lead, Vietnam Consumer Insights & Brand",
+      "company": "NielsenIQ",
+      "location": "Ho Chi Minh City, Vietnam",
+      "url": "https://jobs.smartrecruiters.com/NielsenIQ/744000156465530-cs-lead-vietnam-consumer-insights-brand",
+      "published_at": "2026-10-20T05:42:39.678Z",
       "source_verified": true
     },
     {
