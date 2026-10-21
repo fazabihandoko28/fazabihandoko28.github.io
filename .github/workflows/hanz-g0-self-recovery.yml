@@ -1,0 +1,85 @@
+name: HANZ G0 Self Recovery
+
+on:
+  schedule:
+    - cron: '*/20 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: hanz-g0-self-recovery
+  cancel-in-progress: false
+
+jobs:
+  recover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Safely retry transient workflow failures once
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPOSITORY: ${{ github.repository }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          import urllib.error
+          import urllib.request
+          from datetime import datetime, timezone, timedelta
+
+          repo = os.environ["GH_REPOSITORY"]
+          token = os.environ["GH_TOKEN"]
+          base = f"https://api.github.com/repos/{repo}"
+          headers = {
+              "Authorization": f"Bearer {token}",
+              "Accept": "application/vnd.github+json",
+              "X-GitHub-Api-Version": "2022-11-28",
+          }
+
+          def api(path, method="GET"):
+              request = urllib.request.Request(base + path, headers=headers, method=method)
+              with urllib.request.urlopen(request, timeout=30) as response:
+                  body = response.read()
+                  return json.loads(body) if body else {}
+
+          runs = api("/actions/runs?per_page=100").get("workflow_runs", [])
+          targets = {
+              "HANZ Swing Scanner", "HANZ CI", "HANZ FAST Runtime",
+              "HANZ Autonomous Watchdog", "HANZ G0 20-Minute Audit",
+          }
+          # Only retry transient GitHub workflow failures, never modify market data,
+          # trading signals, source code, or production secrets automatically.
+          now = datetime.now(timezone.utc)
+          latest = {}
+          for run in runs:
+              name = run.get("name", "")
+              if name in targets and name not in latest:
+                  latest[name] = run
+
+          attempted = 0
+          for name, run in latest.items():
+              if run.get("status") != "completed" or run.get("conclusion") not in ("failure", "timed_out"):
+                  print(f"SKIP {name}: {run.get('status')}/{run.get('conclusion')}")
+                  continue
+              if int(run.get("run_attempt", 1)) != 1:
+                  print(f"SKIP {name}: already retried")
+                  continue
+              updated = datetime.fromisoformat(run["updated_at"].replace("Z", "+00:00"))
+              if now - updated > timedelta(hours=2):
+                  print(f"SKIP {name}: older than 2h")
+                  continue
+              if attempted >= 2:
+                  print(f"SKIP {name}: safety limit 2 reruns per cycle")
+                  continue
+              try:
+                  api(f"/actions/runs/{run['id']}/rerun-failed-jobs", method="POST")
+                  attempted += 1
+                  print(f"RETRIED {name}: {run['html_url']}")
+              except urllib.error.HTTPError as exc:
+                  print(f"RETRY BLOCKED {name}: HTTP {exc.code} {run['html_url']}")
+          print(f"SELF_RECOVERY_RETRIES={attempted}")
+          print("G0_ALL_DONE=UNVERIFIED")
+          PY
