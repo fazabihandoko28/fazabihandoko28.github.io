@@ -6150,6 +6150,16 @@ def upsert_chart_data(ticker, daily_df, result):
             f"last={candles[-1]['time']} target={freshness['target_date']}"
         )
 
+    # A current date alone is not evidence of a traded candle. Some Yahoo
+    # IDX histories forward-fill flat OHLC prices with zero volume on days
+    # when no valid traded bar is available. Never mark those as fresh.
+    last_volume = safe_float(candles[-1].get("volume"))
+    if last_volume is None or last_volume <= 0:
+        raise RuntimeError(
+            f"Latest completed chart candle has no traded volume for "
+            f"{clean_ticker(ticker)} on {candles[-1]['time']}"
+        )
+
     payload = {
         "ticker": clean_ticker(ticker),
         "state": state,
@@ -7335,7 +7345,11 @@ def backfill_active_chart_cache():
             # Cache is current only when it reaches the latest completed IDX
             # trading date. A stale monitor row must not allow an old chart cache
             # (for example Aug 14 when Aug 18 is completed) to be accepted.
-            if cached_bar and cached_bar >= target_bar:
+            # A fresh cache timestamp cannot override a stale scanner bar.
+            # In particular, zero-volume Yahoo placeholders may have the
+            # target date while the monitor still reports an older session.
+            if (cached_bar and cached_bar >= target_bar
+                    and monitor_bar >= target_bar):
                 summary["already_current"] += 1
                 continue
 
