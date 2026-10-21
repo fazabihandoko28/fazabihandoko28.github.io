@@ -46,7 +46,7 @@ class SwingChartCacheVolumeTests(unittest.TestCase):
         frame = self.frame(1200)
         frame.loc[frame.index[-1], ["Open", "High", "Low", "Close"]] = [34, 34, 32, 31]
         with patch.object(engine, "ensure_latest_completed_daily_bar",
-                          return_value=(frame, self.freshness())), \\
+                          return_value=(frame, self.freshness())), \
              patch.object(engine, "supabase_request") as write:
             with self.assertRaisesRegex(RuntimeError, "Invalid OHLC chart candle"):
                 engine.upsert_chart_data("VIVA", frame, {"state": "SWING_BUY"})
@@ -56,7 +56,7 @@ class SwingChartCacheVolumeTests(unittest.TestCase):
         frame = self.frame(1200)
         frame.loc[frame.index[0], "Low"] = 102
         with patch.object(engine, "ensure_latest_completed_daily_bar",
-                          return_value=(frame, self.freshness())), \\
+                          return_value=(frame, self.freshness())), \
              patch.object(engine, "supabase_request") as write:
             with self.assertRaisesRegex(RuntimeError, "Invalid OHLC chart candle"):
                 engine.upsert_chart_data("VIVA", frame, {"state": "SWING_BUY"})
