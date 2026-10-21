@@ -743,8 +743,8 @@ def prefetch_market_data(
             )
 
             if frame is None or frame.empty:
-                _record_provider_result(False)
-                total_failed += 1
+                # Delay failure accounting until individual fallback finishes.
+                # Otherwise recovered symbols count as BOTH success and failure.
                 continue
 
             _store_market_frame(
@@ -781,13 +781,16 @@ def prefetch_market_data(
                 _store_market_frame(symbol, interval, period, recovered, 0.0)
                 batch_success.add(symbol)
                 total_success += 1
-                total_failed -= 1
                 _record_provider_result(True)
                 print(f"MARKET DATA recovered {symbol} individually", flush=True)
             except Exception as exc:
                 print(f"MARKET DATA retry unavailable for {symbol}: {exc}", flush=True)
 
         missing = len(batch) - len(batch_success)
+        # Each symbol is counted exactly once after both retrieval paths.
+        for _ in range(missing):
+            _record_provider_result(False)
+        total_failed += missing
 
         if missing:
             print(
