@@ -45,6 +45,19 @@ def main():
             continue
         engine._record_market_bar(engine.normalize_ticker(ticker), engine.INTRADAY_INTERVAL, cached["frame"])
     written = engine.publish_cycle_health()
+    # Missing symbols invalidate the persisted snapshot even when the bars
+    # received for other symbols are individually fresh.
+    if missing or len(tickers) < expected_minimum:
+        reason = (
+            f"FAST coverage incomplete: {len(tickers) - len(missing)}/{len(tickers)}; "
+            f"minimum universe={expected_minimum}; missing={missing}"
+        )
+        written = engine.update_fast_health(
+            last_market_bar_at=written.get("last_market_bar_at"),
+            data_status="PARTIAL",
+            symbols_monitored=len(engine._CYCLE_MARKET_BARS),
+            error=reason,
+        )
     rows = engine.supabase_request("GET", "hanz_fast_health?id=eq.bei-fast&select=*") or []
     row = rows[0] if rows else {}
     runtime_ok = bool(
