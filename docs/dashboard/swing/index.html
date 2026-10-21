@@ -1113,12 +1113,15 @@ function hanzExecutionEligible(row){
   const primaryDate=String(quality.primary_date || "").slice(0,10);
   const verifierDate=String(quality.verifier_date || "").slice(0,10);
   const barDate=String(row?.daily_bar_at || "").slice(0,10);
+  // Independent verification of an old bar is not authorization for a current BUY.
+  const completedBarDate=expectedCompletedIdxDate();
   return gate==="ELIGIBLE"
     && r.actionable===true
     && quality.verified===true
     && String(quality.status || "").toUpperCase()==="VERIFIED"
     && Boolean(quality.verifier_source)
     && Boolean(primaryDate) && primaryDate===verifierDate && primaryDate===barDate
+    && /^\d{4}-\d{2}-\d{2}$/.test(completedBarDate) && barDate===completedBarDate
     && String(row?.entry_status || "").toUpperCase()==="ENTRY_ZONE";
 }
 

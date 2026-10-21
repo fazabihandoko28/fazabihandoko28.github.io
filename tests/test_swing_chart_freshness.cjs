@@ -45,7 +45,7 @@ test("unverified technical BUY remains radar-only and never labels hero as BUY",
   const guardStart=html.indexOf("function hanzExecutionEligible(row){");
   const guardEnd=html.indexOf("function effectiveHanzAction(row){",guardStart);
   assert.ok(guardStart>=0 && guardEnd>guardStart);
-  const ctx={riskObject:row=>row.risk_validation||{}};
+  const ctx={riskObject:row=>row.risk_validation||{},expectedCompletedIdxDate:()=> "2026-10-20"};
   vm.runInNewContext(html.slice(guardStart,guardEnd),ctx);
   const quality={verified:true,status:"VERIFIED",verifier_source:"INDEPENDENT_IDX",primary_date:"2026-10-20",verifier_date:"2026-10-20"};
   const valid={ticker:"VALID",state:"SWING_BUY",risk_gate:"ELIGIBLE",entry_status:"ENTRY_ZONE",daily_bar_at:"2026-10-20T00:00:00Z",risk_validation:{actionable:true,data_quality:quality}};
@@ -57,4 +57,26 @@ test("unverified technical BUY remains radar-only and never labels hero as BUY",
   assert.ok(html.includes('.filter(r=>!confirmed.includes(r));'));
   assert.ok(html.includes('<span>TOP SWING OPPORTUNITY</span>'));
   assert.ok(!html.includes('<span>CURRENT TOP SWING BUY</span>'));
+});
+
+test("otherwise verified stale, future, or calendar-unverified BUY is blocked",()=>{
+  const guardStart=html.indexOf("function hanzExecutionEligible(row){");
+  const guardEnd=html.indexOf("function effectiveHanzAction(row){",guardStart);
+  assert.ok(guardStart>=0 && guardEnd>guardStart);
+  let expectedDate="2026-10-20";
+  const ctx={riskObject:row=>row.risk_validation||{},expectedCompletedIdxDate:()=>expectedDate};
+  vm.runInNewContext(html.slice(guardStart,guardEnd),ctx);
+  const row=(date)=>({
+    ticker:"TEST",state:"SWING_BUY",risk_gate:"ELIGIBLE",entry_status:"ENTRY_ZONE",
+    daily_bar_at:date+"T00:00:00Z",
+    risk_validation:{actionable:true,data_quality:{
+      verified:true,status:"VERIFIED",verifier_source:"INDEPENDENT_IDX",
+      primary_date:date,verifier_date:date
+    }}
+  });
+  assert.equal(ctx.hanzExecutionEligible(row("2026-10-20")),true);
+  assert.equal(ctx.hanzExecutionEligible(row("2026-10-19")),false);
+  assert.equal(ctx.hanzExecutionEligible(row("2026-10-21")),false);
+  expectedDate="";
+  assert.equal(ctx.hanzExecutionEligible(row("2026-10-20")),false);
 });
