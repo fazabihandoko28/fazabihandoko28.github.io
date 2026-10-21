@@ -6160,6 +6160,20 @@ def upsert_chart_data(ticker, daily_df, result):
             f"{clean_ticker(ticker)} on {candles[-1]['time']}"
         )
 
+    # Provider-adjustment glitches can yield close < low or close > high.
+    # Reject such bars instead of publishing a misleading current chart.
+    for candle in candles:
+        o, h, l, c = (safe_float(candle.get(key)) for key in
+                      ("open", "high", "low", "close"))
+        values = (o, h, l, c)
+        if (any(value is None or not math.isfinite(value) or value <= 0
+                for value in values)
+                or l > h or not (l <= o <= h and l <= c <= h)):
+            raise RuntimeError(
+                f"Invalid OHLC chart candle for {clean_ticker(ticker)} "
+                f"on {candle.get('time')}"
+            )
+
     payload = {
         "ticker": clean_ticker(ticker),
         "state": state,

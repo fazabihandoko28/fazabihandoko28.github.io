@@ -17,11 +17,15 @@ function guards({iso="2026-10-20",year="2026",minutes=1350,trading=true,previous
   vm.runInNewContext(source,context);
   return context;
 }
+function candle(time="2026-10-20",overrides={}){
+  return {time,open:33,high:34,low:32,close:33,volume:1000,...overrides};
+}
+
 test("after completed session, require today's bar",()=>{
   const g=guards();
   assert.equal(g.expectedCompletedIdxDate(),"2026-10-20");
-  assert.equal(g.chartFreshnessStatus("2026-10-20",[{time:"2026-10-20"}],"2026-10-20").ok,true);
-  assert.equal(g.chartFreshnessStatus("2026-10-19",[{time:"2026-10-19"}],"2026-10-20").ok,false);
+  assert.equal(g.chartFreshnessStatus("2026-10-20",[candle("2026-10-20")],"2026-10-20").ok,true);
+  assert.equal(g.chartFreshnessStatus("2026-10-19",[candle("2026-10-19")],"2026-10-20").ok,false);
 });
 test("during session, require previous completed trading bar",()=>{
   assert.equal(guards({minutes:900}).expectedCompletedIdxDate(),"2026-10-19");
@@ -31,11 +35,11 @@ test("weekend uses previous trading day",()=>{
 });
 test("unverified future calendar fails closed",()=>{
   assert.equal(guards({year:"2027"}).expectedCompletedIdxDate(),"");
-  assert.equal(guards().chartFreshnessStatus("2026-10-20",[{time:"2026-10-20"}],"").ok,false);
+  assert.equal(guards().chartFreshnessStatus("2026-10-20",[candle("2026-10-20")],"").ok,false);
 });
 test("mismatched, missing and empty chart bars fail closed",()=>{
   const g=guards();
-  assert.equal(g.chartFreshnessStatus("2026-10-20",[{time:"2026-10-19"}],"2026-10-20").ok,false);
+  assert.equal(g.chartFreshnessStatus("2026-10-20",[candle("2026-10-19")],"2026-10-20").ok,false);
   assert.equal(g.chartFreshnessStatus("2026-10-20",[],"2026-10-20").ok,false);
   assert.equal(g.chartFreshnessStatus(null,null,"2026-10-20").ok,false);
 });
@@ -79,4 +83,15 @@ test("otherwise verified stale, future, or calendar-unverified BUY is blocked",(
   assert.equal(ctx.hanzExecutionEligible(row("2026-10-21")),false);
   expectedDate="";
   assert.equal(ctx.hanzExecutionEligible(row("2026-10-20")),false);
+});
+
+test("matching dates never certify corrupt OHLC or zero-volume latest bars",()=>{
+  const g=guards();
+  assert.equal(g.chartFreshnessStatus("2026-10-20",[candle()],"2026-10-20").ok,true);
+  // Actual VIVA anomaly: close 31 below low 32 despite positive volume.
+  const viva=candle("2026-10-20",{open:34,high:34,low:32,close:31,volume:54589600});
+  assert.equal(g.chartFreshnessStatus("2026-10-20",[viva],"2026-10-20").ok,false);
+  assert.equal(g.chartFreshnessStatus("2026-10-20",[candle("2026-10-20",{volume:0})],"2026-10-20").ok,false);
+  assert.equal(g.chartFreshnessStatus("2026-10-20",[candle("2026-10-19",{low:35}),candle()],"2026-10-20").ok,false);
+  assert.equal(g.chartFreshnessStatus("2026-10-20",[{time:"2026-10-20"}],"2026-10-20").ok,false);
 });

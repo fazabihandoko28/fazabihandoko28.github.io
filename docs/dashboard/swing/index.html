@@ -2276,8 +2276,21 @@ function chartFreshnessStatus(sourceBarAt,candles,expectedDate){
   const source=String(sourceBarAt||"").slice(0,10);
   const last=Array.isArray(candles)&&candles.length?candles[candles.length-1]:null;
   const lastDate=String(last?.time||last?.date||last?.trade_date||last?.bar_at||"").slice(0,10);
+  // Matching dates alone cannot certify a traded or internally valid candle.
+  const validOhlcv=Array.isArray(candles) && candles.length>0
+    && candles.every((bar,i)=>{
+      const keys=["open","high","low","close"];
+      if(keys.some(k=>bar?.[k]===null || bar?.[k]===undefined || bar?.[k]==="")) return false;
+      const [o,h,l,c]=keys.map(k=>Number(bar[k]));
+      if(![o,h,l,c].every(v=>Number.isFinite(v)&&v>0)) return false;
+      if(l>h || o<l || o>h || c<l || c>h) return false;
+      if(bar?.volume===null || bar?.volume===undefined || bar?.volume==="") return false;
+      const volume=Number(bar.volume);
+      return Number.isFinite(volume) && volume>=0
+        && (i!==candles.length-1 || volume>0);
+    });
   const verified=/^\d{4}-\d{2}-\d{2}$/.test(expected)
-    && source===expected && lastDate===expected;
+    && source===expected && lastDate===expected && validOhlcv;
   return {ok:verified,expected,source,lastDate};
 }
 

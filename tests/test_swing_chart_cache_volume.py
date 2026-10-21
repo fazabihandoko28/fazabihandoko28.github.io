@@ -42,6 +42,26 @@ class SwingChartCacheVolumeTests(unittest.TestCase):
             self.assertEqual(result["source_bar_at"], "2026-10-20")
             self.assertEqual(write.call_count, 1)
 
+    def test_invalid_ohlc_with_positive_volume_is_not_published(self):
+        frame = self.frame(1200)
+        frame.loc[frame.index[-1], ["Open", "High", "Low", "Close"]] = [34, 34, 32, 31]
+        with patch.object(engine, "ensure_latest_completed_daily_bar",
+                          return_value=(frame, self.freshness())), \\
+             patch.object(engine, "supabase_request") as write:
+            with self.assertRaisesRegex(RuntimeError, "Invalid OHLC chart candle"):
+                engine.upsert_chart_data("VIVA", frame, {"state": "SWING_BUY"})
+            write.assert_not_called()
+
+    def test_invalid_historical_ohlc_is_not_published(self):
+        frame = self.frame(1200)
+        frame.loc[frame.index[0], "Low"] = 102
+        with patch.object(engine, "ensure_latest_completed_daily_bar",
+                          return_value=(frame, self.freshness())), \\
+             patch.object(engine, "supabase_request") as write:
+            with self.assertRaisesRegex(RuntimeError, "Invalid OHLC chart candle"):
+                engine.upsert_chart_data("VIVA", frame, {"state": "SWING_BUY"})
+            write.assert_not_called()
+
     def test_fresh_cache_timestamp_does_not_hide_stale_monitor(self):
         monitor = [{"ticker": "ADCP", "state": "SWING_BUY",
                     "daily_bar_at": "2026-10-09T00:00:00Z"}]
