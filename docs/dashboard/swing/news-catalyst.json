@@ -1,24 +1,8 @@
 {
-  "generated_at": "2026-10-20T12:22:42.899453+00:00",
+  "generated_at": "2026-10-21T06:44:25.410762+00:00",
   "policy": "HIGH_CONFIDENCE_CAUSAL_ONLY",
   "selected_tickers": [
-    "AALI",
-    "ULTJ",
-    "KINO",
-    "BUKA",
-    "MARK"
+    "EDGE"
   ],
-  "catalysts": [
-    {
-      "scope": "IHSG",
-      "direction": "NEGATIVE",
-      "confidence": "HIGH",
-      "score": 7,
-      "headline": "IHSG Terancam Melemah Usai Anjlok 11,57 Persen - bsinews.id",
-      "source": "bsinews.id",
-      "url": "https://news.google.com/rss/articles/CBMiVkFVX3lxTFAwbl91ank4VzFKek92UDBmUnBHYm1neVU5aVNSMEJ0cTdSMng5NHk3T05hblN5X25UUXlhOUV5WHBoNVk4Q0c0d3d3amplcmI4LTJ3SUZR?oc=5",
-      "published_at": "2026-10-19T00:34:26+00:00",
-      "note": "Likely index news catalyst based on explicit causal headline language. Hidden when causal evidence is weak."
-    }
-  ]
+  "catalysts": []
 }
