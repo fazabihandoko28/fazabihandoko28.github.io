@@ -47,7 +47,7 @@ jobs:
 
           runs = api("/actions/runs?per_page=100").get("workflow_runs", [])
           targets = {
-              "HANZ Swing Scanner", "HANZ CI", "HANZ FAST Runtime",
+              "HANZ Swing Scanner", "HANZ CI", "HANZ FAST Runtime Evidence",
               "HANZ Autonomous Watchdog", "HANZ G0 20-Minute Audit",
           }
           # Only retry transient GitHub workflow failures, never modify market data,
