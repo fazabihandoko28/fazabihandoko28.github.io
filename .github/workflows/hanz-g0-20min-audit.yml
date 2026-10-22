@@ -49,8 +49,14 @@ jobs:
           print("G0 AUDIT UTC:", datetime.now(timezone.utc).isoformat())
           failures = []
           for key, names in patterns.items():
-              match = next((r for r in runs if any(n in r.get("name", "").lower() for n in names)
-                            and r.get("name") != "HANZ G0 20-Minute Audit"), None)
+              # An in-progress run is not a failure: use the most recent
+              # completed run and report pending separately.
+              candidates = [r for r in runs if any(n in r.get("name", "").lower() for n in names)
+                            and r.get("name") != "HANZ G0 20-Minute Audit"]
+              pending = next((r for r in candidates if r.get("status") != "completed"), None)
+              match = next((r for r in candidates if r.get("status") == "completed"), None)
+              if pending:
+                  print(f"{key}: PENDING {pending.get('html_url')}")
               if not match:
                   print(f"{key}: UNKNOWN (no run in most recent 100)")
                   if key in ("scanner", "ci", "pages", "watchdog", "fast"):
