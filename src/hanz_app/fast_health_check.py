@@ -81,8 +81,11 @@ def main():
                      0 <= float(persisted_age) <= engine.MAX_DATA_AGE_SECONDS)
     except (TypeError, ValueError, OverflowError):
         age_valid = False
-    fresh = (row.get("data_status") == "FRESH" or
-             (row.get("data_status") == "PARTIAL" and coverage_pass and age_valid))
+    # Even a persisted FRESH label must not bypass the age guard.
+    fresh = age_valid and (
+        row.get("data_status") == "FRESH" or
+        (row.get("data_status") == "PARTIAL" and coverage_pass)
+    )
     universe_complete = len(tickers) >= expected_minimum
     verified = runtime_ok and fresh and universe_complete and coverage_pass
     result = {
