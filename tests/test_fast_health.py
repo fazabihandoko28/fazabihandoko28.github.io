@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 import pandas as pd
 from hanz_app import fast_trading_engine as engine
-from hanz_app.fast_health_check import same_instant
+from hanz_app.fast_health_check import same_instant, closed_session_evidence
 
 
 class FastHealthTests(unittest.TestCase):
@@ -22,6 +22,26 @@ class FastHealthTests(unittest.TestCase):
     def payload(self, **kwargs):
         engine.update_fast_health(**kwargs)
         return self.request.call_args.args[2]
+
+    def test_closed_session_evidence_after_idx_close(self):
+        # Thursday 20:27 WIB, last genuine candle Thursday 14:55 WIB.
+        self.assertTrue(closed_session_evidence(
+            "2026-10-22T07:55:00+00:00",
+            datetime(2026, 10, 22, 13, 27, tzinfo=timezone.utc),
+        ))
+
+    def test_closed_session_never_overrides_live_hours(self):
+        self.assertFalse(closed_session_evidence(
+            "2026-10-22T03:30:00+00:00",
+            datetime(2026, 10, 22, 7, 30, tzinfo=timezone.utc),
+        ))
+
+    def test_closed_session_rejects_old_and_future_bars(self):
+        now = datetime(2026, 10, 22, 13, 27, tzinfo=timezone.utc)
+        for bar in ("2026-10-21T07:55:00+00:00",
+                    "2026-10-22T15:00:00+00:00",
+                    "2026-10-22T07:55:00", "invalid", None):
+            self.assertFalse(closed_session_evidence(bar, now), bar)
 
     def test_null_ticker_cannot_inflate_idx_coverage(self):
         self.assertIsNone(engine.normalize_ticker(None))
