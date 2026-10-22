@@ -399,7 +399,7 @@ def _store_market_frame(ticker, interval, period, frame, latency):
     }
 
 
-def _frame_from_batch(raw_frame, symbol):
+def _frame_from_batch(raw_frame, symbol, *, allow_flat=True):
     """Extract one ticker frame from any common yf.download() column layout."""
     if raw_frame is None or raw_frame.empty:
         return None
@@ -439,6 +439,10 @@ def _frame_from_batch(raw_frame, symbol):
                 frame = None
 
     else:
+        # A flat batch response has no ticker identity. It is only safe
+        # when Yahoo was queried for exactly one symbol.
+        if not allow_flat:
+            return None
         frame = raw_frame.copy()
 
     if frame is None or frame.empty:
@@ -747,6 +751,7 @@ def prefetch_market_data(
             frame = _frame_from_batch(
                 raw_frame,
                 symbol,
+                allow_flat=(len(batch) == 1),
             )
 
             if frame is None or frame.empty:

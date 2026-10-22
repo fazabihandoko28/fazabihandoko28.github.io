@@ -23,6 +23,27 @@ class FastHealthTests(unittest.TestCase):
         engine.update_fast_health(**kwargs)
         return self.request.call_args.args[2]
 
+    def test_flat_batch_cannot_copy_one_price_to_multiple_tickers(self):
+        # A flattened multi-ticker Yahoo response does not identify its symbol.
+        # Verify the prefetch path retries individually instead of cloning OHLC.
+        def frame(close):
+            return pd.DataFrame({"Open": [close - 1], "Close": [close]},
+                                index=pd.DatetimeIndex([self.now]))
+
+        with patch.object(engine, "_MARKET_DATA_CACHE", {}), \
+             patch.object(engine, "_circuit_is_open", return_value=False), \
+             patch.object(engine, "_symbols_needing_refresh", side_effect=lambda symbols, interval, period: symbols), \
+             patch.multiple(engine, MARKET_BATCH_SIZE=2, MARKET_FETCH_RETRIES=0,
+                            _CYCLE_PROVIDER_SUCCESSES=0, _CYCLE_PROVIDER_FAILURES=0,
+                            _PROVIDER_CONSECUTIVE_FAILURES=0), \
+             patch.object(engine.yf, "download", side_effect=[frame(100), frame(111), frame(222)]) as download:
+            result = engine.prefetch_market_data(["AAA", "BBB"], "1m", "5d")
+            self.assertEqual(result["success"], 2)
+            self.assertEqual(result["failed"], 0)
+            self.assertEqual(download.call_count, 3)
+            self.assertEqual(engine._cached_market_frame("AAA", "1m", "5d")["frame"]["Close"].iloc[-1], 111)
+            self.assertEqual(engine._cached_market_frame("BBB", "1m", "5d")["frame"]["Close"].iloc[-1], 222)
+
     def test_null_ticker_cannot_inflate_idx_coverage(self):
         self.assertIsNone(engine.normalize_ticker(None))
         for value in (None, "", "  ", "\t"):
