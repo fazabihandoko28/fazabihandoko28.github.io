@@ -1,12 +1,8 @@
 {
-  "generated_at": "2026-10-21T12:32:27.990018+00:00",
+  "generated_at": "2026-10-22T06:47:21.488298+00:00",
   "policy": "HIGH_CONFIDENCE_CAUSAL_ONLY",
   "selected_tickers": [
-    "AALI",
-    "BDMN",
-    "BUKA",
-    "PTBA",
-    "HMSP"
+    "EDGE"
   ],
   "catalysts": []
 }
