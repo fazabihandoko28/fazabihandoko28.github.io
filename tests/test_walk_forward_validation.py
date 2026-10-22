@@ -126,5 +126,38 @@ class FiveYearEvidenceGateTests(unittest.TestCase):
         self.assertTrue(result["passed"])
 
 
+
+class FiveYearSelectionCoverageTests(unittest.TestCase):
+    def test_missing_selected_mapping_is_explicit_not_silently_dropped(self) -> None:
+        from hanz_app.research.generate_top5_5y_backtest import _selection_coverage
+
+        errors = {}
+        coverage = _selection_coverage(
+            ["AALI", "BDMN"],
+            {"AALI": object()},
+            {"AALI": {"status": "OK"}},
+            errors,
+        )
+        self.assertEqual(errors["BDMN"], "MISSING_UNIVERSE_MAPPING")
+        self.assertEqual(coverage["selected_count"], 2)
+        self.assertEqual(coverage["evaluated_count"], 1)
+        self.assertEqual(coverage["unavailable_count"], 1)
+        self.assertTrue(coverage["all_selected_accounted_for"])
+        self.assertFalse(coverage["backtest_complete"])
+
+    def test_all_five_results_allow_complete_coverage(self) -> None:
+        from hanz_app.research.generate_top5_5y_backtest import _selection_coverage
+
+        symbols = ["AALI", "AUTO", "BDMN", "BTPS", "BUKA"]
+        errors = {}
+        coverage = _selection_coverage(
+            symbols, {s: object() for s in symbols},
+            {s: {"status": "OK"} for s in symbols}, errors,
+        )
+        self.assertEqual(errors, {})
+        self.assertTrue(coverage["backtest_complete"])
+        self.assertEqual(coverage["evaluated_count"], 5)
+
+
 if __name__ == "__main__":
     unittest.main()

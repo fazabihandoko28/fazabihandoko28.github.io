@@ -147,6 +147,22 @@ def _summary(symbol, series, report):
     }
 
 
+def _selection_coverage(symbols, available, results, errors):
+    """Account for every selected ticker; a missing mapping is not a backtest."""
+    for symbol in symbols:
+        if symbol not in available:
+            errors.setdefault(symbol, "MISSING_UNIVERSE_MAPPING")
+    evaluated=sum(symbol in results for symbol in symbols)
+    unavailable=sum(symbol in errors for symbol in symbols)
+    return {
+        "selected_count":len(symbols),
+        "evaluated_count":evaluated,
+        "unavailable_count":unavailable,
+        "all_selected_accounted_for":evaluated+unavailable==len(symbols),
+        "backtest_complete":evaluated==len(symbols),
+    }
+
+
 def main():
     symbols=_top5_symbols()
     mappings=load_yahoo_universe(UNIVERSE)
@@ -163,7 +179,9 @@ def main():
             results[mapping.symbol.upper()]=_summary(mapping.symbol.upper(),series,report)
         except Exception as exc:
             errors[mapping.symbol.upper()]=str(exc)
+    coverage=_selection_coverage(symbols, available, results, errors)
     payload={
+        "coverage":coverage,
         "generated_at":datetime.now(timezone.utc).isoformat(),
         "universe_size":200,
         "selected_top5":symbols,
