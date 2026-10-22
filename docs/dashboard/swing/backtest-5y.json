@@ -1,19 +1,19 @@
 {
   "coverage": {
     "selected_count": 5,
-    "evaluated_count": 5,
-    "unavailable_count": 0,
+    "evaluated_count": 3,
+    "unavailable_count": 2,
     "all_selected_accounted_for": true,
-    "backtest_complete": true
+    "backtest_complete": false
   },
-  "generated_at": "2026-10-22T08:12:38.323884+00:00",
+  "generated_at": "2026-10-22T15:28:16.048870+00:00",
   "universe_size": 200,
   "selected_top5": [
     "HMSP",
-    "AUTO",
+    "MPMX",
+    "BDMN",
     "BTPS",
-    "ITMG",
-    "PGAS"
+    "BUKA"
   ],
   "methodology": {
     "name": "HANZ no-lookahead 5Y historical replay",
@@ -47,27 +47,6 @@
       "worst_mae_pct": -17.62,
       "best_mfe_pct": 15.0
     },
-    "AUTO": {
-      "symbol": "AUTO",
-      "status": "OK",
-      "span_start": "2021-10-22",
-      "span_end": "2026-10-22",
-      "span_years": 5.0,
-      "bars": 1200,
-      "evaluated_events": 1136,
-      "ready_signals": 25,
-      "target_first": 7,
-      "stop_first": 17,
-      "ambiguous_same_bar": 0,
-      "neither": 1,
-      "resolved_signals": 24,
-      "win_rate_pct": 29.2,
-      "target_hit_pct": 28.0,
-      "stop_hit_pct": 68.0,
-      "avg_5d_return_pct": -1.13,
-      "worst_mae_pct": -10.82,
-      "best_mfe_pct": 11.99
-    },
     "BTPS": {
       "symbol": "BTPS",
       "status": "OK",
@@ -89,48 +68,30 @@
       "worst_mae_pct": -10.99,
       "best_mfe_pct": 13.16
     },
-    "ITMG": {
-      "symbol": "ITMG",
+    "BUKA": {
+      "symbol": "BUKA",
       "status": "OK",
       "span_start": "2021-10-22",
       "span_end": "2026-10-22",
       "span_years": 5.0,
       "bars": 1200,
       "evaluated_events": 1136,
-      "ready_signals": 19,
-      "target_first": 2,
-      "stop_first": 13,
+      "ready_signals": 4,
+      "target_first": 0,
+      "stop_first": 4,
       "ambiguous_same_bar": 0,
-      "neither": 4,
-      "resolved_signals": 15,
-      "win_rate_pct": 13.3,
-      "target_hit_pct": 10.5,
-      "stop_hit_pct": 68.4,
-      "avg_5d_return_pct": -0.63,
-      "worst_mae_pct": -8.05,
-      "best_mfe_pct": 20.43
-    },
-    "PGAS": {
-      "symbol": "PGAS",
-      "status": "OK",
-      "span_start": "2021-10-22",
-      "span_end": "2026-10-22",
-      "span_years": 5.0,
-      "bars": 1200,
-      "evaluated_events": 1136,
-      "ready_signals": 25,
-      "target_first": 11,
-      "stop_first": 13,
-      "ambiguous_same_bar": 0,
-      "neither": 1,
-      "resolved_signals": 24,
-      "win_rate_pct": 45.8,
-      "target_hit_pct": 44.0,
-      "stop_hit_pct": 52.0,
-      "avg_5d_return_pct": 0.09,
-      "worst_mae_pct": -17.14,
-      "best_mfe_pct": 13.97
+      "neither": 0,
+      "resolved_signals": 4,
+      "win_rate_pct": 0.0,
+      "target_hit_pct": 0.0,
+      "stop_hit_pct": 100.0,
+      "avg_5d_return_pct": -5.63,
+      "worst_mae_pct": -13.08,
+      "best_mfe_pct": 3.61
     }
   },
-  "errors": {}
+  "errors": {
+    "MPMX": "MISSING_UNIVERSE_MAPPING",
+    "BDMN": "MISSING_UNIVERSE_MAPPING"
+  }
 }
