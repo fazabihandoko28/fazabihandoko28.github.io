@@ -924,7 +924,10 @@ def data_age_seconds(frame):
         - ts.to_pydatetime()
     ).total_seconds()
 
-    return max(0, int(age))
+    # Future-dated bars must never be treated as zero-age live evidence.
+    if not math.isfinite(age) or age < 0:
+        raise MarketDataUnavailable("Invalid or future-dated market candle timestamp")
+    return int(age)
 
 
 def _record_market_bar(symbol, interval, frame):
