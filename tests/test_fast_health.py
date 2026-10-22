@@ -23,6 +23,13 @@ class FastHealthTests(unittest.TestCase):
         engine.update_fast_health(**kwargs)
         return self.request.call_args.args[2]
 
+    def test_null_ticker_cannot_inflate_idx_coverage(self):
+        self.assertIsNone(engine.normalize_ticker(None))
+        for value in (None, "", "  ", "\t"):
+            self.assertEqual(engine.clean_ticker(value), "")
+        self.assertEqual(engine.clean_ticker(" bbca.jk "), "BBCA")
+        self.assertEqual(engine.normalize_ticker(" bbca "), "BBCA.JK")
+
     def test_fast_readback_accepts_postgres_microsecond_normalization(self):
         # PostgREST drops trailing fractional zeros, even when the same bar was persisted.
         self.assertTrue(same_instant(

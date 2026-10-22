@@ -180,6 +180,9 @@ def now_iso():
 
 
 def normalize_ticker(ticker):
+    # A missing database ticker must never become the fictitious "NONE.JK".
+    if ticker is None:
+        return None
     ticker = str(ticker).strip().upper()
 
     if not ticker:
@@ -192,7 +195,11 @@ def normalize_ticker(ticker):
 
 
 def clean_ticker(ticker):
-    return str(ticker).upper().replace(".JK", "")
+    # Null/blank rows must not inflate the FAST 198-symbol universe.
+    if ticker is None:
+        return ""
+    value = str(ticker).strip().upper()
+    return value[:-3] if value.endswith(".JK") else value
 
 
 def safe_float(value):
