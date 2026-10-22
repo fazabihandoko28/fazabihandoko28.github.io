@@ -399,7 +399,7 @@ def _store_market_frame(ticker, interval, period, frame, latency):
     }
 
 
-def _frame_from_batch(raw_frame, symbol):
+def _frame_from_batch(raw_frame, symbol, *, allow_flat=False):
     """Extract one ticker frame from any common yf.download() column layout."""
     if raw_frame is None or raw_frame.empty:
         return None
@@ -438,7 +438,9 @@ def _frame_from_batch(raw_frame, symbol):
             except Exception:
                 frame = None
 
-    else:
+    elif allow_flat:
+        # Flat OHLC columns have no symbol identity: safe only for a
+        # request that explicitly fetched exactly one ticker.
         frame = raw_frame.copy()
 
     if frame is None or frame.empty:
@@ -724,7 +726,7 @@ def prefetch_market_data(
                         group_by="ticker",
                         timeout=MARKET_REQUEST_TIMEOUT,
                     )
-                    frame = _frame_from_batch(single, symbol)
+                    frame = _frame_from_batch(single, symbol, allow_flat=True)
                     if frame is not None and not frame.empty:
                         _store_market_frame(symbol, interval, period, frame, 0.0)
                         _record_provider_result(True)
@@ -747,6 +749,7 @@ def prefetch_market_data(
             frame = _frame_from_batch(
                 raw_frame,
                 symbol,
+                allow_flat=len(batch) == 1,
             )
 
             if frame is None or frame.empty:
@@ -782,7 +785,7 @@ def prefetch_market_data(
                     group_by="ticker",
                     timeout=MARKET_REQUEST_TIMEOUT,
                 )
-                recovered = _frame_from_batch(single, symbol)
+                recovered = _frame_from_batch(single, symbol, allow_flat=True)
                 if recovered is None or recovered.empty:
                     continue
                 _store_market_frame(symbol, interval, period, recovered, 0.0)
