@@ -952,7 +952,7 @@ def publish_cycle_health():
     # Check every consumed ticker; the oldest-bar check alone can conceal
     # a future-dated ticker when another ticker has an older valid bar.
     future_dated = any(
-        (utc_now() - ts).total_seconds() < -60
+        (utc_now() - ts).total_seconds() < 0
         for ts in _CYCLE_MARKET_BARS.values()
     )
     stale = (age_seconds is None or future_dated
