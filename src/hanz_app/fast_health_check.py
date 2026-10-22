@@ -22,8 +22,22 @@ def same_instant(left, right):
 
 
 
+def idx_regular_session_open(now=None):
+    """IDX regular market sessions (WIB); optional holiday dates via environment."""
+    now = now or datetime.now(timezone.utc)
+    local = now.astimezone(ZoneInfo("Asia/Jakarta"))
+    if local.weekday() >= 5:
+        return False
+    holidays = {x.strip() for x in os.getenv("HANZ_IDX_HOLIDAYS", "").split(",") if x.strip()}
+    if local.date().isoformat() in holidays:
+        return False
+    minutes = local.hour * 60 + local.minute
+    morning_end = 690 if local.weekday() == 4 else 720
+    return 540 <= minutes < morning_end or 810 <= minutes < 900
+
+
 def closed_session_evidence(bar_at, now=None):
-    """Accept a genuine last-session candle for operational checks, never as live FRESH."""
+    """Accept the most recent session candle, without labeling it live FRESH."""
     if not bar_at:
         return False
     try:
@@ -33,20 +47,21 @@ def closed_session_evidence(bar_at, now=None):
         now = now or datetime.now(timezone.utc)
         if now.tzinfo is None or bar > now:
             return False
-        tz = ZoneInfo("Asia/Jakarta")
-        local_now = now.astimezone(tz)
-        local_bar = bar.astimezone(tz)
-        # Trading weekdays: no closed-session allowance during 09:00–16:00 WIB.
-        if local_now.weekday() < 5 and 9 <= local_now.hour < 16:
+        if idx_regular_session_open(now):
             return False
-        previous_session = local_now.date()
-        if local_now.weekday() < 5 and local_now.hour < 9:
-            previous_session -= timedelta(days=1)
-        while previous_session.weekday() >= 5:
-            previous_session -= timedelta(days=1)
-        return (local_bar.date() == previous_session
-                and local_bar.weekday() < 5
-                and 9 <= local_bar.hour < 16)
+        tz = ZoneInfo("Asia/Jakarta")
+        local_now, local_bar = now.astimezone(tz), bar.astimezone(tz)
+        holidays = {x.strip() for x in os.getenv("HANZ_IDX_HOLIDAYS", "").split(",") if x.strip()}
+        session_date = local_now.date()
+        # Before the day's first trading session, the previous trading day applies.
+        if local_now.hour * 60 + local_now.minute < 540:
+            session_date -= timedelta(days=1)
+        while session_date.weekday() >= 5 or session_date.isoformat() in holidays:
+            session_date -= timedelta(days=1)
+        bar_minutes = local_bar.hour * 60 + local_bar.minute
+        bar_end = 690 if local_bar.weekday() == 4 else 720
+        valid_bar_time = (540 <= bar_minutes <= bar_end or 810 <= bar_minutes <= 900)
+        return local_bar.date() == session_date and valid_bar_time
     except (ValueError, TypeError, OverflowError):
         return False
 
