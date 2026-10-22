@@ -72,7 +72,17 @@ def main():
         and row.get("data_status") == written["data_status"]
     )
     # Persisted candle evidence is not a PASS when its market data is stale.
-    fresh = row.get("data_status") == "FRESH"
+    # PARTIAL can mean a minority of symbols were unavailable. Accept the
+    # configured coverage tolerance only when the oldest persisted candle is
+    # independently within the strict freshness window. Never accept STALE.
+    persisted_age = row.get("data_age_seconds")
+    try:
+        age_valid = (persisted_age is not None and
+                     0 <= float(persisted_age) <= engine.MAX_DATA_AGE_SECONDS)
+    except (TypeError, ValueError, OverflowError):
+        age_valid = False
+    fresh = (row.get("data_status") == "FRESH" or
+             (row.get("data_status") == "PARTIAL" and coverage_pass and age_valid))
     universe_complete = len(tickers) >= expected_minimum
     verified = runtime_ok and fresh and universe_complete and coverage_pass
     result = {
