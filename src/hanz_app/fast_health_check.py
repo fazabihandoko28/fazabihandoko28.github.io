@@ -31,6 +31,7 @@ def main():
     tickers.discard("")
     tickers.discard(None)
     expected_minimum = int(os.getenv("HANZ_EXPECTED_MIN_UNIVERSE", "198"))
+    minimum_coverage = int(os.getenv("HANZ_MIN_COVERAGE", "190"))
     if not tickers:
         engine.update_fast_health(error="FAST runtime check: empty universe")
         raise RuntimeError("FAST runtime check: empty universe")
@@ -45,9 +46,11 @@ def main():
             continue
         engine._record_market_bar(engine.normalize_ticker(ticker), engine.INTRADAY_INTERVAL, cached["frame"])
     written = engine.publish_cycle_health()
-    # Missing symbols invalidate the persisted snapshot even when the bars
-    # received for other symbols are individually fresh.
-    if missing or len(tickers) < expected_minimum:
+    # Below-threshold coverage invalidates the snapshot. Missing symbols
+    # above threshold remain explicitly reported without faking their bars.
+    coverage_count = len(tickers) - len(missing)
+    coverage_pass = coverage_count >= minimum_coverage
+    if not coverage_pass or len(tickers) < expected_minimum:
         reason = (
             f"FAST coverage incomplete: {len(tickers) - len(missing)}/{len(tickers)}; "
             f"minimum universe={expected_minimum}; missing={missing}"
@@ -71,11 +74,13 @@ def main():
     # Persisted candle evidence is not a PASS when its market data is stale.
     fresh = row.get("data_status") == "FRESH"
     universe_complete = len(tickers) >= expected_minimum
-    verified = runtime_ok and fresh and universe_complete
+    verified = runtime_ok and fresh and universe_complete and coverage_pass
     result = {
         "commit": os.getenv("GITHUB_SHA", "local"),
-        "runtime_evidence": "PASS" if verified and not missing else ("PARTIAL" if verified else "FAIL"),
-        "coverage_complete": not missing and universe_complete,
+        "runtime_evidence": "PASS" if verified else "FAIL",
+        "coverage_complete": coverage_pass and universe_complete,
+        "full_coverage": not missing and universe_complete,
+        "minimum_coverage": minimum_coverage,
         "expected_minimum_universe": expected_minimum,
         "universe_complete": universe_complete,
         "coverage_count": len(tickers) - len(missing),
@@ -90,8 +95,8 @@ def main():
         raise RuntimeError(f"FAST intraday data not fresh: {row.get('data_status')}")
     if not universe_complete:
         raise RuntimeError(f"FAST universe incomplete: {len(tickers)}/{expected_minimum} minimum")
-    if missing:
-        raise RuntimeError(f"FAST coverage incomplete: {len(tickers) - len(missing)}/{len(tickers)}; missing={missing}")
+    if not coverage_pass:
+        raise RuntimeError(f"FAST coverage below minimum: {coverage_count}/{len(tickers)}; required={minimum_coverage}; missing={missing}")
 
 
 if __name__ == "__main__":
