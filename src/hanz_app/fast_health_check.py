@@ -1,7 +1,8 @@
 """Run the FAST data path and persist candle evidence without generating alerts."""
 import json
 import os
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
+from zoneinfo import ZoneInfo
 
 from hanz_app import fast_trading_engine as engine
 
@@ -18,6 +19,36 @@ def same_instant(left, right):
     if a.tzinfo is None or b.tzinfo is None:
         return False
     return a.astimezone(timezone.utc) == b.astimezone(timezone.utc)
+
+
+
+def closed_session_evidence(bar_at, now=None):
+    """Accept a genuine last-session candle for operational checks, never as live FRESH."""
+    if not bar_at:
+        return False
+    try:
+        bar = datetime.fromisoformat(str(bar_at).replace("Z", "+00:00"))
+        if bar.tzinfo is None:
+            return False
+        now = now or datetime.now(timezone.utc)
+        if now.tzinfo is None or bar > now:
+            return False
+        tz = ZoneInfo("Asia/Jakarta")
+        local_now = now.astimezone(tz)
+        local_bar = bar.astimezone(tz)
+        # Trading weekdays: no closed-session allowance during 09:00–16:00 WIB.
+        if local_now.weekday() < 5 and 9 <= local_now.hour < 16:
+            return False
+        previous_session = local_now.date()
+        if local_now.weekday() < 5 and local_now.hour < 9:
+            previous_session -= timedelta(days=1)
+        while previous_session.weekday() >= 5:
+            previous_session -= timedelta(days=1)
+        return (local_bar.date() == previous_session
+                and local_bar.weekday() < 5
+                and 9 <= local_bar.hour < 16)
+    except (ValueError, TypeError, OverflowError):
+        return False
 
 
 def main():
@@ -86,11 +117,13 @@ def main():
         row.get("data_status") == "FRESH" or
         (row.get("data_status") == "PARTIAL" and coverage_pass)
     )
+    session_closed_valid = closed_session_evidence(row.get("last_market_bar_at")) and bool(row.get("data_age_seconds") is not None)
     universe_complete = len(tickers) >= expected_minimum
-    verified = runtime_ok and fresh and universe_complete and coverage_pass
+    verified = runtime_ok and (fresh or session_closed_valid) and universe_complete and coverage_pass
     result = {
         "commit": os.getenv("GITHUB_SHA", "local"),
         "runtime_evidence": "PASS" if verified else "FAIL",
+        "operational_mode": "CLOSED_SESSION" if session_closed_valid and not fresh else "LIVE",
         "coverage_complete": coverage_pass and universe_complete,
         "full_coverage": not missing and universe_complete,
         "minimum_coverage": minimum_coverage,
@@ -104,7 +137,7 @@ def main():
     print("HANZ FAST RUNTIME: " + json.dumps(result), flush=True)
     if not runtime_ok:
         raise RuntimeError("No persisted FAST candle evidence")
-    if not fresh:
+    if not (fresh or session_closed_valid):
         raise RuntimeError(f"FAST intraday data not fresh: {row.get('data_status')}")
     if not universe_complete:
         raise RuntimeError(f"FAST universe incomplete: {len(tickers)}/{expected_minimum} minimum")
