@@ -56,7 +56,7 @@ def main():
             last_market_bar_at=written.get("last_market_bar_at"),
             data_status="PARTIAL",
             symbols_monitored=len(engine._CYCLE_MARKET_BARS),
-            error=reason,
+            error="; ".join(part for part in (written.get("last_error"), reason) if part),
         )
     rows = engine.supabase_request("GET", "hanz_fast_health?id=eq.bei-fast&select=*") or []
     row = rows[0] if rows else {}
