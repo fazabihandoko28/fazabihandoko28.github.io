@@ -1,10 +1,11 @@
 import unittest
+from unittest.mock import patch as mock_patch
 from datetime import datetime, timedelta, timezone
 from unittest.mock import patch
 
 import pandas as pd
 from hanz_app import fast_trading_engine as engine
-from hanz_app.fast_health_check import same_instant, closed_session_evidence
+from hanz_app.fast_health_check import same_instant, closed_session_evidence, idx_regular_session_open
 
 
 class FastHealthTests(unittest.TestCase):
@@ -22,6 +23,21 @@ class FastHealthTests(unittest.TestCase):
     def payload(self, **kwargs):
         engine.update_fast_health(**kwargs)
         return self.request.call_args.args[2]
+
+    def test_idx_regular_sessions_thursday_and_friday(self):
+        def utc(day, hour, minute):
+            return datetime(2026, 10, day, hour, minute, tzinfo=timezone.utc)
+        self.assertTrue(idx_regular_session_open(utc(22, 3, 0)))
+        self.assertFalse(idx_regular_session_open(utc(22, 5, 30)))
+        self.assertTrue(idx_regular_session_open(utc(22, 7, 0)))
+        self.assertFalse(idx_regular_session_open(utc(22, 9, 0)))
+        self.assertFalse(idx_regular_session_open(utc(23, 4, 45)))
+        self.assertTrue(idx_regular_session_open(utc(23, 7, 0)))
+
+    def test_idx_configured_holiday_blocks_live_session(self):
+        with mock_patch.dict("os.environ", {"HANZ_IDX_HOLIDAYS": "2026-10-22"}):
+            self.assertFalse(idx_regular_session_open(
+                datetime(2026, 10, 22, 3, tzinfo=timezone.utc)))
 
     def test_closed_session_evidence_after_idx_close(self):
         # Thursday 20:27 WIB, last genuine candle Thursday 14:55 WIB.
