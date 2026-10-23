@@ -7,7 +7,7 @@ from pathlib import Path
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
-from hanz_data import YahooFinanceProvider, load_yahoo_universe
+from hanz_data import YahooFinanceProvider, YahooSymbol, load_yahoo_universe
 from hanz_validation.walk_forward import WalkForwardValidator, DecisionOutcome
 
 SUPABASE_URL=os.environ.get("SUPABASE_URL","").rstrip("/")
@@ -109,6 +109,18 @@ def _top5_symbols():
     return [str(r.get("ticker") or "").upper() for r in rows[:5]]
 
 
+# Explicit Yahoo research mappings for selected symbols missing from the static pool.
+# Delayed, non-official data: never eligible as independent execution evidence.
+RESEARCH_ONLY_FALLBACK_TICKERS = {"MPMX": "MPMX.JK", "BDMN": "BDMN.JK"}
+
+
+def _research_mappings(mappings):
+    available = {m.symbol.upper(): m for m in mappings if m.market.upper() == "BEI"}
+    for symbol, yahoo_ticker in RESEARCH_ONLY_FALLBACK_TICKERS.items():
+        available.setdefault(symbol, YahooSymbol(market="BEI", symbol=symbol, yahoo_ticker=yahoo_ticker))
+    return available
+
+
 def _summary(symbol, series, report):
     ready=[e for e in report.events if e.status=="READY"]
     target=sum(e.outcome is DecisionOutcome.TARGET_FIRST for e in ready)
@@ -166,7 +178,7 @@ def _selection_coverage(symbols, available, results, errors):
 def main():
     symbols=_top5_symbols()
     mappings=load_yahoo_universe(UNIVERSE)
-    available={m.symbol.upper():m for m in mappings if m.market.upper()=="BEI"}
+    available=_research_mappings(mappings)
     selected=[available[s] for s in symbols if s in available]
     validator=WalkForwardValidator(minimum_bars=60,horizon_bars=5,step_bars=1,target_pct=0.04,stop_pct=0.025)
     results={}
