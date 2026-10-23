@@ -2288,5 +2288,45 @@
     "source": "YAHOO_FINANCE_RESEARCH_ONLY",
     "recorded_at": "2026-10-22T18:07:09.319605+00:00",
     "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "DMAS",
+    "status": "READY",
+    "signal_timestamp": "2026-10-22T00:00:00+00:00",
+    "signal_close": 218.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-10-23T17:56:02.280190+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "PRDA",
+    "status": "READY",
+    "signal_timestamp": "2026-10-22T00:00:00+00:00",
+    "signal_close": 3590.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-10-23T17:56:02.280216+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "INTP",
+    "status": "WAIT",
+    "signal_timestamp": "2026-10-22T00:00:00+00:00",
+    "signal_close": 5625.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-10-23T17:56:02.280224+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "BNGA",
+    "status": "WAIT",
+    "signal_timestamp": "2026-10-22T00:00:00+00:00",
+    "signal_close": 1665.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-10-23T17:56:02.280230+00:00",
+    "outcome": "PENDING"
   }
 ]
