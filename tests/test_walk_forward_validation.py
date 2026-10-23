@@ -145,6 +145,24 @@ class FiveYearSelectionCoverageTests(unittest.TestCase):
         self.assertTrue(coverage["all_selected_accounted_for"])
         self.assertFalse(coverage["backtest_complete"])
 
+    def test_known_yahoo_research_fallbacks_are_mapped_without_fabricating_bars(self) -> None:
+        from hanz_app.research.generate_top5_5y_backtest import _research_mappings
+        from hanz_data import YahooSymbol
+
+        mappings = _research_mappings([YahooSymbol(market="BEI", symbol="AKRA", yahoo_ticker="AKRA.JK")])
+        self.assertEqual(mappings["MPMX"].yahoo_ticker, "MPMX.JK")
+        self.assertEqual(mappings["BDMN"].yahoo_ticker, "BDMN.JK")
+        self.assertEqual(mappings["AKRA"].yahoo_ticker, "AKRA.JK")
+        self.assertNotIn("UNKNOWN", mappings)
+
+    def test_explicit_universe_mapping_takes_precedence_over_research_fallback(self) -> None:
+        from hanz_app.research.generate_top5_5y_backtest import _research_mappings
+        from hanz_data import YahooSymbol
+
+        configured = YahooSymbol(market="BEI", symbol="MPMX", yahoo_ticker="MPMX.CUSTOM")
+        mappings = _research_mappings([configured])
+        self.assertIs(mappings["MPMX"], configured)
+
     def test_all_five_results_allow_complete_coverage(self) -> None:
         from hanz_app.research.generate_top5_5y_backtest import _selection_coverage
 
