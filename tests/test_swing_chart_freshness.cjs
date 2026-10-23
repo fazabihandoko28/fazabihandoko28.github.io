@@ -138,3 +138,39 @@ test("PMR80 trade levels fail closed even when risk flags are spoofed",()=>{
     assert.match(box.innerHTML,/REFERENCE PRICE<\/span><strong>123/);
   }
 });
+
+test("daily-bar KPI uses the actual source bar date, never row update or market clock",()=>{
+  assert.doesNotMatch(html, /id="lastUpdateDate">Supabase Live/);
+  assert.match(html, /hanzDailyBarStatus\(top,expectedCompletedIdxDate\(\)\)/);
+  const start=html.indexOf("function hanzDailyBarStatus(row,expectedDate){");
+  const end=html.indexOf("/* SHARED SWING BUY */",start);
+  assert.ok(start>=0 && end>start,"daily-bar source date guard must exist");
+  const ctx={riskObject:row=>row?.risk_validation||{}};
+  vm.runInNewContext(html.slice(start,end),ctx);
+  const date="2026-10-23";
+  const row={daily_bar_at:date+"T00:00:00Z",updated_at:"2026-10-24T10:00:00Z",risk_validation:{
+    data_quality:{verified:false,status:"UNVERIFIED",primary_date:date}
+  }};
+  const unverified=ctx.hanzDailyBarStatus(row,date);
+  assert.match(unverified,/BAR 2026-10-23/);
+  assert.match(unverified,/PRICE UNVERIFIED/);
+  assert.match(unverified,/NOT LIVE/);
+  assert.doesNotMatch(unverified,/2026-10-24/);
+  assert.match(ctx.hanzDailyBarStatus(row,"2026-10-22"),/STALE \/ UNKNOWN/);
+  assert.match(ctx.hanzDailyBarStatus({...row,daily_bar_at:null},date),/BAR UNKNOWN/);
+  assert.match(ctx.hanzDailyBarStatus(row,""),/STALE \/ UNKNOWN/);
+  const verified={...row,risk_validation:{data_quality:{
+    verified:true,status:"VERIFIED",verifier_source:"INDEPENDENT_IDX",
+    primary_date:date,verifier_date:date
+  }}};
+  assert.match(ctx.hanzDailyBarStatus(verified,date),/INDEPENDENTLY VERIFIED DAILY BAR/);
+  assert.match(ctx.hanzDailyBarStatus(verified,date),/NOT LIVE/);
+  assert.match(ctx.hanzDailyBarStatus({...verified,risk_validation:{data_quality:{
+    ...verified.risk_validation.data_quality,verifier_date:"2026-10-22"
+  }}},date),/PRICE UNVERIFIED/);
+  const clockStart=html.indexOf("function renderIdxMarketClock(){");
+  const clockEnd=html.indexOf("/* Exchange event confirmed",clockStart);
+  assert.ok(clockStart>=0 && clockEnd>clockStart);
+  assert.doesNotMatch(html.slice(clockStart,clockEnd),/lastUpdateDate/,
+    "market clock must not overwrite the real daily-bar freshness label");
+});

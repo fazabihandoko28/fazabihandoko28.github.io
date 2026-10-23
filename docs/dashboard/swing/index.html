@@ -597,7 +597,7 @@ th{color:var(--muted)}
   <article class="kpi">
     <span>HANZ Engine</span>
     <strong id="engineState">—</strong>
-    <small id="lastUpdateDate">Supabase Live</small>
+    <small id="lastUpdateDate">DAILY BAR UNVERIFIED · NOT LIVE</small>
   </article>
 
   <article class="kpi market-mover-card" id="marketMoversCard" role="button" tabindex="0" aria-label="Open Top 5 Market Movers">
@@ -2328,6 +2328,23 @@ async function openCandidateChart(index){
 function closeCandidateChart(){$("candidateChartModal").classList.remove("show");}
 
 
+// Display the source trading date, never the time the database row was refreshed.
+// The IDX market clock has a separate field and must not overwrite this evidence.
+function hanzDailyBarStatus(row,expectedDate){
+  const barDate=String(row?.daily_bar_at||"").slice(0,10);
+  const expected=String(expectedDate||"").slice(0,10);
+  const quality=riskObject(row).data_quality||{};
+  const current=/^\d{4}-\d{2}-\d{2}$/.test(expected) && barDate===expected;
+  const independentlyVerified=current && quality.verified===true
+    && String(quality.status||"").toUpperCase()==="VERIFIED"
+    && Boolean(quality.verifier_source)
+    && String(quality.primary_date||"").slice(0,10)===barDate
+    && String(quality.verifier_date||"").slice(0,10)===barDate;
+  const status=!current?"STALE / UNKNOWN DAILY BAR":
+    independentlyVerified?"INDEPENDENTLY VERIFIED DAILY BAR":"DAILY DATE MATCH · PRICE UNVERIFIED";
+  return `BAR ${barDate||"UNKNOWN"} · ${status} · NOT LIVE`;
+}
+
 /* SHARED SWING BUY */
 async function loadWatchlist(){
   const interestingStates=[
@@ -2400,12 +2417,13 @@ async function loadWatchlist(){
       ? `HANZ OPPORTUNITY BUY · Rank ${hanzRankingScore(top)}/100 · Foreign ${ff.label}`
       : `HANZ OPPORTUNITY RADAR · ${state} · Rank ${hanzRankingScore(top)}/100 · NOT YET BUY`;
     $("lastUpdate").textContent=formatTime(top.updated_at);
-    $("lastUpdateDate").textContent=`${formatDate(top.updated_at)} · CRV3 opportunity-seeking ranking`;
+    $("lastUpdateDate").textContent=hanzDailyBarStatus(top,expectedCompletedIdxDate());
   }else{
     $("topCandidate").textContent="—";
     $("topCandidateSub").textContent="V42 · No CRV3 opportunity candidate";
     $("heroTopCandidate").textContent="—";
     $("heroTopSub").textContent="No candidate passed opportunity score + hard-break gate";
+    $("lastUpdateDate").textContent="NO VERIFIED DAILY BAR · NOT LIVE";
   }
 
   // Same canonical list powers every public ranking view.
@@ -2638,14 +2656,8 @@ function renderIdxMarketClock(){
   if($("idxLastTradingDay")) $("idxLastTradingDay").textContent=nearestTradingDay(p.iso,-1);
   if($("idxNextTradingDay")) $("idxNextTradingDay").textContent=nearestTradingDay(p.iso,1);
 
-  // Do not describe stale holiday/weekend data as "Swing Live".
-  if($("lastUpdateDate")){
-    if(m.reason==="Trading Day" && ["SESSION 1","LUNCH BREAK","SESSION 2","POST-CLOSE"].includes(m.state)){
-      $("lastUpdateDate").textContent=`IDX ${m.state} · WIB`;
-    }else{
-      $("lastUpdateDate").textContent=`IDX ${marketText}`;
-    }
-  }
+  // IDX market clock is separate from the daily-bar freshness label.
+  // Never overwrite the source-bar timestamp with the current market state.
 
   return m;
 }
