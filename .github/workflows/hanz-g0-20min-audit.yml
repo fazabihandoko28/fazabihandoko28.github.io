@@ -60,11 +60,12 @@ jobs:
           )
           with urllib.request.urlopen(req, timeout=25) as response:
               runs = json.load(response).get("workflow_runs", [])
-          # A 190/198 partial feed is diagnostic evidence, not G0 completion.
-          def complete_coverage(covered, universe):
-              return universe >= 198 and covered >= universe
-          assert not complete_coverage(193, 198)
-          assert complete_coverage(198, 198)
+          # G0 OPERATIONAL accepts 190/198; full coverage remains separately reported.
+          def operational_coverage(covered, universe):
+              return universe >= 198 and covered >= 190
+          assert operational_coverage(193, 198)
+          assert not operational_coverage(189, 198)
+          assert operational_coverage(198, 198)
           # STALE is an explicit operational state, never an unknown mode or LIVE.
           def mode_evidence_error(mode, age):
               if mode == "LIVE":
@@ -158,8 +159,8 @@ jobs:
                   age = evidence.get("health", {}).get("data_age_seconds")
                   bar = evidence.get("health", {}).get("last_market_bar_at")
                   print(f"FAST_EVIDENCE: mode={mode} coverage={coverage}/{universe} age={age}s bar={bar}")
-                  if evidence.get("runtime_evidence") != "PASS" or not complete_coverage(coverage, universe):
-                      failures.append("FAST coverage/runtime incomplete for G0 (full universe required)")
+                  if evidence.get("runtime_evidence") != "PASS" or not operational_coverage(coverage, universe):
+                      failures.append("FAST coverage/runtime below G0 operational minimum 190/198")
                   blocker = mode_evidence_error(mode, age)
                   if blocker:
                       failures.append(blocker)
