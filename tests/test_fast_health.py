@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 import pandas as pd
 from hanz_app import fast_trading_engine as engine
-from hanz_app.fast_health_check import same_instant, closed_session_evidence, idx_regular_session_open, complete_universe_coverage, coverage_health_status, runtime_operational_mode
+from hanz_app.fast_health_check import same_instant, closed_session_evidence, idx_regular_session_open, complete_universe_coverage, require_complete_coverage, coverage_health_status, runtime_operational_mode
 
 
 class FastHealthTests(unittest.TestCase):
@@ -91,6 +91,15 @@ class FastHealthTests(unittest.TestCase):
         self.assertFalse(complete_universe_coverage(190, 190, 198))
         self.assertTrue(complete_universe_coverage(198, 198, 198))
         self.assertTrue(complete_universe_coverage(200, 200, 198))
+
+    def test_fast_runtime_fails_closed_when_legacy_190_tolerance_is_met(self):
+        # Prior code could print FAIL yet exit 0 for 193/198 when data was fresh.
+        for covered, universe in ((190, 198), (193, 198), (198, 200), (190, 190)):
+            with self.subTest(covered=covered, universe=universe):
+                with self.assertRaisesRegex(RuntimeError, "FAST coverage incomplete"):
+                    require_complete_coverage(covered, universe, 198)
+        require_complete_coverage(198, 198, 198)
+        require_complete_coverage(200, 200, 198)
 
     def test_missing_symbols_never_mask_stale_health(self):
         self.assertEqual(coverage_health_status("STALE", False), "STALE")
