@@ -33,6 +33,10 @@ class FastHealthTests(unittest.TestCase):
         self.assertFalse(idx_regular_session_open(utc(22, 9, 0)))
         self.assertFalse(idx_regular_session_open(utc(23, 4, 45)))
         self.assertTrue(idx_regular_session_open(utc(23, 7, 0)))
+        self.assertFalse(idx_regular_session_open(utc(23, 6, 45)))  # Friday lunch 13:45 WIB
+        self.assertTrue(idx_regular_session_open(utc(23, 8, 44)))  # Friday 15:44 WIB
+        self.assertFalse(idx_regular_session_open(utc(23, 8, 50)))  # Friday 15:50 WIB
+        self.assertTrue(idx_regular_session_open(utc(22, 8, 44)))  # Thursday 15:44 WIB
 
     def test_idx_configured_holiday_blocks_live_session(self):
         with mock_patch.dict("os.environ", {"HANZ_IDX_HOLIDAYS": "2026-10-22"}):
@@ -45,6 +49,17 @@ class FastHealthTests(unittest.TestCase):
             "2026-10-22T07:55:00+00:00",
             datetime(2026, 10, 22, 13, 27, tzinfo=timezone.utc),
         ))
+
+    def test_closed_session_waits_for_idx_post_close_completion(self):
+        friday_bar = "2026-10-23T08:40:00+00:00"  # Friday 15:40 WIB
+        for hour, minute in ((8, 44), (9, 10), (9, 15)):
+            self.assertFalse(closed_session_evidence(
+                friday_bar, datetime(2026, 10, 23, hour, minute, tzinfo=timezone.utc)))
+        self.assertTrue(closed_session_evidence(
+            friday_bar, datetime(2026, 10, 23, 9, 16, tzinfo=timezone.utc)))
+        self.assertFalse(closed_session_evidence(
+            "2026-10-23T04:20:00+00:00",
+            datetime(2026, 10, 23, 6, 0, tzinfo=timezone.utc)))  # Friday lunch
 
     def test_closed_session_never_overrides_live_hours(self):
         self.assertFalse(closed_session_evidence(

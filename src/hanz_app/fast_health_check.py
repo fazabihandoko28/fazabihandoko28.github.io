@@ -51,8 +51,11 @@ def idx_regular_session_open(now=None):
     if local.date().isoformat() in holidays:
         return False
     minutes = local.hour * 60 + local.minute
-    morning_end = 690 if local.weekday() == 4 else 720
-    return 540 <= minutes < morning_end or 810 <= minutes < 900
+    friday = local.weekday() == 4
+    morning_end = 690 if friday else 720
+    afternoon_start = 840 if friday else 810
+    # IDX regular session II ends at 15:49:59 WIB (October 2026 Rule II-A).
+    return 540 <= minutes < morning_end or afternoon_start <= minutes < 950
 
 
 def closed_session_evidence(bar_at, now=None):
@@ -71,6 +74,12 @@ def closed_session_evidence(bar_at, now=None):
         tz = ZoneInfo("Asia/Jakarta")
         local_now, local_bar = now.astimezone(tz), bar.astimezone(tz)
         holidays = {x.strip() for x in os.getenv("HANZ_IDX_HOLIDAYS", "").split(",") if x.strip()}
+        now_minutes = local_now.hour * 60 + local_now.minute
+        trading_day = local_now.weekday() < 5 and local_now.date().isoformat() not in holidays
+        # A daily session is not completed during lunch, pre-close, or
+        # post-close. Only certify today's bar after 16:15 WIB.
+        if trading_day and 540 <= now_minutes <= 975:
+            return False
         session_date = local_now.date()
         # Before the day's first trading session, the previous trading day applies.
         if local_now.hour * 60 + local_now.minute < 540:
@@ -78,8 +87,10 @@ def closed_session_evidence(bar_at, now=None):
         while session_date.weekday() >= 5 or session_date.isoformat() in holidays:
             session_date -= timedelta(days=1)
         bar_minutes = local_bar.hour * 60 + local_bar.minute
-        bar_end = 690 if local_bar.weekday() == 4 else 720
-        valid_bar_time = (540 <= bar_minutes <= bar_end or 810 <= bar_minutes <= 900)
+        friday_bar = local_bar.weekday() == 4
+        morning_end = 690 if friday_bar else 720
+        afternoon_start = 840 if friday_bar else 810
+        valid_bar_time = (540 <= bar_minutes <= morning_end or afternoon_start <= bar_minutes < 950)
         return local_bar.date() == session_date and valid_bar_time
     except (ValueError, TypeError, OverflowError):
         return False
