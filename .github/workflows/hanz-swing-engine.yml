@@ -20,9 +20,9 @@ on:
     # than the trigger interval and would continually cancel itself.
     # Intraday risk monitoring requires a separate lightweight workflow.
 
-    # 16:10 WIB = 09:10 UTC.
-    # Final completed-bar scan after IDX close.
-    - cron: "10 9 * * 1-5"
+    # 16:20 WIB = 09:20 UTC, after IDX post-close completion at 16:15.
+    # Never schedule the final completed-bar scan during post-close processing.
+    - cron: "20 9 * * 1-5"
     - cron: "0 11 * * 1-5"
 
 permissions:
@@ -68,6 +68,19 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+
+      - name: Verify final daily scan is after IDX post-close
+        run: |
+          python - <<'PY'
+          from datetime import datetime, timezone
+          from pathlib import Path
+          from zoneinfo import ZoneInfo
+          workflow = Path(".github/workflows/hanz-swing-engine.yml").read_text()
+          assert '- cron: "20 9 * * 1-5"' in workflow
+          assert '- cron: "10 9 * * 1-5"' not in workflow
+          local = datetime(2026, 10, 23, 9, 20, tzinfo=timezone.utc).astimezone(ZoneInfo("Asia/Jakarta"))
+          assert (local.hour, local.minute) > (16, 15)
+          PY
 
       - name: Run HANZ Swing Scanner
         run: |
