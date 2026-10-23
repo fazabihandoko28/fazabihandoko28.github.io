@@ -65,6 +65,22 @@ jobs:
               return universe >= 198 and covered >= universe
           assert not complete_coverage(193, 198)
           assert complete_coverage(198, 198)
+          # STALE is an explicit operational state, never an unknown mode or LIVE.
+          def mode_evidence_error(mode, age):
+              if mode == "LIVE":
+                  try:
+                      return "FAST live candle exceeds 1800 seconds" if age is None or float(age) > 1800 else None
+                  except (TypeError, ValueError, OverflowError):
+                      return "FAST live candle age invalid"
+              if mode == "CLOSED_SESSION":
+                  return None
+              if mode == "STALE":
+                  return "FAST intraday evidence STALE (not live)"
+              return "FAST operational mode unknown"
+          assert mode_evidence_error("STALE", 80000) == "FAST intraday evidence STALE (not live)"
+          assert mode_evidence_error("LIVE", 1801) == "FAST live candle exceeds 1800 seconds"
+          assert mode_evidence_error("LIVE", 300) is None
+          assert mode_evidence_error("CLOSED_SESSION", 80000) is None
           patterns = {
               "scanner": ("swing scanner",),
               "ci": ("hanz ci",),
@@ -134,13 +150,11 @@ jobs:
                   print(f"FAST_EVIDENCE: mode={mode} coverage={coverage}/{universe} age={age}s bar={bar}")
                   if evidence.get("runtime_evidence") != "PASS" or not complete_coverage(coverage, universe):
                       failures.append("FAST coverage/runtime incomplete for G0 (full universe required)")
-                  if mode == "LIVE":
-                      if age is None or float(age) > 1800:
-                          failures.append("FAST live candle exceeds 1800 seconds")
+                  blocker = mode_evidence_error(mode, age)
+                  if blocker:
+                      failures.append(blocker)
                   elif mode == "CLOSED_SESSION":
                       print("LIVE_FRESHNESS: NOT VERIFIED (closed-session evidence only)")
-                  else:
-                      failures.append("FAST operational mode unknown")
           print("G0_OPERATIONAL_AUDIT:", "PASS" if not failures else "FAIL")
           if failures:
               print("BLOCKERS:", "; ".join(failures))
