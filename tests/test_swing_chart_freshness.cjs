@@ -95,3 +95,29 @@ test("matching dates never certify corrupt OHLC or zero-volume latest bars",()=>
   assert.equal(g.chartFreshnessStatus("2026-10-20",[candle("2026-10-19",{low:35}),candle()],"2026-10-20").ok,false);
   assert.equal(g.chartFreshnessStatus("2026-10-20",[{time:"2026-10-20"}],"2026-10-20").ok,false);
 });
+
+
+test("PMR80 trade levels fail closed even when risk flags are spoofed",()=>{
+  const pmr=fs.readFileSync(path.join(__dirname,"../docs/dashboard/swing/pmr80-radar.js"),"utf8");
+  const start=pmr.indexOf("function openModal(index){");
+  const end=pmr.indexOf("function ensureStatus(){",start);
+  assert.ok(start>=0 && end>start,"PMR80 modal must exist");
+  for(const [risk_gate,entry_status] of [["ELIGIBLE","ENTRY_ZONE"],[null,"UNVALIDATED_LEVELS"]]){
+    const box={innerHTML:""};
+    const modal={classList:{add(){}},setAttribute(){}};
+    const ctx={
+      cache:[{ticker:"SPOOF",rank:1,prediction_label:"RADAR_CANDIDATE",risk_gate,entry_status,
+        price:123,entry_low:101,entry_high:102,stop_loss:90,target_1:130,target_2:140}],
+      ensureModal(){},closeModal(){},
+      document:{getElementById:id=>id==="pmr80ModalBox"?box:id==="pmr80DetailModal"?modal:{onclick:null}},
+      esc:v=>String(v??""),fmtPrice:v=>String(v),fmtPct:v=>String(v),
+      num:v=>v==null?null:Number(v)
+    };
+    vm.runInNewContext(pmr.slice(start,end),ctx);
+    ctx.openModal(0);
+    assert.match(box.innerHTML,/ENTRY ZONE<\/span><strong>NOT VALIDATED – NOT VALIDATED/);
+    assert.equal((box.innerHTML.match(/NOT VALIDATED/g)||[]).length,5);
+    assert.doesNotMatch(box.innerHTML,/ENTRY ZONE<\/span><strong>101 – 102/);
+    assert.match(box.innerHTML,/REFERENCE PRICE<\/span><strong>123/);
+  }
+});
