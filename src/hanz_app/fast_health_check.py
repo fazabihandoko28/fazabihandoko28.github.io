@@ -1,7 +1,8 @@
 """Run the FAST data path and persist candle evidence without generating alerts."""
 import json
+import math
 import os
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone, timedelta, time as clock_time
 from zoneinfo import ZoneInfo
 
 from hanz_app import fast_trading_engine as engine
@@ -114,6 +115,57 @@ def session_coverage_evidence(bars, now=None):
     return sum(closed_session_evidence(ts, now) for ts in bars.values())
 
 
+
+def completed_daily_chart_symbols(rows, allowed_symbols, now=None):
+    """Verify post-close daily OHLC evidence; never relabel stale intraday data LIVE."""
+    now = now or datetime.now(timezone.utc)
+    if now.tzinfo is None or idx_regular_session_open(now):
+        return set()
+    tz = ZoneInfo("Asia/Jakarta")
+    local_now = now.astimezone(tz)
+    minutes = local_now.hour * 60 + local_now.minute
+    holidays = {s.strip() for s in os.getenv("HANZ_IDX_HOLIDAYS", "").split(",") if s.strip()}
+    if local_now.weekday() < 5 and local_now.date().isoformat() not in holidays and 540 <= minutes <= 975:
+        return set()
+    target = local_now.date()
+    if minutes < 540:
+        target -= timedelta(days=1)
+    while target.weekday() >= 5 or target.isoformat() in holidays:
+        target -= timedelta(days=1)
+    closed_at = datetime.combine(target, clock_time(16, 15), tzinfo=tz).astimezone(timezone.utc)
+    if now < closed_at:
+        return set()
+    allowed = {engine.clean_ticker(s) for s in allowed_symbols}
+    verified = set()
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        symbol = engine.clean_ticker(row.get("ticker"))
+        if not symbol or symbol not in allowed or str(row.get("source_bar_at")) != target.isoformat():
+            continue
+        try:
+            updated = datetime.fromisoformat(str(row.get("updated_at")).replace("Z", "+00:00"))
+            if updated.tzinfo is None or not closed_at <= updated.astimezone(timezone.utc) <= now:
+                continue
+            candles = row.get("candles")
+            if not isinstance(candles, list) or not candles or not isinstance(candles[-1], dict):
+                continue
+            last = candles[-1]
+            if str(last.get("time")) != target.isoformat():
+                continue
+            o, h, l, c = (float(last[k]) for k in ("open", "high", "low", "close"))
+            if not all(math.isfinite(x) and x > 0 for x in (o, h, l, c)):
+                continue
+            if not (l <= min(o, c) <= max(o, c) <= h):
+                continue
+            volume = float(last.get("volume", 0))
+            if not math.isfinite(volume) or volume < 0:
+                continue
+        except (TypeError, ValueError, KeyError, OverflowError):
+            continue
+        verified.add(symbol)
+    return verified
+
 def main():
     engine._CYCLE_PROVIDER_SUCCESSES = 0
     engine._CYCLE_PROVIDER_FAILURES = 0
@@ -203,7 +255,24 @@ def main():
         row.get("data_status") == "FRESH" or
         (row.get("data_status") == "PARTIAL" and coverage_pass)
     )
-    completed_session_count = session_coverage_evidence(engine._CYCLE_MARKET_BARS)
+    # Intraday Yahoo frames may end at the last trade, not at 15:45 WIB.
+    # For a CLOSED session only, independently verify completed daily OHLC
+    # persisted after 16:15 WIB. Never turn stale intraday evidence into LIVE.
+    closing_symbols = {
+        engine.clean_ticker(symbol)
+        for symbol, bar in engine._CYCLE_MARKET_BARS.items()
+        if closed_session_evidence(bar)
+    }
+    daily_symbols = set()
+    if len(closing_symbols) < minimum_coverage and not idx_regular_session_open():
+        try:
+            daily_rows = engine.supabase_request(
+                "GET", "hanz_swing_chart_data?select=ticker,source_bar_at,updated_at,candles&limit=1000"
+            ) or []
+            daily_symbols = completed_daily_chart_symbols(daily_rows, tickers)
+        except Exception as exc:
+            print(f"FAST DAILY CLOSE EVIDENCE UNAVAILABLE: {type(exc).__name__}", flush=True)
+    completed_session_count = len(closing_symbols | daily_symbols)
     session_closed_valid = completed_session_count >= minimum_coverage and not idx_regular_session_open()
     universe_complete = len(tickers) >= expected_minimum
     # Operational G0 requires the agreed 190-symbol threshold; report full coverage separately.
@@ -218,6 +287,9 @@ def main():
         "expected_minimum_universe": expected_minimum,
         "universe_complete": universe_complete,
         "completed_session_candle_count": completed_session_count,
+        "intraday_close_count": len(closing_symbols),
+        "verified_daily_close_count": len(daily_symbols),
+        "closed_session_evidence_source": "verified_postclose_daily_ohlc" if daily_symbols else "intraday_close",
         "coverage_count": len(tickers) - len(missing),
         "universe_count": len(tickers),
         "missing_symbols": missing,
