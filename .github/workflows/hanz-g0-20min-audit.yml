@@ -110,14 +110,24 @@ jobs:
                   match.get("status") != "completed" or match.get("conclusion") != "success"
               ):
                   failures.append(key + ": not successful")
-          # Read actual structured evidence from the most recent successful FAST job.
-          # A successful workflow alone is never enough to certify candle quality.
-          fast_runs = [r for r in runs if "fast runtime" in r.get("name", "").lower()
-                       and r.get("status") == "completed" and r.get("conclusion") == "success"]
-          if not fast_runs:
+          # Read the newest completed FAST run, including failures. Selecting only
+          # successful runs masks newer STALE/PARTIAL evidence with an old PASS.
+          def latest_completed_fast(items):
+              candidates = [r for r in items if "fast runtime" in r.get("name", "").lower()
+                            and r.get("status") == "completed"]
+              return max(candidates, key=lambda r: r.get("created_at") or "", default=None)
+          test_runs = [
+              {"name": "HANZ FAST Runtime Evidence", "status": "completed", "conclusion": "success",
+               "created_at": "2026-10-22T10:00:00Z", "id": 1},
+              {"name": "HANZ FAST Runtime Evidence", "status": "completed", "conclusion": "failure",
+               "created_at": "2026-10-23T10:00:00Z", "id": 2},
+          ]
+          assert latest_completed_fast(test_runs)["id"] == 2
+          assert latest_completed_fast([]) is None
+          fast_run = latest_completed_fast(runs)
+          if not fast_run:
               failures.append("FAST evidence unavailable")
           else:
-              fast_run = fast_runs[0]
               jobs_req = urllib.request.Request(
                   f"https://api.github.com/repos/{repo}/actions/runs/{fast_run['id']}/jobs?per_page=20",
                   headers={"Authorization": f"Bearer {token}", "Accept": "application/vnd.github+json"},
