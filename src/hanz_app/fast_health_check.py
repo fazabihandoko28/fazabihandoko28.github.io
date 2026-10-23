@@ -22,6 +22,18 @@ def same_instant(left, right):
 
 
 
+def complete_universe_coverage(covered, universe, expected_minimum):
+    """G0 cannot PASS when any expected symbol lacks candle evidence."""
+    return universe >= expected_minimum and covered == universe
+
+
+def coverage_health_status(status, complete):
+    """Incomplete coverage must not disguise an already STALE feed."""
+    if complete:
+        return status
+    return "STALE" if status == "STALE" else "PARTIAL"
+
+
 def idx_regular_session_open(now=None):
     """IDX regular market sessions (WIB); optional holiday dates via environment."""
     now = now or datetime.now(timezone.utc)
@@ -96,14 +108,15 @@ def main():
     # above threshold remain explicitly reported without faking their bars.
     coverage_count = len(tickers) - len(missing)
     coverage_pass = coverage_count >= minimum_coverage
-    if not coverage_pass or len(tickers) < expected_minimum:
+    coverage_complete = complete_universe_coverage(coverage_count, len(tickers), expected_minimum)
+    if not coverage_complete:
         reason = (
             f"FAST coverage incomplete: {len(tickers) - len(missing)}/{len(tickers)}; "
             f"minimum universe={expected_minimum}; missing={missing}"
         )
         written = engine.update_fast_health(
             last_market_bar_at=written.get("last_market_bar_at"),
-            data_status="PARTIAL",
+            data_status=coverage_health_status(written.get("data_status"), coverage_complete),
             symbols_monitored=len(engine._CYCLE_MARKET_BARS),
             error="; ".join(part for part in (written.get("last_error"), reason) if part),
         )
@@ -134,13 +147,13 @@ def main():
     )
     session_closed_valid = closed_session_evidence(row.get("last_market_bar_at")) and bool(row.get("data_age_seconds") is not None)
     universe_complete = len(tickers) >= expected_minimum
-    verified = runtime_ok and (fresh or session_closed_valid) and universe_complete and coverage_pass
+    verified = runtime_ok and (fresh or session_closed_valid) and coverage_complete
     result = {
         "commit": os.getenv("GITHUB_SHA", "local"),
         "runtime_evidence": "PASS" if verified else "FAIL",
         "operational_mode": "CLOSED_SESSION" if session_closed_valid and not fresh else "LIVE",
-        "coverage_complete": coverage_pass and universe_complete,
-        "full_coverage": not missing and universe_complete,
+        "coverage_complete": coverage_complete,
+        "full_coverage": coverage_complete,
         "minimum_coverage": minimum_coverage,
         "expected_minimum_universe": expected_minimum,
         "universe_complete": universe_complete,
@@ -156,8 +169,8 @@ def main():
         raise RuntimeError(f"FAST intraday data not fresh: {row.get('data_status')}")
     if not universe_complete:
         raise RuntimeError(f"FAST universe incomplete: {len(tickers)}/{expected_minimum} minimum")
-    if not coverage_pass:
-        raise RuntimeError(f"FAST coverage below minimum: {coverage_count}/{len(tickers)}; required={minimum_coverage}; missing={missing}")
+    if not coverage_complete:
+        raise RuntimeError(f"FAST full coverage required: {coverage_count}/{len(tickers)}; minimum universe={expected_minimum}; missing={missing}")
 
 
 if __name__ == "__main__":

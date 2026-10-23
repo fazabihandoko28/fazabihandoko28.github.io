@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 import pandas as pd
 from hanz_app import fast_trading_engine as engine
-from hanz_app.fast_health_check import same_instant, closed_session_evidence, idx_regular_session_open
+from hanz_app.fast_health_check import same_instant, closed_session_evidence, idx_regular_session_open, complete_universe_coverage, coverage_health_status
 
 
 class FastHealthTests(unittest.TestCase):
@@ -58,6 +58,18 @@ class FastHealthTests(unittest.TestCase):
                     "2026-10-22T15:00:00+00:00",
                     "2026-10-22T07:55:00", "invalid", None):
             self.assertFalse(closed_session_evidence(bar, now), bar)
+
+    def test_g0_rejects_partial_coverage_even_above_legacy_tolerance(self):
+        self.assertFalse(complete_universe_coverage(193, 198, 198))
+        self.assertFalse(complete_universe_coverage(198, 200, 198))
+        self.assertFalse(complete_universe_coverage(190, 190, 198))
+        self.assertTrue(complete_universe_coverage(198, 198, 198))
+        self.assertTrue(complete_universe_coverage(200, 200, 198))
+
+    def test_missing_symbols_never_mask_stale_health(self):
+        self.assertEqual(coverage_health_status("STALE", False), "STALE")
+        self.assertEqual(coverage_health_status("FRESH", False), "PARTIAL")
+        self.assertEqual(coverage_health_status("FRESH", True), "FRESH")
 
     def test_null_ticker_cannot_inflate_idx_coverage(self):
         self.assertIsNone(engine.normalize_ticker(None))
