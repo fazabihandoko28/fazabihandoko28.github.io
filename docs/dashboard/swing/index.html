@@ -1842,7 +1842,7 @@ function renderSelectedCandidates(rows){
       </div>
       <div class="candidate-metrics">
         <div class="candidate-metric"><span>CURRENT</span><strong>${price(row.price)}</strong></div>
-        <div class="candidate-metric accent"><span>BUY ZONE</span><strong>${entry}</strong></div>
+        <div class="candidate-metric accent"><span>${executionAllowed?"BUY ZONE":"ENTRY NOT VALIDATED"}</span><strong>${entry}</strong></div>
         <div class="candidate-metric"><span>STOP / INVALIDATION</span><strong>${price(executionAllowed?row.stop_loss:null)}</strong></div>
         <div class="candidate-metric accent"><span>TP1</span><strong>${price(executionAllowed?row.target_1:null)}</strong></div>
         <div class="candidate-metric"><span>TP2</span><strong>${price(executionAllowed?row.target_2:null)}</strong></div>
@@ -1856,7 +1856,7 @@ function renderSelectedCandidates(rows){
       ${warning?`<div class="candidate-warning">${safe(warning)}</div>`:""}
       <div class="candidate-reason">${safe(candidateReason(row))}</div>
       <div class="candidate-actions">
-        <button class="candidate-btn primary" type="button" data-candidate-detail="${i}">Trade Plan</button>
+        <button class="candidate-btn primary" type="button" data-candidate-detail="${i}">${executionAllowed?"Trade Plan":"Research Details"}</button>
         <button class="candidate-btn" type="button" data-candidate-chart="${i}">View Chart</button>
       </div>
     </article>`;
@@ -1871,21 +1871,24 @@ function renderSelectedCandidates(rows){
 function openCandidateDetail(index){
   const row=selectedCandidateRows[index]; if(!row) return;
   const r=riskObject(row), ff=foreignFlowInfo(row), ins=insiderInfo(row), bf=brokerFlowInfo(row), state=candidateStateLabel(row);
-  const entryLow=Number(row.entry_low), entryHigh=Number(row.entry_high);
-  const buyZone=(Number.isFinite(entryLow)&&Number.isFinite(entryHigh))?`${price(entryLow)} – ${price(entryHigh)}`:"—";
+  // Research-only candidates must never expose executable levels.
+  const executionAllowed=hanzExecutionEligible(row);
+  const entryLow=executionAllowed&&row.entry_low!=null?Number(row.entry_low):NaN;
+  const entryHigh=executionAllowed&&row.entry_high!=null?Number(row.entry_high):NaN;
+  const buyZone=(Number.isFinite(entryLow)&&entryLow>0&&Number.isFinite(entryHigh)&&entryHigh>=entryLow)?`${price(entryLow)} – ${price(entryHigh)}`:"NOT VALIDATED";
   const upside=candidateUpsidePct(row);
   const upsideText=Number.isFinite(upside)?`${upside>=0?"+":""}${upside.toFixed(1)}%`:"—";
   const horizon=candidateSwingHorizon(row);
   const warning=candidateActionWarning(row);
-  const action=String(r.hanz_action||row?.hanz_action||state.label||"").replaceAll("_"," ");
+  const action=executionAllowed?String(r.hanz_action||row?.hanz_action||state.label||"").replaceAll("_"," "):"EXECUTION BLOCKED · NOT VALIDATED";
   $("candidateDetailTitle").textContent=`${row.ticker} · ${state.label}`;
   $("candidateDetailSub").textContent=`Rank #${selectedCandidateRows.indexOf(row)+1} · HANZ 5 Best`;
 
-  const ts=Number(row.trailing_stop ?? r.trailing_stop ?? r.trailing_stop_price);
-  const cl=Number(row.stop_loss ?? r.stop_loss ?? r.cut_loss);
+  const ts=executionAllowed?Number(row.trailing_stop ?? r.trailing_stop ?? r.trailing_stop_price):NaN;
+  const cl=executionAllowed?Number(row.stop_loss ?? r.stop_loss ?? r.cut_loss):NaN;
   const rsi=Number(row.daily_rsi ?? r.daily_rsi);
   const rvol=Number(row.daily_rvol ?? r.daily_rvol);
-  const rr=Number(r.rr_target_2 ?? r.rr_target_1);
+  const rr=executionAllowed?Number(r.rr_target_2 ?? r.rr_target_1):NaN;
   const liq=String(r.liquidity_grade || row.liquidity_grade || "—").toUpperCase();
   const techMetrics=[
     {
@@ -1941,12 +1944,12 @@ function openCandidateDetail(index){
   $("candidateDetailIndicators").innerHTML=`
     <div class="trade-plan-grid">
       <div class="trade-plan-box caution"><span>SIGNAL</span><strong>${safe(state.label)}</strong></div>
-      <div class="trade-plan-box primary"><span>BUY ZONE</span><strong>${safe(buyZone)}</strong></div>
-      <div class="trade-plan-box primary"><span>TP1</span><strong>${price(row.target_1)}</strong></div>
-      <div class="trade-plan-box"><span>TP2</span><strong>${price(row.target_2)}</strong></div>
+      <div class="trade-plan-box primary"><span>${executionAllowed?"BUY ZONE":"ENTRY NOT VALIDATED"}</span><strong>${safe(buyZone)}</strong></div>
+      <div class="trade-plan-box primary"><span>TP1</span><strong>${price(executionAllowed?row.target_1:null)}</strong></div>
+      <div class="trade-plan-box"><span>TP2</span><strong>${price(executionAllowed?row.target_2:null)}</strong></div>
       <div class="trade-plan-box primary"><span>UPSIDE TP1</span><strong>${safe(upsideText)}</strong></div>
       <div class="trade-plan-box"><span>EST. HOLD</span><strong>${safe(horizon)}</strong></div>
-      <div class="trade-plan-box"><span>STOP / INVALIDATION</span><strong>${price(row.stop_loss)}</strong></div>
+      <div class="trade-plan-box"><span>STOP / INVALIDATION</span><strong>${price(executionAllowed?row.stop_loss:null)}</strong></div>
       <div class="trade-plan-box"><span>HANZ ACTION</span><strong>${safe(action)}</strong></div>
     </div>
     <div class="trade-summary"><b>Trader note:</b> ${safe(warning || candidateReason(row))}</div>
