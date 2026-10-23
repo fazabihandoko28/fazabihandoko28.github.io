@@ -946,6 +946,20 @@ def publish_cycle_health():
     # A successful provider request is not proof of fresh market candles.
     # Fail closed when any consumed ticker is stale or no candle was consumed.
     oldest = min(_CYCLE_MARKET_BARS.values(), default=None)
+    newest = max(_CYCLE_MARKET_BARS.values(), default=None)
+    # Distinguish a provider-wide stale feed from a handful of inactive symbols.
+    # Never use newest alone as proof of coverage-wide freshness.
+    now = utc_now()
+    fresh_count = sum(0 <= (now - ts).total_seconds() <= MAX_DATA_AGE_SECONDS
+                      for ts in _CYCLE_MARKET_BARS.values())
+    print("FAST CANDLE DIAGNOSTICS: " + json.dumps({
+        "symbols_with_bars": len(_CYCLE_MARKET_BARS),
+        "symbols_fresh": fresh_count,
+        "symbols_stale_or_future": len(_CYCLE_MARKET_BARS) - fresh_count,
+        "oldest_bar": oldest.isoformat() if oldest else None,
+        "newest_bar": newest.isoformat() if newest else None,
+        "freshness_limit_seconds": MAX_DATA_AGE_SECONDS,
+    }), flush=True)
     provider_status = _provider_cycle_status()
     age_seconds = (utc_now() - oldest).total_seconds() if oldest else None
     # Reject future-dated bars as well: clock skew must never certify freshness.
