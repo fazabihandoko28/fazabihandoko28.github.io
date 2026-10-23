@@ -163,6 +163,19 @@ class FiveYearSelectionCoverageTests(unittest.TestCase):
         mappings = _research_mappings([configured])
         self.assertIs(mappings["MPMX"], configured)
 
+    def test_limited_history_never_counts_as_completed_five_year_backtest(self) -> None:
+        from hanz_app.research.generate_top5_5y_backtest import _selection_coverage
+
+        symbols = ["MPMX", "AKRA", "AMMN", "BDMN", "BTPS"]
+        results = {s: {"status": "OK"} for s in symbols}
+        results["AMMN"] = {"status": "LIMITED_HISTORY"}
+        coverage = _selection_coverage(symbols, {s: object() for s in symbols}, results, {})
+        self.assertEqual(coverage["evaluated_count"], 5)
+        self.assertEqual(coverage["five_year_history_count"], 4)
+        self.assertEqual(coverage["limited_history_symbols"], ["AMMN"])
+        self.assertTrue(coverage["all_selected_accounted_for"])
+        self.assertFalse(coverage["backtest_complete"])
+
     def test_all_five_results_allow_complete_coverage(self) -> None:
         from hanz_app.research.generate_top5_5y_backtest import _selection_coverage
 

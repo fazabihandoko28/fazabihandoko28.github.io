@@ -166,12 +166,22 @@ def _selection_coverage(symbols, available, results, errors):
             errors.setdefault(symbol, "MISSING_UNIVERSE_MAPPING")
     evaluated=sum(symbol in results for symbol in symbols)
     unavailable=sum(symbol in errors for symbol in symbols)
+    # A downloaded history shorter than five years is an evaluated ticker,
+    # NOT a completed five-year backtest. Never inflate validated coverage.
+    full_history=sum(
+        symbol in results and results[symbol].get("status") == "OK"
+        for symbol in symbols
+    )
+    limited_history=[symbol for symbol in symbols if symbol in results
+                     and results[symbol].get("status") != "OK"]
     return {
         "selected_count":len(symbols),
         "evaluated_count":evaluated,
         "unavailable_count":unavailable,
+        "five_year_history_count":full_history,
+        "limited_history_symbols":limited_history,
         "all_selected_accounted_for":evaluated+unavailable==len(symbols),
-        "backtest_complete":evaluated==len(symbols),
+        "backtest_complete":evaluated==len(symbols) and full_history==len(symbols),
     }
 
 
