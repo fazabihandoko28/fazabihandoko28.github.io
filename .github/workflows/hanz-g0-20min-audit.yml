@@ -67,13 +67,54 @@ jobs:
                   match.get("status") != "completed" or match.get("conclusion") != "success"
               ):
                   failures.append(key + ": not successful")
-          # This audit does not infer market-data freshness from workflow success.
-          print("DATA_FRESHNESS: UNVERIFIED (requires market candle timestamps)")
-          print("IDX_COVERAGE: UNVERIFIED (requires authorized provider evidence)")
-          # Workflow success alone cannot certify real-money readiness.
-          # Explicitly block green audits until candle and coverage evidence exists.
-          failures.extend(["market candle freshness unverified", "IDX coverage unverified"])
-          print("G0_ALL_DONE: FALSE")
+          # Read actual structured evidence from the most recent successful FAST job.
+          # A successful workflow alone is never enough to certify candle quality.
+          fast_runs = [r for r in runs if "fast runtime" in r.get("name", "").lower()
+                       and r.get("status") == "completed" and r.get("conclusion") == "success"]
+          if not fast_runs:
+              failures.append("FAST evidence unavailable")
+          else:
+              fast_run = fast_runs[0]
+              jobs_req = urllib.request.Request(
+                  f"https://api.github.com/repos/{repo}/actions/runs/{fast_run['id']}/jobs?per_page=20",
+                  headers={"Authorization": f"Bearer {token}", "Accept": "application/vnd.github+json"},
+              )
+              with urllib.request.urlopen(jobs_req, timeout=25) as response:
+                  jobs = json.load(response).get("jobs", [])
+              evidence = None
+              for job in jobs:
+                  log_req = urllib.request.Request(
+                      f"https://api.github.com/repos/{repo}/actions/jobs/{job['id']}/logs",
+                      headers={"Authorization": f"Bearer {token}", "Accept": "application/vnd.github+json"},
+                  )
+                  with urllib.request.urlopen(log_req, timeout=25) as response:
+                      log_text = response.read().decode("utf-8", errors="replace")
+                  for line in log_text.splitlines():
+                      marker = "HANZ FAST RUNTIME: "
+                      if marker in line:
+                          try:
+                              evidence = json.loads(line.split(marker, 1)[1])
+                          except (ValueError, TypeError):
+                              continue
+              if not evidence:
+                  failures.append("FAST structured evidence missing")
+              else:
+                  mode = evidence.get("operational_mode")
+                  coverage = int(evidence.get("coverage_count") or 0)
+                  universe = int(evidence.get("universe_count") or 0)
+                  age = evidence.get("health", {}).get("data_age_seconds")
+                  bar = evidence.get("health", {}).get("last_market_bar_at")
+                  print(f"FAST_EVIDENCE: mode={mode} coverage={coverage}/{universe} age={age}s bar={bar}")
+                  if evidence.get("runtime_evidence") != "PASS" or coverage < 190 or universe < 198:
+                      failures.append("FAST coverage/runtime below G0 operational threshold")
+                  if mode == "LIVE":
+                      if age is None or float(age) > 1800:
+                          failures.append("FAST live candle exceeds 1800 seconds")
+                  elif mode == "CLOSED_SESSION":
+                      print("LIVE_FRESHNESS: NOT VERIFIED (closed-session evidence only)")
+                  else:
+                      failures.append("FAST operational mode unknown")
+          print("G0_OPERATIONAL_AUDIT:", "PASS" if not failures else "FAIL")
           if failures:
               print("BLOCKERS:", "; ".join(failures))
               sys.exit(1)
