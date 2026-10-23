@@ -83,8 +83,10 @@
     const r=cache[index]; if(!r) return;
     ensureModal();
     const high=String(r.prediction_label||"").toUpperCase()==="RADAR_STRICT_UNVALIDATED";
-    const approved=String(r.risk_gate||"").toUpperCase()==="ELIGIBLE" && String(r.entry_status||"").toUpperCase()==="ENTRY_ZONE";
-    const tradeLevel=v=>approved?fmtPrice(v):"NOT VALIDATED";
+    // PMR80 is an exploratory ranking feed. Its schema has no independent price
+    // verification, completed-session calendar or execution-cost evidence.
+    // A risk_gate/entry_status string alone must NEVER expose trade levels.
+    const tradeLevel=()=> "NOT VALIDATED";
     const box=document.getElementById("pmr80ModalBox");
     box.innerHTML=`
       <div class="pmr80-modal-head">
