@@ -44,14 +44,14 @@ class FastHealthTests(unittest.TestCase):
                 datetime(2026, 10, 22, 3, tzinfo=timezone.utc)))
 
     def test_closed_session_evidence_after_idx_close(self):
-        # Thursday 20:27 WIB, last genuine candle Thursday 14:55 WIB.
+        # Thursday 20:27 WIB, final-session candle Thursday 15:45 WIB.
         self.assertTrue(closed_session_evidence(
-            "2026-10-22T07:55:00+00:00",
+            "2026-10-22T08:45:00+00:00",
             datetime(2026, 10, 22, 13, 27, tzinfo=timezone.utc),
         ))
 
     def test_closed_session_waits_for_idx_post_close_completion(self):
-        friday_bar = "2026-10-23T08:40:00+00:00"  # Friday 15:40 WIB
+        friday_bar = "2026-10-23T08:45:00+00:00"  # Friday 15:45 WIB
         for hour, minute in ((8, 44), (9, 10), (9, 15)):
             self.assertFalse(closed_session_evidence(
                 friday_bar, datetime(2026, 10, 23, hour, minute, tzinfo=timezone.utc)))
@@ -60,6 +60,17 @@ class FastHealthTests(unittest.TestCase):
         self.assertFalse(closed_session_evidence(
             "2026-10-23T04:20:00+00:00",
             datetime(2026, 10, 23, 6, 0, tzinfo=timezone.utc)))  # Friday lunch
+
+    def test_closed_session_rejects_morning_and_early_afternoon_candles(self):
+        # Production FAST observed 10:18 WIB as oldest candle on Oct 23.
+        # Its same-day timestamp must not certify the completed session.
+        now = datetime(2026, 10, 23, 13, 37, tzinfo=timezone.utc)
+        for bar in ("2026-10-23T03:18:00+00:00",  # 10:18 WIB
+                    "2026-10-23T07:55:00+00:00",  # 14:55 WIB
+                    "2026-10-23T08:40:00+00:00"):  # 15:40 WIB
+            self.assertFalse(closed_session_evidence(bar, now), bar)
+        self.assertTrue(closed_session_evidence(
+            "2026-10-23T08:45:00+00:00", now))  # 15:45 WIB
 
     def test_closed_session_never_overrides_live_hours(self):
         self.assertFalse(closed_session_evidence(
