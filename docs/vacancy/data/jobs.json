@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-10-23T04:56:50.969556+00:00",
+  "generated_at": "2026-10-23T11:44:30.353403+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1332,
-  "matching_jobs": 70,
+  "raw_jobs": 1337,
+  "matching_jobs": 71,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 443
+      "jobs": 440
     },
     {
       "name": "Publicis Groupe",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 389
+      "jobs": 397
     },
     {
       "name": "Visa",
@@ -62,12 +62,21 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000147411299",
+      "id": "sr-744000157382000",
+      "title": "Country GrabKios Commercial Manager",
+      "company": "Grab",
+      "location": "Jakarta, Indonesia",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000157382000-country-grabkios-commercial-manager",
+      "published_at": "2026-10-23T05:08:11.267Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000157403749",
       "title": "Lead Data Scientist (Analytics) - Digital Marketing",
       "company": "Grab",
       "location": "Jakarta, Indonesia",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000147411299-lead-data-scientist-analytics-digital-marketing",
-      "published_at": "2026-09-04T04:21:22.046Z",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000157403749-lead-data-scientist-analytics-digital-marketing",
+      "published_at": "2026-10-23T07:44:55.392Z",
       "source_verified": true
     },
     {
@@ -440,12 +449,12 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000147411329",
+      "id": "sr-744000157402698",
       "title": "Lead Data Scientist (Analytics) - Digital Marketing",
       "company": "Grab",
       "location": "Petaling Jaya, Malaysia",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000147411329-lead-data-scientist-analytics-digital-marketing",
-      "published_at": "2026-09-04T04:22:00.997Z",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000157402698-lead-data-scientist-analytics-digital-marketing",
+      "published_at": "2026-10-23T07:38:08.626Z",
       "source_verified": true
     },
     {
