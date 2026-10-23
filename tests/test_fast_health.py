@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 import pandas as pd
 from hanz_app import fast_trading_engine as engine
-from hanz_app.fast_health_check import same_instant, closed_session_evidence, idx_regular_session_open, complete_universe_coverage, require_complete_coverage, coverage_health_status, runtime_operational_mode
+from hanz_app.fast_health_check import same_instant, closed_session_evidence, session_coverage_evidence, idx_regular_session_open, complete_universe_coverage, require_complete_coverage, coverage_health_status, runtime_operational_mode
 
 
 class FastHealthTests(unittest.TestCase):
@@ -71,6 +71,24 @@ class FastHealthTests(unittest.TestCase):
             self.assertFalse(closed_session_evidence(bar, now), bar)
         self.assertTrue(closed_session_evidence(
             "2026-10-23T08:45:00+00:00", now))  # 15:45 WIB
+
+    def test_g0_190_closing_candles_pass_even_with_eight_morning_bars(self):
+        # 190/198 is the agreed operational threshold, but each of the 190
+        # must be a verified completed-session candle (not just same-day).
+        now = datetime(2026, 10, 23, 18, 14, tzinfo=timezone.utc)
+        close = datetime(2026, 10, 23, 8, 45, tzinfo=timezone.utc)
+        morning = datetime(2026, 10, 23, 3, 18, tzinfo=timezone.utc)
+        bars = {f"C{i}": close for i in range(190)}
+        bars.update({f"M{i}": morning for i in range(8)})
+        self.assertEqual(session_coverage_evidence(bars, now), 190)
+
+    def test_g0_189_closing_candles_cannot_pass_with_nine_morning_bars(self):
+        now = datetime(2026, 10, 23, 18, 14, tzinfo=timezone.utc)
+        close = datetime(2026, 10, 23, 8, 49, tzinfo=timezone.utc)
+        morning = datetime(2026, 10, 23, 3, 18, tzinfo=timezone.utc)
+        bars = {f"C{i}": close for i in range(189)}
+        bars.update({f"M{i}": morning for i in range(9)})
+        self.assertEqual(session_coverage_evidence(bars, now), 189)
 
     def test_closed_session_never_overrides_live_hours(self):
         self.assertFalse(closed_session_evidence(
