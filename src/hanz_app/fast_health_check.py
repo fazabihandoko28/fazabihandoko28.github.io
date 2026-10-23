@@ -131,6 +131,25 @@ def main():
             missing.append(ticker)
             continue
         engine._record_market_bar(engine.normalize_ticker(ticker), engine.INTRADAY_INTERVAL, cached["frame"])
+    # Diagnose the actual closing-session coverage independently of oldest-bar age.
+    # A bar at 16:14 WIB is NOT a valid regular-session closing candle.
+    closing_symbols = []
+    stale_symbols = []
+    for symbol, bar_time in sorted(engine._CYCLE_MARKET_BARS.items()):
+        local_bar = bar_time.astimezone(ZoneInfo("Asia/Jakarta"))
+        minute = local_bar.hour * 60 + local_bar.minute
+        if 945 <= minute < 950:
+            closing_symbols.append(symbol)
+        else:
+            stale_symbols.append(symbol)
+    print("FAST SESSION-CLOSE DIAGNOSTICS: " + json.dumps({
+        "closing_window_wib": "15:45-15:49",
+        "closing_bar_count": len(closing_symbols),
+        "non_closing_bar_count": len(stale_symbols),
+        "non_closing_symbols": stale_symbols,
+        "missing_symbols": missing,
+        "required_operational_coverage": minimum_coverage,
+    }), flush=True)
     written = engine.publish_cycle_health()
     # Below-threshold coverage invalidates the snapshot. Missing symbols
     # above threshold remain explicitly reported without faking their bars.
