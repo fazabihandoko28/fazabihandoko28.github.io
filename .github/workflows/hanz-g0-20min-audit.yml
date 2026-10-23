@@ -4,8 +4,6 @@ on:
   push:
     paths:
       - '.github/workflows/hanz-g0-20min-audit.yml'
-  schedule:
-    - cron: '*/20 * * * *'
   workflow_dispatch:
 
 permissions:
