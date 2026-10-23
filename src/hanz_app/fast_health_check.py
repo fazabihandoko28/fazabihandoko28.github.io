@@ -87,10 +87,11 @@ def closed_session_evidence(bar_at, now=None):
         while session_date.weekday() >= 5 or session_date.isoformat() in holidays:
             session_date -= timedelta(days=1)
         bar_minutes = local_bar.hour * 60 + local_bar.minute
-        friday_bar = local_bar.weekday() == 4
-        morning_end = 690 if friday_bar else 720
-        afternoon_start = 840 if friday_bar else 810
-        valid_bar_time = (540 <= bar_minutes <= morning_end or afternoon_start <= bar_minutes < 950)
+        # A same-day morning/early-afternoon candle is NOT evidence of a
+        # completed trading session. Require a candle from the final five
+        # minutes of the regular IDX session (15:45-15:49 WIB).
+        # This is a closed-session evidence gate, never a LIVE-data claim.
+        valid_bar_time = 945 <= bar_minutes < 950
         return local_bar.date() == session_date and valid_bar_time
     except (ValueError, TypeError, OverflowError):
         return False
