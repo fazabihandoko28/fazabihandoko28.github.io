@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 import pandas as pd
 from hanz_app import fast_trading_engine as engine
-from hanz_app.fast_health_check import same_instant, closed_session_evidence, session_coverage_evidence, idx_regular_session_open, complete_universe_coverage, require_complete_coverage, coverage_health_status, runtime_operational_mode
+from hanz_app.fast_health_check import same_instant, closed_session_evidence, session_coverage_evidence, idx_regular_session_open, complete_universe_coverage, require_complete_coverage, coverage_health_status, runtime_operational_mode, completed_daily_chart_symbols
 
 
 class FastHealthTests(unittest.TestCase):
@@ -129,6 +129,69 @@ class FastHealthTests(unittest.TestCase):
         self.assertEqual(runtime_operational_mode(True, False), "LIVE")
         self.assertEqual(runtime_operational_mode(False, True), "CLOSED_SESSION")
         self.assertEqual(runtime_operational_mode(True, True), "CLOSED_SESSION")
+
+
+    def _daily_row(self, ticker, updated="2026-10-23T15:41:00+00:00", day="2026-10-23", close=100):
+        return {
+            "ticker": ticker, "source_bar_at": day, "updated_at": updated,
+            "candles": [{"time": day, "open": 99, "high": 102,
+                         "low": 98, "close": close, "volume": 1000}],
+        }
+
+    def test_g0_193_verified_postclose_daily_ohlc_passes_without_live_spoof(self):
+        now = datetime(2026, 10, 23, 18, 18, tzinfo=timezone.utc)
+        allowed = {f"S{i}" for i in range(198)}
+        rows = [self._daily_row(f"S{i}") for i in range(193)]
+        self.assertEqual(len(completed_daily_chart_symbols(rows, allowed, now)), 193)
+        self.assertGreaterEqual(len(completed_daily_chart_symbols(rows, allowed, now)), 190)
+        self.assertEqual(runtime_operational_mode(False, True), "CLOSED_SESSION")
+
+    def test_g0_189_daily_ohlc_does_not_meet_190_threshold(self):
+        now = datetime(2026, 10, 23, 18, 18, tzinfo=timezone.utc)
+        allowed = {f"S{i}" for i in range(198)}
+        rows = [self._daily_row(f"S{i}") for i in range(189)]
+        self.assertEqual(len(completed_daily_chart_symbols(rows, allowed, now)), 189)
+
+    def test_daily_evidence_rejects_intraday_and_preclose(self):
+        row = self._daily_row("BBCA")
+        for at in (datetime(2026, 10, 23, 8, 0, tzinfo=timezone.utc),
+                   datetime(2026, 10, 23, 9, 10, tzinfo=timezone.utc)):
+            self.assertFalse(completed_daily_chart_symbols([row], {"BBCA"}, at))
+
+    def test_daily_evidence_rejects_stale_future_invalid_and_unknown_rows(self):
+        now = datetime(2026, 10, 23, 18, 18, tzinfo=timezone.utc)
+        rows = [
+            self._daily_row("BBCA", updated="2026-10-23T08:40:00+00:00"),
+            self._daily_row("BBRI", day="2026-10-22"),
+            self._daily_row("ANTM", close=9999),
+            self._daily_row("TLKM", updated="2026-10-24T18:00:00+00:00"),
+            self._daily_row("ASII", close=float("nan")),
+            self._daily_row("OUTSIDE"),
+            self._daily_row("BMRI"),
+            self._daily_row("BMRI"),
+        ]
+        self.assertEqual(completed_daily_chart_symbols(
+            rows, {"BBCA", "BBRI", "ANTM", "TLKM", "ASII", "BMRI"}, now
+        ), {"BMRI"})
+
+    def test_daily_evidence_weekend_uses_last_completed_friday(self):
+        saturday = datetime(2026, 10, 24, 1, tzinfo=timezone.utc)
+        self.assertEqual(completed_daily_chart_symbols(
+            [self._daily_row("BBCA")], {"BBCA"}, saturday
+        ), {"BBCA"})
+
+    def test_daily_evidence_rejects_naive_timestamps_and_holidays(self):
+        now = datetime(2026, 10, 23, 18, 18, tzinfo=timezone.utc)
+        rows = [self._daily_row("BBCA", updated="2026-10-23T15:41:00"),
+                self._daily_row("BBRI", updated=None),
+                self._daily_row("ANTM")]
+        self.assertEqual(completed_daily_chart_symbols(
+            rows, {"BBCA", "BBRI", "ANTM"}, now
+        ), {"ANTM"})
+        with mock_patch.dict("os.environ", {"HANZ_IDX_HOLIDAYS": "2026-10-23"}):
+            self.assertFalse(completed_daily_chart_symbols(
+                [self._daily_row("ANTM")], {"ANTM"}, now
+            ))
 
     def test_null_ticker_cannot_inflate_idx_coverage(self):
         self.assertIsNone(engine.normalize_ticker(None))
