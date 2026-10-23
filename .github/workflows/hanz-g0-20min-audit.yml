@@ -1,6 +1,9 @@
 name: HANZ G0 20-Minute Audit
 
 on:
+  push:
+    paths:
+      - '.github/workflows/hanz-g0-20min-audit.yml'
   schedule:
     - cron: '*/20 * * * *'
   workflow_dispatch:
@@ -57,6 +60,11 @@ jobs:
           )
           with urllib.request.urlopen(req, timeout=25) as response:
               runs = json.load(response).get("workflow_runs", [])
+          # A 190/198 partial feed is diagnostic evidence, not G0 completion.
+          def complete_coverage(covered, universe):
+              return universe >= 198 and covered >= universe
+          assert not complete_coverage(193, 198)
+          assert complete_coverage(198, 198)
           patterns = {
               "scanner": ("swing scanner",),
               "ci": ("hanz ci",),
@@ -124,8 +132,8 @@ jobs:
                   age = evidence.get("health", {}).get("data_age_seconds")
                   bar = evidence.get("health", {}).get("last_market_bar_at")
                   print(f"FAST_EVIDENCE: mode={mode} coverage={coverage}/{universe} age={age}s bar={bar}")
-                  if evidence.get("runtime_evidence") != "PASS" or coverage < 190 or universe < 198:
-                      failures.append("FAST coverage/runtime below G0 operational threshold")
+                  if evidence.get("runtime_evidence") != "PASS" or not complete_coverage(coverage, universe):
+                      failures.append("FAST coverage/runtime incomplete for G0 (full universe required)")
                   if mode == "LIVE":
                       if age is None or float(age) > 1800:
                           failures.append("FAST live candle exceeds 1800 seconds")
