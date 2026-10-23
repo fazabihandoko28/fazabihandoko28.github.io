@@ -3,10 +3,14 @@
     "selected_count": 5,
     "evaluated_count": 5,
     "unavailable_count": 0,
+    "five_year_history_count": 4,
+    "limited_history_symbols": [
+      "AMMN"
+    ],
     "all_selected_accounted_for": true,
-    "backtest_complete": true
+    "backtest_complete": false
   },
-  "generated_at": "2026-10-23T16:40:32.499855+00:00",
+  "generated_at": "2026-10-23T16:42:50.031012+00:00",
   "universe_size": 200,
   "selected_top5": [
     "MPMX",
