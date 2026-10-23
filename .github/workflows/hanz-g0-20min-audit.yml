@@ -28,7 +28,26 @@ jobs:
         shell: bash
         run: |
           python3 - <<'PY'
-          import json, os, sys, urllib.request
+          import json, os, sys, urllib.parse, urllib.request
+          # GitHub job logs redirect to a signed storage URL. Never forward
+          # the GitHub bearer token to another host: it can cause HTTP 401
+          # and unnecessarily expose credentials outside api.github.com.
+          class SafeLogRedirect(urllib.request.HTTPRedirectHandler):
+              def redirect_request(self, req, fp, code, msg, headers, newurl):
+                  redirected = super().redirect_request(req, fp, code, msg, headers, newurl)
+                  if redirected and urllib.parse.urlsplit(req.full_url).netloc != urllib.parse.urlsplit(newurl).netloc:
+                      redirected.remove_header("Authorization")
+                  return redirected
+
+          # Offline regression: preserve GitHub API auth, strip cross-host auth.
+          handler = SafeLogRedirect()
+          sample = urllib.request.Request("https://api.github.com/jobs/1/logs",
+                                          headers={"Authorization": "Bearer dummy"})
+          assert "Authorization" not in handler.redirect_request(
+              sample, None, 302, "Found", {}, "https://storage.example/logs").headers
+          assert "Authorization" in handler.redirect_request(
+              sample, None, 302, "Found", {}, "https://api.github.com/next").headers
+          log_opener = urllib.request.build_opener(handler)
           from datetime import datetime, timezone
           repo = os.environ["GH_REPOSITORY"]
           token = os.environ["GH_TOKEN"]
@@ -87,7 +106,7 @@ jobs:
                       f"https://api.github.com/repos/{repo}/actions/jobs/{job['id']}/logs",
                       headers={"Authorization": f"Bearer {token}", "Accept": "application/vnd.github+json"},
                   )
-                  with urllib.request.urlopen(log_req, timeout=25) as response:
+                  with log_opener.open(log_req, timeout=25) as response:
                       log_text = response.read().decode("utf-8", errors="replace")
                   for line in log_text.splitlines():
                       marker = "HANZ FAST RUNTIME: "
