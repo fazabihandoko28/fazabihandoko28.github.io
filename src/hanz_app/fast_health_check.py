@@ -27,6 +27,15 @@ def complete_universe_coverage(covered, universe, expected_minimum):
     return universe >= expected_minimum and covered == universe
 
 
+def require_complete_coverage(covered, universe, expected_minimum):
+    """Fail closed if any expected symbol lacks market candle evidence."""
+    if not complete_universe_coverage(covered, universe, expected_minimum):
+        raise RuntimeError(
+            f"FAST coverage incomplete: {covered}/{universe}; "
+            f"minimum universe={expected_minimum}"
+        )
+
+
 def coverage_health_status(status, complete):
     """Incomplete coverage must not disguise an already STALE feed."""
     if complete:
@@ -166,7 +175,7 @@ def main():
     )
     session_closed_valid = closed_session_evidence(row.get("last_market_bar_at")) and bool(row.get("data_age_seconds") is not None)
     universe_complete = len(tickers) >= expected_minimum
-    verified = runtime_ok and (fresh or session_closed_valid) and coverage_pass and universe_complete
+    verified = runtime_ok and (fresh or session_closed_valid) and coverage_pass and universe_complete and coverage_complete
     result = {
         "commit": os.getenv("GITHUB_SHA", "local"),
         "runtime_evidence": "PASS" if verified else "FAIL",
@@ -188,6 +197,8 @@ def main():
         raise RuntimeError(f"FAST intraday data not fresh: {row.get('data_status')}")
     if not universe_complete:
         raise RuntimeError(f"FAST universe incomplete: {len(tickers)}/{expected_minimum} minimum")
+    # A tolerated partial feed can be monitored, but cannot certify FAST PASS.
+    require_complete_coverage(coverage_count, len(tickers), expected_minimum)
     if not coverage_pass:
         raise RuntimeError(f"FAST coverage below operational threshold: {coverage_count}/{len(tickers)}; required={minimum_coverage}; missing={missing}")
 
