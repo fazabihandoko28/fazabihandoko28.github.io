@@ -73,7 +73,9 @@ def main():
         result["monitor_count"] = len(monitor)
         result["monitor_latest_bar"] = max(dates, default="")
         result["monitor_stale_count"] = sum(d < result.get("source_bar_date", "") for d in dates) if result.get("source_bar_date") else None
-        if monitor and result.get("source_bar_date") and any(d < result["source_bar_date"] for d in dates):
+        if not monitor:
+            issues.append("MONITOR_EMPTY")
+        elif result.get("source_bar_date") and any(d < result["source_bar_date"] for d in dates):
             issues.append("MONITOR_BEHIND_PMR80")
     except (urllib.error.URLError, ValueError, KeyError) as exc:
         issues.append("MONITOR_QUERY_FAILED")
@@ -85,8 +87,10 @@ def main():
     # Daily-bar publication age is not quote freshness; recover on invalid/stale source bars instead.
     stale = "PMR80_STALE_SOURCE_BARS" in issues
     repairable = market_window and (stale or "PMR80_EMPTY" in issues or "PMR80_LEGACY_LABEL" in issues or "PMR80_INVALID_RANKING" in issues or "PMR80_MISSING_TIMESTAMP" in issues or "PMR80_STALE_SOURCE_BARS" in issues or "PMR80_MIXED_OR_MISSING_BAR_DATE" in issues )
-    # Partial monitor lag remains visible as an alert, not an automatic re-dispatch loop.
-    result["recovery_needed"] = bool(repairable)
+    # Monitor lag needs the portfolio monitor workflow, not a scanner redispatch.
+    monitor_repairable = market_window and any(issue in issues for issue in ("MONITOR_BEHIND_PMR80", "MONITOR_EMPTY"))
+    result["monitor_recovery_needed"] = bool(monitor_repairable)
+    result["recovery_needed"] = bool(repairable or monitor_repairable)
     print(json.dumps(result, ensure_ascii=False))
     if repairable and os.environ.get("GITHUB_TOKEN") and os.environ.get("GITHUB_REPOSITORY"):
         repo = os.environ["GITHUB_REPOSITORY"]
@@ -110,8 +114,29 @@ def main():
         issues.append("RECOVERY_NOT_CONFIRMED")
     if issues:
         print("::warning::HANZ watchdog issues: " + ", ".join(issues))
-    if "RECOVERY_NOT_CONFIRMED" in issues and os.environ.get("GITHUB_ACTIONS") == "true":
+    if any(issue in issues for issue in ("RECOVERY_NOT_CONFIRMED", "MONITOR_RECOVERY_NOT_CONFIRMED")) and os.environ.get("GITHUB_ACTIONS") == "true":
         raise SystemExit(1)
 
 if __name__ == "__main__":
-    main()
+    main()    if monitor_repairable and os.environ.get("GITHUB_TOKEN") and os.environ.get("GITHUB_REPOSITORY"):
+        repo = os.environ["GITHUB_REPOSITORY"]
+        gh = {"Authorization": "Bearer " + os.environ["GITHUB_TOKEN"], "Accept": "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28"}
+        workflow = "hanz-swing-portfolio-monitor.yml"
+        try:
+            runs = request(f"https://api.github.com/repos/{repo}/actions/workflows/{workflow}/runs?per_page=10", gh).get("workflow_runs", [])
+            recent = [run for run in runs if run.get("status") in ("queued", "in_progress") or (
+                run.get("conclusion") == "success" and run.get("created_at") and
+                (now - dt.datetime.fromisoformat(run["created_at"].replace("Z", "+00:00"))).total_seconds() < 15 * 60)]
+            if recent:
+                result["monitor_recovery"] = "monitor already running or recently completed"
+            else:
+                url = f"https://api.github.com/repos/{repo}/actions/workflows/{workflow}/dispatches"
+                req = urllib.request.Request(url, data=json.dumps({"ref": "main"}).encode(),
+                    headers={**gh, "Content-Type": "application/json"}, method="POST")
+                with urllib.request.urlopen(req, timeout=20) as response:
+                    result["monitor_recovery_dispatch_status"] = response.status
+        except (urllib.error.URLError, ValueError) as exc:
+            result["monitor_recovery_error"] = str(exc)[:250]
+    if monitor_repairable and not result.get("monitor_recovery_dispatch_status") and not result.get("monitor_recovery"):
+        issues.append("MONITOR_RECOVERY_NOT_CONFIRMED")
+
