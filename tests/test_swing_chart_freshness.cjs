@@ -52,10 +52,25 @@ test("unverified technical BUY remains radar-only and never labels hero as BUY",
   const ctx={riskObject:row=>row.risk_validation||{},expectedCompletedIdxDate:()=> "2026-10-20"};
   vm.runInNewContext(html.slice(guardStart,guardEnd),ctx);
   const quality={verified:true,status:"VERIFIED",verifier_source:"INDEPENDENT_IDX",primary_date:"2026-10-20",verifier_date:"2026-10-20"};
-  const valid={ticker:"VALID",state:"SWING_BUY",risk_gate:"ELIGIBLE",entry_status:"ENTRY_ZONE",daily_bar_at:"2026-10-20T00:00:00Z",risk_validation:{actionable:true,data_quality:quality}};
+  const fullSafety={data_same_session_verified:true,strategy_validation:{passed:true},costs_configured:true,account_capital_configured:true,buy_fee_pct:0.15,sell_fee_pct:0.25,slippage_pct:0.10,blockers:[],cautions:[]};
+  const valid={ticker:"VALID",state:"SWING_BUY",risk_gate:"ELIGIBLE",entry_status:"ENTRY_ZONE",daily_bar_at:"2026-10-20T00:00:00Z",risk_validation:{actionable:true,data_quality:quality,...fullSafety}};
   const blocked={...valid,ticker:"BLOCKED",risk_gate:"BLOCKED",risk_validation:{actionable:false,data_quality:{...quality,verified:false}}};
   assert.equal(ctx.hanzExecutionEligible(valid),true);
   assert.equal(ctx.hanzExecutionEligible(blocked),false);
+  // A spoofed ELIGIBLE/ENTRY_ZONE label must never bypass execution evidence.
+  for(const key of ["data_same_session_verified","costs_configured","account_capital_configured"]){
+    assert.equal(ctx.hanzExecutionEligible({...valid,risk_validation:{...valid.risk_validation,[key]:false}}),false,key);
+  }
+  for(const key of ["buy_fee_pct","sell_fee_pct","slippage_pct"]){
+    assert.equal(ctx.hanzExecutionEligible({...valid,risk_validation:{...valid.risk_validation,[key]:null}}),false,key);
+  }
+  assert.equal(ctx.hanzExecutionEligible({...valid,state:"RADAR_WATCH"}),false);
+  assert.equal(ctx.hanzExecutionEligible({...valid,risk_validation:{...valid.risk_validation,strategy_validation:{passed:false}}}),false);
+  assert.equal(ctx.hanzExecutionEligible({...valid,risk_validation:{...valid.risk_validation,blockers:["MARKET_REGIME"]}}),false);
+  assert.equal(ctx.hanzExecutionEligible({...valid,risk_validation:{...valid.risk_validation,cautions:["PERFORMANCE_WARMUP"]}}),false);
+  assert.ok(html.includes('const state=candidateStateLabel(top).label;'));
+  assert.ok(html.includes('const state=candidateStateLabel(row).label;'));
+  assert.ok(html.includes('DAILY REFERENCE · NOT LIVE'));
   assert.ok(html.includes('.filter(r=>hanzExecutionEligible(r) && ["EARLY_CONFIRMED_BUY"'));
   assert.ok(html.includes('const isBuy=hanzExecutionEligible(top) &&'));
   assert.ok(html.includes('.filter(r=>!confirmed.includes(r));'));
@@ -73,7 +88,9 @@ test("otherwise verified stale, future, or calendar-unverified BUY is blocked",(
   const row=(date)=>({
     ticker:"TEST",state:"SWING_BUY",risk_gate:"ELIGIBLE",entry_status:"ENTRY_ZONE",
     daily_bar_at:date+"T00:00:00Z",
-    risk_validation:{actionable:true,data_quality:{
+    risk_validation:{actionable:true,data_same_session_verified:true,
+      strategy_validation:{passed:true},costs_configured:true,account_capital_configured:true,
+      buy_fee_pct:0.15,sell_fee_pct:0.25,slippage_pct:0.10,blockers:[],cautions:[],data_quality:{
       verified:true,status:"VERIFIED",verifier_source:"INDEPENDENT_IDX",
       primary_date:date,verifier_date:date
     }}
