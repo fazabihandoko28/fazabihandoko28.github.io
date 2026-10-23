@@ -34,6 +34,13 @@ def coverage_health_status(status, complete):
     return "STALE" if status == "STALE" else "PARTIAL"
 
 
+def runtime_operational_mode(fresh, closed_session_valid):
+    """Never label stale candle evidence LIVE, even during market hours."""
+    if closed_session_valid:
+        return "CLOSED_SESSION"
+    return "LIVE" if fresh else "STALE"
+
+
 def idx_regular_session_open(now=None):
     """IDX regular market sessions (WIB); optional holiday dates via environment."""
     now = now or datetime.now(timezone.utc)
@@ -151,7 +158,7 @@ def main():
     result = {
         "commit": os.getenv("GITHUB_SHA", "local"),
         "runtime_evidence": "PASS" if verified else "FAIL",
-        "operational_mode": "CLOSED_SESSION" if session_closed_valid and not fresh else "LIVE",
+        "operational_mode": runtime_operational_mode(fresh, session_closed_valid),
         "coverage_complete": coverage_complete,
         "full_coverage": coverage_complete,
         "minimum_coverage": minimum_coverage,

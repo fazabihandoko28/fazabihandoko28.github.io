@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 import pandas as pd
 from hanz_app import fast_trading_engine as engine
-from hanz_app.fast_health_check import same_instant, closed_session_evidence, idx_regular_session_open, complete_universe_coverage, coverage_health_status
+from hanz_app.fast_health_check import same_instant, closed_session_evidence, idx_regular_session_open, complete_universe_coverage, coverage_health_status, runtime_operational_mode
 
 
 class FastHealthTests(unittest.TestCase):
@@ -70,6 +70,12 @@ class FastHealthTests(unittest.TestCase):
         self.assertEqual(coverage_health_status("STALE", False), "STALE")
         self.assertEqual(coverage_health_status("FRESH", False), "PARTIAL")
         self.assertEqual(coverage_health_status("FRESH", True), "FRESH")
+
+    def test_operational_mode_never_labels_stale_candles_live(self):
+        self.assertEqual(runtime_operational_mode(False, False), "STALE")
+        self.assertEqual(runtime_operational_mode(True, False), "LIVE")
+        self.assertEqual(runtime_operational_mode(False, True), "CLOSED_SESSION")
+        self.assertEqual(runtime_operational_mode(True, True), "CLOSED_SESSION")
 
     def test_null_ticker_cannot_inflate_idx_coverage(self):
         self.assertIsNone(engine.normalize_ticker(None))
