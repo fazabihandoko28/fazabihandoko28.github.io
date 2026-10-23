@@ -106,6 +106,29 @@ def closed_session_evidence(bar_at, now=None):
         return False
 
 
+def session_coverage_evidence(bars, now=None):
+    """Count real candles from the last completed trading date, never fake freshness."""
+    now = now or datetime.now(timezone.utc)
+    local_now = now.astimezone(ZoneInfo("Asia/Jakarta"))
+    if idx_regular_session_open(now):
+        return 0
+    holidays = {x.strip() for x in os.getenv("HANZ_IDX_HOLIDAYS", "").split(",") if x.strip()}
+    # Only certify a completed session after the post-close period.
+    if local_now.weekday() < 5 and local_now.date().isoformat() not in holidays:
+        if 540 <= local_now.hour * 60 + local_now.minute <= 975:
+            return 0
+    target = local_now.date()
+    if local_now.hour * 60 + local_now.minute < 540:
+        target -= timedelta(days=1)
+    while target.weekday() >= 5 or target.isoformat() in holidays:
+        target -= timedelta(days=1)
+    return sum(
+        ts.astimezone(ZoneInfo("Asia/Jakarta")).date() == target
+        and ts <= now
+        for ts in bars.values()
+    )
+
+
 def main():
     engine._CYCLE_PROVIDER_SUCCESSES = 0
     engine._CYCLE_PROVIDER_FAILURES = 0
@@ -195,7 +218,8 @@ def main():
         row.get("data_status") == "FRESH" or
         (row.get("data_status") == "PARTIAL" and coverage_pass)
     )
-    session_closed_valid = closed_session_evidence(row.get("last_market_bar_at")) and bool(row.get("data_age_seconds") is not None)
+    completed_session_count = session_coverage_evidence(engine._CYCLE_MARKET_BARS)
+    session_closed_valid = completed_session_count >= minimum_coverage and not idx_regular_session_open()
     universe_complete = len(tickers) >= expected_minimum
     # Operational G0 requires the agreed 190-symbol threshold; report full coverage separately.
     verified = runtime_ok and (fresh or session_closed_valid) and coverage_pass and universe_complete
@@ -208,6 +232,7 @@ def main():
         "minimum_coverage": minimum_coverage,
         "expected_minimum_universe": expected_minimum,
         "universe_complete": universe_complete,
+        "completed_session_candle_count": completed_session_count,
         "coverage_count": len(tickers) - len(missing),
         "universe_count": len(tickers),
         "missing_symbols": missing,
