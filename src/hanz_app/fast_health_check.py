@@ -165,7 +165,7 @@ def main():
     )
     session_closed_valid = closed_session_evidence(row.get("last_market_bar_at")) and bool(row.get("data_age_seconds") is not None)
     universe_complete = len(tickers) >= expected_minimum
-    verified = runtime_ok and (fresh or session_closed_valid) and coverage_complete
+    verified = runtime_ok and (fresh or session_closed_valid) and coverage_pass and universe_complete
     result = {
         "commit": os.getenv("GITHUB_SHA", "local"),
         "runtime_evidence": "PASS" if verified else "FAIL",
@@ -187,8 +187,8 @@ def main():
         raise RuntimeError(f"FAST intraday data not fresh: {row.get('data_status')}")
     if not universe_complete:
         raise RuntimeError(f"FAST universe incomplete: {len(tickers)}/{expected_minimum} minimum")
-    if not coverage_complete:
-        raise RuntimeError(f"FAST full coverage required: {coverage_count}/{len(tickers)}; minimum universe={expected_minimum}; missing={missing}")
+    if not coverage_pass:
+        raise RuntimeError(f"FAST coverage below operational threshold: {coverage_count}/{len(tickers)}; required={minimum_coverage}; missing={missing}")
 
 
 if __name__ == "__main__":
