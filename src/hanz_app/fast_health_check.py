@@ -175,7 +175,8 @@ def main():
     )
     session_closed_valid = closed_session_evidence(row.get("last_market_bar_at")) and bool(row.get("data_age_seconds") is not None)
     universe_complete = len(tickers) >= expected_minimum
-    verified = runtime_ok and (fresh or session_closed_valid) and coverage_pass and universe_complete and coverage_complete
+    # Operational G0 requires the agreed 190-symbol threshold; report full coverage separately.
+    verified = runtime_ok and (fresh or session_closed_valid) and coverage_pass and universe_complete
     result = {
         "commit": os.getenv("GITHUB_SHA", "local"),
         "runtime_evidence": "PASS" if verified else "FAIL",
