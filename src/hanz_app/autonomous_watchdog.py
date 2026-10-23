@@ -117,8 +117,7 @@ def main():
     if any(issue in issues for issue in ("RECOVERY_NOT_CONFIRMED", "MONITOR_RECOVERY_NOT_CONFIRMED")) and os.environ.get("GITHUB_ACTIONS") == "true":
         raise SystemExit(1)
 
-if __name__ == "__main__":
-    main()    if monitor_repairable and os.environ.get("GITHUB_TOKEN") and os.environ.get("GITHUB_REPOSITORY"):
+    if monitor_repairable and os.environ.get("GITHUB_TOKEN") and os.environ.get("GITHUB_REPOSITORY"):
         repo = os.environ["GITHUB_REPOSITORY"]
         gh = {"Authorization": "Bearer " + os.environ["GITHUB_TOKEN"], "Accept": "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28"}
         workflow = "hanz-swing-portfolio-monitor.yml"
@@ -140,3 +139,13 @@ if __name__ == "__main__":
     if monitor_repairable and not result.get("monitor_recovery_dispatch_status") and not result.get("monitor_recovery"):
         issues.append("MONITOR_RECOVERY_NOT_CONFIRMED")
 
+    print("HANZ WATCHDOG FINAL: " + json.dumps(result))
+    if repairable and not result.get("recovery_dispatch_status") and result.get("recovery") != "scanner already running or recently triggered":
+        issues.append("RECOVERY_NOT_CONFIRMED")
+    if issues:
+        print("::warning::HANZ watchdog issues: " + ", ".join(issues))
+    if any(issue in issues for issue in ("RECOVERY_NOT_CONFIRMED", "MONITOR_RECOVERY_NOT_CONFIRMED")) and os.environ.get("GITHUB_ACTIONS") == "true":
+        raise SystemExit(1)
+
+if __name__ == "__main__":
+    main()
