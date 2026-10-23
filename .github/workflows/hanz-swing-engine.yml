@@ -76,8 +76,9 @@ jobs:
           from pathlib import Path
           from zoneinfo import ZoneInfo
           workflow = Path(".github/workflows/hanz-swing-engine.yml").read_text()
-          assert '- cron: "20 9 * * 1-5"' in workflow
-          assert '- cron: "10 9 * * 1-5"' not in workflow
+          schedules = [line.strip() for line in workflow.splitlines() if line.startswith("    - cron: ")]
+          assert '- cron: "20 9 * * 1-5"' in schedules
+          assert '- cron: "10 9 * * 1-5"' not in schedules
           local = datetime(2026, 10, 23, 9, 20, tzinfo=timezone.utc).astimezone(ZoneInfo("Asia/Jakarta"))
           assert (local.hour, local.minute) > (16, 15)
           PY
