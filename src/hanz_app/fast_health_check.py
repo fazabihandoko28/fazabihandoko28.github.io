@@ -107,26 +107,11 @@ def closed_session_evidence(bar_at, now=None):
 
 
 def session_coverage_evidence(bars, now=None):
-    """Count real candles from the last completed trading date, never fake freshness."""
+    """Count verified last-session closing candles, not any same-day bars."""
     now = now or datetime.now(timezone.utc)
-    local_now = now.astimezone(ZoneInfo("Asia/Jakarta"))
-    if idx_regular_session_open(now):
-        return 0
-    holidays = {x.strip() for x in os.getenv("HANZ_IDX_HOLIDAYS", "").split(",") if x.strip()}
-    # Only certify a completed session after the post-close period.
-    if local_now.weekday() < 5 and local_now.date().isoformat() not in holidays:
-        if 540 <= local_now.hour * 60 + local_now.minute <= 975:
-            return 0
-    target = local_now.date()
-    if local_now.hour * 60 + local_now.minute < 540:
-        target -= timedelta(days=1)
-    while target.weekday() >= 5 or target.isoformat() in holidays:
-        target -= timedelta(days=1)
-    return sum(
-        ts.astimezone(ZoneInfo("Asia/Jakarta")).date() == target
-        and ts <= now
-        for ts in bars.values()
-    )
+    # Reuse the same closing-window, session-date, and post-close checks as
+    # the single-bar validator. A morning candle cannot certify session close.
+    return sum(closed_session_evidence(ts, now) for ts in bars.values())
 
 
 def main():
