@@ -149,29 +149,13 @@ def publish(engine):
         if score <= 0:
             continue
         m = monitor.get(ticker) or {}
-        # Never attach yesterday's entry/stop/targets to today's candle.
-        # An invalid stop above the reference price is not a usable long setup.
-        # Keep the symbol in prediction-only RADAR, with execution levels hidden.
-        monitor_date = str(m.get("daily_bar_at") or "")[:10]
-        stop = _num(m.get("stop_loss"))
-        entry_low = _num(m.get("entry_low"))
-        entry_high = _num(m.get("entry_high"))
-        target1 = _num(m.get("target_1"))
-        target2 = _num(m.get("target_2"))
-        valid_geometry = (
-            stop is not None and entry_low is not None
-            and entry_high is not None and target1 is not None
-            and target2 is not None
-            and 0 < stop < entry_low <= entry_high < target1 <= target2
-            and stop < float(f["price"])
-        )
-        valid_levels = (
-            monitor_date == source_date
-            and valid_geometry
-            and str(m.get("state") or "").upper() != "MOMENTUM_BROKEN"
-            and str(m.get("risk_gate") or "").upper() == "ELIGIBLE"
-            and str(m.get("entry_status") or "").upper() == "ENTRY_ZONE"
-        )
+        # PMR80 is an exploratory daily radar, not an execution system.
+        # Monitor risk labels and price geometry alone cannot establish
+        # independent quote verification, fees, slippage, or live risk gates.
+        # Fail closed at the publisher, not only in the browser modal.
+        # Re-enable only after an independently tested execution-proof path
+        # is implemented and end-to-end production verification passes.
+        valid_levels = False
         if strict:
             label = "RADAR_STRICT_UNVALIDATED"
         elif score >= 65:
