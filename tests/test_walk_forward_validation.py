@@ -126,6 +126,30 @@ class FiveYearEvidenceGateTests(unittest.TestCase):
         self.assertTrue(result["passed"])
 
 
+    def test_research_rejects_missing_oos_window_profit_evidence(self) -> None:
+        import pandas as pd
+
+        module = self._validator_module()
+        trades = pd.DataFrame({
+            "window_id": [1] * 30,
+            "trade_id": list(range(30)),
+            "r_multiple": [0.2] * 30,
+            "is_oos": [True] * 30,
+            "trade_date": pd.date_range("2020-01-01", periods=30, freq="80D"),
+        })
+        windows = pd.DataFrame({
+            "window_id": [1, 2, 3],
+            "oos_profit_r": [2.0, "corrupt", 2.0],
+            "is_profit_r": [2.0, 2.0, 2.0],
+            "is_years": [1.0, 1.0, 1.0],
+            "oos_years": [1.0, 1.0, 1.0],
+        })
+        with self.assertRaisesRegex(ValueError, "Invalid OOS window profit evidence"):
+            module.validate(trades, windows, 95.0)
+        windows.loc[1, "oos_profit_r"] = None
+        with self.assertRaisesRegex(ValueError, "Invalid OOS window profit evidence"):
+            module.validate(trades, windows, 95.0)
+
     def test_research_drawdown_includes_initial_loss_from_zero_equity(self) -> None:
         import pandas as pd
 
