@@ -84,7 +84,7 @@ def validate(trades, windows, dof_remaining_pct, min_oos_trades=30, min_wfe=0.50
             ).drop(columns="_chronological_date")
             break
     windows=windows.copy(); windows["oos_profit_r"]=pd.to_numeric(windows["oos_profit_r"],errors="coerce")
-    if windows["oos_profit_r"].isna().any():
+    if not windows["oos_profit_r"].map(math.isfinite).all():
         raise ValueError("Invalid OOS window profit evidence")
 
     evidence_span_years=_evidence_span_years(trades, windows)
