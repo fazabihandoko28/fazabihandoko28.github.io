@@ -126,6 +126,26 @@ class FiveYearEvidenceGateTests(unittest.TestCase):
         self.assertTrue(result["passed"])
 
 
+    def test_research_drawdown_includes_initial_loss_from_zero_equity(self) -> None:
+        import pandas as pd
+
+        module = self._validator_module()
+        trades = pd.DataFrame({
+            "window_id": [1, 1],
+            "trade_id": [1, 2],
+            "r_multiple": [-2.0, 0.5],
+            "is_oos": [True, True],
+            "trade_date": ["2020-01-01", "2026-01-01"],
+        })
+        windows = pd.DataFrame({
+            "window_id": [1, 2],
+            "oos_profit_r": [-2.0, 0.5],
+        })
+        result = module.validate(trades, windows, 95.0)
+        self.assertEqual(result["oos_max_dd_r"], 2.0)
+        self.assertTrue(result["checks"]["drawdown_measured"])
+
+
 
 class FiveYearSelectionCoverageTests(unittest.TestCase):
     def test_missing_selected_mapping_is_explicit_not_silently_dropped(self) -> None:
