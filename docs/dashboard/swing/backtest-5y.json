@@ -3,14 +3,18 @@
     "selected_count": 5,
     "evaluated_count": 5,
     "unavailable_count": 0,
-    "five_year_history_count": 4,
+    "five_year_history_count": 0,
     "limited_history_symbols": [
-      "AMMN"
+      "MPMX",
+      "AKRA",
+      "AMMN",
+      "BDMN",
+      "BTPS"
     ],
     "all_selected_accounted_for": true,
     "backtest_complete": false
   },
-  "generated_at": "2026-10-24T03:46:06.329306+00:00",
+  "generated_at": "2026-10-24T11:35:21.471614+00:00",
   "universe_size": 200,
   "selected_top5": [
     "MPMX",
@@ -32,7 +36,7 @@
   "results": {
     "MPMX": {
       "symbol": "MPMX",
-      "status": "OK",
+      "status": "LIMITED_HISTORY",
       "span_start": "2021-10-25",
       "span_end": "2026-10-23",
       "span_years": 4.99,
@@ -53,7 +57,7 @@
     },
     "AKRA": {
       "symbol": "AKRA",
-      "status": "OK",
+      "status": "LIMITED_HISTORY",
       "span_start": "2021-10-25",
       "span_end": "2026-10-23",
       "span_years": 4.99,
@@ -95,7 +99,7 @@
     },
     "BDMN": {
       "symbol": "BDMN",
-      "status": "OK",
+      "status": "LIMITED_HISTORY",
       "span_start": "2021-10-25",
       "span_end": "2026-10-23",
       "span_years": 4.99,
@@ -116,7 +120,7 @@
     },
     "BTPS": {
       "symbol": "BTPS",
-      "status": "OK",
+      "status": "LIMITED_HISTORY",
       "span_start": "2021-10-25",
       "span_end": "2026-10-23",
       "span_years": 4.99,
