@@ -537,5 +537,41 @@ class FiveYearSelectionCoverageTests(unittest.TestCase):
         self.assertEqual(coverage["evaluated_count"], 5)
 
 
+class FiveYearReplayWindowTests(unittest.TestCase):
+    def _series(self, dates):
+        from hanz_data import Bar, MarketSeries
+        return MarketSeries.from_iterable(
+            "AKRA", "BEI", (
+                Bar(symbol="AKRA", market="BEI",
+                    timestamp=datetime.fromisoformat(day).replace(tzinfo=timezone.utc),
+                    open=100, high=101, low=99, close=100, volume=1000)
+                for day in dates
+            ),
+        )
+
+    def test_real_pre_anniversary_sessions_restore_five_calendar_years(self):
+        from hanz_app.research.generate_top5_5y_backtest import _five_year_replay_series
+        series = self._series(["2019-01-01", "2021-10-18", "2021-10-25", "2026-10-23"])
+        replay = _five_year_replay_series(series)
+        self.assertEqual([b.timestamp.date().isoformat() for b in replay.bars],
+                         ["2021-10-18", "2021-10-25", "2026-10-23"])
+        self.assertGreaterEqual(
+            replay.bars[-1].timestamp.date(),
+            replay.bars[0].timestamp.date().replace(year=2026),
+        )
+
+    def test_recent_listing_stays_short_without_fabricated_candles(self):
+        from hanz_app.research.generate_top5_5y_backtest import _five_year_replay_series
+        short = self._series(["2023-07-07", "2026-10-23"])
+        self.assertEqual(_five_year_replay_series(short).bars, short.bars)
+        self.assertEqual(_five_year_replay_series(self._series([])).bars, ())
+
+    def test_leap_day_boundary_keeps_real_history(self):
+        from hanz_app.research.generate_top5_5y_backtest import _five_year_replay_series
+        series = self._series(["2020-02-24", "2020-02-29", "2025-02-28"])
+        replay = _five_year_replay_series(series)
+        self.assertEqual(replay.bars[0].timestamp.date().isoformat(), "2020-02-24")
+
+
 if __name__ == "__main__":
     unittest.main()
