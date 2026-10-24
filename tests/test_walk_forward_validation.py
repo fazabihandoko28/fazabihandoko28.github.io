@@ -150,6 +150,39 @@ class FiveYearEvidenceGateTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Invalid OOS window profit evidence"):
             module.validate(trades, windows, 95.0)
 
+    def test_research_rejects_incomplete_wfe_inputs(self) -> None:
+        import pandas as pd
+
+        module = self._validator_module()
+        trades = pd.DataFrame({
+            "r_multiple": [0.2, 0.2],
+            "is_oos": [True, True],
+            "trade_date": ["2020-01-01", "2026-01-01"],
+        })
+        valid = pd.DataFrame({
+            "window_id": [1, 2],
+            "oos_profit_r": [2.0, 2.0],
+            "is_profit_r": [2.0, 2.0],
+            "is_years": [1.0, 1.0],
+            "oos_years": [1.0, 1.0],
+        })
+        # Pandas sum() previously skipped this missing IS result and
+        # produced a misleadingly strong walk-forward efficiency.
+        missing_profit = valid.copy()
+        missing_profit.loc[1, "is_profit_r"] = None
+        with self.assertRaisesRegex(ValueError, "Invalid walk-forward annualization evidence"):
+            module.validate(trades, missing_profit, 95.0)
+        # A window with no positive test duration cannot be annualized.
+        zero_duration = valid.copy()
+        zero_duration.loc[1, "oos_years"] = 0.0
+        with self.assertRaisesRegex(ValueError, "Invalid walk-forward annualization evidence"):
+            module.validate(trades, zero_duration, 95.0)
+        infinite_profit = valid.copy()
+        infinite_profit.loc[1, "is_profit_r"] = float("inf")
+        with self.assertRaisesRegex(ValueError, "Invalid walk-forward annualization evidence"):
+            module.validate(trades, infinite_profit, 95.0)
+        self.assertIsNotNone(module.validate(trades, valid, 95.0)["wfe"])
+
     def test_research_drawdown_includes_initial_loss_from_zero_equity(self) -> None:
         import pandas as pd
 
