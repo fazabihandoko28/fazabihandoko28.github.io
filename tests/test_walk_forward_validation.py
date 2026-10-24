@@ -146,6 +146,38 @@ class FiveYearEvidenceGateTests(unittest.TestCase):
         self.assertTrue(result["checks"]["drawdown_measured"])
 
 
+    def test_research_drawdown_uses_exit_chronology_not_csv_order(self) -> None:
+        import pandas as pd
+
+        module = self._validator_module()
+        # File order: -2,+3,-2 -> drawdown 2R.
+        # Real execution order: +3,-2,-2 -> drawdown 4R.
+        trades = pd.DataFrame({
+            "window_id": [1, 1, 2],
+            "trade_id": [2, 1, 3],
+            "r_multiple": [-2.0, 3.0, -2.0],
+            "is_oos": [True, True, True],
+            "exit_date": ["2024-01-02", "2024-01-01", "2024-01-03"],
+        })
+        windows = pd.DataFrame({"window_id": [1, 2], "oos_profit_r": [1.0, -2.0]})
+        report = module.validate(trades, windows, 95.0)
+        self.assertEqual(report["oos_max_dd_r"], 4.0)
+        reordered = module.validate(trades.iloc[[1, 0, 2]], windows, 95.0)
+        self.assertEqual(reordered["oos_max_dd_r"], 4.0)
+
+    def test_research_drawdown_rejects_invalid_exit_chronology(self) -> None:
+        import pandas as pd
+
+        module = self._validator_module()
+        trades = pd.DataFrame({
+            "window_id": [1], "trade_id": [1], "r_multiple": [-1.0],
+            "is_oos": [True], "exit_date": ["not-a-date"],
+        })
+        windows = pd.DataFrame({"window_id": [1], "oos_profit_r": [-1.0]})
+        with self.assertRaisesRegex(ValueError, "Invalid OOS trade chronology"):
+            module.validate(trades, windows, 95.0)
+
+
 
 class FiveYearSelectionCoverageTests(unittest.TestCase):
     def test_missing_selected_mapping_is_explicit_not_silently_dropped(self) -> None:
