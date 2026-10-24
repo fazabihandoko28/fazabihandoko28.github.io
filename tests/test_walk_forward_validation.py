@@ -126,6 +126,37 @@ class FiveYearEvidenceGateTests(unittest.TestCase):
         self.assertTrue(result["passed"])
 
 
+    def test_research_rejects_nonfinite_or_missing_oos_trade_returns(self) -> None:
+        import pandas as pd
+
+        module = self._validator_module()
+        valid = pd.DataFrame({
+            "r_multiple": [0.2] * 30,
+            "is_oos": [True] * 30,
+            "trade_date": pd.date_range("2020-01-01", periods=30, freq="80D"),
+        })
+        windows = pd.DataFrame({
+            "window_id": [1, 2],
+            "oos_profit_r": [2.0, 2.0],
+        })
+        for bad_return in (None, "corrupt", float("nan"), float("inf"), -float("inf")):
+            with self.subTest(bad_return=bad_return):
+                corrupted = pd.concat([
+                    valid,
+                    pd.DataFrame({"r_multiple": [bad_return], "is_oos": [True],
+                                  "trade_date": ["2026-01-01"]}),
+                ], ignore_index=True)
+                with self.assertRaisesRegex(ValueError, "Invalid OOS trade return evidence"):
+                    module.validate(corrupted, windows, 95.0)
+
+        # Invalid IS trades are not OOS evidence and must not be counted.
+        is_only_bad = pd.concat([
+            valid,
+            pd.DataFrame({"r_multiple": [None], "is_oos": [False],
+                          "trade_date": ["2026-01-01"]}),
+        ], ignore_index=True)
+        self.assertEqual(module.validate(is_only_bad, windows, 95.0)["oos_trades"], 30)
+
     def test_research_rejects_missing_oos_window_profit_evidence(self) -> None:
         import pandas as pd
 

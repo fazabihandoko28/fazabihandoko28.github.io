@@ -67,7 +67,11 @@ def validate(trades, windows, dof_remaining_pct, min_oos_trades=30, min_wfe=0.50
         raise ValueError(f"Missing columns: trades={sorted(missing_t)} windows={sorted(missing_w)}")
 
     t=trades.copy(); t=t[t["is_oos"].astype(str).str.lower().isin(["1","true","yes"])]
-    t["r_multiple"]=pd.to_numeric(t["r_multiple"],errors="coerce"); t=t.dropna(subset=["r_multiple"])
+    t["r_multiple"]=pd.to_numeric(t["r_multiple"],errors="coerce")
+    # Fail closed: silently dropping invalid OOS outcomes inflates sample quality.
+    # NaN and +/-infinity must never contribute to expectancy, WFE or drawdown.
+    if not t["r_multiple"].map(math.isfinite).all():
+        raise ValueError("Invalid OOS trade return evidence")
     # Drawdown must follow actual OOS execution chronology, not CSV row order.
     # Prefer exit timestamps, since R is realized when a trade closes.
     for date_column in ("exit_date", "trade_date"):
