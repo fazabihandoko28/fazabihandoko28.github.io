@@ -272,6 +272,28 @@ class FiveYearEvidenceGateTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, "Invalid walk-forward chronology evidence: window_start"):
                     module.validate(trades, corrupted, 95.0)
 
+    def test_research_rejects_trade_exit_before_entry(self) -> None:
+        import pandas as pd
+
+        module = self._validator_module()
+        trades = pd.DataFrame({
+            "window_id": ["W1", "W2"],
+            "trade_id": ["T1", "T2"],
+            "is_oos": [True, True],
+            "r_multiple": [0.3, 0.2],
+            "entry_date": ["2021-01-01", "2024-01-03"],
+            "exit_date": ["2021-01-02", "2024-01-02"],
+        })
+        windows = pd.DataFrame({
+            "window_id": ["W1", "W2"],
+            "oos_profit_r": [0.3, 0.2],
+        })
+        with self.assertRaisesRegex(ValueError, "exit before entry"):
+            module.validate(trades, windows, 95.0)
+        # Corrected chronology remains a valid input; no safety gate relaxed.
+        trades.loc[1, "exit_date"] = "2024-01-04"
+        self.assertEqual(module.validate(trades, windows, 95.0)["oos_trades"], 2)
+
     def test_research_rejects_reversed_walk_forward_window_bounds(self) -> None:
         import pandas as pd
 
