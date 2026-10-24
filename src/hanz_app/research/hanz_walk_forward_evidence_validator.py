@@ -47,6 +47,14 @@ def _evidence_span_years(trades, windows):
         ends = pd.to_datetime(windows["window_end"], errors="coerce", utc=True)
         if (starts > ends).any():
             raise ValueError("Invalid walk-forward chronology evidence: reversed window boundaries")
+    # A trade cannot close before it opens. Reversed timestamps can corrupt
+    # execution-order drawdown and inflate chronological history evidence.
+    if {"entry_date", "exit_date"}.issubset(trades.columns):
+        entries = pd.to_datetime(trades["entry_date"], errors="coerce", utc=True)
+        exits = pd.to_datetime(trades["exit_date"], errors="coerce", utc=True)
+        if (entries > exits).any():
+            raise ValueError("Invalid walk-forward trade chronology: exit before entry")
+
     candidates=[]
     for frame in (trades, windows):
         for col in (
