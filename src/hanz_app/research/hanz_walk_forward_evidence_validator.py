@@ -54,8 +54,20 @@ def _evidence_span_years(trades, windows):
     if len(candidates)<2:
         return None
     start=min(candidates); end=max(candidates)
-    days=(end-start).total_seconds()/86400.0
-    return max(0.0, days/365.2425)
+    # Five years means the fifth calendar anniversary, not a rounded
+    # 365.2425-day estimate (which can reject an exact five-year span).
+    start_day=start.date(); end_day=end.date()
+    def anniversary(years):
+        try:
+            return start_day.replace(year=start_day.year+years)
+        except ValueError:
+            return start_day.replace(year=start_day.year+years, day=28)
+    years=end_day.year-start_day.year
+    if end_day<anniversary(years):
+        years-=1
+    current=anniversary(years)
+    following=anniversary(years+1)
+    return max(0.0, years+(end_day-current).days/(following-current).days)
 
 
 def validate(trades, windows, dof_remaining_pct, min_oos_trades=30, min_wfe=0.50,
