@@ -176,6 +176,35 @@ class FiveYearSelectionCoverageTests(unittest.TestCase):
         self.assertTrue(coverage["all_selected_accounted_for"])
         self.assertFalse(coverage["backtest_complete"])
 
+    def test_empty_selection_cannot_pass_top5_coverage(self) -> None:
+        from hanz_app.research.generate_top5_5y_backtest import _selection_coverage
+
+        coverage = _selection_coverage([], {}, {}, {})
+        self.assertTrue(coverage["all_selected_accounted_for"])
+        self.assertFalse(coverage["backtest_complete"])
+
+    def test_four_full_histories_cannot_pass_top5_coverage(self) -> None:
+        from hanz_app.research.generate_top5_5y_backtest import _selection_coverage
+
+        symbols = ["AALI", "AUTO", "BDMN", "BTPS"]
+        coverage = _selection_coverage(
+            symbols, {s: object() for s in symbols},
+            {s: {"status": "OK"} for s in symbols}, {},
+        )
+        self.assertEqual(coverage["five_year_history_count"], 4)
+        self.assertFalse(coverage["backtest_complete"])
+
+    def test_duplicate_ticker_cannot_pass_top5_coverage(self) -> None:
+        from hanz_app.research.generate_top5_5y_backtest import _selection_coverage
+
+        symbols = ["AALI", "AUTO", "BDMN", "BTPS", "AALI"]
+        coverage = _selection_coverage(
+            symbols, {s: object() for s in symbols},
+            {s: {"status": "OK"} for s in symbols}, {},
+        )
+        self.assertEqual(coverage["evaluated_count"], 5)
+        self.assertFalse(coverage["backtest_complete"])
+
     def test_all_five_results_allow_complete_coverage(self) -> None:
         from hanz_app.research.generate_top5_5y_backtest import _selection_coverage
 
