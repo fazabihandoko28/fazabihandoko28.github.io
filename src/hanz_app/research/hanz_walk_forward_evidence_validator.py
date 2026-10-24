@@ -66,6 +66,14 @@ def validate(trades, windows, dof_remaining_pct, min_oos_trades=30, min_wfe=0.50
     if missing_t or missing_w:
         raise ValueError(f"Missing columns: trades={sorted(missing_t)} windows={sorted(missing_w)}")
 
+    # A repeated or missing window ID is not an independent WFA window.
+    # Reject it before calculating window consistency and annualized WFE.
+    window_ids = windows["window_id"]
+    normalized_ids = window_ids.astype(str).str.strip()
+    if (window_ids.isna().any() or normalized_ids.eq("").any()
+            or normalized_ids.duplicated().any()):
+        raise ValueError("Invalid or duplicate walk-forward window_id evidence")
+
     # Fail closed on corrupt IS/OOS labels: silently dropping a losing OOS row
     # could turn a failing strategy into a false PASS.
     oos_flags=trades["is_oos"].astype(str).str.strip().str.lower()
