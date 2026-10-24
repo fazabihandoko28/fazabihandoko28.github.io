@@ -2,12 +2,12 @@ from __future__ import annotations
 
 import json
 import os
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
-from hanz_data import YahooFinanceProvider, YahooSymbol, load_yahoo_universe
+from hanz_data import MarketSeries, YahooFinanceProvider, YahooSymbol, load_yahoo_universe
 from hanz_validation.walk_forward import WalkForwardValidator, DecisionOutcome
 
 SUPABASE_URL=os.environ.get("SUPABASE_URL","").rstrip("/")
@@ -121,6 +121,28 @@ def _research_mappings(mappings):
     return available
 
 
+def _five_year_replay_series(series: MarketSeries) -> MarketSeries:
+    """Use real candles across the fifth calendar anniversary, not a 5y API cutoff.
+
+    Yahoo's rolling period='5y' can begin after the calendar anniversary on a
+    weekend/holiday, yielding only 4.99 years. Fetch a longer real history and
+    retain seven calendar days of pre-anniversary trading sessions. A newly
+    listed symbol stays LIMITED_HISTORY; no candles are synthesized.
+    """
+    if not series.bars:
+        return series
+    last_day = series.bars[-1].timestamp.date()
+    try:
+        five_years_ago = last_day.replace(year=last_day.year - 5)
+    except ValueError:
+        five_years_ago = last_day.replace(year=last_day.year - 5, day=28)
+    cutoff = five_years_ago - timedelta(days=7)
+    return MarketSeries.from_iterable(
+        series.symbol, series.market,
+        (bar for bar in series.bars if bar.timestamp.date() >= cutoff),
+    )
+
+
 def _summary(symbol, series, report):
     ready=[e for e in report.events if e.status=="READY"]
     target=sum(e.outcome is DecisionOutcome.TARGET_FIRST for e in ready)
@@ -209,8 +231,8 @@ def main():
     errors={}
     for mapping in selected:
         try:
-            provider=YahooFinanceProvider([mapping],period="5y",interval="1d")
-            series=provider.load_series("BEI",mapping.symbol)
+            provider=YahooFinanceProvider([mapping],period="10y",interval="1d")
+            series=_five_year_replay_series(provider.load_series("BEI",mapping.symbol))
             report=validator.validate(series)
             results[mapping.symbol.upper()]=_summary(mapping.symbol.upper(),series,report)
         except Exception as exc:
@@ -223,7 +245,7 @@ def main():
         "selected_top5":symbols,
         "methodology":{
             "name":"HANZ no-lookahead 5Y historical replay",
-            "period":"5y daily",
+            "period":"5 calendar years plus up to 7 real trading-calendar buffer days; Yahoo 10y acquisition",
             "minimum_bars":60,
             "horizon_bars":5,
             "step_bars":1,
