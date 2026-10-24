@@ -180,6 +180,11 @@ class FiveYearEvidenceGateTests(unittest.TestCase):
         windows.loc[1, "oos_profit_r"] = None
         with self.assertRaisesRegex(ValueError, "Invalid OOS window profit evidence"):
             module.validate(trades, windows, 95.0)
+        for invalid_profit in (float("inf"), -float("inf")):
+            with self.subTest(invalid_profit=invalid_profit):
+                windows.loc[1, "oos_profit_r"] = invalid_profit
+                with self.assertRaisesRegex(ValueError, "Invalid OOS window profit evidence"):
+                    module.validate(trades, windows, 95.0)
 
     def test_research_rejects_incomplete_wfe_inputs(self) -> None:
         import pandas as pd
