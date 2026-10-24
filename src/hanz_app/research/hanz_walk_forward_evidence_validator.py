@@ -68,6 +68,12 @@ def _evidence_span_years(trades, windows):
                 # make a five-year evidence span appear valid.
                 if parsed.isna().any():
                     raise ValueError("Invalid walk-forward chronology evidence: "+col)
+                # Validate every timestamp above, including IS rows, but only
+                # realized OOS trades may establish trade-based 5Y coverage.
+                # A stray old IS trade must not inflate the backtest span.
+                if frame is trades and "is_oos" in trades.columns:
+                    flags = trades["is_oos"].astype(str).str.strip().str.lower()
+                    parsed = parsed.loc[flags.isin({"1", "true", "yes"})]
                 if len(parsed):
                     candidates.extend([parsed.min(),parsed.max()])
     if len(candidates)<2:
