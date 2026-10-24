@@ -181,7 +181,10 @@ def _selection_coverage(symbols, available, results, errors):
         "five_year_history_count":full_history,
         "limited_history_symbols":limited_history,
         "all_selected_accounted_for":evaluated+unavailable==len(symbols),
-        "backtest_complete":evaluated==len(symbols) and full_history==len(symbols),
+        # A Top 5 report is complete only with five DISTINCT full-history tickers.
+        # An empty, short or duplicate selection must never pass vacuously.
+        "backtest_complete":len(symbols)==5 and len(set(symbols))==5
+                            and evaluated==5 and full_history==5,
     }
 
 
