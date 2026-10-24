@@ -136,9 +136,20 @@ def _summary(symbol, series, report):
     span_start=bars[0].timestamp.date().isoformat() if bars else None
     span_end=bars[-1].timestamp.date().isoformat() if bars else None
     years=((bars[-1].timestamp-bars[0].timestamp).days/365.2425) if len(bars)>1 else 0.0
+    # A 4.8-year span is not five calendar years. Require the full fifth
+    # anniversary, including leap-day starts, before claiming 5Y coverage.
+    full_five_years=False
+    if len(bars)>1:
+        first_day=bars[0].timestamp.date()
+        last_day=bars[-1].timestamp.date()
+        try:
+            fifth_anniversary=first_day.replace(year=first_day.year+5)
+        except ValueError:
+            fifth_anniversary=first_day.replace(year=first_day.year+5,day=28)
+        full_five_years=last_day>=fifth_anniversary
     return {
         "symbol":symbol,
-        "status":"OK" if years>=4.8 else "LIMITED_HISTORY",
+        "status":"OK" if full_five_years else "LIMITED_HISTORY",
         "span_start":span_start,
         "span_end":span_end,
         "span_years":round(years,2),

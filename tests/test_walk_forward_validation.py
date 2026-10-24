@@ -273,6 +273,28 @@ class FiveYearEvidenceGateTests(unittest.TestCase):
 
 
 class FiveYearSelectionCoverageTests(unittest.TestCase):
+    def test_summary_requires_five_full_calendar_years(self) -> None:
+        from types import SimpleNamespace
+        from hanz_app.research.generate_top5_5y_backtest import _summary
+
+        report = SimpleNamespace(
+            events=[], evaluated_events=0, ready_events=0,
+            average_ready_forward_return=None,
+        )
+
+        def status(start: str, end: str) -> str:
+            bars = [
+                SimpleNamespace(timestamp=datetime.fromisoformat(value).replace(tzinfo=timezone.utc))
+                for value in (start, end)
+            ]
+            return _summary("TEST", SimpleNamespace(bars=bars), report)["status"]
+
+        # A roughly 4.9-year backtest used to be incorrectly marked OK.
+        self.assertEqual(status("2021-01-01", "2025-12-01"), "LIMITED_HISTORY")
+        self.assertEqual(status("2021-01-01", "2026-01-01"), "OK")
+        self.assertEqual(status("2020-02-29", "2025-02-27"), "LIMITED_HISTORY")
+        self.assertEqual(status("2020-02-29", "2025-02-28"), "OK")
+
     def test_missing_selected_mapping_is_explicit_not_silently_dropped(self) -> None:
         from hanz_app.research.generate_top5_5y_backtest import _selection_coverage
 
