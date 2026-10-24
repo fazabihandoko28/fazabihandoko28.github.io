@@ -90,6 +90,16 @@ def validate(trades, windows, dof_remaining_pct, min_oos_trades=30, min_wfe=0.50
             or normalized_ids.duplicated().any()):
         raise ValueError("Invalid or duplicate walk-forward window_id evidence")
 
+    # A trade assigned to an unknown WFA window cannot contribute independent
+    # OOS evidence. Keep legacy exports without a trade window_id supported.
+    if "window_id" in trades.columns:
+        trade_window_ids = trades["window_id"]
+        normalized_trade_window_ids = trade_window_ids.astype(str).str.strip()
+        if trade_window_ids.isna().any() or normalized_trade_window_ids.eq("").any():
+            raise ValueError("Invalid walk-forward trade window_id evidence")
+        if not normalized_trade_window_ids.isin(set(normalized_ids)).all():
+            raise ValueError("Unknown walk-forward trade window_id evidence")
+
     # Duplicate trade identities must not inflate the independent OOS sample.
     # A trade_id may be reused across distinct walk-forward windows, but not
     # within the same window. Preserve legacy exports without a trade_id.

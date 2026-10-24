@@ -149,6 +149,38 @@ class FiveYearEvidenceGateTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, "Invalid or duplicate walk-forward trade_id"):
                     module.validate(corrupted, windows, 95.0)
 
+    def test_research_rejects_orphaned_trade_window_evidence(self) -> None:
+        import pandas as pd
+
+        module = self._validator_module()
+        windows = pd.DataFrame({
+            "window_id": ["W1", "W2"],
+            "oos_profit_r": [1.0, 1.0],
+        })
+        trades = pd.DataFrame({
+            "window_id": ["W1", "W2"],
+            "trade_id": ["T1", "T2"],
+            "is_oos": [True, True],
+            "r_multiple": [0.2, 0.2],
+            "trade_date": ["2020-01-01", "2026-01-01"],
+        })
+        self.assertEqual(module.validate(trades, windows, 95.0)["oos_trades"], 2)
+
+        # An orphaned trade must not inflate the OOS sample of known windows.
+        orphaned = trades.copy()
+        orphaned.loc[1, "window_id"] = "W3"
+        with self.assertRaisesRegex(ValueError, "Unknown walk-forward trade window_id"):
+            module.validate(orphaned, windows, 95.0)
+        # The check also applies to legacy exports without trade_id.
+        with self.assertRaisesRegex(ValueError, "Unknown walk-forward trade window_id"):
+            module.validate(orphaned.drop(columns="trade_id"), windows, 95.0)
+        missing = trades.copy()
+        missing.loc[1, "window_id"] = None
+        with self.assertRaisesRegex(ValueError, "Invalid walk-forward trade window_id"):
+            module.validate(missing, windows, 95.0)
+        # Exports without trade window_id remain supported.
+        self.assertEqual(module.validate(trades.drop(columns="window_id"), windows, 95.0)["oos_trades"], 2)
+
     def test_research_rejects_duplicate_or_missing_walk_forward_window_ids(self) -> None:
         import pandas as pd
 
