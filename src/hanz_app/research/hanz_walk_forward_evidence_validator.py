@@ -90,6 +90,28 @@ def validate(trades, windows, dof_remaining_pct, min_oos_trades=30, min_wfe=0.50
             or normalized_ids.duplicated().any()):
         raise ValueError("Invalid or duplicate walk-forward window_id evidence")
 
+    # Duplicate trade identities must not inflate the independent OOS sample.
+    # A trade_id may be reused across distinct walk-forward windows, but not
+    # within the same window. Preserve legacy exports without a trade_id.
+    if "trade_id" in trades.columns:
+        trade_ids = trades["trade_id"]
+        normalized_trade_ids = trade_ids.astype(str).str.strip()
+        if trade_ids.isna().any() or normalized_trade_ids.eq("").any():
+            raise ValueError("Invalid or duplicate walk-forward trade_id evidence")
+        if "window_id" in trades.columns:
+            trade_window_ids = trades["window_id"]
+            normalized_trade_window_ids = trade_window_ids.astype(str).str.strip()
+            if trade_window_ids.isna().any() or normalized_trade_window_ids.eq("").any():
+                raise ValueError("Invalid or duplicate walk-forward trade_id evidence")
+            duplicate = pd.DataFrame({
+                "window_id": normalized_trade_window_ids,
+                "trade_id": normalized_trade_ids,
+            }).duplicated().any()
+        else:
+            duplicate = normalized_trade_ids.duplicated().any()
+        if duplicate:
+            raise ValueError("Invalid or duplicate walk-forward trade_id evidence")
+
     # Fail closed on corrupt IS/OOS labels: silently dropping a losing OOS row
     # could turn a failing strategy into a false PASS.
     oos_flags=trades["is_oos"].astype(str).str.strip().str.lower()
