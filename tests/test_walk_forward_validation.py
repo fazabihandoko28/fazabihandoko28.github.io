@@ -77,6 +77,48 @@ class FiveYearEvidenceGateTests(unittest.TestCase):
         spec.loader.exec_module(module)
         return module
 
+    def test_research_rejects_corrupt_oos_flags_instead_of_dropping_losses(self) -> None:
+        import pandas as pd
+
+        module = self._validator_module()
+        valid = pd.DataFrame({
+            "is_oos": ["true"] * 30,
+            "r_multiple": [0.2] * 30,
+            "trade_date": pd.date_range("2020-01-01", periods=30, freq="70D"),
+        })
+        windows = pd.DataFrame({
+            "window_id": [1, 2, 3],
+            "oos_profit_r": [2.0, 2.0, 2.0],
+            "is_profit_r": [2.0, 2.0, 2.0],
+            "is_years": [1.0, 1.0, 1.0],
+            "oos_years": [1.0, 1.0, 1.0],
+            "window_start": ["2020-01-01", "2022-01-01", "2024-01-01"],
+            "window_end": ["2022-01-01", "2024-01-01", "2026-01-02"],
+        })
+        self.assertTrue(module.validate(valid, windows, 95.0)["passed"])
+        # Previously, unknown flags silently excluded 30 losing OOS trades,
+        # leaving only winners and allowing a false strategy PASS.
+        corrupted = pd.concat([
+            valid,
+            pd.DataFrame({
+                "is_oos": ["tru"] * 30,
+                "r_multiple": [-1.0] * 30,
+                "trade_date": pd.date_range("2020-01-02", periods=30, freq="70D"),
+            }),
+        ], ignore_index=True)
+        with self.assertRaisesRegex(ValueError, "Invalid OOS/IS trade classification evidence"):
+            module.validate(corrupted, windows, 95.0)
+        corrupted.loc[30, "is_oos"] = None
+        with self.assertRaisesRegex(ValueError, "Invalid OOS/IS trade classification evidence"):
+            module.validate(corrupted, windows, 95.0)
+        valid.loc[0, "is_oos"] = " YES "
+        valid.loc[1, "is_oos"] = " True "
+        self.assertTrue(module.validate(valid, windows, 95.0)["passed"])
+        is_row = pd.DataFrame({"is_oos": ["False"], "r_multiple": [-10.0],
+                               "trade_date": ["2024-01-01"]})
+        self.assertEqual(module.validate(pd.concat([valid, is_row], ignore_index=True),
+                                         windows, 95.0)["oos_trades"], 30)
+
     def test_research_validator_rejects_less_than_five_years(self) -> None:
         import pandas as pd
 

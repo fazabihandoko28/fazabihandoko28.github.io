@@ -66,7 +66,13 @@ def validate(trades, windows, dof_remaining_pct, min_oos_trades=30, min_wfe=0.50
     if missing_t or missing_w:
         raise ValueError(f"Missing columns: trades={sorted(missing_t)} windows={sorted(missing_w)}")
 
-    t=trades.copy(); t=t[t["is_oos"].astype(str).str.lower().isin(["1","true","yes"])]
+    # Fail closed on corrupt IS/OOS labels: silently dropping a losing OOS row
+    # could turn a failing strategy into a false PASS.
+    oos_flags=trades["is_oos"].astype(str).str.strip().str.lower()
+    valid_oos_flags={"1","true","yes","0","false","no"}
+    if not oos_flags.isin(valid_oos_flags).all():
+        raise ValueError("Invalid OOS/IS trade classification evidence")
+    t=trades.loc[oos_flags.isin({"1","true","yes"})].copy()
     t["r_multiple"]=pd.to_numeric(t["r_multiple"],errors="coerce")
     # Fail closed: silently dropping invalid OOS outcomes inflates sample quality.
     # NaN and +/-infinity must never contribute to expectancy, WFE or drawdown.
