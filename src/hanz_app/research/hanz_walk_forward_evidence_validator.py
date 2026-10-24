@@ -40,6 +40,13 @@ def _evidence_span_years(trades, windows):
     summing rolling-window durations, because overlapping walk-forward windows
     can otherwise exaggerate the tested history.
     """
+    # Reversed window bounds cannot represent a sequential historical test.
+    # Without this check, a corrupt window can inflate apparent 5Y coverage.
+    if {"window_start", "window_end"}.issubset(windows.columns):
+        starts = pd.to_datetime(windows["window_start"], errors="coerce", utc=True)
+        ends = pd.to_datetime(windows["window_end"], errors="coerce", utc=True)
+        if (starts > ends).any():
+            raise ValueError("Invalid walk-forward chronology evidence: reversed window boundaries")
     candidates=[]
     for frame in (trades, windows):
         for col in (

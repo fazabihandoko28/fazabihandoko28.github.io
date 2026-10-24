@@ -272,6 +272,26 @@ class FiveYearEvidenceGateTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, "Invalid walk-forward chronology evidence: window_start"):
                     module.validate(trades, corrupted, 95.0)
 
+    def test_research_rejects_reversed_walk_forward_window_bounds(self) -> None:
+        import pandas as pd
+
+        module = self._validator_module()
+        trades = pd.DataFrame({
+            "is_oos": [True] * 30,
+            "r_multiple": [0.2] * 30,
+            "trade_date": pd.date_range("2020-01-01", periods=30, freq="80D"),
+        })
+        windows = pd.DataFrame({
+            "window_id": [1, 2, 3],
+            "oos_profit_r": [2.0] * 3,
+            "window_start": ["2020-01-01", "2022-01-01", "2024-01-01"],
+            "window_end": ["2022-01-01", "2021-12-31", "2026-01-02"],
+        })
+        with self.assertRaisesRegex(ValueError, "reversed window boundaries"):
+            module.validate(trades, windows, 95.0)
+        windows.loc[1, "window_end"] = "2024-01-01"
+        self.assertTrue(module.validate(trades, windows, 95.0)["checks"]["five_year_history"])
+
     def test_research_five_year_calendar_anniversary_including_leap_day(self) -> None:
         import pandas as pd
 
