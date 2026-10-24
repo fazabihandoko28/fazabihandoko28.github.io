@@ -91,7 +91,8 @@ def validate(trades, windows, dof_remaining_pct, min_oos_trades=30, min_wfe=0.50
 
     # Equity/drawdown in R from chronological OOS trades.
     equity=t["r_multiple"].cumsum()
-    peak=equity.cummax()
+    # Include the initial flat equity (0 R): an opening loss is a real drawdown.
+    peak=equity.cummax().clip(lower=0.0)
     dd=peak-equity
     max_dd_r=float(dd.max()) if len(dd) else None
 
