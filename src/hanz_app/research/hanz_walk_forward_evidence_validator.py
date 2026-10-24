@@ -68,6 +68,17 @@ def validate(trades, windows, dof_remaining_pct, min_oos_trades=30, min_wfe=0.50
 
     t=trades.copy(); t=t[t["is_oos"].astype(str).str.lower().isin(["1","true","yes"])]
     t["r_multiple"]=pd.to_numeric(t["r_multiple"],errors="coerce"); t=t.dropna(subset=["r_multiple"])
+    # Drawdown must follow actual OOS execution chronology, not CSV row order.
+    # Prefer exit timestamps, since R is realized when a trade closes.
+    for date_column in ("exit_date", "trade_date"):
+        if date_column in t.columns:
+            chronological_dates=pd.to_datetime(t[date_column],errors="coerce",utc=True)
+            if chronological_dates.isna().any():
+                raise ValueError("Invalid OOS trade chronology: "+date_column)
+            t=t.assign(_chronological_date=chronological_dates).sort_values(
+                "_chronological_date",kind="stable"
+            ).drop(columns="_chronological_date")
+            break
     windows=windows.copy(); windows["oos_profit_r"]=pd.to_numeric(windows["oos_profit_r"],errors="coerce")
 
     evidence_span_years=_evidence_span_years(trades, windows)
