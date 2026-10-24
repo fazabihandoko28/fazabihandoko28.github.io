@@ -184,6 +184,24 @@ class FiveYearEvidenceGateTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, "Invalid degrees-of-freedom remaining evidence"):
                     module.validate(trades, windows, invalid)
 
+    def test_research_five_year_calendar_anniversary_including_leap_day(self) -> None:
+        import pandas as pd
+
+        module = self._validator_module()
+        for start, end, expected in (
+            ("2021-01-01", "2026-01-01", True),
+            ("2021-01-01", "2025-12-31", False),
+            ("2020-02-29", "2025-02-28", True),
+            ("2020-02-29", "2025-02-27", False),
+        ):
+            with self.subTest(start=start, end=end):
+                trades = pd.DataFrame({"trade_date": [start, end]})
+                years = module._evidence_span_years(trades, pd.DataFrame())
+                self.assertIsNotNone(years)
+                self.assertEqual(years >= 5.0, expected)
+                if expected:
+                    self.assertEqual(years, 5.0)
+
     def test_research_validator_rejects_less_than_five_years(self) -> None:
         import pandas as pd
 
@@ -226,7 +244,7 @@ class FiveYearEvidenceGateTests(unittest.TestCase):
             "is_years": [1.0, 1.0, 1.0],
             "oos_years": [1.0, 1.0, 1.0],
             "window_start": ["2021-01-01", "2022-09-01", "2024-05-01"],
-            "window_end": ["2022-08-31", "2024-04-30", "2026-01-02"],
+            "window_end": ["2022-08-31", "2024-04-30", "2026-01-01"],
         })
         result = module.validate(trades, windows, 95.0)
         self.assertTrue(result["checks"]["five_year_history"])
