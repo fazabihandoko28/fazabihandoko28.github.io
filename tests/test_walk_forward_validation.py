@@ -119,6 +119,36 @@ class FiveYearEvidenceGateTests(unittest.TestCase):
         self.assertEqual(module.validate(pd.concat([valid, is_row], ignore_index=True),
                                          windows, 95.0)["oos_trades"], 30)
 
+    def test_research_rejects_duplicate_trade_identity_evidence(self) -> None:
+        import pandas as pd
+
+        module = self._validator_module()
+        trades = pd.DataFrame({
+            "window_id": ["W1", "W1", "W2"],
+            "trade_id": ["T1", " T1 ", "T1"],
+            "is_oos": [True, True, True],
+            "r_multiple": [0.2, 0.2, 0.2],
+            "trade_date": ["2020-01-01", "2021-01-01", "2026-01-01"],
+        })
+        windows = pd.DataFrame({
+            "window_id": ["W1", "W2"],
+            "oos_profit_r": [1.0, 1.0],
+        })
+        # The same trade counted twice in one window inflates the OOS sample.
+        with self.assertRaisesRegex(ValueError, "Invalid or duplicate walk-forward trade_id"):
+            module.validate(trades, windows, 95.0)
+
+        # IDs may legitimately repeat across separate WFA windows.
+        trades.loc[1, "trade_id"] = "T2"
+        self.assertEqual(module.validate(trades, windows, 95.0)["oos_trades"], 3)
+
+        for invalid in (None, "  "):
+            with self.subTest(invalid=invalid):
+                corrupted = trades.copy()
+                corrupted.loc[1, "trade_id"] = invalid
+                with self.assertRaisesRegex(ValueError, "Invalid or duplicate walk-forward trade_id"):
+                    module.validate(corrupted, windows, 95.0)
+
     def test_research_rejects_duplicate_or_missing_walk_forward_window_ids(self) -> None:
         import pandas as pd
 
