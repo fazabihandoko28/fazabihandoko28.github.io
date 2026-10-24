@@ -332,6 +332,36 @@ class FiveYearEvidenceGateTests(unittest.TestCase):
                 if expected:
                     self.assertEqual(years, 5.0)
 
+    def test_research_is_trade_cannot_inflate_five_year_oos_span(self) -> None:
+        import pandas as pd
+
+        module = self._validator_module()
+        trades = pd.DataFrame({
+            "is_oos": [True] * 30 + [False],
+            "r_multiple": [0.2] * 30 + [-1.0],
+            "trade_date": list(pd.date_range("2024-01-01", periods=30, freq="20D")) + ["2020-01-01"],
+        })
+        windows = pd.DataFrame({
+            "window_id": [1, 2, 3],
+            "oos_profit_r": [2.0, 2.0, 2.0],
+            "is_profit_r": [2.0, 2.0, 2.0],
+            "is_years": [1.0, 1.0, 1.0],
+            "oos_years": [1.0, 1.0, 1.0],
+        })
+        # An old IS row is not evidence of five years of OOS trading.
+        report = module.validate(trades, windows, 95.0)
+        self.assertFalse(report["checks"]["five_year_history"])
+        self.assertFalse(report["passed"])
+        # Corrupt IS timestamps must still be rejected, not silently filtered.
+        corrupted = trades.copy()
+        corrupted.loc[30, "trade_date"] = "not-a-date"
+        with self.assertRaisesRegex(ValueError, "Invalid walk-forward chronology evidence"):
+            module.validate(corrupted, windows, 95.0)
+        # A genuine five-year OOS span is still recognized.
+        extended = trades.copy()
+        extended.loc[0, "trade_date"] = "2020-01-01"
+        self.assertTrue(module.validate(extended, windows, 95.0)["checks"]["five_year_history"])
+
     def test_research_validator_rejects_less_than_five_years(self) -> None:
         import pandas as pd
 
