@@ -48,7 +48,11 @@ def _evidence_span_years(trades, windows):
             "is_start","is_end","oos_start","oos_end",
         ):
             if col in frame.columns:
-                parsed=pd.to_datetime(frame[col],errors="coerce",utc=True).dropna()
+                parsed=pd.to_datetime(frame[col],errors="coerce",utc=True)
+                # A corrupt/missing timestamp cannot be silently discarded to
+                # make a five-year evidence span appear valid.
+                if parsed.isna().any():
+                    raise ValueError("Invalid walk-forward chronology evidence: "+col)
                 if len(parsed):
                     candidates.extend([parsed.min(),parsed.max()])
     if len(candidates)<2:
