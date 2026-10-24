@@ -119,6 +119,32 @@ class FiveYearEvidenceGateTests(unittest.TestCase):
         self.assertEqual(module.validate(pd.concat([valid, is_row], ignore_index=True),
                                          windows, 95.0)["oos_trades"], 30)
 
+    def test_research_rejects_nonfinite_or_impossible_dof_evidence(self) -> None:
+        import pandas as pd
+
+        module = self._validator_module()
+        trades = pd.DataFrame({
+            "is_oos": [True] * 30,
+            "r_multiple": [0.2] * 30,
+            "trade_date": pd.date_range("2020-01-01", periods=30, freq="80D"),
+        })
+        windows = pd.DataFrame({
+            "window_id": [1, 2, 3],
+            "oos_profit_r": [2.0] * 3,
+            "is_profit_r": [2.0] * 3,
+            "is_years": [1.0] * 3,
+            "oos_years": [1.0] * 3,
+            "window_start": ["2020-01-01", "2022-01-01", "2024-01-01"],
+            "window_end": ["2022-01-01", "2024-01-01", "2026-01-02"],
+        })
+        self.assertTrue(module.validate(trades, windows, 95.0)["passed"])
+        self.assertTrue(module.validate(trades, windows, 100.0)["passed"])
+        self.assertFalse(module.validate(trades, windows, 89.9)["passed"])
+        for invalid in (float("inf"), -float("inf"), float("nan"), 101.0):
+            with self.subTest(invalid=invalid):
+                with self.assertRaisesRegex(ValueError, "Invalid degrees-of-freedom remaining evidence"):
+                    module.validate(trades, windows, invalid)
+
     def test_research_validator_rejects_less_than_five_years(self) -> None:
         import pandas as pd
 

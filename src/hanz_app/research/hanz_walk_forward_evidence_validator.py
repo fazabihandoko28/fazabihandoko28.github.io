@@ -128,6 +128,12 @@ def validate(trades, windows, dof_remaining_pct, min_oos_trades=30, min_wfe=0.50
     pos_sum=float(positives.sum()) if len(positives) else 0.0
     max_trade_share=(float(positives.max())/pos_sum*100) if pos_sum>0 else None
 
+    # A percentage must be finite and within [0, 100]. Invalid evidence
+    # must never satisfy the >=90% strategy-validation safety gate.
+    dof_remaining_pct=float(dof_remaining_pct)
+    if not math.isfinite(dof_remaining_pct) or not 0.0 <= dof_remaining_pct <= 100.0:
+        raise ValueError("Invalid degrees-of-freedom remaining evidence")
+
     checks={
       "five_year_history": evidence_span_years is not None and evidence_span_years>=min_backtest_years,
       "oos_trade_sample": oos_trades>=min_oos_trades,
