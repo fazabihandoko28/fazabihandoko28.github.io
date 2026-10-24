@@ -314,6 +314,36 @@ class FiveYearEvidenceGateTests(unittest.TestCase):
         windows.loc[1, "window_end"] = "2024-01-01"
         self.assertTrue(module.validate(trades, windows, 95.0)["checks"]["five_year_history"])
 
+    def test_research_rejects_future_dated_wfa_evidence(self) -> None:
+        import pandas as pd
+
+        module = self._validator_module()
+        future = (datetime.now(timezone.utc) + timedelta(days=2)).date().isoformat()
+        trades = pd.DataFrame({
+            "is_oos": [True, True],
+            "r_multiple": [0.2, 0.2],
+            "trade_date": ["2021-01-01", future],
+        })
+        windows = pd.DataFrame({
+            "window_id": ["W1", "W2"],
+            "oos_profit_r": [1.0, 1.0],
+        })
+        # A future OOS trade must never manufacture a five-year PASS.
+        with self.assertRaisesRegex(ValueError, "Future-dated walk-forward chronology evidence: trade_date"):
+            module.validate(trades, windows, 95.0)
+        # An IS-only future date is also corrupt evidence, not a safe row to skip.
+        trades.loc[1, "is_oos"] = False
+        with self.assertRaisesRegex(ValueError, "Future-dated walk-forward chronology evidence: trade_date"):
+            module.validate(trades, windows, 95.0)
+        trades.loc[1, "trade_date"] = "2026-01-01"
+        windows["window_start"] = ["2021-01-01", "2023-01-01"]
+        windows["window_end"] = ["2023-01-01", future]
+        with self.assertRaisesRegex(ValueError, "Future-dated walk-forward chronology evidence: window_end"):
+            module.validate(trades, windows, 95.0)
+        # Genuine completed historical evidence remains eligible for the 5Y check.
+        windows.loc[1, "window_end"] = "2026-01-01"
+        self.assertTrue(module.validate(trades, windows, 95.0)["checks"]["five_year_history"])
+
     def test_research_five_year_calendar_anniversary_including_leap_day(self) -> None:
         import pandas as pd
 
