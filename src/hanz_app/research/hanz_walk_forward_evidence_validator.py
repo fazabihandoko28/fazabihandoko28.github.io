@@ -130,6 +130,10 @@ def _evidence_span_years(trades, windows):
 def validate(trades, windows, dof_remaining_pct, min_oos_trades=30, min_wfe=0.50,
              min_profitable_windows_pct=50.0, max_trade_profit_share_pct=35.0,
              min_backtest_years=DEFAULT_MIN_BACKTEST_YEARS):
+    # Five-year OOS history is a G1 safety floor, not a configurable bypass.
+    # A lower CLI/API override must not certify a shorter test as five years.
+    if not math.isfinite(min_backtest_years) or min_backtest_years < DEFAULT_MIN_BACKTEST_YEARS:
+        raise ValueError("G1 minimum backtest history cannot be below 5 years")
     # G1 safety floor: CLI/API overrides may tighten, never reduce, the
     # minimum independent OOS trade sample required for validation.
     if min_oos_trades < DEFAULT_MIN_OOS_TRADES:
