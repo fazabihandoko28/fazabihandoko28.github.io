@@ -65,6 +65,9 @@ def evaluate(row, now):
         reasons.append("bar_after_scan")
     if bar is not None and bar.astimezone(WIB).date() != now.astimezone(WIB).date():
         reasons.append("bar_not_current_idx_session")
+    # Same-day pre-open and lunch bars are not LIVE regular-session evidence.
+    if bar is not None and not session_open(bar):
+        reasons.append("bar_outside_idx_regular_session")
     if not open_now:
         reasons.append("idx_session_closed")
     live = not reasons

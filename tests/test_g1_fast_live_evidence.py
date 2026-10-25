@@ -65,6 +65,26 @@ class G1FastLiveEvidenceTests(unittest.TestCase):
         self.assertFalse(report["g1_fast_live_verified"])
         self.assertIn("bar_after_scan", report["blockers"])
 
+    def test_preopen_and_lunch_bars_cannot_prove_live(self):
+        cases = (
+            # 09:01 WIB after an 08:59 WIB pre-open bar.
+            (datetime(2026, 10, 26, 2, 1, tzinfo=timezone.utc),
+             datetime(2026, 10, 26, 1, 59, tzinfo=timezone.utc)),
+            # 13:31 WIB after a 13:25 WIB lunch-break bar.
+            (datetime(2026, 10, 26, 6, 31, tzinfo=timezone.utc),
+             datetime(2026, 10, 26, 6, 25, tzinfo=timezone.utc)),
+        )
+        for now, bar in cases:
+            with self.subTest(now=now, bar=bar):
+                row = {
+                    **self.good,
+                    "last_scan_at": (now - timedelta(seconds=5)).isoformat(),
+                    "last_market_bar_at": bar.isoformat(),
+                }
+                report = evaluate(row, now)
+                self.assertFalse(report["g1_fast_live_verified"])
+                self.assertIn("bar_outside_idx_regular_session", report["blockers"])
+
     def test_missing_health_row_fails_closed(self):
         self.assertFalse(evaluate({}, self.now)["g1_fast_live_verified"])
 
