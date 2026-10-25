@@ -56,7 +56,12 @@ def _evidence_span_years(trades, windows):
             raise ValueError("Invalid walk-forward trade chronology: exit before entry")
 
     candidates=[]
-    explicit_oos_bounds = {"oos_start", "oos_end"}.issubset(windows.columns)
+    # A partially exported OOS interval is not legacy evidence: it is corrupt.
+    # Otherwise IS-inclusive window_start/window_end could falsely establish 5Y.
+    oos_fields = {"oos_start", "oos_end"}.intersection(windows.columns)
+    if oos_fields and len(oos_fields) != 2:
+        raise ValueError("Incomplete walk-forward OOS chronology evidence: both oos_start and oos_end required")
+    explicit_oos_bounds = len(oos_fields) == 2
     # Reversed OOS bounds can falsely extend five-year coverage even when
     # exports lack trade window IDs or dated entry/exit evidence.
     if explicit_oos_bounds:
