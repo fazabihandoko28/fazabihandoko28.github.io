@@ -57,6 +57,13 @@ def _evidence_span_years(trades, windows):
 
     candidates=[]
     explicit_oos_bounds = {"oos_start", "oos_end"}.issubset(windows.columns)
+    # Reversed OOS bounds can falsely extend five-year coverage even when
+    # exports lack trade window IDs or dated entry/exit evidence.
+    if explicit_oos_bounds:
+        oos_starts = pd.to_datetime(windows["oos_start"], errors="coerce", utc=True)
+        oos_ends = pd.to_datetime(windows["oos_end"], errors="coerce", utc=True)
+        if (oos_starts > oos_ends).any():
+            raise ValueError("Invalid walk-forward OOS chronology evidence: reversed OOS boundaries")
     for frame in (trades, windows):
         for col in (
             "timestamp","trade_date","entry_date","exit_date",
