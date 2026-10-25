@@ -77,6 +77,36 @@ class FiveYearEvidenceGateTests(unittest.TestCase):
         spec.loader.exec_module(module)
         return module
 
+    def test_g1_minimum_oos_trade_sample_cannot_be_overridden_downward(self) -> None:
+        import pandas as pd
+
+        module = self._validator_module()
+        trades = pd.DataFrame({
+            "is_oos": [True] * 10,
+            "r_multiple": [0.2] * 10,
+        })
+        windows = pd.DataFrame({
+            "window_id": ["W1", "W2"],
+            "oos_profit_r": [1.0, 1.0],
+            "is_profit_r": [1.0, 1.0],
+            "is_years": [1.0, 1.0],
+            "oos_years": [1.0, 1.0],
+            "oos_start": ["2020-01-01", "2025-01-01"],
+            "oos_end": ["2021-01-01", "2026-01-01"],
+        })
+        # Previously a caller could lower the sample gate to 10 and turn
+        # an underpowered strategy into PASS despite the 30-trade policy.
+        with self.assertRaisesRegex(ValueError, "G1 minimum OOS trades"):
+            module.validate(trades, windows, 95.0, min_oos_trades=10)
+        with self.assertRaisesRegex(ValueError, "G1 minimum OOS trades"):
+            module.validate(trades, windows, 95.0, min_oos_trades=0)
+
+        report = module.validate(trades, windows, 95.0)
+        self.assertFalse(report["checks"]["oos_trade_sample"])
+        self.assertFalse(report["passed"])
+        stricter = module.validate(trades, windows, 95.0, min_oos_trades=40)
+        self.assertFalse(stricter["checks"]["oos_trade_sample"])
+
     def test_explicit_oos_history_ignores_unassigned_trade_timestamps(self) -> None:
         import pandas as pd
 
