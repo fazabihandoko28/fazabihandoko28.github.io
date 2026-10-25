@@ -10,6 +10,7 @@ class G1FastLiveEvidenceTests(unittest.TestCase):
         self.now = datetime(2026, 10, 26, 3, 30, tzinfo=timezone.utc)  # Monday 10:30 WIB
         self.good = {
             "data_status": "FRESH", "symbols_monitored": 198,
+            "data_age_seconds": 60,
             "last_scan_at": (self.now - timedelta(minutes=3)).isoformat(),
             "last_market_bar_at": (self.now - timedelta(minutes=4)).isoformat(),
         }
@@ -84,6 +85,27 @@ class G1FastLiveEvidenceTests(unittest.TestCase):
                 report = evaluate(row, now)
                 self.assertFalse(report["g1_fast_live_verified"])
                 self.assertIn("bar_outside_idx_regular_session", report["blockers"])
+
+    def test_source_reported_stale_age_cannot_prove_live(self):
+        # Reproduced before fix: status FRESH + recent bar/scan + age 7200
+        # incorrectly produced LIVE despite the provider's stale-age evidence.
+        row = {**self.good, "data_age_seconds": 7200}
+        report = evaluate(row, self.now)
+        self.assertEqual(report["g1_fast_live"], "STALE")
+        self.assertIn("source_reported_age_not_fresh", report["blockers"])
+
+    def test_invalid_or_missing_reported_age_fails_closed(self):
+        for age in (None, -1, True, "60", 1801):
+            with self.subTest(age=age):
+                row = {**self.good, "data_age_seconds": age}
+                self.assertFalse(evaluate(row, self.now)["g1_fast_live_verified"])
+
+    def test_reported_age_at_guard_boundary_is_accepted(self):
+        row = {**self.good, "data_age_seconds": 1800}
+        self.assertTrue(evaluate(row, self.now)["g1_fast_live_verified"])
+
+    def test_source_reported_age_is_visible_in_evidence(self):
+        self.assertEqual(evaluate(self.good, self.now)["data_age_seconds"], 60)
 
     def test_missing_health_row_fails_closed(self):
         self.assertFalse(evaluate({}, self.now)["g1_fast_live_verified"])
