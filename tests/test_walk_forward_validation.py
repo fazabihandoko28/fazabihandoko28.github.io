@@ -701,6 +701,39 @@ class FiveYearSelectionCoverageTests(unittest.TestCase):
                 self.assertEqual(result["history_gap_reason"], "INSUFFICIENT_TRADING_SESSIONS")
                 self.assertEqual(result["distinct_trading_days"], count)
 
+    def test_long_missing_history_gap_cannot_pass_five_year_coverage(self) -> None:
+        from types import SimpleNamespace
+        from hanz_app.research.generate_top5_5y_backtest import _summary
+
+        report = SimpleNamespace(events=[], evaluated_events=0, ready_events=0,
+                                 average_ready_forward_return=None)
+        start = datetime(2020, 1, 1, tzinfo=timezone.utc)
+        # 1000 distinct fixture days, followed by a >2-year missing interval
+        # and one last bar at the fifth anniversary. Never market evidence.
+        bars = [SimpleNamespace(timestamp=start + timedelta(days=i))
+                for i in range(1000)]
+        bars.append(SimpleNamespace(timestamp=datetime(2025, 1, 2, tzinfo=timezone.utc)))
+        result = _summary("TEST", SimpleNamespace(bars=bars), report)
+        self.assertEqual(result["distinct_trading_days"], 1001)
+        self.assertEqual(result["status"], "LIMITED_HISTORY")
+        self.assertEqual(result["history_gap_reason"], "LONG_HISTORY_GAP")
+        self.assertGreater(result["max_gap_days"], result["max_allowed_gap_days"])
+
+    def test_dense_five_year_history_has_no_long_gap(self) -> None:
+        from types import SimpleNamespace
+        from hanz_app.research.generate_top5_5y_backtest import _summary
+
+        report = SimpleNamespace(events=[], evaluated_events=0, ready_events=0,
+                                 average_ready_forward_return=None)
+        start = datetime(2021, 1, 1, tzinfo=timezone.utc)
+        end = datetime(2026, 1, 1, tzinfo=timezone.utc)
+        bars = [SimpleNamespace(timestamp=start + (end - start) * i / 999)
+                for i in range(1000)]
+        result = _summary("TEST", SimpleNamespace(bars=bars), report)
+        self.assertEqual(result["status"], "OK")
+        self.assertIsNone(result["history_gap_reason"])
+        self.assertLessEqual(result["max_gap_days"], result["max_allowed_gap_days"])
+
     def test_missing_selected_mapping_is_explicit_not_silently_dropped(self) -> None:
         from hanz_app.research.generate_top5_5y_backtest import _selection_coverage
 
