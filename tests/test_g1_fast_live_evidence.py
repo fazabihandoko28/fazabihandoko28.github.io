@@ -31,6 +31,15 @@ class G1FastLiveEvidenceTests(unittest.TestCase):
                 self.assertIn("g1_coverage_incomplete", evaluate(
                     {**self.good, "symbols_monitored": n}, self.now)["blockers"])
 
+    def test_invalid_symbol_counts_cannot_be_coerced_into_g1_live(self):
+        # Before the guard, 198.9 and "198" were coerced to 198 and passed.
+        for invalid in (198.9, 198.0, "198", True, None):
+            with self.subTest(coverage=invalid):
+                report = evaluate({**self.good, "symbols_monitored": invalid}, self.now)
+                self.assertFalse(report["g1_fast_live_verified"])
+                self.assertIn("g1_coverage_incomplete", report["blockers"])
+        self.assertTrue(evaluate(self.good, self.now)["g1_fast_live_verified"])
+
     def test_old_scan_or_bar_blocks_live_even_if_source_says_fresh(self):
         for key in ("last_scan_at", "last_market_bar_at"):
             with self.subTest(field=key):

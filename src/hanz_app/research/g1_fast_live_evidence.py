@@ -46,10 +46,11 @@ def evaluate(row, now):
     status = str(row.get("data_status") or "UNKNOWN").upper()
     if status != "FRESH":
         reasons.append("source_status_not_fresh")
-    try:
-        coverage = int(row.get("symbols_monitored"))
-    except (ValueError, TypeError, OverflowError):
-        coverage = 0
+    # A symbol count must be a real integer. Coercing 198.9 or "198" to
+    # 198 could falsely certify G1 LIVE with invalid coverage evidence.
+    raw_coverage = row.get("symbols_monitored")
+    coverage = (raw_coverage if isinstance(raw_coverage, int)
+                and not isinstance(raw_coverage, bool) else 0)
     if coverage < G1_MIN_SYMBOLS:
         reasons.append("g1_coverage_incomplete")
     # The provider reports the age of its oldest monitored candle at scan time.
