@@ -76,6 +76,13 @@ def evaluate(row, now):
     # Both timestamps can individually be fresh while their order is impossible.
     if scan is not None and bar is not None and bar > scan:
         reasons.append("bar_after_scan")
+    # data_age_seconds describes the oldest candle at scan completion.
+    # It cannot be younger than the observed last_market_bar_at at that scan.
+    # Permit up to 60s for minute-bar timestamp rounding.
+    if (isinstance(reported_age, int) and not isinstance(reported_age, bool)
+            and reported_age >= 0 and scan is not None and bar is not None
+            and scan >= bar and (scan - bar).total_seconds() > reported_age + 60):
+        reasons.append("source_age_conflicts_with_bar_timestamp")
     if bar is not None and bar.astimezone(WIB).date() != now.astimezone(WIB).date():
         reasons.append("bar_not_current_idx_session")
     # Same-day pre-open and lunch bars are not LIVE regular-session evidence.
