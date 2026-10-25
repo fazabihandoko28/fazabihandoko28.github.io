@@ -59,6 +59,10 @@ def evaluate(row, now):
             reasons.append(f"{label}_timestamp_invalid")
         elif not 0 <= (now - dt).total_seconds() <= FRESHNESS_SECONDS:
             reasons.append(f"{label}_not_fresh")
+    # A completed scan cannot contain a market bar timestamped after the scan.
+    # Both timestamps can individually be fresh while their order is impossible.
+    if scan is not None and bar is not None and bar > scan:
+        reasons.append("bar_after_scan")
     if bar is not None and bar.astimezone(WIB).date() != now.astimezone(WIB).date():
         reasons.append("bar_not_current_idx_session")
     if not open_now:

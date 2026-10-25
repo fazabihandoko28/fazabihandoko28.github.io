@@ -56,6 +56,15 @@ class G1FastLiveEvidenceTests(unittest.TestCase):
         with patch.dict("os.environ", {"HANZ_IDX_HOLIDAYS": "2026-10-26"}):
             self.assertFalse(session_open(self.now))
 
+    def test_bar_after_scan_cannot_be_live(self):
+        # Both timestamps are individually fresh, but a completed scan
+        # cannot contain a candle from after its recorded completion.
+        row = {**self.good, "last_market_bar_at":
+               (self.now - timedelta(minutes=2)).isoformat()}
+        report = evaluate(row, self.now)
+        self.assertFalse(report["g1_fast_live_verified"])
+        self.assertIn("bar_after_scan", report["blockers"])
+
     def test_missing_health_row_fails_closed(self):
         self.assertFalse(evaluate({}, self.now)["g1_fast_live_verified"])
 
