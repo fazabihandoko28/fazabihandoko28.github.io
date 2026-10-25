@@ -16,6 +16,8 @@ OUT=Path("docs/dashboard/swing/backtest-5y.json")
 UNIVERSE=Path("config/universe/bei_candidate_pool.csv")
 # A five-year calendar span with sparse candles is not a complete daily backtest.
 MIN_5Y_TRADING_DAYS = 1000
+# A long gap can hide years of missing trading evidence even with 1000 bars.
+MAX_5Y_GAP_DAYS = 45
 
 
 def _num(v, default=None):
@@ -171,15 +173,21 @@ def _summary(symbol, series, report):
         except ValueError:
             fifth_anniversary=first_day.replace(year=first_day.year+5,day=28)
         full_five_years=last_day>=fifth_anniversary
-    distinct_days=len({bar.timestamp.date() for bar in bars})
+    trading_days=sorted({bar.timestamp.date() for bar in bars})
+    distinct_days=len(trading_days)
     sufficient_sessions=distinct_days>=MIN_5Y_TRADING_DAYS
+    max_gap_days=max(((b-a).days for a,b in zip(trading_days,trading_days[1:])),default=None)
+    continuous_history=max_gap_days is not None and max_gap_days<=MAX_5Y_GAP_DAYS
     return {
         "symbol":symbol,
-        "status":"OK" if full_five_years and sufficient_sessions else "LIMITED_HISTORY",
+        "status":"OK" if full_five_years and sufficient_sessions and continuous_history else "LIMITED_HISTORY",
         "distinct_trading_days":distinct_days,
         "minimum_trading_days":MIN_5Y_TRADING_DAYS,
+        "max_gap_days":max_gap_days,
+        "max_allowed_gap_days":MAX_5Y_GAP_DAYS,
         "history_gap_reason":("SHORT_CALENDAR_SPAN" if not full_five_years else
-                              "INSUFFICIENT_TRADING_SESSIONS" if not sufficient_sessions else None),
+                              "INSUFFICIENT_TRADING_SESSIONS" if not sufficient_sessions else
+                              "LONG_HISTORY_GAP" if not continuous_history else None),
         "span_start":span_start,
         "span_end":span_end,
         "span_years":round(years,2),
