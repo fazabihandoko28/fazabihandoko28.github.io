@@ -142,6 +142,11 @@ def validate(trades, windows, dof_remaining_pct, min_oos_trades=30, min_wfe=0.50
     if (not math.isfinite(min_profitable_windows_pct)
             or min_profitable_windows_pct < DEFAULT_MIN_PROFITABLE_WINDOWS_PCT):
         raise ValueError("G1 minimum profitable walk-forward windows cannot be below 50%")
+    # G1 profit concentration is a maximum safety ceiling. Callers may
+    # tighten it, but cannot certify concentrated returns by raising it.
+    if (not math.isfinite(max_trade_profit_share_pct)
+            or not 0.0 <= max_trade_profit_share_pct <= DEFAULT_MAX_TRADE_PROFIT_SHARE_PCT):
+        raise ValueError("G1 maximum trade profit concentration cannot exceed 35%")
     # G1 safety floor: CLI/API overrides may tighten, never reduce, the
     # minimum independent OOS trade sample required for validation.
     if min_oos_trades < DEFAULT_MIN_OOS_TRADES:
