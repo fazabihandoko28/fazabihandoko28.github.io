@@ -670,18 +670,36 @@ class FiveYearSelectionCoverageTests(unittest.TestCase):
             average_ready_forward_return=None,
         )
 
-        def status(start: str, end: str) -> str:
-            bars = [
-                SimpleNamespace(timestamp=datetime.fromisoformat(value).replace(tzinfo=timezone.utc))
-                for value in (start, end)
-            ]
+        def status(start: str, end: str, *, dense: bool = False) -> str:
+            first = datetime.fromisoformat(start).replace(tzinfo=timezone.utc)
+            last = datetime.fromisoformat(end).replace(tzinfo=timezone.utc)
+            count = 1000 if dense else 2
+            # Synthetic timestamps are unit-test fixtures, never market evidence.
+            bars = [SimpleNamespace(timestamp=first + (last - first) * i / (count - 1))
+                    for i in range(count)]
             return _summary("TEST", SimpleNamespace(bars=bars), report)["status"]
 
         # A roughly 4.9-year backtest used to be incorrectly marked OK.
         self.assertEqual(status("2021-01-01", "2025-12-01"), "LIMITED_HISTORY")
-        self.assertEqual(status("2021-01-01", "2026-01-01"), "OK")
+        self.assertEqual(status("2021-01-01", "2026-01-01", dense=True), "OK")
         self.assertEqual(status("2020-02-29", "2025-02-27"), "LIMITED_HISTORY")
-        self.assertEqual(status("2020-02-29", "2025-02-28"), "OK")
+        self.assertEqual(status("2020-02-29", "2025-02-28", dense=True), "OK")
+
+    def test_sparse_five_year_candles_never_certify_complete_history(self) -> None:
+        from types import SimpleNamespace
+        from hanz_app.research.generate_top5_5y_backtest import _summary
+        report = SimpleNamespace(events=[], evaluated_events=0, ready_events=0,
+                                 average_ready_forward_return=None)
+        first = datetime(2021, 1, 1, tzinfo=timezone.utc)
+        last = datetime(2026, 1, 1, tzinfo=timezone.utc)
+        for count in (2, 999):
+            with self.subTest(count=count):
+                bars = [SimpleNamespace(timestamp=first + (last - first) * i / (count - 1))
+                        for i in range(count)]
+                result = _summary("TEST", SimpleNamespace(bars=bars), report)
+                self.assertEqual(result["status"], "LIMITED_HISTORY")
+                self.assertEqual(result["history_gap_reason"], "INSUFFICIENT_TRADING_SESSIONS")
+                self.assertEqual(result["distinct_trading_days"], count)
 
     def test_missing_selected_mapping_is_explicit_not_silently_dropped(self) -> None:
         from hanz_app.research.generate_top5_5y_backtest import _selection_coverage
