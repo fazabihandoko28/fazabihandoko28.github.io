@@ -98,6 +98,11 @@ def _evidence_span_years(trades, windows):
                 # When explicit OOS bounds exist, IS-inclusive window dates
                 # cannot extend the verified out-of-sample history span.
                 # Still validate every timestamp before excluding it.
+                # When the exporter supplies explicit OOS bounds, only those
+                # bounds establish the tested history span. Unassigned trade
+                # timestamps are still validated above, but cannot extend it.
+                if frame is trades and explicit_oos_bounds:
+                    continue
                 if frame is windows and (col in {"is_start", "is_end"} or
                         (explicit_oos_bounds and col not in {"oos_start", "oos_end"})):
                     continue
