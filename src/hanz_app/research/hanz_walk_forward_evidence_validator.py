@@ -138,6 +138,10 @@ def validate(trades, windows, dof_remaining_pct, min_oos_trades=30, min_wfe=0.50
     # the required out-of-sample / in-sample annualized performance ratio.
     if not math.isfinite(min_wfe) or min_wfe < DEFAULT_MIN_WFE:
         raise ValueError("G1 minimum WFE cannot be below 0.50")
+    # G1 profitable-window consistency is a safety floor, not a bypassable knob.
+    if (not math.isfinite(min_profitable_windows_pct)
+            or min_profitable_windows_pct < DEFAULT_MIN_PROFITABLE_WINDOWS_PCT):
+        raise ValueError("G1 minimum profitable walk-forward windows cannot be below 50%")
     # G1 safety floor: CLI/API overrides may tighten, never reduce, the
     # minimum independent OOS trade sample required for validation.
     if min_oos_trades < DEFAULT_MIN_OOS_TRADES:
