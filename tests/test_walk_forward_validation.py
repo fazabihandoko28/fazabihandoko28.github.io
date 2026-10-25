@@ -220,6 +220,40 @@ class FiveYearEvidenceGateTests(unittest.TestCase):
         legacy = windows.drop(columns=["oos_start", "oos_end"])
         self.assertEqual(module.validate(trades, legacy, 95.0)["oos_trades"], 2)
 
+    def test_research_rejects_is_origin_entry_as_oos_trade(self) -> None:
+        import pandas as pd
+
+        module = self._validator_module()
+        windows = pd.DataFrame({
+            "window_id": ["W1", "W2"],
+            "oos_profit_r": [0.2, 0.3],
+            "oos_start": ["2020-01-01", "2025-01-01"],
+            "oos_end": ["2021-01-01", "2026-01-01"],
+        })
+        trades = pd.DataFrame({
+            "window_id": ["W1", "W2"],
+            "trade_id": ["T1", "T2"],
+            "is_oos": [True, True],
+            "r_multiple": [0.2, 0.3],
+            "entry_date": ["2020-01-01", "2024-12-30"],
+            "exit_date": ["2020-01-05", "2025-01-03"],
+        })
+        # Previously this IS-origin entry passed because only exit_date
+        # was checked against the OOS bounds.
+        with self.assertRaisesRegex(ValueError, "OOS trade outside assigned"):
+            module.validate(trades, windows, 95.0)
+
+        trades.loc[1, "entry_date"] = "2025-01-01"
+        self.assertEqual(module.validate(trades, windows, 95.0)["oos_trades"], 2)
+
+        # IS trades are not subject to OOS entry bounds.
+        trades.loc[1, "is_oos"] = False
+        trades.loc[1, "entry_date"] = "2024-12-30"
+        self.assertEqual(module.validate(trades, windows, 95.0)["oos_trades"], 1)
+
+        # Legacy exports with no entry_date retain exit-only validation.
+        self.assertEqual(module.validate(trades.drop(columns="entry_date"), windows, 95.0)["oos_trades"], 1)
+
     def test_research_rejects_duplicate_or_missing_walk_forward_window_ids(self) -> None:
         import pandas as pd
 
