@@ -151,7 +151,8 @@ class FiveYearEvidenceGateTests(unittest.TestCase):
         self.assertLess(result["backtest_years"], 5)
         self.assertFalse(result["passed"])
 
-        # Valid five-year OOS bounds remain eligible for history coverage.
+        # Valid five-year OOS bounds must also fit their enclosing windows.
+        windows["window_start"] = "2020-01-01"
         windows["oos_start"] = "2020-01-01"
         self.assertTrue(module.validate(trades, windows, 95.0)["checks"]["five_year_history"])
 
