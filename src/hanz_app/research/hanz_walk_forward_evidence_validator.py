@@ -56,6 +56,7 @@ def _evidence_span_years(trades, windows):
             raise ValueError("Invalid walk-forward trade chronology: exit before entry")
 
     candidates=[]
+    explicit_oos_bounds = {"oos_start", "oos_end"}.issubset(windows.columns)
     for frame in (trades, windows):
         for col in (
             "timestamp","trade_date","entry_date","exit_date",
@@ -81,7 +82,11 @@ def _evidence_span_years(trades, windows):
                 # IS-only window dates are validation inputs, not proof of
                 # five years of out-of-sample backtest coverage. Keep their
                 # invalid/future-date checks above, but exclude from the span.
-                if frame is windows and col in {"is_start", "is_end"}:
+                # When explicit OOS bounds exist, IS-inclusive window dates
+                # cannot extend the verified out-of-sample history span.
+                # Still validate every timestamp before excluding it.
+                if frame is windows and (col in {"is_start", "is_end"} or
+                        (explicit_oos_bounds and col not in {"oos_start", "oos_end"})):
                     continue
                 if len(parsed):
                     candidates.extend([parsed.min(),parsed.max()])
