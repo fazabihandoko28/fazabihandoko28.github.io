@@ -64,6 +64,12 @@ def _evidence_span_years(trades, windows):
         oos_ends = pd.to_datetime(windows["oos_end"], errors="coerce", utc=True)
         if (oos_starts > oos_ends).any():
             raise ValueError("Invalid walk-forward OOS chronology evidence: reversed OOS boundaries")
+        # OOS test dates must lie inside the enclosing WFA window.
+        if {"window_start", "window_end"}.issubset(windows.columns):
+            starts = pd.to_datetime(windows["window_start"], errors="coerce", utc=True)
+            ends = pd.to_datetime(windows["window_end"], errors="coerce", utc=True)
+            if ((oos_starts < starts) | (oos_ends > ends)).any():
+                raise ValueError("Invalid walk-forward OOS chronology evidence: outside enclosing window")
     for frame in (trades, windows):
         for col in (
             "timestamp","trade_date","entry_date","exit_date",
