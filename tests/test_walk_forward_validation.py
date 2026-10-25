@@ -77,6 +77,45 @@ class FiveYearEvidenceGateTests(unittest.TestCase):
         spec.loader.exec_module(module)
         return module
 
+    def test_explicit_oos_bounds_exclude_is_window_history_from_five_year_gate(self) -> None:
+        import pandas as pd
+
+        module = self._validator_module()
+        # IS begins in 2020 but independently tested OOS starts only in 2024.
+        trades = pd.DataFrame({
+            "is_oos": [True] * 30,
+            "r_multiple": [0.2] * 30,
+            "trade_date": pd.date_range("2024-01-01", periods=30, freq="25D"),
+        })
+        windows = pd.DataFrame({
+            "window_id": ["W1", "W2", "W3"],
+            "oos_profit_r": [2.0] * 3,
+            "is_profit_r": [2.0] * 3,
+            "is_years": [1.0] * 3,
+            "oos_years": [1.0] * 3,
+            "window_start": ["2020-01-01", "2021-01-01", "2022-01-01"],
+            "window_end": ["2026-01-01"] * 3,
+            "oos_start": ["2024-01-01"] * 3,
+            "oos_end": ["2026-01-01"] * 3,
+        })
+        result = module.validate(trades, windows, 95.0)
+        self.assertFalse(result["checks"]["five_year_history"])
+        self.assertLess(result["backtest_years"], 5)
+        self.assertFalse(result["passed"])
+
+        # Valid five-year OOS bounds remain eligible for history coverage.
+        windows["oos_start"] = "2020-01-01"
+        self.assertTrue(module.validate(trades, windows, 95.0)["checks"]["five_year_history"])
+
+        # Legacy exports without explicit OOS bounds preserve prior behavior.
+        legacy = windows.drop(columns=["oos_start", "oos_end"])
+        self.assertTrue(module.validate(trades, legacy, 95.0)["checks"]["five_year_history"])
+
+        # Invalid IS chronology must still be rejected, not silently skipped.
+        windows.loc[0, "window_start"] = "not-a-date"
+        with self.assertRaisesRegex(ValueError, "Invalid walk-forward chronology evidence"):
+            module.validate(trades, windows, 95.0)
+
     def test_research_rejects_corrupt_oos_flags_instead_of_dropping_losses(self) -> None:
         import pandas as pd
 
