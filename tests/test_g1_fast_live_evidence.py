@@ -101,8 +101,22 @@ class G1FastLiveEvidenceTests(unittest.TestCase):
                 self.assertFalse(evaluate(row, self.now)["g1_fast_live_verified"])
 
     def test_reported_age_at_guard_boundary_is_accepted(self):
-        row = {**self.good, "data_age_seconds": 1800}
+        # Age is measured when the scan completes; 1500s + 300s = 1800s.
+        row = {**self.good, "data_age_seconds": 1500,
+               "last_scan_at": (self.now - timedelta(seconds=300)).isoformat(),
+               "last_market_bar_at": (self.now - timedelta(seconds=360)).isoformat()}
         self.assertTrue(evaluate(row, self.now)["g1_fast_live_verified"])
+
+    def test_age_at_scan_plus_elapsed_time_must_still_be_fresh(self):
+        # Reproduces false LIVE: oldest candle was 20m old at a scan 20m ago.
+        # Both values pass the separate 30m guards, but its current age is 40m.
+        row = {**self.good, "data_age_seconds": 1200,
+               "last_scan_at": (self.now - timedelta(seconds=1200)).isoformat(),
+               "last_market_bar_at": (self.now - timedelta(seconds=1260)).isoformat()}
+        report = evaluate(row, self.now)
+        self.assertFalse(report["g1_fast_live_verified"])
+        self.assertEqual(report["g1_fast_live"], "STALE")
+        self.assertIn("source_reported_age_not_fresh_now", report["blockers"])
 
     def test_source_reported_age_is_visible_in_evidence(self):
         self.assertEqual(evaluate(self.good, self.now)["data_age_seconds"], 60)

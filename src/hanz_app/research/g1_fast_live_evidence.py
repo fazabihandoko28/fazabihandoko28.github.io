@@ -60,6 +60,13 @@ def evaluate(row, now):
         reasons.append("source_reported_age_not_fresh")
     scan = timestamp(row.get("last_scan_at"))
     bar = timestamp(row.get("last_market_bar_at"))
+    # Source age is measured at scan completion, not at verification time.
+    # A 20m-old candle from a scan 20m ago is now 40m old, never LIVE.
+    if (isinstance(reported_age, int) and not isinstance(reported_age, bool)
+            and reported_age >= 0 and scan is not None
+            and (now - scan).total_seconds() >= 0
+            and reported_age + (now - scan).total_seconds() > FRESHNESS_SECONDS):
+        reasons.append("source_reported_age_not_fresh_now")
     for label, dt in (("scan", scan), ("bar", bar)):
         if dt is None:
             reasons.append(f"{label}_timestamp_invalid")
