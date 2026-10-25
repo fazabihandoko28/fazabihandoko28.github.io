@@ -153,6 +153,25 @@ def validate(trades, windows, dof_remaining_pct, min_oos_trades=30, min_wfe=0.50
     valid_oos_flags={"1","true","yes","0","false","no"}
     if not oos_flags.isin(valid_oos_flags).all():
         raise ValueError("Invalid OOS/IS trade classification evidence")
+
+    # A realized OOS trade must close within its assigned OOS test window.
+    # Otherwise an IS/out-of-window result can be mislabeled as independent OOS
+    # evidence. Apply this check when exports supply explicit window bounds.
+    if ("window_id" in trades.columns and {"oos_start", "oos_end"}.issubset(windows.columns)
+            and ("exit_date" in trades.columns or "trade_date" in trades.columns)):
+        starts = pd.to_datetime(windows["oos_start"], errors="coerce", utc=True).dt.normalize()
+        ends = pd.to_datetime(windows["oos_end"], errors="coerce", utc=True).dt.normalize()
+        if starts.isna().any() or ends.isna().any() or (starts > ends).any():
+            raise ValueError("Invalid walk-forward OOS window chronology evidence")
+        bounds = dict(zip(normalized_ids, zip(starts, ends)))
+        date_column = "exit_date" if "exit_date" in trades.columns else "trade_date"
+        observed = pd.to_datetime(trades[date_column], errors="coerce", utc=True).dt.normalize()
+        for wid, day in zip(normalized_trade_window_ids[oos_flags.isin({"1", "true", "yes"})],
+                            observed[oos_flags.isin({"1", "true", "yes"})]):
+            start, end = bounds[wid]
+            if pd.isna(day) or not start <= day <= end:
+                raise ValueError("OOS trade outside assigned walk-forward window")
+
     t=trades.loc[oos_flags.isin({"1","true","yes"})].copy()
     t["r_multiple"]=pd.to_numeric(t["r_multiple"],errors="coerce")
     # Fail closed: silently dropping invalid OOS outcomes inflates sample quality.

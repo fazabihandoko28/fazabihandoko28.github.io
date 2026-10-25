@@ -181,6 +181,45 @@ class FiveYearEvidenceGateTests(unittest.TestCase):
         # Exports without trade window_id remain supported.
         self.assertEqual(module.validate(trades.drop(columns="window_id"), windows, 95.0)["oos_trades"], 2)
 
+    def test_research_rejects_oos_trade_outside_assigned_window(self) -> None:
+        import pandas as pd
+
+        module = self._validator_module()
+        windows = pd.DataFrame({
+            "window_id": ["W1", "W2"],
+            "oos_profit_r": [0.2, 0.3],
+            "oos_start": ["2020-01-01", "2025-01-01"],
+            "oos_end": ["2021-01-01", "2026-01-01"],
+        })
+        trades = pd.DataFrame({
+            "window_id": ["W1", "W2"],
+            "trade_id": ["T1", "T2"],
+            "is_oos": [True, True],
+            "r_multiple": [0.2, 0.3],
+            "exit_date": ["2020-01-01T10:00:00Z", "2026-01-01T10:00:00Z"],
+        })
+        # An intraday exit on the OOS end date is valid.
+        self.assertEqual(module.validate(trades, windows, 95.0)["oos_trades"], 2)
+
+        misplaced = trades.copy()
+        misplaced.loc[1, "window_id"] = "W1"
+        with self.assertRaisesRegex(ValueError, "OOS trade outside assigned"):
+            module.validate(misplaced, windows, 95.0)
+
+        # IS trades are not OOS evidence and need not fall inside OOS bounds.
+        is_trade = misplaced.copy()
+        is_trade.loc[1, "is_oos"] = False
+        self.assertEqual(module.validate(is_trade, windows, 95.0)["oos_trades"], 1)
+
+        reversed_bounds = windows.copy()
+        reversed_bounds.loc[0, "oos_start"] = "2022-01-01"
+        with self.assertRaisesRegex(ValueError, "Invalid walk-forward OOS window chronology"):
+            module.validate(trades, reversed_bounds, 95.0)
+
+        # Older exports without explicit OOS bounds retain their prior behavior.
+        legacy = windows.drop(columns=["oos_start", "oos_end"])
+        self.assertEqual(module.validate(trades, legacy, 95.0)["oos_trades"], 2)
+
     def test_research_rejects_duplicate_or_missing_walk_forward_window_ids(self) -> None:
         import pandas as pd
 
