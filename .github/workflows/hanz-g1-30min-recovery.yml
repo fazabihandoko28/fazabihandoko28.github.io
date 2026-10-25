@@ -33,6 +33,13 @@ jobs:
           python -m unittest discover -s tests -p 'test_premarket_execution_levels_fail_closed.py' -v
       - name: G1 freshness display regression tests
         run: node --test tests/test_swing_chart_freshness.cjs
+      - name: G1 FAST live evidence unit tests
+        run: python -m unittest discover -s tests -p 'test_g1_fast_live_evidence.py' -v
+      - name: Read-only G1 FAST live evidence
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+        run: python -m hanz_app.research.g1_fast_live_evidence --fail-during-live-session
       - name: G1 result
         if: always()
         run: |
