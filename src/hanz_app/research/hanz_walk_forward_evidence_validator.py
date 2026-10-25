@@ -294,6 +294,23 @@ def validate(trades, windows, dof_remaining_pct, min_oos_trades=30, min_wfe=0.50
     if not math.isfinite(dof_remaining_pct) or not 0.0 <= dof_remaining_pct <= 100.0:
         raise ValueError("Invalid degrees-of-freedom remaining evidence")
 
+    # Finite input rows can overflow during pandas sums/cumsums. Such
+    # derived metrics must never certify a strategy (e.g. infinite WFE,
+    # expectancy, or positive-R sum masking profit concentration).
+    derived_metrics = {
+        "oos_expectancy_r": expectancy,
+        "total_oos_r": total_oos_r,
+        "oos_win_rate_pct": wins,
+        "profitable_wf_pct": profitable_windows_pct,
+        "wfe": wfe,
+        "oos_max_dd_r": max_dd_r,
+        "positive_oos_r": pos_sum,
+        "max_trade_profit_share_pct": max_trade_share,
+    }
+    for label, value in derived_metrics.items():
+        if value is not None and not math.isfinite(value):
+            raise ValueError("Nonfinite walk-forward derived evidence: " + label)
+
     checks={
       "five_year_history": evidence_span_years is not None and evidence_span_years>=min_backtest_years,
       "oos_trade_sample": oos_trades>=min_oos_trades,
