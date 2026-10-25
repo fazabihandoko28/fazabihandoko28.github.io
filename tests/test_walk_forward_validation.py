@@ -77,6 +77,29 @@ class FiveYearEvidenceGateTests(unittest.TestCase):
         spec.loader.exec_module(module)
         return module
 
+    def test_research_rejects_reversed_oos_bounds_without_trade_dates(self) -> None:
+        import pandas as pd
+
+        module = self._validator_module()
+        trades = pd.DataFrame({
+            "is_oos": [True] * 30,
+            "r_multiple": [0.2] * 30,
+        })
+        windows = pd.DataFrame({
+            "window_id": ["W1", "W2"],
+            "oos_profit_r": [1.0, 1.0],
+            "oos_start": ["2026-01-01", "2025-01-01"],
+            "oos_end": ["2020-01-01", "2024-01-01"],
+        })
+        # Without dated trade exports, reversed OOS bounds used to fabricate
+        # a six-year history span from a backwards 2026 -> 2020 window.
+        with self.assertRaisesRegex(ValueError, "reversed OOS boundaries"):
+            module.validate(trades, windows, 95.0)
+
+        windows["oos_start"] = ["2020-01-01", "2024-01-01"]
+        windows["oos_end"] = ["2021-01-01", "2026-01-01"]
+        self.assertTrue(module.validate(trades, windows, 95.0)["checks"]["five_year_history"])
+
     def test_explicit_oos_bounds_exclude_is_window_history_from_five_year_gate(self) -> None:
         import pandas as pd
 
