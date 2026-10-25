@@ -130,6 +130,10 @@ def _evidence_span_years(trades, windows):
 def validate(trades, windows, dof_remaining_pct, min_oos_trades=30, min_wfe=0.50,
              min_profitable_windows_pct=50.0, max_trade_profit_share_pct=35.0,
              min_backtest_years=DEFAULT_MIN_BACKTEST_YEARS):
+    # G1 safety floor: CLI/API overrides may tighten, never reduce, the
+    # minimum independent OOS trade sample required for validation.
+    if min_oos_trades < DEFAULT_MIN_OOS_TRADES:
+        raise ValueError("G1 minimum OOS trades cannot be below 30")
     req_t={"r_multiple","is_oos"}; req_w={"window_id","oos_profit_r"}
     missing_t=req_t-set(trades.columns); missing_w=req_w-set(windows.columns)
     if missing_t or missing_w:
