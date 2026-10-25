@@ -77,6 +77,41 @@ class FiveYearEvidenceGateTests(unittest.TestCase):
         spec.loader.exec_module(module)
         return module
 
+    def test_explicit_oos_history_ignores_unassigned_trade_timestamps(self) -> None:
+        import pandas as pd
+
+        module = self._validator_module()
+        # A stray 2020 OOS trade has no window_id; actual OOS windows span
+        # only 2024-2026. It must not manufacture six years of coverage.
+        trades = pd.DataFrame({
+            "is_oos": [True] * 30,
+            "r_multiple": [0.2] * 30,
+            "trade_date": ["2020-01-01"] + ["2024-08-01"] * 28 + ["2025-01-01"],
+        })
+        windows = pd.DataFrame({
+            "window_id": ["W1", "W2"],
+            "oos_profit_r": [1.0, 1.0],
+            "oos_start": ["2024-01-01", "2025-01-01"],
+            "oos_end": ["2025-01-01", "2026-01-01"],
+        })
+        result = module.validate(trades, windows, 95.0)
+        self.assertFalse(result["checks"]["five_year_history"])
+        self.assertLess(result["backtest_years"], 5.0)
+
+        # Even excluded trade dates must still pass chronology validation.
+        invalid = trades.copy()
+        invalid.loc[0, "trade_date"] = "invalid-date"
+        with self.assertRaisesRegex(ValueError, r"Invalid .*chronology.*trade_date"):
+            module.validate(invalid, windows, 95.0)
+
+        # Five genuine OOS years still count, and legacy exports retain
+        # trade-date evidence when explicit OOS bounds are absent.
+        extended = windows.copy()
+        extended.loc[0, "oos_start"] = "2020-01-01"
+        self.assertTrue(module.validate(trades, extended, 95.0)["checks"]["five_year_history"])
+        legacy = windows.drop(columns=["oos_start", "oos_end"])
+        self.assertTrue(module.validate(trades, legacy, 95.0)["checks"]["five_year_history"])
+
     def test_research_rejects_oos_outside_enclosing_window(self) -> None:
         import pandas as pd
 
