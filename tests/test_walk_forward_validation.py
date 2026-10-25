@@ -77,6 +77,31 @@ class FiveYearEvidenceGateTests(unittest.TestCase):
         spec.loader.exec_module(module)
         return module
 
+    def test_research_rejects_oos_outside_enclosing_window(self) -> None:
+        import pandas as pd
+
+        module = self._validator_module()
+        trades = pd.DataFrame({
+            "is_oos": [True] * 30,
+            "r_multiple": [0.2] * 30,
+        })
+        windows = pd.DataFrame({
+            "window_id": ["W1", "W2"],
+            "oos_profit_r": [1.0, 1.0],
+            "window_start": ["2024-01-01", "2025-01-01"],
+            "window_end": ["2025-01-01", "2026-01-01"],
+            "oos_start": ["2020-01-01", "2025-01-01"],
+            "oos_end": ["2021-01-01", "2026-01-01"],
+        })
+        # Previously false 6Y OOS coverage was accepted despite W1
+        # claiming a test interval outside its enclosing WFA window.
+        with self.assertRaisesRegex(ValueError, "outside enclosing window"):
+            module.validate(trades, windows, 95.0)
+
+        windows.loc[0, "window_start"] = "2020-01-01"
+        windows.loc[0, "window_end"] = "2022-01-01"
+        self.assertTrue(module.validate(trades, windows, 95.0)["checks"]["five_year_history"])
+
     def test_research_rejects_reversed_oos_bounds_without_trade_dates(self) -> None:
         import pandas as pd
 
@@ -126,7 +151,8 @@ class FiveYearEvidenceGateTests(unittest.TestCase):
         self.assertLess(result["backtest_years"], 5)
         self.assertFalse(result["passed"])
 
-        # Valid five-year OOS bounds remain eligible for history coverage.
+        # Valid five-year OOS bounds must also fit their enclosing windows.
+        windows["window_start"] = "2020-01-01"
         windows["oos_start"] = "2020-01-01"
         self.assertTrue(module.validate(trades, windows, 95.0)["checks"]["five_year_history"])
 
