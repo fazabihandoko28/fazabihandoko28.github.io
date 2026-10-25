@@ -52,6 +52,12 @@ def evaluate(row, now):
         coverage = 0
     if coverage < G1_MIN_SYMBOLS:
         reasons.append("g1_coverage_incomplete")
+    # The provider reports the age of its oldest monitored candle at scan time.
+    # An internally contradictory FRESH status must never certify G1 LIVE.
+    reported_age = row.get("data_age_seconds")
+    if (not isinstance(reported_age, int) or isinstance(reported_age, bool)
+            or not 0 <= reported_age <= FRESHNESS_SECONDS):
+        reasons.append("source_reported_age_not_fresh")
     scan = timestamp(row.get("last_scan_at"))
     bar = timestamp(row.get("last_market_bar_at"))
     for label, dt in (("scan", scan), ("bar", bar)):
@@ -77,6 +83,7 @@ def evaluate(row, now):
         "g1_fast_live_verified": live,
         "source_status": status,
         "symbols_monitored": coverage,
+        "data_age_seconds": reported_age,
         "last_scan_at": row.get("last_scan_at"),
         "last_market_bar_at": row.get("last_market_bar_at"),
         "blockers": reasons,
@@ -91,7 +98,7 @@ def read_health():
         raise RuntimeError("G1 FAST read-only evidence credentials unavailable")
     path = "/rest/v1/hanz_fast_health?" + urlencode({
         "id": "eq.bei-fast",
-        "select": "data_status,symbols_monitored,last_scan_at,last_market_bar_at",
+        "select": "data_status,symbols_monitored,data_age_seconds,last_scan_at,last_market_bar_at",
         "limit": "1",
     })
     request = Request(url + path, headers={
