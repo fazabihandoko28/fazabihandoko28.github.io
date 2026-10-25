@@ -118,6 +118,25 @@ class G1FastLiveEvidenceTests(unittest.TestCase):
         self.assertEqual(report["g1_fast_live"], "STALE")
         self.assertIn("source_reported_age_not_fresh_now", report["blockers"])
 
+    def test_reported_oldest_age_cannot_contradict_bar_timestamp(self):
+        # Reproduced false LIVE: 25m-old bar at verification, scan 2m ago,
+        # but source claims oldest candle age was zero at scan completion.
+        row = {**self.good, "data_age_seconds": 0,
+               "last_scan_at": (self.now - timedelta(minutes=2)).isoformat(),
+               "last_market_bar_at": (self.now - timedelta(minutes=25)).isoformat()}
+        report = evaluate(row, self.now)
+        self.assertEqual(report["g1_fast_live"], "STALE")
+        self.assertIn("source_age_conflicts_with_bar_timestamp", report["blockers"])
+
+        # Consistent reported age still passes the original freshness gate.
+        row["data_age_seconds"] = 23 * 60
+        self.assertTrue(evaluate(row, self.now)["g1_fast_live_verified"])
+
+        # Minute-bar rounding within 60 seconds is not a contradiction.
+        row["data_age_seconds"] = 0
+        row["last_market_bar_at"] = (self.now - timedelta(minutes=3)).isoformat()
+        self.assertTrue(evaluate(row, self.now)["g1_fast_live_verified"])
+
     def test_source_reported_age_is_visible_in_evidence(self):
         self.assertEqual(evaluate(self.good, self.now)["data_age_seconds"], 60)
 
