@@ -134,6 +134,10 @@ def validate(trades, windows, dof_remaining_pct, min_oos_trades=30, min_wfe=0.50
     # A lower CLI/API override must not certify a shorter test as five years.
     if not math.isfinite(min_backtest_years) or min_backtest_years < DEFAULT_MIN_BACKTEST_YEARS:
         raise ValueError("G1 minimum backtest history cannot be below 5 years")
+    # G1 WFE safety floor: overrides may tighten the minimum, never reduce
+    # the required out-of-sample / in-sample annualized performance ratio.
+    if not math.isfinite(min_wfe) or min_wfe < DEFAULT_MIN_WFE:
+        raise ValueError("G1 minimum WFE cannot be below 0.50")
     # G1 safety floor: CLI/API overrides may tighten, never reduce, the
     # minimum independent OOS trade sample required for validation.
     if min_oos_trades < DEFAULT_MIN_OOS_TRADES:
