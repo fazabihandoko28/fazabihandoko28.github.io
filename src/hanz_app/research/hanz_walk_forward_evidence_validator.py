@@ -164,13 +164,19 @@ def validate(trades, windows, dof_remaining_pct, min_oos_trades=30, min_wfe=0.50
         if starts.isna().any() or ends.isna().any() or (starts > ends).any():
             raise ValueError("Invalid walk-forward OOS window chronology evidence")
         bounds = dict(zip(normalized_ids, zip(starts, ends)))
-        date_column = "exit_date" if "exit_date" in trades.columns else "trade_date"
-        observed = pd.to_datetime(trades[date_column], errors="coerce", utc=True).dt.normalize()
-        for wid, day in zip(normalized_trade_window_ids[oos_flags.isin({"1", "true", "yes"})],
-                            observed[oos_flags.isin({"1", "true", "yes"})]):
-            start, end = bounds[wid]
-            if pd.isna(day) or not start <= day <= end:
-                raise ValueError("OOS trade outside assigned walk-forward window")
+        # An OOS trade must be opened AND closed within its assigned test
+        # window. An IS-origin position closed during OOS is not an independent
+        # OOS entry. Legacy exports without entry_date remain supported.
+        oos_rows = oos_flags.isin({"1", "true", "yes"})
+        date_columns = (["entry_date"] if "entry_date" in trades.columns else []) + [
+            "exit_date" if "exit_date" in trades.columns else "trade_date"
+        ]
+        for date_column in date_columns:
+            observed = pd.to_datetime(trades[date_column], errors="coerce", utc=True).dt.normalize()
+            for wid, day in zip(normalized_trade_window_ids[oos_rows], observed[oos_rows]):
+                start, end = bounds[wid]
+                if pd.isna(day) or not start <= day <= end:
+                    raise ValueError("OOS trade outside assigned walk-forward window")
 
     t=trades.loc[oos_flags.isin({"1","true","yes"})].copy()
     t["r_multiple"]=pd.to_numeric(t["r_multiple"],errors="coerce")
