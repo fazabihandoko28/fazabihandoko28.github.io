@@ -10,7 +10,7 @@
     "all_selected_accounted_for": true,
     "backtest_complete": false
   },
-  "generated_at": "2026-10-24T17:20:31.635293+00:00",
+  "generated_at": "2026-10-25T08:56:14.763265+00:00",
   "universe_size": 200,
   "selected_top5": [
     "MPMX",
@@ -33,6 +33,9 @@
     "MPMX": {
       "symbol": "MPMX",
       "status": "OK",
+      "distinct_trading_days": 1204,
+      "minimum_trading_days": 1000,
+      "history_gap_reason": null,
       "span_start": "2021-10-18",
       "span_end": "2026-10-23",
       "span_years": 5.01,
@@ -54,6 +57,9 @@
     "AKRA": {
       "symbol": "AKRA",
       "status": "OK",
+      "distinct_trading_days": 1204,
+      "minimum_trading_days": 1000,
+      "history_gap_reason": null,
       "span_start": "2021-10-18",
       "span_end": "2026-10-23",
       "span_years": 5.01,
@@ -75,6 +81,9 @@
     "AMMN": {
       "symbol": "AMMN",
       "status": "LIMITED_HISTORY",
+      "distinct_trading_days": 787,
+      "minimum_trading_days": 1000,
+      "history_gap_reason": "SHORT_CALENDAR_SPAN",
       "span_start": "2023-07-07",
       "span_end": "2026-10-23",
       "span_years": 3.3,
@@ -96,6 +105,9 @@
     "BDMN": {
       "symbol": "BDMN",
       "status": "OK",
+      "distinct_trading_days": 1204,
+      "minimum_trading_days": 1000,
+      "history_gap_reason": null,
       "span_start": "2021-10-18",
       "span_end": "2026-10-23",
       "span_years": 5.01,
@@ -117,6 +129,9 @@
     "BTPS": {
       "symbol": "BTPS",
       "status": "OK",
+      "distinct_trading_days": 1204,
+      "minimum_trading_days": 1000,
+      "history_gap_reason": null,
       "span_start": "2021-10-18",
       "span_end": "2026-10-23",
       "span_years": 5.01,
