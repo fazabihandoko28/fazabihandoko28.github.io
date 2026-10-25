@@ -78,6 +78,11 @@ def _evidence_span_years(trades, windows):
                 if frame is trades and "is_oos" in trades.columns:
                     flags = trades["is_oos"].astype(str).str.strip().str.lower()
                     parsed = parsed.loc[flags.isin({"1", "true", "yes"})]
+                # IS-only window dates are validation inputs, not proof of
+                # five years of out-of-sample backtest coverage. Keep their
+                # invalid/future-date checks above, but exclude from the span.
+                if frame is windows and col in {"is_start", "is_end"}:
+                    continue
                 if len(parsed):
                     candidates.extend([parsed.min(),parsed.max()])
     if len(candidates)<2:
