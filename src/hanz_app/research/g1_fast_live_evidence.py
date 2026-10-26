@@ -53,6 +53,10 @@ def evaluate(row, now):
                 and not isinstance(raw_coverage, bool) else 0)
     if coverage < G1_MIN_SYMBOLS:
         reasons.append("g1_coverage_incomplete")
+    # G1 tracks a fixed 198-symbol universe. A larger count is inconsistent
+    # evidence, not proof that every distinct universe member was verified.
+    if coverage > G1_MIN_SYMBOLS:
+        reasons.append("g1_coverage_invalid")
     # The provider reports the age of its oldest monitored candle at scan time.
     # An internally contradictory FRESH status must never certify G1 LIVE.
     reported_age = row.get("data_age_seconds")

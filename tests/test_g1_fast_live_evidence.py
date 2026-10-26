@@ -40,6 +40,16 @@ class G1FastLiveEvidenceTests(unittest.TestCase):
                 self.assertIn("g1_coverage_incomplete", report["blockers"])
         self.assertTrue(evaluate(self.good, self.now)["g1_fast_live_verified"])
 
+    def test_overreported_coverage_cannot_prove_g1_live(self):
+        # Before the guard, a source claiming 199/198 or 1000/198 passed LIVE.
+        for invalid in (199, 1000):
+            with self.subTest(coverage=invalid):
+                report = evaluate({**self.good, "symbols_monitored": invalid}, self.now)
+                self.assertFalse(report["g1_fast_live_verified"])
+                self.assertEqual(report["g1_fast_live"], "STALE")
+                self.assertIn("g1_coverage_invalid", report["blockers"])
+        self.assertTrue(evaluate(self.good, self.now)["g1_fast_live_verified"])
+
     def test_old_scan_or_bar_blocks_live_even_if_source_says_fresh(self):
         for key in ("last_scan_at", "last_market_bar_at"):
             with self.subTest(field=key):
