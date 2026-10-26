@@ -31,6 +31,22 @@ def _num(v, default=None):
         return default
 
 
+def _zero_volume_days20(r):
+    """Do not truncate malformed liquidity counts into a safe-looking integer."""
+    raw = r.get("zero_volume_days20")
+    if raw is None or raw == "":
+        return 0  # Preserve legacy snapshots without this optional field.
+    if isinstance(raw, bool):
+        return None
+    if isinstance(raw, int):
+        count = raw
+    elif isinstance(raw, str) and raw.isdecimal():
+        count = int(raw)
+    else:
+        return None
+    return count if 0 <= count <= 20 else None
+
+
 def _get_monitor_rows():
     if not SUPABASE_URL or not SUPABASE_KEY:
         raise RuntimeError("SUPABASE_URL / SUPABASE_SECRET_KEY are required")
@@ -59,7 +75,7 @@ def _legacy_wait_eligible(row):
     raw=_num((r.get("opportunity_score_breakdown") or {}).get("raw_score_before_action_cap"))
     rr2=_num(r.get("rr_target_2"))
     avg=_num(r.get("avg_value20"))
-    zero=int(_num(r.get("zero_volume_days20"),0) or 0)
+    zero=_zero_volume_days20(r)
     vol=str(r.get("volatility_status") or "").upper()
     regime=str(r.get("market_regime") or "").upper()
     blocked=bool((r.get("momentum_guard") or {}).get("blocked"))
@@ -69,7 +85,7 @@ def _legacy_wait_eligible(row):
     return (
         raw is not None and raw>=30
         and rr2 is not None and rr2>=2
-        and not blocked and vol!="EXTREME" and zero<5
+        and not blocked and vol!="EXTREME" and zero is not None and zero<5
         and (avg is None or avg>=100_000_000)
         and regime!="RED"
         and (upside is None or upside>=0.5)
@@ -95,7 +111,8 @@ def _eligible(row):
         return False
     if str(r.get("volatility_status") or "").upper()=="EXTREME":
         return False
-    if int(_num(r.get("zero_volume_days20"),0) or 0)>=5:
+    zero=_zero_volume_days20(r)
+    if zero is None or zero>=5:
         return False
     avg=_num(r.get("avg_value20"))
     if avg is not None and avg<100_000_000:
