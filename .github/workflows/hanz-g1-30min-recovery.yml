@@ -30,6 +30,7 @@ jobs:
       - name: G1 walk-forward and execution safety tests
         run: |
           python -m unittest discover -s tests -p 'test_walk_forward_validation.py' -v
+          python -m unittest discover -s tests -p 'test_g1_*.py' -v
           python -m unittest discover -s tests -p 'test_premarket_execution_levels_fail_closed.py' -v
       - name: G1 freshness display regression tests
         run: node --test tests/test_swing_chart_freshness.cjs
