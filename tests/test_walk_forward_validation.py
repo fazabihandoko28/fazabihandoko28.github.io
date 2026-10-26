@@ -124,11 +124,19 @@ class FiveYearEvidenceGateTests(unittest.TestCase):
             "oos_start": ["2024-01-01", "2025-01-01"],
             "oos_end": ["2025-01-01", "2026-01-01"],
         })
-        result = module.validate(trades, windows, 95.0)
+        # Unassigned OOS dates outside every declared test window now fail
+        # closed, rather than merely being excluded from the history span.
+        with self.assertRaisesRegex(ValueError, "Unassigned OOS trade outside all"):
+            module.validate(trades, windows, 95.0)
+
+        # Valid dated trades still cannot turn a two-year OOS span into 5Y.
+        in_window = trades.copy()
+        in_window.loc[0, "trade_date"] = "2024-08-01"
+        result = module.validate(in_window, windows, 95.0)
         self.assertFalse(result["checks"]["five_year_history"])
         self.assertLess(result["backtest_years"], 5.0)
 
-        # Even excluded trade dates must still pass chronology validation.
+        # Invalid dates must still fail chronology validation.
         invalid = trades.copy()
         invalid.loc[0, "trade_date"] = "invalid-date"
         with self.assertRaisesRegex(ValueError, r"Invalid .*chronology.*trade_date"):
