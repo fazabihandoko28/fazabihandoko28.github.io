@@ -152,7 +152,7 @@ def _top5_symbols():
 
 # Explicit Yahoo research mappings for selected symbols missing from the static pool.
 # Delayed, non-official data: never eligible as independent execution evidence.
-RESEARCH_ONLY_FALLBACK_TICKERS = {"MPMX": "MPMX.JK", "BDMN": "BDMN.JK"}
+RESEARCH_ONLY_FALLBACK_TICKERS = {"MPMX": "MPMX.JK", "BDMN": "BDMN.JK", "AGII": "AGII.JK"}
 
 
 def _research_mappings(mappings):
