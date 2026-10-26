@@ -232,15 +232,24 @@ def validate(trades, windows, dof_remaining_pct, min_oos_trades=30, min_wfe=0.50
         starts = pd.to_datetime(windows["oos_start"], errors="coerce", utc=True).dt.normalize()
         ends = pd.to_datetime(windows["oos_end"], errors="coerce", utc=True).dt.normalize()
         oos_rows = oos_flags.isin({"1", "true", "yes"})
-        for col in ("entry_date", "exit_date", "trade_date"):
-            if col not in trades.columns:
-                continue
-            observed = pd.to_datetime(trades.loc[oos_rows, col], errors="coerce", utc=True).dt.normalize()
+        # Every supplied date for one OOS trade must belong to the SAME
+        # declared test window. Checking dates independently can accept an
+        # entry in one OOS window and an exit in a different OOS window.
+        date_columns = [
+            col for col in ("entry_date", "exit_date", "trade_date")
+            if col in trades.columns
+        ]
+        observed_by_column = {
+            col: pd.to_datetime(trades.loc[oos_rows, col], errors="coerce", utc=True).dt.normalize()
+            for col in date_columns
+        }
+        for col, observed in observed_by_column.items():
             if observed.isna().any():
                 raise ValueError("Invalid walk-forward chronology evidence: " + col)
-            for day in observed:
-                if not any(start <= day <= end for start, end in zip(starts, ends)):
-                    raise ValueError("Unassigned OOS trade outside all walk-forward OOS windows")
+        for dates in zip(*(observed_by_column[col] for col in date_columns)):
+            if not any(all(start <= day <= end for day in dates)
+                       for start, end in zip(starts, ends)):
+                raise ValueError("Unassigned OOS trade outside all walk-forward OOS windows")
 
     # A realized OOS trade must close within its assigned OOS test window.
     # Otherwise an IS/out-of-window result can be mislabeled as independent OOS
