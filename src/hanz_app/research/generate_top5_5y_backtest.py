@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 import os
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -24,7 +25,8 @@ def _num(v, default=None):
     try:
         if v is None or v=="":
             return default
-        return float(v)
+        value = float(v)
+        return value if math.isfinite(value) else default
     except (TypeError, ValueError):
         return default
 
