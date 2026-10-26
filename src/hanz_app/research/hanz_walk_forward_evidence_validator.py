@@ -316,13 +316,13 @@ def validate(trades, windows, dof_remaining_pct, min_oos_trades=30, min_wfe=0.50
     # Undated legacy exports without trade window IDs remain supported.
     if "window_id" in t.columns:
         assigned = t["window_id"].astype(str).str.strip()
-        # Reconcile only a complete, explicit OOS window export that could
-        # meet the 30-trade safety floor. Legacy partial/undated fixtures
-        # cannot establish a per-window P&L reconciliation.
+        # Reconcile 30+ attributed OOS trades when explicit window bounds
+        # are supplied. A zero-trade window has zero realized R; it must
+        # not disable reconciliation of every other window.
+        # Underpowered or legacy exports remain outside this guard.
         complete_attribution = (
             len(t) >= DEFAULT_MIN_OOS_TRADES
             and {"oos_start", "oos_end"}.issubset(windows.columns)
-            and set(normalized_ids).issubset(set(assigned))
         )
         if complete_attribution:
             realized = t.groupby(assigned)["r_multiple"].sum()
