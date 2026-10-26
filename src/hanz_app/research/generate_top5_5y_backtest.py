@@ -119,7 +119,13 @@ def _eligible(row):
     if avg is not None and avg<100_000_000:
         return False
     lo=_num(row.get("entry_low")); hi=_num(row.get("entry_high")); t1=_num(row.get("target_1"))
-    if lo and hi and t1:
+    # Explicit nonpositive prices are invalid, not absent optional evidence.
+    # Truthiness previously skipped the upside guard for zero entry/target prices.
+    if any(v is not None and v <= 0 for v in (lo, hi, t1)):
+        return False
+    if lo is not None and hi is not None and hi < lo:
+        return False
+    if lo is not None and hi is not None and t1 is not None:
         mid=(lo+hi)/2
         if ((t1-mid)/mid*100)<0.5:
             return False
