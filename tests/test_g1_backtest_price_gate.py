@@ -26,6 +26,22 @@ class G1BacktestPriceEvidenceTests(unittest.TestCase):
                 with self.subTest(field=field, value=value):
                     self.assertFalse(_eligible(row(**{field: value})))
 
+    def test_malformed_explicit_price_evidence_fails_closed(self):
+        # An explicit NaN/string/bool used to bypass the upside gate.
+        for field in ("entry_low", "entry_high", "target_1"):
+            for value in ("not-a-price", "NaN", "Infinity", True, False, ""):
+                with self.subTest(field=field, value=value):
+                    self.assertFalse(_eligible(row(**{field: value})))
+
+    def test_legacy_avoid_promotion_cannot_bypass_malformed_price(self):
+        candidate = row(target_1="NaN")
+        candidate["risk_validation"].update({
+            "hanz_action": "AVOID",
+            "rr_target_2": 2.5,
+            "opportunity_score_breakdown": {"raw_score_before_action_cap": 40},
+        })
+        self.assertFalse(_eligible(candidate))
+
     def test_reversed_entry_range_fails_closed(self):
         self.assertFalse(_eligible(row(entry_low=111, entry_high=110)))
 
