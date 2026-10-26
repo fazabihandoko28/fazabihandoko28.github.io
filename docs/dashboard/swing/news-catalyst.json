@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-10-26T07:11:44.741509+00:00",
+  "generated_at": "2026-10-26T14:26:08.203958+00:00",
   "policy": "HIGH_CONFIDENCE_CAUSAL_ONLY",
   "selected_tickers": [
-    "MPMX",
+    "JSMR",
     "AALI",
+    "AGII",
     "AKRA",
-    "BDMN",
-    "BTPS"
+    "BDMN"
   ],
   "catalysts": []
 }
