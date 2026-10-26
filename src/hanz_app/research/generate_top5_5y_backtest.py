@@ -260,17 +260,22 @@ def _selection_coverage(symbols, available, results, errors):
     )
     limited_history=[symbol for symbol in symbols if symbol in results
                      and results[symbol].get("status") != "OK"]
+    # Contradictory result/error evidence cannot certify complete coverage;
+    # double-counting one ticker must not hide another unaccounted ticker.
+    contradictory=any(symbol in results and symbol in errors for symbol in symbols)
+    accounted=all(symbol in results or symbol in errors for symbol in symbols)
     return {
         "selected_count":len(symbols),
         "evaluated_count":evaluated,
         "unavailable_count":unavailable,
         "five_year_history_count":full_history,
         "limited_history_symbols":limited_history,
-        "all_selected_accounted_for":evaluated+unavailable==len(symbols),
+        "all_selected_accounted_for":accounted and not contradictory,
         # A Top 5 report is complete only with five DISTINCT full-history tickers.
         # An empty, short or duplicate selection must never pass vacuously.
         "backtest_complete":len(symbols)==5 and len(set(symbols))==5
-                            and evaluated==5 and full_history==5,
+                            and evaluated==5 and full_history==5
+                            and unavailable==0 and not contradictory,
     }
 
 
