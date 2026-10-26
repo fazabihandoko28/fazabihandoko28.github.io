@@ -35,5 +35,17 @@ class G1BacktestNonfiniteRankTests(unittest.TestCase):
                 self.assertEqual(_eligible(row), expected > 0)
 
 
+    def test_boolean_rank_cannot_enter_top5(self):
+        # Previously float(True) == 1.0 made malformed score evidence eligible.
+        for invalid in (True, False):
+            with self.subTest(score=invalid):
+                self.assertIsNone(_num(invalid))
+                row = self.row(invalid)
+                self.assertEqual(_rank(row), 0)
+                self.assertFalse(_eligible(row))
+        # Ordinary finite scores retain their previous eligibility.
+        self.assertTrue(_eligible(self.row(1)))
+
+
 if __name__ == "__main__":
     unittest.main()
