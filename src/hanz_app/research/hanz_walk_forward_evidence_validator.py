@@ -221,6 +221,27 @@ def validate(trades, windows, dof_remaining_pct, min_oos_trades=30, min_wfe=0.50
     if not oos_flags.isin(valid_oos_flags).all():
         raise ValueError("Invalid OOS/IS trade classification evidence")
 
+    # Legacy trade exports may omit window_id. When explicit OOS windows and
+    # trade timestamps exist, an unassigned OOS trade must still fall inside
+    # at least one declared OOS interval. Otherwise fabricated IS/outside
+    # trades can inflate the 30-trade sample and produce a false WFA PASS.
+    # Keep undated legacy exports compatible; do not infer any trade dates.
+    if ("window_id" not in trades.columns
+            and {"oos_start", "oos_end"}.issubset(windows.columns)
+            and any(col in trades.columns for col in ("entry_date", "exit_date", "trade_date"))):
+        starts = pd.to_datetime(windows["oos_start"], errors="coerce", utc=True).dt.normalize()
+        ends = pd.to_datetime(windows["oos_end"], errors="coerce", utc=True).dt.normalize()
+        oos_rows = oos_flags.isin({"1", "true", "yes"})
+        for col in ("entry_date", "exit_date", "trade_date"):
+            if col not in trades.columns:
+                continue
+            observed = pd.to_datetime(trades.loc[oos_rows, col], errors="coerce", utc=True).dt.normalize()
+            if observed.isna().any():
+                raise ValueError("Invalid walk-forward chronology evidence: " + col)
+            for day in observed:
+                if not any(start <= day <= end for start, end in zip(starts, ends)):
+                    raise ValueError("Unassigned OOS trade outside all walk-forward OOS windows")
+
     # A realized OOS trade must close within its assigned OOS test window.
     # Otherwise an IS/out-of-window result can be mislabeled as independent OOS
     # evidence. Apply this check when exports supply explicit window bounds.
