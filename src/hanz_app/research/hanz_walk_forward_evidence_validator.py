@@ -301,7 +301,12 @@ def validate(trades, windows, dof_remaining_pct, min_oos_trades=30, min_wfe=0.50
                 "_chronological_date",kind="stable"
             ).drop(columns="_chronological_date")
             break
-    windows=windows.copy(); windows["oos_profit_r"]=pd.to_numeric(windows["oos_profit_r"],errors="coerce")
+    windows=windows.copy()
+    # Boolean labels are not realized window profits. Pandas otherwise treats
+    # True as 1 R and False as 0 R, allowing false WFA consistency/WFE PASS.
+    if windows["oos_profit_r"].map(lambda value: isinstance(value, (bool, np.bool_))).any():
+        raise ValueError("Invalid OOS window profit evidence")
+    windows["oos_profit_r"]=pd.to_numeric(windows["oos_profit_r"],errors="coerce")
     if not windows["oos_profit_r"].map(math.isfinite).all():
         raise ValueError("Invalid OOS window profit evidence")
 
