@@ -222,10 +222,13 @@ def validate(trades, windows, dof_remaining_pct, min_oos_trades=30, min_wfe=0.50
         # window. An IS-origin position closed during OOS is not an independent
         # OOS entry. Legacy exports without entry_date remain supported.
         oos_rows = oos_flags.isin({"1", "true", "yes"})
-        date_columns = (["entry_date"] if "entry_date" in trades.columns else []) + (
-            ["exit_date"] if "exit_date" in trades.columns else
-            ["trade_date"] if "trade_date" in trades.columns else []
-        )
+        # Every supplied trade date is provenance evidence. Previously,
+        # trade_date was ignored when exit_date also existed, allowing an
+        # out-of-window execution date to pass OOS validation.
+        date_columns = [
+            col for col in ("entry_date", "exit_date", "trade_date")
+            if col in trades.columns
+        ]
         for date_column in date_columns:
             observed = pd.to_datetime(trades[date_column], errors="coerce", utc=True).dt.normalize()
             for wid, day in zip(normalized_trade_window_ids[oos_rows], observed[oos_rows]):
