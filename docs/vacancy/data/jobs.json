@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-10-26T04:53:02.336189+00:00",
+  "generated_at": "2026-10-26T13:10:07.302455+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1336,
-  "matching_jobs": 71,
+  "raw_jobs": 1333,
+  "matching_jobs": 73,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 439
+      "jobs": 440
     },
     {
       "name": "Publicis Groupe",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 397
+      "jobs": 393
     },
     {
       "name": "Visa",
@@ -296,6 +296,15 @@
       "source_verified": true
     },
     {
+      "id": "sr-744000157763549",
+      "title": "Associate, Strategy & Special Project - GrabFood (Food Locker and Local Partnership)",
+      "company": "Grab",
+      "location": "Bangkok, Thailand",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000157763549-associate-strategy-special-project-grabfood-food-locker-and-local-partnership",
+      "published_at": "2026-10-26T09:56:41.575Z",
+      "source_verified": true
+    },
+    {
       "id": "sr-744000135167151",
       "title": "Associate, User Growth - GrabMart",
       "company": "Grab",
@@ -473,6 +482,15 @@
       "location": "HCMC, Vietnam",
       "url": "https://jobs.smartrecruiters.com/Grab/744000144003539-lead-strategic-acquisition-project",
       "published_at": "2026-08-18T07:47:39.236Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000157732399",
+      "title": "Lending Commercial - Assistant Manager",
+      "company": "Grab",
+      "location": "Pasig City, Philippines",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000157732399-lending-commercial-assistant-manager",
+      "published_at": "2026-10-26T07:22:40.277Z",
       "source_verified": true
     },
     {
