@@ -310,6 +310,18 @@ def validate(trades, windows, dof_remaining_pct, min_oos_trades=30, min_wfe=0.50
     if not windows["oos_profit_r"].map(math.isfinite).all():
         raise ValueError("Invalid OOS window profit evidence")
 
+    # Reported OOS window R must reconcile with the realized trade R when
+    # trades carry explicit window IDs. Otherwise fabricated positive window
+    # totals can turn failing consistency/WFE evidence into a false PASS.
+    # Undated legacy exports without trade window IDs remain supported.
+    if "window_id" in t.columns:
+        assigned = t["window_id"].astype(str).str.strip()
+        realized = t.groupby(assigned)["r_multiple"].sum()
+        for wid, reported in zip(normalized_ids, windows["oos_profit_r"]):
+            actual = float(realized.get(wid, 0.0))
+            if not math.isclose(actual, float(reported), rel_tol=1e-6, abs_tol=1e-6):
+                raise ValueError("Contradictory walk-forward window profit evidence")
+
     evidence_span_years=_evidence_span_years(trades, windows)
 
     oos_trades=len(t)
