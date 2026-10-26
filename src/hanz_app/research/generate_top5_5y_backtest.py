@@ -23,7 +23,8 @@ MAX_5Y_GAP_DAYS = 45
 
 def _num(v, default=None):
     try:
-        if v is None or v=="":
+        # JSON booleans are not numeric trading evidence (True == 1 in Python).
+        if isinstance(v, bool) or v is None or v=="":
             return default
         value = float(v)
         return value if math.isfinite(value) else default
