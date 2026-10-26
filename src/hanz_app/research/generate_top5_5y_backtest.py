@@ -109,10 +109,17 @@ def _eligible(row):
 
 
 def _top5_symbols():
-    rows=_get_monitor_rows()
-    rows=[r for r in rows if _eligible(r)]
-    rows.sort(key=lambda r:(-_rank(r),str(r.get("ticker") or "")))
-    return [str(r.get("ticker") or "").upper() for r in rows[:5]]
+    # Monitor rows are newest-first. Only the newest snapshot of each
+    # ticker is authoritative; an older eligible duplicate must not
+    # override a newer excluded one or consume a second Top 5 slot.
+    latest = {}
+    for row in _get_monitor_rows():
+        ticker = str(row.get("ticker") or "").strip().upper()
+        if ticker and ticker not in latest:
+            latest[ticker] = row
+    rows = [r for r in latest.values() if _eligible(r)]
+    rows.sort(key=lambda r: (-_rank(r), str(r.get("ticker") or "")))
+    return [str(r.get("ticker") or "").strip().upper() for r in rows[:5]]
 
 
 # Explicit Yahoo research mappings for selected symbols missing from the static pool.
