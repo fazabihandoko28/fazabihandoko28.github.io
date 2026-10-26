@@ -236,8 +236,10 @@ def validate(trades, windows, dof_remaining_pct, min_oos_trades=30, min_wfe=0.50
             if col not in trades.columns:
                 continue
             observed = pd.to_datetime(trades.loc[oos_rows, col], errors="coerce", utc=True).dt.normalize()
+            if observed.isna().any():
+                raise ValueError("Invalid walk-forward chronology evidence: " + col)
             for day in observed:
-                if pd.isna(day) or not any(start <= day <= end for start, end in zip(starts, ends)):
+                if not any(start <= day <= end for start, end in zip(starts, ends)):
                     raise ValueError("Unassigned OOS trade outside all walk-forward OOS windows")
 
     # A realized OOS trade must close within its assigned OOS test window.
