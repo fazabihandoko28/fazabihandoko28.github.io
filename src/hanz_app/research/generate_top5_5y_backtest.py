@@ -118,6 +118,10 @@ def _eligible(row):
     avg=_num(r.get("avg_value20"))
     if avg is not None and avg<100_000_000:
         return False
+    # An explicit malformed price is not equivalent to absent optional evidence.
+    if any(key in row and row[key] is not None and _num(row[key]) is None
+           for key in ("entry_low", "entry_high", "target_1")):
+        return False
     lo=_num(row.get("entry_low")); hi=_num(row.get("entry_high")); t1=_num(row.get("target_1"))
     # Explicit nonpositive prices are invalid, not absent optional evidence.
     # Truthiness previously skipped the upside guard for zero entry/target prices.
