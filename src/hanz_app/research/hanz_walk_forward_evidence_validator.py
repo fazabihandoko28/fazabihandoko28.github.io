@@ -321,7 +321,14 @@ def validate(trades, windows, dof_remaining_pct, min_oos_trades=30, min_wfe=0.50
     # WFE = annualized OOS P&L / annualized IS P&L when durations are supplied.
     wfe=None
     if {"is_profit_r","is_years","oos_years"}.issubset(windows.columns):
-        for c in ["is_profit_r","is_years","oos_years"]: windows[c]=pd.to_numeric(windows[c],errors="coerce")
+        # Boolean flags are not measured profit or elapsed years. Pandas
+        # otherwise coerces True to 1 and can falsely inflate annualized WFE.
+        annualization_cols = ("is_profit_r", "is_years", "oos_years")
+        if any(windows[c].map(lambda value: isinstance(value, (bool, np.bool_))).any()
+               for c in annualization_cols):
+            raise ValueError("Invalid walk-forward annualization evidence")
+        for c in annualization_cols:
+            windows[c] = pd.to_numeric(windows[c], errors="coerce")
         # Never let pandas sum() silently skip missing/invalid WFE inputs.
         if (any(not windows[c].map(math.isfinite).all() for c in ("is_profit_r","is_years","oos_years"))
                 or (windows[["is_years","oos_years"]] <= 0).any().any()):
