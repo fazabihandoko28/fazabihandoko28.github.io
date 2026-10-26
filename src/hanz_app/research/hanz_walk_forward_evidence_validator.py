@@ -54,6 +54,19 @@ def _evidence_span_years(trades, windows):
         exits = pd.to_datetime(trades["exit_date"], errors="coerce", utc=True)
         if (entries > exits).any():
             raise ValueError("Invalid walk-forward trade chronology: exit before entry")
+    # A trade execution cannot precede its entry or occur after its exit.
+    # All three timestamps may be inside the OOS window yet contradict
+    # the trade's actual lifecycle; reject that evidence before validation.
+    if {"entry_date", "trade_date"}.issubset(trades.columns):
+        entries = pd.to_datetime(trades["entry_date"], errors="coerce", utc=True)
+        executions = pd.to_datetime(trades["trade_date"], errors="coerce", utc=True)
+        if (executions < entries).any():
+            raise ValueError("Invalid walk-forward trade chronology: trade before entry")
+    if {"trade_date", "exit_date"}.issubset(trades.columns):
+        executions = pd.to_datetime(trades["trade_date"], errors="coerce", utc=True)
+        exits = pd.to_datetime(trades["exit_date"], errors="coerce", utc=True)
+        if (executions > exits).any():
+            raise ValueError("Invalid walk-forward trade chronology: trade after exit")
 
     candidates=[]
     # A partially exported OOS interval is not legacy evidence: it is corrupt.
