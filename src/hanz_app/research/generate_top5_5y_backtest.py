@@ -68,6 +68,13 @@ def _get_monitor_rows():
         return json.loads(resp.read().decode("utf-8"))
 
 
+def _valid_explicit_avg_value20(r):
+    # Absent legacy liquidity evidence remains optional; malformed explicit
+    # evidence must not silently bypass the Top 5 liquidity threshold.
+    return ("avg_value20" not in r or r["avg_value20"] is None
+            or _num(r["avg_value20"]) is not None)
+
+
 def _legacy_wait_eligible(row):
     r=row.get("risk_validation") or {}
     action=str(r.get("hanz_action") or row.get("hanz_action") or "").upper()
@@ -87,6 +94,7 @@ def _legacy_wait_eligible(row):
         raw is not None and raw>=30
         and rr2 is not None and rr2>=2
         and not blocked and vol!="EXTREME" and zero is not None and zero<5
+        and _valid_explicit_avg_value20(r)
         and (avg is None or avg>=100_000_000)
         and regime!="RED"
         and (upside is None or upside>=0.5)
@@ -114,6 +122,8 @@ def _eligible(row):
         return False
     zero=_zero_volume_days20(r)
     if zero is None or zero>=5:
+        return False
+    if not _valid_explicit_avg_value20(r):
         return False
     avg=_num(r.get("avg_value20"))
     if avg is not None and avg<100_000_000:
