@@ -11,6 +11,7 @@ Expected CSVs:
 Optional columns are tolerated; required columns are checked explicitly.
 """
 import argparse, json, math
+import numpy as np
 from datetime import datetime, timezone
 from pathlib import Path
 import pandas as pd
@@ -280,6 +281,10 @@ def validate(trades, windows, dof_remaining_pct, min_oos_trades=30, min_wfe=0.50
                     raise ValueError("OOS trade outside assigned walk-forward window")
 
     t=trades.loc[oos_flags.isin({"1","true","yes"})].copy()
+    # Pandas treats True as 1 R; boolean outcomes are not realized returns.
+    # Reject native and numpy booleans before numeric coercion.
+    if t["r_multiple"].map(lambda value: isinstance(value, (bool, np.bool_))).any():
+        raise ValueError("Invalid OOS trade return evidence")
     t["r_multiple"]=pd.to_numeric(t["r_multiple"],errors="coerce")
     # Fail closed: silently dropping invalid OOS outcomes inflates sample quality.
     # NaN and +/-infinity must never contribute to expectancy, WFE or drawdown.
