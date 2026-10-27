@@ -335,6 +335,51 @@ class G1DirectChartRecoveryTests(unittest.TestCase):
             opener=self.opener(self.payload()),
         )["BBCA"], self.fresh)
 
+    def test_direct_retry_budget_rotates_across_missing_symbols(self):
+        # Previously every 30-minute probe retried the same first 3 symbols.
+        # The remaining 7 could never receive direct-chart verification.
+        symbols = [f"T{i:03d}" for i in range(10)]
+        start = datetime(2026, 10, 27, 2, 0, tzinfo=timezone.utc)
+        seen = set()
+        for slot in range(4):
+            calls = []
+            def failed(request, timeout):
+                calls.append(request.full_url.split("/chart/")[1].split(".JK")[0])
+                raise OSError("provider unavailable")
+            diagnostics = {}
+            result = recover_missing_direct_chart(
+                symbols, {}, now=start + timedelta(minutes=30 * slot),
+                opener=failed, max_requests=3, diagnostics=diagnostics,
+            )
+            self.assertEqual(result, {})
+            self.assertEqual(len(calls), 3)
+            self.assertEqual(
+                {s for s, reason in diagnostics.items()
+                 if reason == "provider_request_or_response_error"}, set(calls)
+            )
+            self.assertEqual(
+                sum(reason == "request_budget_exhausted"
+                    for reason in diagnostics.values()), 7
+            )
+            seen.update(calls)
+        self.assertEqual(seen, set(symbols))
+
+    def test_direct_retry_budget_is_stable_within_same_slot(self):
+        symbols = [f"T{i:03d}" for i in range(10)]
+        start = datetime(2026, 10, 27, 2, 0, tzinfo=timezone.utc)
+        attempts = []
+        for minute in (0, 10):
+            calls = []
+            def failed(request, timeout):
+                calls.append(request.full_url)
+                raise OSError("provider unavailable")
+            recover_missing_direct_chart(
+                symbols, {}, now=start + timedelta(minutes=minute),
+                opener=failed, max_requests=3,
+            )
+            attempts.append(calls)
+        self.assertEqual(attempts[0], attempts[1])
+
     def test_direct_request_limit_prevents_provider_hammering(self):
         requests = []
         def failed(request, timeout):
