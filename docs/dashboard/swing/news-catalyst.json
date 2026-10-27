@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-10-26T14:26:08.203958+00:00",
+  "generated_at": "2026-10-27T06:58:59.300616+00:00",
   "policy": "HIGH_CONFIDENCE_CAUSAL_ONLY",
   "selected_tickers": [
-    "JSMR",
     "AALI",
-    "AGII",
-    "AKRA",
-    "BDMN"
+    "HMSP",
+    "LPPF",
+    "MPMX",
+    "AKRA"
   ],
   "catalysts": []
 }
