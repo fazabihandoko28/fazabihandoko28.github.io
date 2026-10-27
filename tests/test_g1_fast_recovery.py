@@ -67,7 +67,7 @@ class G1IndependentFastRecoveryTests(unittest.TestCase):
         )
         original = self.now - timedelta(minutes=1)
         bars = recover_missing_five_minute_bars(
-            engine, ["A", "B", "C"], {"A": original}
+            engine, ["A", "B", "C"], {"A": original}, now=self.now
         )
         self.assertEqual(bars, {"A": original, "B": self.now - timedelta(minutes=5)})
         engine.prefetch_market_data.assert_called_once_with(["B", "C"], "5m", "5d")
@@ -75,7 +75,7 @@ class G1IndependentFastRecoveryTests(unittest.TestCase):
     def test_5m_fallback_does_not_refetch_when_complete(self):
         engine = Mock()
         bars = {"A": self.fresh}
-        self.assertEqual(recover_missing_five_minute_bars(engine, ["A"], bars), bars)
+        self.assertEqual(recover_missing_five_minute_bars(engine, ["A"], bars, now=self.now), bars)
         engine.prefetch_market_data.assert_not_called()
 
     def test_5m_fallback_rejects_invalid_ohlcv(self):
@@ -96,6 +96,57 @@ class G1IndependentFastRecoveryTests(unittest.TestCase):
         engine._cached_market_frame.return_value = {"frame": frame}
         bars = recover_missing_five_minute_bars(engine, self.symbols, {})
         self.assertEqual(evaluate_bars(self.symbols, bars, self.now)["status"], "STALE")
+
+
+    def test_5m_fallback_retries_stale_but_valid_1m_bar(self):
+        engine = Mock()
+        old = self.now - timedelta(hours=2)
+        fresh_5m = self.now - timedelta(minutes=5)
+        frame = pd.DataFrame(
+            [{"Open": 100, "High": 105, "Low": 98, "Close": 103, "Volume": 10}],
+            index=pd.DatetimeIndex([fresh_5m]),
+        )
+        engine._cached_market_frame.return_value = {"frame": frame}
+        bars = recover_missing_five_minute_bars(
+            engine, ["A"], {"A": old}, now=self.now
+        )
+        self.assertEqual(bars["A"], fresh_5m)
+        engine.prefetch_market_data.assert_called_once_with(["A"], "5m", "5d")
+
+    def test_5m_fallback_never_overwrites_newer_1m_with_older_5m(self):
+        engine = Mock()
+        old_1m = self.now - timedelta(hours=2)
+        older_5m = old_1m - timedelta(minutes=5)
+        frame = pd.DataFrame(
+            [{"Open": 100, "High": 105, "Low": 98, "Close": 103, "Volume": 10}],
+            index=pd.DatetimeIndex([older_5m]),
+        )
+        engine._cached_market_frame.return_value = {"frame": frame}
+        bars = recover_missing_five_minute_bars(
+            engine, ["A"], {"A": old_1m}, now=self.now
+        )
+        self.assertEqual(bars["A"], old_1m)
+
+    def test_5m_fallback_retries_out_of_session_1m_bar(self):
+        engine = Mock()
+        preopen = datetime(2026, 10, 27, 0, 30, tzinfo=timezone.utc)
+        fresh_5m = self.now - timedelta(minutes=5)
+        frame = pd.DataFrame(
+            [{"Open": 100, "High": 105, "Low": 98, "Close": 103, "Volume": 10}],
+            index=pd.DatetimeIndex([fresh_5m]),
+        )
+        engine._cached_market_frame.return_value = {"frame": frame}
+        bars = recover_missing_five_minute_bars(
+            engine, ["A"], {"A": preopen}, now=self.now
+        )
+        self.assertEqual(bars["A"], fresh_5m)
+
+    def test_5m_fallback_rejects_naive_verification_time(self):
+        with self.assertRaises(ValueError):
+            recover_missing_five_minute_bars(
+                Mock(), ["A"], {}, now=self.now.replace(tzinfo=None)
+            )
+
 
 
 if __name__ == "__main__":
