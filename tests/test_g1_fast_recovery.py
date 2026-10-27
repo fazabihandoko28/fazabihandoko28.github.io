@@ -84,6 +84,28 @@ class G1IndependentFastRecoveryTests(unittest.TestCase):
         bars[self.symbols[189]] = stamp
         self.assertEqual(evaluate_bars(self.symbols, bars, self.now)["status"], "STALE")
 
+    def test_zero_volume_only_candle_cannot_certify_live(self):
+        frame = pd.DataFrame(
+            [{"Open": 100, "High": 105, "Low": 98, "Close": 103, "Volume": 0}],
+            index=pd.DatetimeIndex([self.fresh]),
+        )
+        self.assertIsNone(validated_bar(frame))
+
+    def test_zero_volume_tail_retains_prior_genuine_traded_bar(self):
+        previous = self.now - timedelta(minutes=3)
+        frame = pd.DataFrame([
+            {"Open": 100, "High": 105, "Low": 98, "Close": 103, "Volume": 10},
+            {"Open": 100, "High": 105, "Low": 98, "Close": 103, "Volume": 0},
+        ], index=pd.DatetimeIndex([previous, self.fresh]))
+        self.assertEqual(validated_bar(frame), previous)
+
+    def test_zero_volume_prior_does_not_rescue_invalid_tail(self):
+        frame = pd.DataFrame([
+            {"Open": 100, "High": 105, "Low": 98, "Close": 103, "Volume": 0},
+            {"Open": 100, "High": 99, "Low": 98, "Close": 103, "Volume": 10},
+        ], index=pd.DatetimeIndex([self.now - timedelta(minutes=3), self.fresh]))
+        self.assertIsNone(validated_bar(frame))
+
     def test_5m_fallback_recovers_only_missing_1m_symbols(self):
         engine = Mock()
         frame = pd.DataFrame(

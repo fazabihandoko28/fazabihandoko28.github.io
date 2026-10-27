@@ -26,7 +26,7 @@ def validated_bar(frame):
             opening, high, low, closing = prices
             volume = float(bar["Volume"])
             if (not all(math.isfinite(v) and v > 0 for v in prices)
-                    or not math.isfinite(volume) or volume < 0
+                    or not math.isfinite(volume) or volume <= 0
                     or not low <= min(opening, closing) <= max(opening, closing) <= high):
                 continue
             stamp = frame.index[index]
