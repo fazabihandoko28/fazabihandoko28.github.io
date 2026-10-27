@@ -149,6 +149,17 @@ def _latest_direct_chart_bar(payload, symbol, now):
         return None
 
 
+def _budgeted_direct_chart_symbols(missing, budget, now):
+    """Rotate bounded retries by 30-minute slot; never starve later tickers."""
+    if budget <= 0:
+        return [], missing
+    if len(missing) <= budget:
+        return missing, []
+    offset = (int(now.timestamp() // 1800) * budget) % len(missing)
+    rotated = missing[offset:] + missing[:offset]
+    return rotated[:budget], rotated[budget:]
+
+
 def recover_missing_direct_chart(symbols, bars, now=None, opener=None, max_requests=40, diagnostics=None):
     """G1-only alternative to yfinance batches for still-unverified tickers.
 
@@ -167,9 +178,10 @@ def recover_missing_direct_chart(symbols, bars, now=None, opener=None, max_reque
         return bars
     opener = opener or urlopen
     budget = max(0, max_requests)
+    selected, deferred = _budgeted_direct_chart_symbols(missing, budget, now)
     if diagnostics is not None:
-        diagnostics.update({s: "request_budget_exhausted" for s in missing[budget:]})
-    for symbol in missing[:budget]:
+        diagnostics.update({s: "request_budget_exhausted" for s in deferred})
+    for symbol in selected:
         if not isinstance(symbol, str) or not re.fullmatch(r"[A-Z0-9]{1,12}", symbol):
             if diagnostics is not None:
                 diagnostics[symbol] = "invalid_symbol"
