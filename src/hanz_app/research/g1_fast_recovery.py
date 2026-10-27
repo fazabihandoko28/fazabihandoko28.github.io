@@ -116,11 +116,16 @@ def _latest_direct_chart_bar(payload, symbol, now):
         if str(result["meta"]["symbol"]).upper() != f"{symbol}.JK":
             return None
         quotes = result["indicators"]["quote"][0]
+        stamps = result["timestamp"]
+        fields = [quotes[key] for key in ("open", "high", "low", "close", "volume")]
+        # zip() silently truncates mismatched provider arrays, potentially
+        # attributing a volume/price to the wrong timestamp. Fail closed.
+        if (not isinstance(stamps, list) or not stamps or
+                any(not isinstance(values, list) or len(values) != len(stamps)
+                    for values in fields)):
+            return None
         best = None
-        for stamp_s, opening, high, low, closing, volume in zip(
-            result["timestamp"],
-            *(quotes[key] for key in ("open", "high", "low", "close", "volume")),
-        ):
+        for stamp_s, opening, high, low, closing, volume in zip(stamps, *fields):
             if not isinstance(stamp_s, int) or isinstance(stamp_s, bool):
                 continue
             stamp = datetime.fromtimestamp(stamp_s, timezone.utc)

@@ -308,6 +308,21 @@ class G1DirectChartRecoveryTests(unittest.TestCase):
         )
         self.assertEqual(len(requests), 1)
 
+    def test_direct_rejects_short_price_array_without_timestamp_misalignment(self):
+        payload = self.payload()
+        row = payload["chart"]["result"][0]
+        row["timestamp"].append(int((self.fresh - timedelta(minutes=1)).timestamp()))
+        # Before the fix, zip silently accepted the first row and returned LIVE.
+        self.assertIsNone(_latest_direct_chart_bar(payload, "BBCA", self.now))
+        self.assertEqual(recover_missing_direct_chart(
+            ["BBCA"], {}, now=self.now, opener=self.opener(payload),
+        ), {})
+
+    def test_direct_rejects_extra_volume_entry(self):
+        payload = self.payload()
+        payload["chart"]["result"][0]["indicators"]["quote"][0]["volume"].append(999)
+        self.assertIsNone(_latest_direct_chart_bar(payload, "BBCA", self.now))
+
     def test_direct_out_of_order_rows_use_newest_valid_timestamp(self):
         payload = self.payload()
         row = payload["chart"]["result"][0]
