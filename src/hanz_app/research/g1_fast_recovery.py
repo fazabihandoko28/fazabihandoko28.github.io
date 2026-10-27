@@ -216,6 +216,10 @@ def collect():
     # A changed or empty universe cannot be used to certify 190/198.
     if len(symbols) != G1_UNIVERSE_SIZE:
         return evaluate_bars(symbols, {}, datetime.now(timezone.utc))
+    # Closed-session probes cannot establish LIVE, so do not exhaust provider
+    # requests on 198 symbols outside IDX hours. Preserve the actual universe.
+    if not session_open(datetime.now(timezone.utc)):
+        return evaluate_bars(symbols, {}, datetime.now(timezone.utc))
     engine.prefetch_market_data(symbols, engine.INTRADAY_INTERVAL, engine.INTRADAY_PERIOD)
     bars = {}
     for ticker in symbols:

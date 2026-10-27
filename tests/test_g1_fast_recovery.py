@@ -203,6 +203,53 @@ class G1IndependentFastRecoveryTests(unittest.TestCase):
 
 
 
+class G1ClosedSessionProbeTests(unittest.TestCase):
+    """The scheduled G1 probe must conserve provider quota outside IDX hours."""
+
+    def fake_engine(self):
+        engine = Mock()
+        engine._CYCLE_MARKET_BARS = {}
+        engine.fetch_scout_universe.return_value = [f"T{i:03d}" for i in range(198)]
+        engine.fetch_watchlist.return_value = []
+        engine.supabase_request.return_value = []
+        engine.INTRADAY_INTERVAL = "1m"
+        engine.INTRADAY_PERIOD = "5d"
+        engine._cached_market_frame.return_value = None
+        return engine
+
+    def test_closed_session_skips_provider_and_remains_stale(self):
+        import hanz_app
+        from unittest.mock import patch
+        from hanz_app.research.g1_fast_recovery import collect
+
+        engine = self.fake_engine()
+        engine.prefetch_market_data.side_effect = AssertionError(
+            "Closed-session G1 probe must not request Yahoo candles"
+        )
+        with patch.object(hanz_app, "fast_trading_engine", engine, create=True), \
+                patch("hanz_app.research.g1_fast_recovery.session_open", return_value=False):
+            result = collect()
+        self.assertEqual(result["status"], "STALE")
+        self.assertEqual(result["universe_count"], 198)
+        self.assertEqual(result["fresh_valid_count"], 0)
+        engine.prefetch_market_data.assert_not_called()
+
+    def test_open_session_still_attempts_real_provider_probe(self):
+        import hanz_app
+        from unittest.mock import patch
+        from hanz_app.research.g1_fast_recovery import collect
+
+        engine = self.fake_engine()
+        with patch.object(hanz_app, "fast_trading_engine", engine, create=True), \
+                patch("hanz_app.research.g1_fast_recovery.session_open", return_value=True), \
+                patch("hanz_app.research.g1_fast_recovery.recover_missing_five_minute_bars"), \
+                patch("hanz_app.research.g1_fast_recovery.recover_missing_direct_chart"):
+            result = collect()
+        engine.prefetch_market_data.assert_called_once()
+        self.assertEqual(result["universe_count"], 198)
+        self.assertEqual(result["fresh_valid_count"], 0)
+
+
 class G1DirectChartRecoveryTests(unittest.TestCase):
     def setUp(self):
         self.now = datetime(2026, 10, 27, 8, 10, tzinfo=timezone.utc)
