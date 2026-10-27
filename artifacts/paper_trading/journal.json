@@ -2328,5 +2328,35 @@
     "source": "YAHOO_FINANCE_RESEARCH_ONLY",
     "recorded_at": "2026-10-23T17:56:02.280230+00:00",
     "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "INTP",
+    "status": "READY",
+    "signal_timestamp": "2026-10-27T00:00:00+00:00",
+    "signal_close": 5950.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-10-27T18:51:15.676052+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "JSMR",
+    "status": "WAIT",
+    "signal_timestamp": "2026-10-27T00:00:00+00:00",
+    "signal_close": 2850.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-10-27T18:51:15.676077+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "HMSP",
+    "status": "WAIT",
+    "signal_timestamp": "2026-10-27T00:00:00+00:00",
+    "signal_close": 675.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-10-27T18:51:15.676110+00:00",
+    "outcome": "PENDING"
   }
 ]
