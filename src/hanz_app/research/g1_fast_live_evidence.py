@@ -9,7 +9,8 @@ from zoneinfo import ZoneInfo
 
 WIB = ZoneInfo("Asia/Jakarta")
 FRESHNESS_SECONDS = 1800
-G1_MIN_SYMBOLS = 198
+G1_MIN_SYMBOLS = 190
+G1_UNIVERSE_SIZE = 198
 
 
 def timestamp(value):
@@ -44,7 +45,7 @@ def evaluate(row, now):
     if not isinstance(row, dict):
         row = {}
     status = str(row.get("data_status") or "UNKNOWN").upper()
-    if status != "FRESH":
+    if status not in {"FRESH", "PARTIAL"}:
         reasons.append("source_status_not_fresh")
     # A symbol count must be a real integer. Coercing 198.9 or "198" to
     # 198 could falsely certify G1 LIVE with invalid coverage evidence.
@@ -55,8 +56,12 @@ def evaluate(row, now):
         reasons.append("g1_coverage_incomplete")
     # G1 tracks a fixed 198-symbol universe. A larger count is inconsistent
     # evidence, not proof that every distinct universe member was verified.
-    if coverage > G1_MIN_SYMBOLS:
+    if coverage > G1_UNIVERSE_SIZE:
         reasons.append("g1_coverage_invalid")
+    # FRESH with fewer than 198 symbols contradicts the provider's own
+    # partial-coverage status. Accept PARTIAL only with fresh age evidence.
+    if status == "FRESH" and coverage < G1_UNIVERSE_SIZE:
+        reasons.append("source_status_coverage_conflict")
     # The provider reports the age of its oldest monitored candle at scan time.
     # An internally contradictory FRESH status must never certify G1 LIVE.
     reported_age = row.get("data_age_seconds")
@@ -145,7 +150,7 @@ def main():
         with open(summary, "a", encoding="utf-8") as file:
             file.write("\n### G1 FAST intraday evidence (read-only)\n\n")
             file.write(f"Status: **{report['g1_fast_live']}**; source: **{report['source_status']}**; ")
-            file.write(f"coverage: **{report['symbols_monitored']}/{G1_MIN_SYMBOLS}**; ")
+            file.write(f"coverage: **{report['symbols_monitored']}/{G1_UNIVERSE_SIZE}**; ")
             file.write(f"IDX open: **{report['idx_session_open']}**.\n\n")
             file.write("Blockers: " + ", ".join(report["blockers"]) + "\n")
             file.write("\nThis check does not certify G1 CLOSED or generate trading signals.\n")
