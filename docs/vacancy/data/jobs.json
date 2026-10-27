@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-10-27T05:11:31.378588+00:00",
+  "generated_at": "2026-10-27T12:18:02.246662+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1318,
-  "matching_jobs": 73,
+  "raw_jobs": 1306,
+  "matching_jobs": 69,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 438
+      "jobs": 433
     },
     {
       "name": "Publicis Groupe",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 380
+      "jobs": 373
     },
     {
       "name": "Visa",
@@ -86,15 +86,6 @@
       "location": "Jakarta, Indonesia",
       "url": "https://jobs.smartrecruiters.com/Grab/744000138605441-manager-communications",
       "published_at": "2026-07-20T10:29:56.580Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000149254139",
-      "title": "Marketing Execution Assistant Manager - JABODETABEK",
-      "company": "Grab",
-      "location": "Jakarta, Indonesia",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000149254139-marketing-execution-assistant-manager-jabodetabek",
-      "published_at": "2026-09-14T07:28:45.888Z",
       "source_verified": true
     },
     {
@@ -419,33 +410,6 @@
       "location": "Singapore, Singapore",
       "url": "https://jobs.smartrecruiters.com/Grab/744000147417909-intern-growth-and-marketing-autonomous-vehicles",
       "published_at": "2026-09-04T05:50:50.417Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000156728065",
-      "title": "Intern, Marketing and Partnership (GrabRentals)",
-      "company": "Grab",
-      "location": "Singapore, Singapore",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000156728065-intern-marketing-and-partnership-grabrentals",
-      "published_at": "2026-10-21T07:36:11.645Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000156727044",
-      "title": "Intern, Partner Acquisition",
-      "company": "Grab",
-      "location": "Singapore, Singapore",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000156727044-intern-partner-acquisition",
-      "published_at": "2026-10-21T07:30:30.007Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000156730301",
-      "title": "Intern, Social Media & Partner Engagement",
-      "company": "Grab",
-      "location": "Singapore, Singapore",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000156730301-intern-social-media-partner-engagement",
-      "published_at": "2026-10-21T07:48:29.254Z",
       "source_verified": true
     },
     {
