@@ -1,9 +1,10 @@
 import unittest
+from unittest.mock import Mock
 from datetime import datetime, timedelta, timezone
 
 import pandas as pd
 
-from hanz_app.research.g1_fast_recovery import evaluate_bars, validated_bar
+from hanz_app.research.g1_fast_recovery import evaluate_bars, validated_bar, recover_missing_five_minute_bars
 
 
 class G1IndependentFastRecoveryTests(unittest.TestCase):
@@ -53,6 +54,48 @@ class G1IndependentFastRecoveryTests(unittest.TestCase):
         frame.index = pd.DatetimeIndex([self.fresh])
         frame.drop(columns=["Volume"], inplace=True)
         self.assertIsNone(validated_bar(frame))
+
+
+    def test_5m_fallback_recovers_only_missing_1m_symbols(self):
+        engine = Mock()
+        frame = pd.DataFrame(
+            [{"Open": 100, "High": 105, "Low": 98, "Close": 103, "Volume": 10}],
+            index=pd.DatetimeIndex([self.now - timedelta(minutes=5)]),
+        )
+        engine._cached_market_frame.side_effect = (
+            lambda ticker, interval, period: {"frame": frame} if ticker == "B" else None
+        )
+        original = self.now - timedelta(minutes=1)
+        bars = recover_missing_five_minute_bars(
+            engine, ["A", "B", "C"], {"A": original}
+        )
+        self.assertEqual(bars, {"A": original, "B": self.now - timedelta(minutes=5)})
+        engine.prefetch_market_data.assert_called_once_with(["B", "C"], "5m", "5d")
+
+    def test_5m_fallback_does_not_refetch_when_complete(self):
+        engine = Mock()
+        bars = {"A": self.fresh}
+        self.assertEqual(recover_missing_five_minute_bars(engine, ["A"], bars), bars)
+        engine.prefetch_market_data.assert_not_called()
+
+    def test_5m_fallback_rejects_invalid_ohlcv(self):
+        engine = Mock()
+        frame = pd.DataFrame(
+            [{"Open": 100, "High": 99, "Low": 98, "Close": 103, "Volume": 10}],
+            index=pd.DatetimeIndex([self.fresh]),
+        )
+        engine._cached_market_frame.return_value = {"frame": frame}
+        self.assertEqual(recover_missing_five_minute_bars(engine, ["A"], {}), {})
+
+    def test_5m_fallback_old_bar_stays_stale(self):
+        engine = Mock()
+        frame = pd.DataFrame(
+            [{"Open": 100, "High": 105, "Low": 98, "Close": 103, "Volume": 10}],
+            index=pd.DatetimeIndex([self.now - timedelta(hours=2)]),
+        )
+        engine._cached_market_frame.return_value = {"frame": frame}
+        bars = recover_missing_five_minute_bars(engine, self.symbols, {})
+        self.assertEqual(evaluate_bars(self.symbols, bars, self.now)["status"], "STALE")
 
 
 if __name__ == "__main__":

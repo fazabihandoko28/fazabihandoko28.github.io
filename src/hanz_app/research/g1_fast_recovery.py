@@ -68,6 +68,25 @@ def evaluate_bars(tickers, bars, now):
     }
 
 
+
+def recover_missing_five_minute_bars(engine, symbols, bars, validate=validated_bar):
+    """G1-only real 5m fallback for symbols without valid 1m OHLCV.
+
+    Never counts a missing ticker as fresh without a real validated bar;
+    evaluate_bars still enforces session, timestamp and 190/198.
+    """
+    missing = sorted(set(symbols) - set(bars))
+    if not missing:
+        return bars
+    engine.prefetch_market_data(missing, "5m", "5d")
+    for ticker in missing:
+        cached = engine._cached_market_frame(ticker, "5m", "5d")
+        stamp = validate(cached["frame"]) if cached else None
+        if stamp is not None:
+            bars[ticker] = stamp
+    return bars
+
+
 def collect():
     # Imports only here so pure validation tests never require live credentials.
     from hanz_app import fast_trading_engine as engine
@@ -91,6 +110,7 @@ def collect():
         stamp = validated_bar(cached["frame"]) if cached else None
         if stamp is not None:
             bars[ticker] = stamp
+    recover_missing_five_minute_bars(engine, symbols, bars)
     return evaluate_bars(symbols, bars, datetime.now(timezone.utc))
 
 
