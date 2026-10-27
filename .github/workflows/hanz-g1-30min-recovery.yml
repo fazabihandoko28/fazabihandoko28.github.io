@@ -1,6 +1,12 @@
 name: HANZ G1 30-Minute Recovery Check
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/hanz_app/research/g1_fast_recovery.py'
+      - 'tests/test_g1_fast_recovery.py'
+      - '.github/workflows/hanz-g1-30min-recovery.yml'
   schedule:
     - cron: '*/30 * * * *'
   workflow_dispatch:
@@ -36,6 +42,21 @@ jobs:
         run: node --test tests/test_swing_chart_freshness.cjs
       - name: G1 FAST live evidence unit tests
         run: python -m unittest discover -s tests -p 'test_g1_fast_live_evidence.py' -v
+      - name: G1 independent FAST recovery probe (no G0 writes)
+        if: always()
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          HANZ_FAST_PERIOD: '5d'
+        run: python -m hanz_app.research.g1_fast_recovery
+      - name: Preserve G1 actual intraday recovery evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g1-fast-recovery-${{ github.run_id }}
+          path: artifacts/g1/fast-recovery.json
+          if-no-files-found: warn
+          retention-days: 14
       - name: Read-only G1 FAST live evidence
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
@@ -44,5 +65,5 @@ jobs:
       - name: G1 result
         if: always()
         run: |
-          echo 'G1-only scheduled verification; no automatic writes or changes to G0.'
+          echo 'G1-only independent provider probe and verification; no writes or changes to G0.'
           echo 'Passing these tests does not prove live market freshness or G1 CLOSED.'
