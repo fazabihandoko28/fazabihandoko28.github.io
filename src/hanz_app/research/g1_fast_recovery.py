@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 import math
 import re
+import numpy as np
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError
 from datetime import datetime, timezone
@@ -26,6 +27,10 @@ def validated_bar(frame):
     for index in range(len(frame) - 1, -1, -1):
         try:
             bar = frame.iloc[index]
+            # A provider boolean is not a genuine numeric OHLCV observation.
+            if any(isinstance(bar[key], (bool, np.bool_))
+                   for key in ("Open", "High", "Low", "Close", "Volume")):
+                continue
             prices = [float(bar[key]) for key in ("Open", "High", "Low", "Close")]
             opening, high, low, closing = prices
             volume = float(bar["Volume"])
@@ -134,6 +139,10 @@ def _latest_direct_chart_bar(payload, symbol, now):
                 continue
             stamp = datetime.fromtimestamp(stamp_s, timezone.utc)
             if not _fresh_session_bar(stamp, now):
+                continue
+            # JSON true/false must never be coerced into prices or volume.
+            if any(isinstance(value, bool)
+                   for value in (opening, high, low, closing, volume)):
                 continue
             try:
                 prices = [float(x) for x in (opening, high, low, closing)]

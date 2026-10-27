@@ -107,6 +107,17 @@ class G1IndependentFastRecoveryTests(unittest.TestCase):
         bars[self.symbols[189]] = validated_bar(frame)
         self.assertEqual(evaluate_bars(self.symbols, bars, self.now)["status"], "STALE")
 
+    def test_boolean_ohlcv_cannot_certify_cached_candle(self):
+        row = {"Open": 100, "High": 105, "Low": 98, "Close": 103, "Volume": 10}
+        frame = pd.DataFrame([row], index=pd.DatetimeIndex([self.fresh]))
+        self.assertEqual(validated_bar(frame), self.fresh)
+        for field in ("Open", "Volume"):
+            malformed = dict(row, **{field: True})
+            if field == "Open":
+                malformed["Low"] = 1
+            frame = pd.DataFrame([malformed], index=pd.DatetimeIndex([self.fresh]))
+            self.assertIsNone(validated_bar(frame), field)
+
     def test_zero_volume_only_candle_cannot_certify_live(self):
         frame = pd.DataFrame(
             [{"Open": 100, "High": 105, "Low": 98, "Close": 103, "Volume": 0}],
@@ -307,6 +318,20 @@ class G1DirectChartRecoveryTests(unittest.TestCase):
             opener=self.opener(self.payload(symbol="BBRI.JK")),
         )
         self.assertEqual(result, {})
+
+    def test_direct_boolean_ohlcv_cannot_certify_live(self):
+        self.assertEqual(
+            _latest_direct_chart_bar(self.payload(), "BBCA", self.now), self.fresh
+        )
+        for field in ("open", "volume"):
+            payload = self.payload()
+            quote = payload["chart"]["result"][0]["indicators"]["quote"][0]
+            quote[field] = [True]
+            if field == "open":
+                quote["low"] = [1]
+            self.assertIsNone(
+                _latest_direct_chart_bar(payload, "BBCA", self.now), field
+            )
 
     def test_direct_zero_volume_rejected(self):
         self.assertEqual(recover_missing_direct_chart(
