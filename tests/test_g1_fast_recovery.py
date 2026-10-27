@@ -182,6 +182,20 @@ class G1IndependentFastRecoveryTests(unittest.TestCase):
         self.assertEqual(evaluate_bars(self.symbols, bars, self.now)["status"], "STALE")
 
 
+    def test_5m_fallback_replaces_future_dated_1m_with_fresh_bar(self):
+        engine = Mock()
+        frame = pd.DataFrame(
+            [{"Open": 100, "High": 105, "Low": 98, "Close": 103, "Volume": 10}],
+            index=pd.DatetimeIndex([self.fresh]),
+        )
+        engine._cached_market_frame.return_value = {"frame": frame}
+        future = self.now + timedelta(hours=1)
+        bars = recover_missing_five_minute_bars(
+            engine, ["A"], {"A": future}, now=self.now,
+        )
+        self.assertEqual(bars["A"], self.fresh)
+        engine.prefetch_market_data.assert_called_once_with(["A"], "5m", "5d")
+
     def test_5m_fallback_retries_stale_but_valid_1m_bar(self):
         engine = Mock()
         old = self.now - timedelta(hours=2)
@@ -373,6 +387,22 @@ class G1DirectChartRecoveryTests(unittest.TestCase):
         self.assertEqual(recover_missing_direct_chart(
             ["BBCA"], {"BBCA": self.fresh}, now=self.now, opener=forbidden,
         ), {"BBCA": self.fresh})
+
+    def test_direct_replaces_future_dated_prior_with_genuine_fresh_bar(self):
+        future = self.now + timedelta(hours=1)
+        bars = recover_missing_direct_chart(
+            ["BBCA"], {"BBCA": future}, now=self.now,
+            opener=self.opener(self.payload()),
+        )
+        self.assertEqual(bars["BBCA"], self.fresh)
+
+    def test_direct_future_prior_not_replaced_by_stale_candidate(self):
+        future = self.now + timedelta(hours=1)
+        bars = recover_missing_direct_chart(
+            ["BBCA"], {"BBCA": future}, now=self.now,
+            opener=self.opener(self.payload(stamp=self.old)),
+        )
+        self.assertEqual(bars["BBCA"], future)
 
     def test_direct_replaces_stale_with_genuine_newer(self):
         self.assertEqual(recover_missing_direct_chart(
