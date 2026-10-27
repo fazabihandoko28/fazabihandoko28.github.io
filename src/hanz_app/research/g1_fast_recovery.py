@@ -5,6 +5,7 @@ import json
 import math
 import re
 from urllib.request import Request, urlopen
+from urllib.error import HTTPError
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -148,7 +149,7 @@ def _latest_direct_chart_bar(payload, symbol, now):
         return None
 
 
-def recover_missing_direct_chart(symbols, bars, now=None, opener=None, max_requests=40):
+def recover_missing_direct_chart(symbols, bars, now=None, opener=None, max_requests=40, diagnostics=None):
     """G1-only alternative to yfinance batches for still-unverified tickers.
 
     Fetches real Yahoo chart OHLCV via a separate HTTP path. Never writes G0,
@@ -158,13 +159,20 @@ def recover_missing_direct_chart(symbols, bars, now=None, opener=None, max_reque
     if now.tzinfo is None:
         raise ValueError("now must be timezone-aware")
     now = now.astimezone(timezone.utc)
-    if not session_open(now):
-        return bars
-    opener = opener or urlopen
     missing = sorted(s for s in set(symbols)
                      if not _fresh_session_bar(bars.get(s), now))
-    for symbol in missing[:max(0, max_requests)]:
+    if not session_open(now):
+        if diagnostics is not None:
+            diagnostics.update({s: "idx_session_closed" for s in missing})
+        return bars
+    opener = opener or urlopen
+    budget = max(0, max_requests)
+    if diagnostics is not None:
+        diagnostics.update({s: "request_budget_exhausted" for s in missing[budget:]})
+    for symbol in missing[:budget]:
         if not isinstance(symbol, str) or not re.fullmatch(r"[A-Z0-9]{1,12}", symbol):
+            if diagnostics is not None:
+                diagnostics[symbol] = "invalid_symbol"
             continue
         request = Request(
             f"https://query2.finance.yahoo.com/v8/finance/chart/{symbol}.JK?interval=5m&range=1d",
@@ -174,12 +182,21 @@ def recover_missing_direct_chart(symbols, bars, now=None, opener=None, max_reque
             with opener(request, timeout=8) as response:
                 payload = json.load(response)
             stamp = _latest_direct_chart_bar(payload, symbol, now)
+        except HTTPError as exc:
+            if diagnostics is not None:
+                diagnostics[symbol] = f"http_{exc.code}"
+            continue
         except (OSError, ValueError, TypeError, KeyError, IndexError, OverflowError):
+            if diagnostics is not None:
+                diagnostics[symbol] = "provider_request_or_response_error"
             continue
         prior = bars.get(symbol)
         if (stamp is not None and
                 (not isinstance(prior, datetime) or prior.tzinfo is None or stamp > prior)):
             bars[symbol] = stamp
+        if diagnostics is not None:
+            diagnostics[symbol] = ("fresh_verified" if _fresh_session_bar(bars.get(symbol), now)
+                                   else "no_fresh_valid_bar")
     return bars
 
 
@@ -207,8 +224,11 @@ def collect():
         if stamp is not None:
             bars[ticker] = stamp
     recover_missing_five_minute_bars(engine, symbols, bars)
-    recover_missing_direct_chart(symbols, bars)
-    return evaluate_bars(symbols, bars, datetime.now(timezone.utc))
+    attempts = {}
+    recover_missing_direct_chart(symbols, bars, diagnostics=attempts)
+    result = evaluate_bars(symbols, bars, datetime.now(timezone.utc))
+    result["direct_chart_attempts"] = attempts
+    return result
 
 
 def main():
