@@ -1,6 +1,7 @@
 import unittest
 import io
 import json
+from urllib.error import HTTPError
 from unittest.mock import Mock
 from datetime import datetime, timedelta, timezone
 
@@ -332,6 +333,57 @@ class G1DirectChartRecoveryTests(unittest.TestCase):
         self.assertEqual(
             _latest_direct_chart_bar(payload, "BBCA", self.now), self.fresh
         )
+
+
+    def test_direct_records_http_429_per_ticker_without_fabricating_bar(self):
+        diagnostics = {}
+        def rate_limited(*args, **kwargs):
+            raise HTTPError("https://example.test", 429, "rate limited", None, None)
+        result = recover_missing_direct_chart(
+            ["ADCP"], {}, now=self.now, opener=rate_limited, diagnostics=diagnostics
+        )
+        self.assertEqual(result, {})
+        self.assertEqual(diagnostics, {"ADCP": "http_429"})
+
+    def test_direct_records_invalid_provider_response(self):
+        diagnostics = {}
+        def bad_json(*args, **kwargs):
+            return io.BytesIO(b"not-json")
+        self.assertEqual(recover_missing_direct_chart(
+            ["BBCA"], {}, now=self.now, opener=bad_json, diagnostics=diagnostics
+        ), {})
+        self.assertEqual(diagnostics, {"BBCA": "provider_request_or_response_error"})
+
+    def test_direct_records_no_fresh_valid_candle(self):
+        diagnostics = {}
+        recover_missing_direct_chart(
+            ["BBCA"], {}, now=self.now, opener=self.opener(self.payload(stamp=self.old)),
+            diagnostics=diagnostics,
+        )
+        self.assertEqual(diagnostics, {"BBCA": "no_fresh_valid_bar"})
+
+    def test_direct_records_real_fresh_bar_only_after_validation(self):
+        diagnostics = {}
+        result = recover_missing_direct_chart(
+            ["BBCA"], {}, now=self.now, opener=self.opener(self.payload()),
+            diagnostics=diagnostics,
+        )
+        self.assertEqual(result, {"BBCA": self.fresh})
+        self.assertEqual(diagnostics, {"BBCA": "fresh_verified"})
+
+    def test_direct_records_request_budget_exhaustion_without_fetch(self):
+        diagnostics = {}
+        def forbidden(*args, **kwargs):
+            self.fail("No request permitted when budget is zero")
+        self.assertEqual(recover_missing_direct_chart(
+            ["BBCA", "BBRI"], {}, now=self.now, opener=forbidden,
+            max_requests=0, diagnostics=diagnostics,
+        ), {})
+        self.assertEqual(diagnostics, {
+            "BBCA": "request_budget_exhausted",
+            "BBRI": "request_budget_exhausted",
+        })
+
 
 
 if __name__ == "__main__":
