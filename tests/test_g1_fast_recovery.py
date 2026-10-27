@@ -56,6 +56,34 @@ class G1IndependentFastRecoveryTests(unittest.TestCase):
         self.assertIsNone(validated_bar(frame))
 
 
+    def test_invalid_tail_keeps_genuine_prior_timestamp(self):
+        previous = self.now - timedelta(minutes=2)
+        frame = pd.DataFrame([
+            {"Open": 100, "High": 105, "Low": 98, "Close": 103, "Volume": 10},
+            {"Open": 100, "High": 99, "Low": 98, "Close": 103, "Volume": 10},
+        ], index=pd.DatetimeIndex([previous, self.now - timedelta(minutes=1)]))
+        self.assertEqual(validated_bar(frame), previous)
+
+    def test_non_numeric_tail_does_not_hide_valid_prior(self):
+        previous = self.now - timedelta(minutes=2)
+        frame = pd.DataFrame([
+            {"Open": 100, "High": 105, "Low": 98, "Close": 103, "Volume": 10},
+            {"Open": "invalid", "High": 105, "Low": 98, "Close": 103, "Volume": 10},
+        ], index=pd.DatetimeIndex([previous, self.now - timedelta(minutes=1)]))
+        self.assertEqual(validated_bar(frame), previous)
+
+    def test_invalid_tail_cannot_make_old_prior_bar_live(self):
+        stale = self.now - timedelta(hours=2)
+        frame = pd.DataFrame([
+            {"Open": 100, "High": 105, "Low": 98, "Close": 103, "Volume": 10},
+            {"Open": 100, "High": 99, "Low": 98, "Close": 103, "Volume": 10},
+        ], index=pd.DatetimeIndex([stale, self.now - timedelta(minutes=1)]))
+        stamp = validated_bar(frame)
+        self.assertEqual(stamp, stale)
+        bars = {s: self.fresh for s in self.symbols[:189]}
+        bars[self.symbols[189]] = stamp
+        self.assertEqual(evaluate_bars(self.symbols, bars, self.now)["status"], "STALE")
+
     def test_5m_fallback_recovers_only_missing_1m_symbols(self):
         engine = Mock()
         frame = pd.DataFrame(

@@ -14,24 +14,28 @@ OUTPUT = Path("artifacts/g1/fast-recovery.json")
 
 
 def validated_bar(frame):
-    """Return the timestamp of a genuine valid last OHLCV bar, or None."""
-    try:
-        if frame is None or frame.empty:
-            return None
-        bar = frame.iloc[-1]
-        prices = [float(bar[key]) for key in ("Open", "High", "Low", "Close")]
-        opening, high, low, closing = prices
-        volume = float(bar["Volume"])
-        if (not all(math.isfinite(v) and v > 0 for v in prices)
-                or not math.isfinite(volume) or volume < 0
-                or not low <= min(opening, closing) <= max(opening, closing) <= high):
-            return None
-        stamp = frame.index[-1]
-        if stamp.tzinfo is None:
-            return None
-        return stamp.to_pydatetime().astimezone(timezone.utc)
-    except (TypeError, ValueError, KeyError, AttributeError, OverflowError, IndexError):
+    """Return the newest genuine valid OHLCV timestamp; never synthesize a bar."""
+    if frame is None or frame.empty:
         return None
+    # Providers can append a malformed trailing row. Retain the actual timestamp
+    # of the newest earlier valid bar; freshness/session checks remain mandatory.
+    for index in range(len(frame) - 1, -1, -1):
+        try:
+            bar = frame.iloc[index]
+            prices = [float(bar[key]) for key in ("Open", "High", "Low", "Close")]
+            opening, high, low, closing = prices
+            volume = float(bar["Volume"])
+            if (not all(math.isfinite(v) and v > 0 for v in prices)
+                    or not math.isfinite(volume) or volume < 0
+                    or not low <= min(opening, closing) <= max(opening, closing) <= high):
+                continue
+            stamp = frame.index[index]
+            if stamp.tzinfo is None:
+                continue
+            return stamp.to_pydatetime().astimezone(timezone.utc)
+        except (TypeError, ValueError, KeyError, AttributeError, OverflowError, IndexError):
+            continue
+    return None
 
 
 def evaluate_bars(tickers, bars, now):
