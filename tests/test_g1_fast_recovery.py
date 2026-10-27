@@ -1,10 +1,12 @@
 import unittest
+import io
+import json
 from unittest.mock import Mock
 from datetime import datetime, timedelta, timezone
 
 import pandas as pd
 
-from hanz_app.research.g1_fast_recovery import evaluate_bars, validated_bar, recover_missing_five_minute_bars
+from hanz_app.research.g1_fast_recovery import evaluate_bars, validated_bar, recover_missing_five_minute_bars, recover_missing_direct_chart, _latest_direct_chart_bar
 
 
 class G1IndependentFastRecoveryTests(unittest.TestCase):
@@ -197,6 +199,124 @@ class G1IndependentFastRecoveryTests(unittest.TestCase):
                 Mock(), ["A"], {}, now=self.now.replace(tzinfo=None)
             )
 
+
+
+
+class G1DirectChartRecoveryTests(unittest.TestCase):
+    def setUp(self):
+        self.now = datetime(2026, 10, 27, 8, 10, tzinfo=timezone.utc)
+        self.fresh = self.now - timedelta(minutes=2)
+        self.old = self.now - timedelta(days=1)
+
+    def payload(self, stamp=None, symbol="BBCA.JK", volume=100, high=105):
+        return {"chart": {"result": [{
+            "meta": {"symbol": symbol},
+            "timestamp": [int((stamp or self.fresh).timestamp())],
+            "indicators": {"quote": [{
+                "open": [100], "high": [high], "low": [98],
+                "close": [103], "volume": [volume],
+            }]},
+        }]}}
+
+    def opener(self, payload):
+        def open_response(request, timeout):
+            self.assertTrue(request.full_url.startswith(
+                "https://query2.finance.yahoo.com/v8/finance/chart/"
+            ))
+            self.assertEqual(timeout, 8)
+            return io.BytesIO(json.dumps(payload).encode())
+        return open_response
+
+    def test_direct_real_candle_timestamp_recovers_missing(self):
+        result = recover_missing_direct_chart(
+            ["BBCA"], {}, now=self.now, opener=self.opener(self.payload())
+        )
+        self.assertEqual(result, {"BBCA": self.fresh})
+
+    def test_direct_wrong_symbol_rejected(self):
+        result = recover_missing_direct_chart(
+            ["BBCA"], {}, now=self.now,
+            opener=self.opener(self.payload(symbol="BBRI.JK")),
+        )
+        self.assertEqual(result, {})
+
+    def test_direct_zero_volume_rejected(self):
+        self.assertEqual(recover_missing_direct_chart(
+            ["BBCA"], {}, now=self.now,
+            opener=self.opener(self.payload(volume=0)),
+        ), {})
+
+    def test_direct_stale_candle_rejected(self):
+        self.assertEqual(recover_missing_direct_chart(
+            ["BBCA"], {}, now=self.now,
+            opener=self.opener(self.payload(stamp=self.old)),
+        ), {})
+
+    def test_direct_invalid_ohlc_rejected(self):
+        self.assertEqual(recover_missing_direct_chart(
+            ["BBCA"], {}, now=self.now,
+            opener=self.opener(self.payload(high=99)),
+        ), {})
+
+    def test_direct_closed_session_does_not_fetch(self):
+        def forbidden(*args, **kwargs):
+            self.fail("Closed session must not fetch")
+        self.assertEqual(recover_missing_direct_chart(
+            ["BBCA"], {},
+            now=datetime(2026, 10, 25, 8, 10, tzinfo=timezone.utc),
+            opener=forbidden,
+        ), {})
+
+    def test_direct_http_failure_stays_unverified(self):
+        def failed(*args, **kwargs):
+            raise OSError("HTTP 429")
+        self.assertEqual(recover_missing_direct_chart(
+            ["BBCA"], {}, now=self.now, opener=failed,
+        ), {})
+
+    def test_direct_fresh_1m_never_refetched(self):
+        def forbidden(*args, **kwargs):
+            self.fail("Fresh bar must not be fetched again")
+        self.assertEqual(recover_missing_direct_chart(
+            ["BBCA"], {"BBCA": self.fresh}, now=self.now, opener=forbidden,
+        ), {"BBCA": self.fresh})
+
+    def test_direct_replaces_stale_with_genuine_newer(self):
+        self.assertEqual(recover_missing_direct_chart(
+            ["BBCA"], {"BBCA": self.old}, now=self.now,
+            opener=self.opener(self.payload()),
+        )["BBCA"], self.fresh)
+
+    def test_direct_request_limit_prevents_provider_hammering(self):
+        requests = []
+        def failed(request, timeout):
+            requests.append(request.full_url)
+            raise OSError("provider unavailable")
+        recover_missing_direct_chart(
+            ["BBCA", "BBRI", "BMRI"], {}, now=self.now,
+            opener=failed, max_requests=2,
+        )
+        self.assertEqual(len(requests), 2)
+
+    def test_direct_invalid_symbol_not_sent_to_provider(self):
+        requests = []
+        def failed(request, timeout):
+            requests.append(request.full_url)
+            raise OSError("provider unavailable")
+        recover_missing_direct_chart(
+            ["../", "BBCA"], {}, now=self.now, opener=failed,
+        )
+        self.assertEqual(len(requests), 1)
+
+    def test_direct_out_of_order_rows_use_newest_valid_timestamp(self):
+        payload = self.payload()
+        row = payload["chart"]["result"][0]
+        row["timestamp"] = [int(self.fresh.timestamp()), int(self.old.timestamp())]
+        for key in ("open", "high", "low", "close", "volume"):
+            row["indicators"]["quote"][0][key] *= 2
+        self.assertEqual(
+            _latest_direct_chart_bar(payload, "BBCA", self.now), self.fresh
+        )
 
 
 if __name__ == "__main__":
