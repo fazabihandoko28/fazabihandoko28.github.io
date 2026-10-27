@@ -87,6 +87,26 @@ class G1IndependentFastRecoveryTests(unittest.TestCase):
         bars[self.symbols[189]] = stamp
         self.assertEqual(evaluate_bars(self.symbols, bars, self.now)["status"], "STALE")
 
+    def test_out_of_order_rows_select_newest_valid_timestamp(self):
+        # A provider can return an older valid row after a fresh one.
+        # The previous implementation picked the last valid row by position.
+        stale = self.now - timedelta(hours=2)
+        fresh = self.now - timedelta(minutes=2)
+        row = {"Open": 100, "High": 105, "Low": 98, "Close": 103, "Volume": 10}
+        frame = pd.DataFrame([row, row], index=pd.DatetimeIndex([fresh, stale]))
+        self.assertEqual(validated_bar(frame), fresh)
+
+    def test_out_of_order_invalid_newest_uses_actual_older_valid(self):
+        stale = self.now - timedelta(hours=2)
+        fresh = self.now - timedelta(minutes=2)
+        valid = {"Open": 100, "High": 105, "Low": 98, "Close": 103, "Volume": 10}
+        invalid = dict(valid, Volume=0)
+        frame = pd.DataFrame([invalid, valid], index=pd.DatetimeIndex([fresh, stale]))
+        self.assertEqual(validated_bar(frame), stale)
+        bars = {s: self.fresh for s in self.symbols[:189]}
+        bars[self.symbols[189]] = validated_bar(frame)
+        self.assertEqual(evaluate_bars(self.symbols, bars, self.now)["status"], "STALE")
+
     def test_zero_volume_only_candle_cannot_certify_live(self):
         frame = pd.DataFrame(
             [{"Open": 100, "High": 105, "Low": 98, "Close": 103, "Volume": 0}],
