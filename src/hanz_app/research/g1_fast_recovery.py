@@ -20,8 +20,9 @@ def validated_bar(frame):
     """Return the newest genuine valid OHLCV timestamp; never synthesize a bar."""
     if frame is None or frame.empty:
         return None
-    # Providers can append a malformed trailing row. Retain the actual timestamp
-    # of the newest earlier valid bar; freshness/session checks remain mandatory.
+    # Providers may return out-of-order rows or malformed trailing rows.
+    # Choose the newest actual valid timestamp, never the last row position.
+    best = None
     for index in range(len(frame) - 1, -1, -1):
         try:
             bar = frame.iloc[index]
@@ -35,10 +36,12 @@ def validated_bar(frame):
             stamp = frame.index[index]
             if stamp.tzinfo is None:
                 continue
-            return stamp.to_pydatetime().astimezone(timezone.utc)
+            stamp = stamp.to_pydatetime().astimezone(timezone.utc)
+            if best is None or stamp > best:
+                best = stamp
         except (TypeError, ValueError, KeyError, AttributeError, OverflowError, IndexError):
             continue
-    return None
+    return best
 
 
 def evaluate_bars(tickers, bars, now):
