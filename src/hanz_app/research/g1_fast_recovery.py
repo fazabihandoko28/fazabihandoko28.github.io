@@ -69,20 +69,35 @@ def evaluate_bars(tickers, bars, now):
 
 
 
-def recover_missing_five_minute_bars(engine, symbols, bars, validate=validated_bar):
-    """G1-only real 5m fallback for symbols without valid 1m OHLCV.
+def _fresh_session_bar(stamp, now):
+    """A valid 1m timestamp must also be fresh and from the regular IDX session."""
+    if not isinstance(stamp, datetime) or stamp.tzinfo is None:
+        return False
+    age = (now - stamp.astimezone(timezone.utc)).total_seconds()
+    return 0 <= age <= FRESHNESS_SECONDS and session_open(stamp)
 
-    Never counts a missing ticker as fresh without a real validated bar;
-    evaluate_bars still enforces session, timestamp and 190/198.
+
+def recover_missing_five_minute_bars(engine, symbols, bars, validate=validated_bar, now=None):
+    """G1-only real 5m fallback for missing, stale or out-of-session 1m bars.
+
+    A valid but old 1m bar must not prevent a genuine fresh 5m retry.
+    Never invent candles or replace a newer bar with an older one.
     """
-    missing = sorted(set(symbols) - set(bars))
+    now = now or datetime.now(timezone.utc)
+    if now.tzinfo is None:
+        raise ValueError("now must be timezone-aware")
+    now = now.astimezone(timezone.utc)
+    missing = sorted(symbol for symbol in set(symbols)
+                     if not _fresh_session_bar(bars.get(symbol), now))
     if not missing:
         return bars
     engine.prefetch_market_data(missing, "5m", "5d")
     for ticker in missing:
         cached = engine._cached_market_frame(ticker, "5m", "5d")
         stamp = validate(cached["frame"]) if cached else None
-        if stamp is not None:
+        prior = bars.get(ticker)
+        if (stamp is not None and
+                (not isinstance(prior, datetime) or prior.tzinfo is None or stamp > prior)):
             bars[ticker] = stamp
     return bars
 
