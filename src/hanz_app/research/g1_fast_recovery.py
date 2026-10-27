@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import json
 import math
+import re
+from urllib.request import Request, urlopen
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -106,6 +108,76 @@ def recover_missing_five_minute_bars(engine, symbols, bars, validate=validated_b
     return bars
 
 
+
+def _latest_direct_chart_bar(payload, symbol, now):
+    """Verify actual Yahoo chart OHLCV, symbol identity and IDX timestamps."""
+    try:
+        result = payload["chart"]["result"][0]
+        if str(result["meta"]["symbol"]).upper() != f"{symbol}.JK":
+            return None
+        quotes = result["indicators"]["quote"][0]
+        best = None
+        for stamp_s, opening, high, low, closing, volume in zip(
+            result["timestamp"],
+            *(quotes[key] for key in ("open", "high", "low", "close", "volume")),
+        ):
+            if not isinstance(stamp_s, int) or isinstance(stamp_s, bool):
+                continue
+            stamp = datetime.fromtimestamp(stamp_s, timezone.utc)
+            if not _fresh_session_bar(stamp, now):
+                continue
+            try:
+                prices = [float(x) for x in (opening, high, low, closing)]
+                volume = float(volume)
+            except (TypeError, ValueError, OverflowError):
+                continue
+            op, hi, lo, cl = prices
+            if (not all(math.isfinite(v) and v > 0 for v in prices)
+                    or not math.isfinite(volume) or volume <= 0
+                    or not lo <= min(op, cl) <= max(op, cl) <= hi):
+                continue
+            if best is None or stamp > best:
+                best = stamp
+        return best
+    except (KeyError, TypeError, ValueError, IndexError, OverflowError):
+        return None
+
+
+def recover_missing_direct_chart(symbols, bars, now=None, opener=None, max_requests=40):
+    """G1-only alternative to yfinance batches for still-unverified tickers.
+
+    Fetches real Yahoo chart OHLCV via a separate HTTP path. Never writes G0,
+    fabricates candles or upgrades a stale ticker without genuine evidence.
+    """
+    now = now or datetime.now(timezone.utc)
+    if now.tzinfo is None:
+        raise ValueError("now must be timezone-aware")
+    now = now.astimezone(timezone.utc)
+    if not session_open(now):
+        return bars
+    opener = opener or urlopen
+    missing = sorted(s for s in set(symbols)
+                     if not _fresh_session_bar(bars.get(s), now))
+    for symbol in missing[:max(0, max_requests)]:
+        if not isinstance(symbol, str) or not re.fullmatch(r"[A-Z0-9]{1,12}", symbol):
+            continue
+        request = Request(
+            f"https://query2.finance.yahoo.com/v8/finance/chart/{symbol}.JK?interval=5m&range=1d",
+            headers={"User-Agent": "Mozilla/5.0", "Accept": "application/json"},
+        )
+        try:
+            with opener(request, timeout=8) as response:
+                payload = json.load(response)
+            stamp = _latest_direct_chart_bar(payload, symbol, now)
+        except (OSError, ValueError, TypeError, KeyError, IndexError, OverflowError):
+            continue
+        prior = bars.get(symbol)
+        if (stamp is not None and
+                (not isinstance(prior, datetime) or prior.tzinfo is None or stamp > prior)):
+            bars[symbol] = stamp
+    return bars
+
+
 def collect():
     # Imports only here so pure validation tests never require live credentials.
     from hanz_app import fast_trading_engine as engine
@@ -130,6 +202,7 @@ def collect():
         if stamp is not None:
             bars[ticker] = stamp
     recover_missing_five_minute_bars(engine, symbols, bars)
+    recover_missing_direct_chart(symbols, bars)
     return evaluate_bars(symbols, bars, datetime.now(timezone.utc))
 
 
