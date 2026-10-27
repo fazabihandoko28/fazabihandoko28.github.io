@@ -25,11 +25,30 @@ class G1FastLiveEvidenceTests(unittest.TestCase):
         self.assertEqual(report["g1_fast_live"], "STALE")
         self.assertIn("source_status_not_fresh", report["blockers"])
 
-    def test_g0_190_threshold_does_not_weaken_g1(self):
+    def test_g1_agreed_190_threshold_accepts_fresh_partial_only(self):
         for n in (190, 193, 197):
             with self.subTest(coverage=n):
-                self.assertIn("g1_coverage_incomplete", evaluate(
-                    {**self.good, "symbols_monitored": n}, self.now)["blockers"])
+                row = {**self.good, "symbols_monitored": n, "data_status": "PARTIAL"}
+                self.assertTrue(evaluate(row, self.now)["g1_fast_live_verified"])
+
+    def test_below_190_remains_incomplete(self):
+        for n in (0, 189):
+            with self.subTest(coverage=n):
+                row = {**self.good, "symbols_monitored": n, "data_status": "PARTIAL"}
+                self.assertIn("g1_coverage_incomplete", evaluate(row, self.now)["blockers"])
+
+    def test_partial_source_with_old_candles_is_stale(self):
+        for age in (1801, 27416):
+            with self.subTest(age=age):
+                row = {**self.good, "symbols_monitored": 193,
+                       "data_status": "PARTIAL", "data_age_seconds": age}
+                self.assertFalse(evaluate(row, self.now)["g1_fast_live_verified"])
+
+    def test_partial_coverage_mislabeled_fresh_fails_closed(self):
+        row = {**self.good, "symbols_monitored": 193, "data_status": "FRESH"}
+        report = evaluate(row, self.now)
+        self.assertFalse(report["g1_fast_live_verified"])
+        self.assertIn("source_status_coverage_conflict", report["blockers"])
 
     def test_invalid_symbol_counts_cannot_be_coerced_into_g1_live(self):
         # Before the guard, 198.9 and "198" were coerced to 198 and passed.
