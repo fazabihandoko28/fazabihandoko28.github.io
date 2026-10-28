@@ -274,14 +274,18 @@ def collect():
     # requests on 198 symbols outside IDX hours. Preserve the actual universe.
     if not session_open(datetime.now(timezone.utc)):
         return evaluate_bars(symbols, {}, datetime.now(timezone.utc))
-    engine.prefetch_market_data(symbols, engine.INTRADAY_INTERVAL, engine.INTRADAY_PERIOD)
+    attempts = {}
+    try:
+        engine.prefetch_market_data(symbols, engine.INTRADAY_INTERVAL, engine.INTRADAY_PERIOD)
+    except Exception as exc:
+        # Optional primary provider failure must not prevent independent fallbacks.
+        attempts["one_minute_prefetch_error"] = type(exc).__name__
     bars = {}
     for ticker in symbols:
         cached = engine._cached_market_frame(ticker, engine.INTRADAY_INTERVAL, engine.INTRADAY_PERIOD)
         stamp = validated_bar(cached["frame"]) if cached else None
         if stamp is not None:
             bars[ticker] = stamp
-    attempts = {}
     recover_missing_with_fallbacks(engine, symbols, bars, diagnostics=attempts)
     result = evaluate_bars(symbols, bars, datetime.now(timezone.utc))
     result["direct_chart_attempts"] = attempts

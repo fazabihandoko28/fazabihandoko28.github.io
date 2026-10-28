@@ -295,6 +295,23 @@ class G1ClosedSessionProbeTests(unittest.TestCase):
         self.assertEqual(result["fresh_valid_count"], 0)
 
 
+    def test_open_session_initial_prefetch_error_still_retries_fallbacks(self):
+        import hanz_app
+        from unittest.mock import patch
+        from hanz_app.research.g1_fast_recovery import collect
+
+        engine = self.fake_engine()
+        engine.prefetch_market_data.side_effect = OSError("1m provider unavailable")
+        with patch.object(hanz_app, "fast_trading_engine", engine, create=True), \
+                patch("hanz_app.research.g1_fast_recovery.session_open", return_value=True), \
+                patch("hanz_app.research.g1_fast_recovery.recover_missing_with_fallbacks") as fallback:
+            result = collect()
+        fallback.assert_called_once()
+        self.assertEqual(result["status"], "STALE")
+        self.assertEqual(result["fresh_valid_count"], 0)
+        self.assertEqual(result["direct_chart_attempts"]["one_minute_prefetch_error"], "OSError")
+
+
 class G1DirectChartRecoveryTests(unittest.TestCase):
     def setUp(self):
         self.now = datetime(2026, 10, 27, 8, 10, tzinfo=timezone.utc)
