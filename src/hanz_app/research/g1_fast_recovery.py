@@ -101,7 +101,7 @@ def _fresh_session_bar(stamp, now):
     return 0 <= age <= FRESHNESS_SECONDS and session_open(stamp)
 
 
-def recover_missing_five_minute_bars(engine, symbols, bars, validate=validated_bar, now=None):
+def recover_missing_five_minute_bars(engine, symbols, bars, validate=validated_bar, now=None, diagnostics=None):
     """G1-only real 5m fallback for missing, stale or out-of-session 1m bars.
 
     A valid but old 1m bar must not prevent a genuine fresh 5m retry.
@@ -115,10 +115,21 @@ def recover_missing_five_minute_bars(engine, symbols, bars, validate=validated_b
                      if not _fresh_session_bar(bars.get(symbol), now))
     if not missing:
         return bars
-    engine.prefetch_market_data(missing, "5m", "5d")
+    try:
+        engine.prefetch_market_data(missing, "5m", "5d")
+    except Exception as exc:
+        # Partial provider batches may still leave genuine cached candles.
+        if diagnostics is not None:
+            diagnostics["five_minute_prefetch_error"] = type(exc).__name__
     for ticker in missing:
-        cached = engine._cached_market_frame(ticker, "5m", "5d")
-        stamp = validate(cached["frame"]) if cached else None
+        try:
+            cached = engine._cached_market_frame(ticker, "5m", "5d")
+            stamp = validate(cached["frame"]) if cached else None
+        except (OSError, ValueError, TypeError, KeyError, AttributeError, OverflowError, IndexError) as exc:
+            # One bad ticker must not discard other real 5m observations.
+            if diagnostics is not None:
+                diagnostics.setdefault("five_minute_cache_errors", {})[ticker] = type(exc).__name__
+            continue
         prior = bars.get(ticker)
         if (stamp is not None and
                 (not isinstance(prior, datetime) or prior.tzinfo is None or stamp > prior
@@ -245,7 +256,7 @@ def recover_missing_with_fallbacks(engine, symbols, bars, diagnostics=None):
     if diagnostics is None:
         diagnostics = {}
     try:
-        recover_missing_five_minute_bars(engine, symbols, bars)
+        recover_missing_five_minute_bars(engine, symbols, bars, diagnostics=diagnostics)
     except Exception as exc:
         # A failed optional provider must not prevent the independent retry.
         # Keep the error visible; only actual validated candles can count.
