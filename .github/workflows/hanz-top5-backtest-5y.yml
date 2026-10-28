@@ -79,6 +79,9 @@ jobs:
                   gap = row["max_gap_days"]
                   return (
                       end >= anniversary
+                      # Reject complete but years-old or future-dated replay data.
+                      # Five-year history must still end near this workflow run.
+                      and 0 <= (date.today() - end).days <= 7
                       and all(isinstance(value, int) and not isinstance(value, bool)
                               for value in (days, bars, gap))
                       and days >= 1000
