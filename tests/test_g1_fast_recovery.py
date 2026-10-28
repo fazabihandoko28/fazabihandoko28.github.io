@@ -7,7 +7,7 @@ from datetime import datetime, timedelta, timezone
 
 import pandas as pd
 
-from hanz_app.research.g1_fast_recovery import evaluate_bars, validated_bar, recover_missing_five_minute_bars, recover_missing_direct_chart, _latest_direct_chart_bar
+from hanz_app.research.g1_fast_recovery import evaluate_bars, validated_bar, recover_missing_five_minute_bars, recover_missing_direct_chart, _latest_direct_chart_bar, live_session_exit_code
 
 
 class G1IndependentFastRecoveryTests(unittest.TestCase):
@@ -570,6 +570,41 @@ class G1DirectChartRecoveryTests(unittest.TestCase):
             "BBRI": "request_budget_exhausted",
         })
 
+
+
+
+class G1IndependentLiveSessionGateTests(unittest.TestCase):
+    def setUp(self):
+        self.good = {
+            "idx_session_open": True, "status": "LIVE",
+            "fresh_valid_count": 190, "universe_count": 198,
+        }
+
+    def test_genuine_190_of_198_passes(self):
+        self.assertEqual(live_session_exit_code(self.good, True), 0)
+
+    def test_189_of_198_fails(self):
+        row = {**self.good, "status": "STALE", "fresh_valid_count": 189}
+        self.assertEqual(live_session_exit_code(row, True), 2)
+
+    def test_stale_status_cannot_pass_with_190(self):
+        self.assertEqual(live_session_exit_code({**self.good, "status": "STALE"}, True), 2)
+
+    def test_wrong_universe_size_fails(self):
+        self.assertEqual(live_session_exit_code({**self.good, "universe_count": 197}, True), 2)
+
+    def test_false_live_count_fails(self):
+        self.assertEqual(live_session_exit_code({**self.good, "fresh_valid_count": 0}, True), 2)
+
+    def test_closed_session_does_not_fail_ci(self):
+        row = {**self.good, "idx_session_open": False, "status": "STALE"}
+        self.assertEqual(live_session_exit_code(row, True), 0)
+
+    def test_opt_in_gate_is_nonblocking_by_default(self):
+        self.assertEqual(live_session_exit_code({**self.good, "status": "STALE"}, False), 0)
+
+    def test_missing_evidence_fails_during_open_session(self):
+        self.assertEqual(live_session_exit_code({"idx_session_open": True}, True), 2)
 
 
 if __name__ == "__main__":

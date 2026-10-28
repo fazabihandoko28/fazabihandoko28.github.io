@@ -48,7 +48,7 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
           HANZ_FAST_PERIOD: '5d'
-        run: python -m hanz_app.research.g1_fast_recovery
+        run: python -m hanz_app.research.g1_fast_recovery --fail-during-live-session
       - name: Preserve G1 actual intraday recovery evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -58,10 +58,11 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
       - name: Read-only G1 FAST live evidence
+        if: always()
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
-        run: python -m hanz_app.research.g1_fast_live_evidence --fail-during-live-session
+        run: python -m hanz_app.research.g1_fast_live_evidence
       - name: G1 result
         if: always()
         run: |

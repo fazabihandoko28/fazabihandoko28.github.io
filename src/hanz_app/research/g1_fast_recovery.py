@@ -1,6 +1,7 @@
 """Independent G1 FAST candle recovery evidence; never writes G0 or trading signals."""
 from __future__ import annotations
 
+import argparse
 import json
 import math
 import re
@@ -82,6 +83,14 @@ def evaluate_bars(tickers, bars, now):
         "g0_touched": False,
     }
 
+
+def live_session_exit_code(result, enforce):
+    """Gate G1 CI on independent genuine intraday evidence, not G0 health."""
+    if not enforce or not result.get("idx_session_open"):
+        return 0
+    return 0 if (result.get("status") == "LIVE"
+                 and result.get("fresh_valid_count", 0) >= G1_MIN_SYMBOLS
+                 and result.get("universe_count") == G1_UNIVERSE_SIZE) else 2
 
 
 def _fresh_session_bar(stamp, now):
@@ -266,6 +275,9 @@ def collect():
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--fail-during-live-session", action="store_true")
+    args = parser.parse_args()
     try:
         result = collect()
     except Exception as exc:
@@ -276,7 +288,9 @@ def main():
     print("G1 INDEPENDENT FAST RECOVERY: " + json.dumps({
         key: value for key, value in result.items() if key != "fresh_bar_timestamps"
     }, sort_keys=True), flush=True)
-    # STALE is evidence, not a failed software test. Downstream gates decide CLOSED.
+    # A stale independent probe fails only during the live IDX session.
+    # This exit code never certifies G1 CLOSED or changes G0.
+    raise SystemExit(live_session_exit_code(result, args.fail_during_live_session))
 
 
 if __name__ == "__main__":
