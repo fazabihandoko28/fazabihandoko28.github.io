@@ -282,8 +282,13 @@ def collect():
         attempts["one_minute_prefetch_error"] = type(exc).__name__
     bars = {}
     for ticker in symbols:
-        cached = engine._cached_market_frame(ticker, engine.INTRADAY_INTERVAL, engine.INTRADAY_PERIOD)
-        stamp = validated_bar(cached["frame"]) if cached else None
+        try:
+            cached = engine._cached_market_frame(ticker, engine.INTRADAY_INTERVAL, engine.INTRADAY_PERIOD)
+            stamp = validated_bar(cached["frame"]) if cached else None
+        except (OSError, ValueError, TypeError, KeyError, AttributeError, OverflowError, IndexError) as exc:
+            # One broken cache entry must not block genuine 5m/direct-chart retries.
+            attempts.setdefault("one_minute_cache_errors", {})[ticker] = type(exc).__name__
+            continue
         if stamp is not None:
             bars[ticker] = stamp
     recover_missing_with_fallbacks(engine, symbols, bars, diagnostics=attempts)
