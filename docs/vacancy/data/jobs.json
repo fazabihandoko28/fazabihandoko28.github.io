@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-10-27T22:18:32.466051+00:00",
+  "generated_at": "2026-10-28T05:48:05.439805+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1332,
-  "matching_jobs": 74,
+  "raw_jobs": 1327,
+  "matching_jobs": 75,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 442
+      "jobs": 440
     },
     {
       "name": "Publicis Groupe",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 390
+      "jobs": 387
     },
     {
       "name": "Visa",
@@ -113,6 +113,15 @@
       "location": "Shah Alam, Malaysia",
       "url": "https://jobs.smartrecruiters.com/BoschGroup/744000158007329-marketing-executive",
       "published_at": "2026-10-27T10:17:18.384Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000157995659",
+      "title": "[Bosch HcP - Internship] Talent Acquisition Intern",
+      "company": "Bosch Group",
+      "location": "An Phuoc Commune, Vietnam",
+      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000157995659-bosch-hcp-internship-talent-acquisition-intern",
+      "published_at": "2026-10-27T09:23:17.733Z",
       "source_verified": true
     },
     {
