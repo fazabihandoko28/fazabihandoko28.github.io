@@ -65,7 +65,8 @@ jobs:
           results = report.get("results") or {}
           def has_complete_history(symbol):
               row = results.get(symbol)
-              if not isinstance(row, dict) or row.get("status") != "OK":
+              if (not isinstance(row, dict) or row.get("status") != "OK"
+                  or row.get("symbol") != symbol):
                   return False
               try:
                   start = date.fromisoformat(row["span_start"])
