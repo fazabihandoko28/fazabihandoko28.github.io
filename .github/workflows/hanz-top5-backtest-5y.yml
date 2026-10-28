@@ -47,6 +47,7 @@ jobs:
           pip install -e .
 
       - name: Generate real 5Y backtest
+        id: generate
         run: python -m hanz_app.research.generate_top5_5y_backtest
 
       - name: Show generated summary
@@ -114,6 +115,7 @@ jobs:
           fi
 
       - name: Upload backtest artifact
+        if: ${{ !cancelled() && steps.generate.outcome == 'success' }}
         uses: actions/upload-artifact@v4
         with:
           name: hanz-top5-backtest-5y
