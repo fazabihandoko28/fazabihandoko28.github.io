@@ -239,6 +239,21 @@ def recover_missing_direct_chart(symbols, bars, now=None, opener=None, max_reque
     return bars
 
 
+
+def recover_missing_with_fallbacks(engine, symbols, bars, diagnostics=None):
+    """Attempt real 5m bars, then independent direct chart even if 5m fails."""
+    if diagnostics is None:
+        diagnostics = {}
+    try:
+        recover_missing_five_minute_bars(engine, symbols, bars)
+    except Exception as exc:
+        # A failed optional provider must not prevent the independent retry.
+        # Keep the error visible; only actual validated candles can count.
+        diagnostics["five_minute_fallback_error"] = type(exc).__name__
+    recover_missing_direct_chart(symbols, bars, diagnostics=diagnostics)
+    return bars
+
+
 def collect():
     # Imports only here so pure validation tests never require live credentials.
     from hanz_app import fast_trading_engine as engine
@@ -266,9 +281,8 @@ def collect():
         stamp = validated_bar(cached["frame"]) if cached else None
         if stamp is not None:
             bars[ticker] = stamp
-    recover_missing_five_minute_bars(engine, symbols, bars)
     attempts = {}
-    recover_missing_direct_chart(symbols, bars, diagnostics=attempts)
+    recover_missing_with_fallbacks(engine, symbols, bars, diagnostics=attempts)
     result = evaluate_bars(symbols, bars, datetime.now(timezone.utc))
     result["direct_chart_attempts"] = attempts
     return result
