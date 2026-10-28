@@ -14,14 +14,14 @@
     "AALI"
   ],
   "methodology": {
-    "name": "HANZ no-lookahead 5Y historical replay",
+    "name": "HANZ 5Y retrospective replay of current Top 5 candidates",
     "period": "5 calendar years plus up to 7 real trading-calendar buffer days; Yahoo 10y acquisition",
     "minimum_bars": 60,
     "horizon_bars": 5,
     "step_bars": 1,
     "target_pct": 4.0,
     "stop_pct": 2.5,
-    "note": "Historical replay uses HANZ core technical decision rules. Live V43 ranking also uses market/flow layers that are not fully reconstructible historically."
+    "note": "Per-event technical decisions use no future bars, but Top 5 tickers are selected from the current monitor snapshot (selection/survivorship bias); this is not point-in-time OOS validation, and returns exclude execution fees and slippage. Live V43 ranking market/flow layers are not fully reconstructible historically. Not a validated BUY signal."
   },
   "results": {
     "AALI": {
