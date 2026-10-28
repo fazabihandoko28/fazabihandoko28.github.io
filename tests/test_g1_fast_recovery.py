@@ -245,6 +245,43 @@ class G1IndependentFastRecoveryTests(unittest.TestCase):
                 Mock(), ["A"], {}, now=self.now.replace(tzinfo=None)
             )
 
+    def test_5m_cache_error_is_isolated_to_one_ticker(self):
+        engine = Mock()
+        stamp = self.now - timedelta(minutes=5)
+        frame = pd.DataFrame(
+            [{"Open": 100, "High": 105, "Low": 98, "Close": 103, "Volume": 10}],
+            index=pd.DatetimeIndex([stamp]),
+        )
+        def cache(ticker, interval, period):
+            if ticker == "B":
+                raise OSError("corrupt 5m cache")
+            return {"frame": frame} if ticker in ("A", "C") else None
+        engine._cached_market_frame.side_effect = cache
+        diagnostics = {}
+        bars = recover_missing_five_minute_bars(
+            engine, ["A", "B", "C"], {}, now=self.now, diagnostics=diagnostics,
+        )
+        self.assertEqual(bars, {"A": stamp, "C": stamp})
+        self.assertEqual(diagnostics, {"five_minute_cache_errors": {"B": "OSError"}})
+
+    def test_5m_partial_prefetch_failure_retains_cached_candles(self):
+        engine = Mock()
+        engine.prefetch_market_data.side_effect = OSError("partial batch")
+        stamp = self.now - timedelta(minutes=5)
+        frame = pd.DataFrame(
+            [{"Open": 100, "High": 105, "Low": 98, "Close": 103, "Volume": 10}],
+            index=pd.DatetimeIndex([stamp]),
+        )
+        engine._cached_market_frame.side_effect = (
+            lambda ticker, interval, period: {"frame": frame} if ticker == "A" else None
+        )
+        diagnostics = {}
+        bars = recover_missing_five_minute_bars(
+            engine, ["A", "B"], {}, now=self.now, diagnostics=diagnostics,
+        )
+        self.assertEqual(bars, {"A": stamp})
+        self.assertEqual(diagnostics, {"five_minute_prefetch_error": "OSError"})
+
 
 
 
