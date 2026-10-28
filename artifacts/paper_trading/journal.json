@@ -2358,5 +2358,25 @@
     "source": "YAHOO_FINANCE_RESEARCH_ONLY",
     "recorded_at": "2026-10-27T18:51:15.676110+00:00",
     "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "JSMR",
+    "status": "WAIT",
+    "signal_timestamp": "2026-10-28T00:00:00+00:00",
+    "signal_close": 2880.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-10-28T18:59:33.958601+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "ASII",
+    "status": "WAIT",
+    "signal_timestamp": "2026-10-28T00:00:00+00:00",
+    "signal_close": 5000.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-10-28T18:59:33.958624+00:00",
+    "outcome": "PENDING"
   }
 ]
