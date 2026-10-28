@@ -56,11 +56,36 @@ jobs:
         run: |
           python - <<'PY'
           import json
+          from datetime import date
           from pathlib import Path
           report = json.loads(Path("docs/dashboard/swing/backtest-5y.json").read_text())
           coverage = report.get("coverage") or {}
           symbols = report.get("selected_top5") or []
           results = report.get("results") or {}
+          def has_complete_history(symbol):
+              row = results.get(symbol)
+              if not isinstance(row, dict) or row.get("status") != "OK":
+                  return False
+              try:
+                  start = date.fromisoformat(row["span_start"])
+                  end = date.fromisoformat(row["span_end"])
+                  try:
+                      anniversary = start.replace(year=start.year + 5)
+                  except ValueError:
+                      anniversary = start.replace(year=start.year + 5, day=28)
+                  days = row["distinct_trading_days"]
+                  bars = row["bars"]
+                  gap = row["max_gap_days"]
+                  return (
+                      end >= anniversary
+                      and all(isinstance(value, int) and not isinstance(value, bool)
+                              for value in (days, bars, gap))
+                      and days >= 1000
+                      and bars >= days
+                      and 0 < gap <= 45
+                  )
+              except (KeyError, TypeError, ValueError, OverflowError):
+                  return False
           valid = (
               coverage.get("backtest_complete") is True
               and coverage.get("selected_count") == 5
@@ -69,7 +94,7 @@ jobs:
               and coverage.get("unavailable_count") == 0
               and coverage.get("all_selected_accounted_for") is True
               and len(symbols) == len(set(symbols)) == 5
-              and all(results.get(s, {}).get("status") == "OK" for s in symbols)
+              and all(has_complete_history(s) for s in symbols)
           )
           if not valid:
               raise SystemExit("G1 backtest incomplete: refusing to publish incomplete five-year Top 5 evidence")
