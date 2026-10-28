@@ -353,6 +353,25 @@ class G1DirectChartRecoveryTests(unittest.TestCase):
             opener=self.opener(self.payload(volume=0)),
         ), {})
 
+    def test_corrupt_timestamp_does_not_hide_other_genuine_candle(self):
+        # A corrupt timestamp can coexist with a valid Yahoo OHLCV bar.
+        # Previously fromtimestamp() aborted the entire payload, returning None.
+        for invalid_first in (False, True):
+            with self.subTest(invalid_first=invalid_first):
+                payload = self.payload()
+                result = payload["chart"]["result"][0]
+                valid = result["timestamp"][0]
+                result["timestamp"] = ([10**20, valid] if invalid_first
+                                       else [valid, 10**20])
+                quote = result["indicators"]["quote"][0]
+                for field in ("open", "high", "low", "close", "volume"):
+                    value = quote[field][0]
+                    quote[field] = [value, value]
+                self.assertEqual(
+                    _latest_direct_chart_bar(payload, "BBCA", self.now),
+                    self.fresh,
+                )
+
     def test_direct_stale_candle_rejected(self):
         self.assertEqual(recover_missing_direct_chart(
             ["BBCA"], {}, now=self.now,

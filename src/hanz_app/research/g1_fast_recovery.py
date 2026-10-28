@@ -138,7 +138,11 @@ def _latest_direct_chart_bar(payload, symbol, now):
         for stamp_s, opening, high, low, closing, volume in zip(stamps, *fields):
             if not isinstance(stamp_s, int) or isinstance(stamp_s, bool):
                 continue
-            stamp = datetime.fromtimestamp(stamp_s, timezone.utc)
+            # One malformed provider timestamp must not hide other genuine bars.
+            try:
+                stamp = datetime.fromtimestamp(stamp_s, timezone.utc)
+            except (OverflowError, OSError, ValueError):
+                continue
             if not _fresh_session_bar(stamp, now):
                 continue
             # JSON true/false must never be coerced into prices or volume.
