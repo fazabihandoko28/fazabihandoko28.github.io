@@ -52,6 +52,29 @@ jobs:
       - name: Show generated summary
         run: cat docs/dashboard/swing/backtest-5y.json
 
+      - name: Require complete G1 Top 5 five-year evidence before publishing
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          report = json.loads(Path("docs/dashboard/swing/backtest-5y.json").read_text())
+          coverage = report.get("coverage") or {}
+          symbols = report.get("selected_top5") or []
+          results = report.get("results") or {}
+          valid = (
+              coverage.get("backtest_complete") is True
+              and coverage.get("selected_count") == 5
+              and coverage.get("evaluated_count") == 5
+              and coverage.get("five_year_history_count") == 5
+              and coverage.get("unavailable_count") == 0
+              and coverage.get("all_selected_accounted_for") is True
+              and len(symbols) == len(set(symbols)) == 5
+              and all(results.get(s, {}).get("status") == "OK" for s in symbols)
+          )
+          if not valid:
+              raise SystemExit("G1 backtest incomplete: refusing to publish incomplete five-year Top 5 evidence")
+          PY
+
       - name: Commit backtest result
         run: |
           git config user.name "HANZ Intelligence Bot"
