@@ -311,6 +311,35 @@ class G1ClosedSessionProbeTests(unittest.TestCase):
         self.assertEqual(result["fresh_valid_count"], 0)
         self.assertEqual(result["direct_chart_attempts"]["one_minute_prefetch_error"], "OSError")
 
+    def test_one_bad_1m_cache_entry_keeps_valid_candles_and_fallbacks(self):
+        import hanz_app
+        from unittest.mock import patch
+        from hanz_app.research.g1_fast_recovery import collect
+
+        engine = self.fake_engine()
+        stamp = datetime.now(timezone.utc) - timedelta(minutes=2)
+        frame = pd.DataFrame(
+            [{"Open": 100, "High": 105, "Low": 98, "Close": 103, "Volume": 10}],
+            index=pd.DatetimeIndex([stamp]),
+        )
+
+        def cached(ticker, interval, period):
+            if ticker == "T007":
+                raise OSError("one corrupt 1m cache entry")
+            return {"frame": frame} if ticker == "T006" else None
+
+        engine._cached_market_frame.side_effect = cached
+        with patch.object(hanz_app, "fast_trading_engine", engine, create=True), \
+                patch("hanz_app.research.g1_fast_recovery.session_open", return_value=True), \
+                patch("hanz_app.research.g1_fast_recovery.recover_missing_with_fallbacks") as fallback:
+            result = collect()
+
+        fallback.assert_called_once()
+        self.assertEqual(result["universe_count"], 198)
+        self.assertEqual(result["fresh_valid_count"], 1)
+        self.assertEqual(result["direct_chart_attempts"]["one_minute_cache_errors"],
+                         {"T007": "OSError"})
+
 
 class G1DirectChartRecoveryTests(unittest.TestCase):
     def setUp(self):
