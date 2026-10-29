@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-10-28T14:39:37.572249+00:00",
+  "generated_at": "2026-10-29T07:45:08.664010+00:00",
   "policy": "HIGH_CONFIDENCE_CAUSAL_ONLY",
   "selected_tickers": [
     "AALI",
-    "LPPF",
-    "AKRA",
-    "BDMN",
-    "DSNG"
+    "JSMR",
+    "AGII",
+    "SILO",
+    "SPTO"
   ],
   "catalysts": []
 }
