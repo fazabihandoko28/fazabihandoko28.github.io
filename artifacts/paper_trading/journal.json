@@ -2378,5 +2378,25 @@
     "source": "YAHOO_FINANCE_RESEARCH_ONLY",
     "recorded_at": "2026-10-28T18:59:33.958624+00:00",
     "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "ERAA",
+    "status": "WAIT",
+    "signal_timestamp": "2026-10-29T00:00:00+00:00",
+    "signal_close": 515.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-10-29T19:07:05.677943+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "MEDC",
+    "status": "WAIT",
+    "signal_timestamp": "2026-10-29T00:00:00+00:00",
+    "signal_close": 1340.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-10-29T19:07:05.677966+00:00",
+    "outcome": "PENDING"
   }
 ]
