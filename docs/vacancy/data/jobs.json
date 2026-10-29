@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-10-28T22:38:45.408238+00:00",
+  "generated_at": "2026-10-29T05:53:14.360138+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1335,
-  "matching_jobs": 75,
+  "raw_jobs": 1334,
+  "matching_jobs": 74,
   "source_status": [
     {
       "name": "Grab",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 394
+      "jobs": 393
     },
     {
       "name": "Visa",
@@ -86,15 +86,6 @@
       "location": "Jakarta, Indonesia",
       "url": "https://jobs.smartrecruiters.com/Grab/744000138605441-manager-communications",
       "published_at": "2026-07-20T10:29:56.580Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000156707439",
-      "title": "Merchant Acquisition Lead",
-      "company": "Grab",
-      "location": "Jakarta, Indonesia",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000156707439-merchant-acquisition-lead",
-      "published_at": "2026-10-21T04:09:02.458Z",
       "source_verified": true
     },
     {
