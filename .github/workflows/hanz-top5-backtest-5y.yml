@@ -86,7 +86,8 @@ jobs:
                       and all(isinstance(value, int) and not isinstance(value, bool)
                               for value in (days, bars, gap))
                       and days >= 1000
-                      and bars >= days
+                      # Daily (1d) history must have exactly one candle per trading day.
+                      and bars == days
                       and 0 < gap <= 45
                   )
               except (KeyError, TypeError, ValueError, OverflowError):
