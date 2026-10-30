@@ -31,6 +31,10 @@ jobs:
     name: Validate WFA evidence
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      G1_TRADES_CSV: ${{ inputs.trades_csv }}
+      G1_WINDOWS_CSV: ${{ inputs.windows_csv }}
+      G1_DOF_REMAINING_PCT: ${{ inputs.dof_remaining_pct }}
 
     steps:
       - name: Checkout repository
@@ -53,12 +57,12 @@ jobs:
             echo "Validator not found: src/hanz_app/research/hanz_walk_forward_evidence_validator.py"
             exit 1
           }
-          test -f "${{ inputs.trades_csv }}" || {
-            echo "Trades evidence not found: ${{ inputs.trades_csv }}"
+          test -f "$G1_TRADES_CSV" || {
+            echo "Trades evidence not found: $G1_TRADES_CSV"
             exit 1
           }
-          test -f "${{ inputs.windows_csv }}" || {
-            echo "Window evidence not found: ${{ inputs.windows_csv }}"
+          test -f "$G1_WINDOWS_CSV" || {
+            echo "Window evidence not found: $G1_WINDOWS_CSV"
             exit 1
           }
 
@@ -70,9 +74,9 @@ jobs:
           mkdir -p .hanz-wfa
 
           python src/hanz_app/research/hanz_walk_forward_evidence_validator.py \
-            --trades "${{ inputs.trades_csv }}" \
-            --windows "${{ inputs.windows_csv }}" \
-            --dof-remaining-pct "${{ inputs.dof_remaining_pct }}" \
+            --trades "$G1_TRADES_CSV" \
+            --windows "$G1_WINDOWS_CSV" \
+            --dof-remaining-pct "$G1_DOF_REMAINING_PCT" \
             --min-backtest-years 5 \
             --json-out .hanz-wfa/wfa_validation.json \
             --env-out .hanz-wfa/wfa_evidence.env \
