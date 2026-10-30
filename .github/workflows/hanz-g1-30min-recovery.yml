@@ -12,6 +12,7 @@ on:
       - 'tests/test_walk_forward_validation.py'
       - 'tests/test_premarket_execution_levels_fail_closed.py'
       - '.github/workflows/hanz-g1-30min-recovery.yml'
+      - '.github/workflows/hanz-walk-forward-validation.yml'
   schedule:
     - cron: '*/30 * * * *'
   workflow_dispatch:
