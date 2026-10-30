@@ -21,7 +21,7 @@ class G1NonfiniteDerivedEvidenceTests(unittest.TestCase):
             "is_years": [1.0, 1.0],
             "oos_years": [1.0, 1.0],
             "oos_start": ["2020-01-01", "2023-01-01"],
-            "oos_end": ["2022-01-01", "2026-01-01"],
+            "oos_end": ["2022-12-31", "2026-01-01"],
         })
 
     def test_finite_normal_metrics_remain_eligible(self):
