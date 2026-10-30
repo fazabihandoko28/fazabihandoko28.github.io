@@ -160,6 +160,45 @@ def _top5_symbols():
     return [str(r.get("ticker") or "").strip().upper() for r in rows[:5]]
 
 
+
+def _research_candidates(primary):
+    latest = {}
+    for row in _get_monitor_rows():
+        symbol = str(row.get("ticker") or "").strip().upper()
+        if symbol and symbol not in latest:
+            latest[symbol] = row
+    fallback = sorted(
+        (symbol for symbol in latest if symbol not in primary),
+        key=lambda symbol: (-_rank(latest[symbol]), symbol),
+    )
+    return primary + fallback
+
+
+def _backfill_five_year_research(candidates, available, validator):
+    """Research-only backfill; missing history never counts toward Top 5."""
+    selected, results, skipped = [], {}, {}
+    for symbol in candidates:
+        if len(selected) == 5:
+            break
+        mapping = available.get(symbol)
+        if mapping is None:
+            skipped[symbol] = "MISSING_UNIVERSE_MAPPING"
+            continue
+        try:
+            provider = YahooFinanceProvider([mapping], period="10y", interval="1d")
+            series = _five_year_replay_series(provider.load_series("BEI", mapping.symbol))
+            report = validator.validate(series)
+            result = _summary(symbol, series, report)
+            if result["status"] != "OK":
+                skipped[symbol] = result["history_gap_reason"] or "LIMITED_HISTORY"
+                continue
+            selected.append(symbol)
+            results[symbol] = result
+        except Exception as exc:
+            skipped[symbol] = str(exc)
+    return selected, results, skipped
+
+
 # Explicit Yahoo research mappings for selected symbols missing from the static pool.
 # Delayed, non-official data: never eligible as independent execution evidence.
 RESEARCH_ONLY_FALLBACK_TICKERS = {"MPMX": "MPMX.JK", "BDMN": "BDMN.JK", "AGII": "AGII.JK"}
@@ -290,28 +329,23 @@ def _selection_coverage(symbols, available, results, errors):
 
 
 def main():
-    symbols=_top5_symbols()
+    live_top5=_top5_symbols()
+    candidates=_research_candidates(live_top5)
     mappings=load_yahoo_universe(UNIVERSE)
     available=_research_mappings(mappings)
-    selected=[available[s] for s in symbols if s in available]
     validator=WalkForwardValidator(minimum_bars=60,horizon_bars=5,step_bars=1,target_pct=0.04,stop_pct=0.025)
-    results={}
+    symbols, results, skipped=_backfill_five_year_research(candidates, available, validator)
     errors={}
-    for mapping in selected:
-        try:
-            provider=YahooFinanceProvider([mapping],period="10y",interval="1d")
-            series=_five_year_replay_series(provider.load_series("BEI",mapping.symbol))
-            report=validator.validate(series)
-            results[mapping.symbol.upper()]=_summary(mapping.symbol.upper(),series,report)
-        except Exception as exc:
-            errors[mapping.symbol.upper()]=str(exc)
     coverage=_selection_coverage(symbols, available, results, errors)
     payload={
         "coverage":coverage,
         "generated_at":datetime.now(timezone.utc).isoformat(),
         "universe_size":200,
         "selected_top5":symbols,
+        "live_monitor_top5":live_top5,
+        "skipped_candidates":skipped,
         "methodology":{
+            "selection_mode":"RESEARCH_ONLY_VALID_HISTORY_BACKFILL",
             "name":"HANZ 5Y retrospective replay of current Top 5 candidates",
             "period":"5 calendar years plus up to 7 real trading-calendar buffer days; Yahoo 10y acquisition",
             "minimum_bars":60,
@@ -319,7 +353,7 @@ def main():
             "step_bars":1,
             "target_pct":4.0,
             "stop_pct":2.5,
-            "note":"Per-event technical decisions use no future bars, but Top 5 tickers are selected from the current monitor snapshot (selection/survivorship bias); this is not point-in-time OOS validation, and returns exclude execution fees and slippage. Live V43 ranking market/flow layers are not fully reconstructible historically. Not a validated BUY signal."
+            "note":"Research-only candidates are backfilled from latest monitor symbols until five distinct tickers have validated 5Y history; missing or short history is skipped, never counted as PASS. Current monitor selection and fallback are subject to selection/survivorship bias; this is not point-in-time OOS validation, and returns exclude execution fees and slippage. Live V43 ranking market/flow layers are not fully reconstructible historically. Not a validated BUY signal."
         },
         "results":results,
         "errors":errors,
