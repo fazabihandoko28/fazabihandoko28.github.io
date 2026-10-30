@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-10-29T14:43:59.325725+00:00",
+  "generated_at": "2026-10-30T07:52:10.543290+00:00",
   "policy": "HIGH_CONFIDENCE_CAUSAL_ONLY",
   "selected_tickers": [
     "AALI",
     "JSMR",
-    "AGII",
-    "SILO",
-    "BTPN"
+    "BTPN",
+    "MPMX",
+    "BDMN"
   ],
   "catalysts": [
     {
@@ -14,10 +14,10 @@
       "direction": "NEGATIVE",
       "confidence": "HIGH",
       "score": 8,
-      "headline": "IHSG Berbalik Melemah Usai Dibuka Menguat, 374 Saham Turun - Kompas.com",
-      "source": "Kompas.com",
-      "url": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxQVGxoRkd1VDhrUkVmTnRVMlVmTTI0blY2V09FNUVsWTdjMEE5YXNfWmc4NDQ2YmlDSTJMbnZ5RzlvcjBrQkwxdmNxTWg2RTg1d2ZsNEp2NHNZMDBEaE5WUE5XdXhWNVM3bVB0dXMyVkNOV3dqc2lrR0pxUDNFTTlCUW9KTUJkLXBhSHpYTWstbVRKNlQ4Yko3aWg3MFM0Q0poc3pnWHppMkhGSm9OZHMyeGtmdXZsck15?oc=5",
-      "published_at": "2026-10-29T02:38:00+00:00",
+      "headline": "IHSG Lanjut Melemah Usai Anjlok 3,49%, Aksi Jual Asing dan Isu MSCI Masih Membayangi - Berita Moneter",
+      "source": "Berita Moneter",
+      "url": "https://news.google.com/rss/articles/CBMie0FVX3lxTE1XSkxpYnQ0T0NJSWFWemNqQXR4N1AzaHFNMjhYS0JHRE9IbFN4cHlyYXVxZmdyMzVPd3F4VkxRbVpUUmlIV1lOb2RudVVwTmJHZWJIeHJXZmdmLXhobkxfdTFSMFAyRXlEZnA1V213X3lySE5OR2hrU0daNA?oc=5",
+      "published_at": "2026-10-30T06:13:00+00:00",
       "note": "Likely index news catalyst based on explicit causal headline language. Hidden when causal evidence is weak."
     }
   ]
