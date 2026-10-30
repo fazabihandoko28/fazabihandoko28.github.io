@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-10-30T07:52:10.543290+00:00",
+  "generated_at": "2026-10-30T14:40:17.875235+00:00",
   "policy": "HIGH_CONFIDENCE_CAUSAL_ONLY",
   "selected_tickers": [
-    "AALI",
-    "JSMR",
+    "WIIM",
     "BTPN",
     "MPMX",
-    "BDMN"
+    "HMSP",
+    "MARK"
   ],
   "catalysts": [
     {
