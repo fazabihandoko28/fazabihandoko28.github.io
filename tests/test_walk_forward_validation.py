@@ -1022,5 +1022,25 @@ class FiveYearReplayWindowTests(unittest.TestCase):
         self.assertEqual(replay.bars[0].timestamp.date().isoformat(), "2020-02-24")
 
 
+    def test_g1_replay_excludes_unfinished_idx_daily_bar(self):
+        from hanz_app.research.generate_top5_5y_backtest import _five_year_replay_series
+
+        series = self._series(["2021-10-25", "2026-10-29", "2026-10-30"])
+        # 03:48 UTC is 10:48 WIB, while the IDX session is still trading.
+        replay = _five_year_replay_series(
+            series, now=datetime(2026, 10, 30, 3, 48, tzinfo=timezone.utc),
+        )
+        self.assertEqual(replay.bars[-1].timestamp.date().isoformat(), "2026-10-29")
+
+    def test_g1_replay_accepts_completed_idx_daily_bar(self):
+        from hanz_app.research.generate_top5_5y_backtest import _five_year_replay_series
+
+        series = self._series(["2021-10-25", "2026-10-29", "2026-10-30"])
+        replay = _five_year_replay_series(
+            series, now=datetime(2026, 10, 30, 10, 0, tzinfo=timezone.utc),
+        )
+        self.assertEqual(replay.bars[-1].timestamp.date().isoformat(), "2026-10-30")
+
+
 if __name__ == "__main__":
     unittest.main()
