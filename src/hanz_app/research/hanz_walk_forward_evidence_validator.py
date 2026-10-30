@@ -146,6 +146,34 @@ def _evidence_span_years(trades, windows):
     return max(0.0, years+(end_day-current).days/(following-current).days)
 
 
+# Explicit OOS windows must cover the historical period rather than merely
+# sharing distant endpoints. A 14-day tolerance accommodates market holidays;
+# longer untested intervals must not certify a five-year WFA.
+DEFAULT_MAX_OOS_WINDOW_GAP_DAYS = 14
+
+
+def _oos_windows_contiguous(windows):
+    """Check actual OOS interval continuity; long untested gaps fail closed.
+
+    Older exports without explicit OOS bounds retain their previous behavior.
+    Date validity, reversed bounds and future dates are checked by
+    _evidence_span_years before this function is called.
+    """
+    if not {"oos_start", "oos_end"}.issubset(windows.columns):
+        return True
+    if windows.empty:
+        return False
+    starts = pd.to_datetime(windows["oos_start"], errors="raise", utc=True).dt.normalize()
+    ends = pd.to_datetime(windows["oos_end"], errors="raise", utc=True).dt.normalize()
+    intervals = sorted(zip(starts, ends), key=lambda interval: interval[0])
+    covered_until = intervals[0][1]
+    for start, end in intervals[1:]:
+        if (start - covered_until).days > DEFAULT_MAX_OOS_WINDOW_GAP_DAYS:
+            return False
+        covered_until = max(covered_until, end)
+    return True
+
+
 def validate(trades, windows, dof_remaining_pct, min_oos_trades=30, min_wfe=0.50,
              min_profitable_windows_pct=50.0, max_trade_profit_share_pct=35.0,
              min_backtest_years=DEFAULT_MIN_BACKTEST_YEARS):
@@ -398,6 +426,7 @@ def validate(trades, windows, dof_remaining_pct, min_oos_trades=30, min_wfe=0.50
 
     checks={
       "five_year_history": evidence_span_years is not None and evidence_span_years>=min_backtest_years,
+      "oos_window_continuity": _oos_windows_contiguous(windows),
       "oos_trade_sample": oos_trades>=min_oos_trades,
       "degrees_of_freedom": float(dof_remaining_pct)>=90.0,
       "positive_oos_expectancy": expectancy is not None and expectancy>0,
