@@ -211,17 +211,21 @@ def _research_mappings(mappings):
     return available
 
 
-def _five_year_replay_series(series: MarketSeries) -> MarketSeries:
-    """Use real candles across the fifth calendar anniversary, not a 5y API cutoff.
-
-    Yahoo's rolling period='5y' can begin after the calendar anniversary on a
-    weekend/holiday, yielding only 4.99 years. Fetch a longer real history and
-    retain seven calendar days of pre-anniversary trading sessions. A newly
-    listed symbol stays LIMITED_HISTORY; no candles are synthesized.
-    """
+def _five_year_replay_series(series: MarketSeries, now=None) -> MarketSeries:
+    """Use completed real daily candles across the fifth calendar anniversary."""
     if not series.bars:
         return series
-    last_day = series.bars[-1].timestamp.date()
+    now = now or datetime.now(timezone.utc)
+    if now.tzinfo is None:
+        raise ValueError("now must be timezone-aware")
+    idx_now = now.astimezone(timezone(timedelta(hours=7)))
+    # Yahoo can publish an unfinished 1d candle while IDX is trading.
+    # Do not use its partial OHLCV as historical backtest evidence.
+    closed_day = idx_now.date() if (idx_now.hour, idx_now.minute) >= (16, 15) else idx_now.date() - timedelta(days=1)
+    completed = [bar for bar in series.bars if bar.timestamp.date() <= closed_day]
+    if not completed:
+        return MarketSeries.from_iterable(series.symbol, series.market, ())
+    last_day = completed[-1].timestamp.date()
     try:
         five_years_ago = last_day.replace(year=last_day.year - 5)
     except ValueError:
@@ -229,9 +233,8 @@ def _five_year_replay_series(series: MarketSeries) -> MarketSeries:
     cutoff = five_years_ago - timedelta(days=7)
     return MarketSeries.from_iterable(
         series.symbol, series.market,
-        (bar for bar in series.bars if bar.timestamp.date() >= cutoff),
+        (bar for bar in completed if bar.timestamp.date() >= cutoff),
     )
-
 
 def _summary(symbol, series, report):
     ready=[e for e in report.events if e.status=="READY"]
