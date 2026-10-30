@@ -64,7 +64,7 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
-        run: python -m hanz_app.research.g1_fast_live_evidence
+        run: python -m hanz_app.research.g1_fast_live_evidence --fail-during-live-session
       - name: G1 result
         if: always()
         run: |
