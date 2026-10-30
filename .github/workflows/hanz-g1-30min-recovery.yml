@@ -4,8 +4,13 @@ on:
   push:
     branches: [main]
     paths:
-      - 'src/hanz_app/research/g1_fast_recovery.py'
-      - 'tests/test_g1_fast_recovery.py'
+      - 'src/hanz_app/research/g1_*.py'
+      - 'src/hanz_app/research/generate_top5_5y_backtest.py'
+      - 'src/hanz_app/research/hanz_walk_forward_evidence_validator.py'
+      - 'src/hanz_validation/walk_forward.py'
+      - 'tests/test_g1_*.py'
+      - 'tests/test_walk_forward_validation.py'
+      - 'tests/test_premarket_execution_levels_fail_closed.py'
       - '.github/workflows/hanz-g1-30min-recovery.yml'
   schedule:
     - cron: '*/30 * * * *'
