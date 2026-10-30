@@ -201,7 +201,7 @@ def _backfill_five_year_research(candidates, available, validator):
 
 # Explicit Yahoo research mappings for selected symbols missing from the static pool.
 # Delayed, non-official data: never eligible as independent execution evidence.
-RESEARCH_ONLY_FALLBACK_TICKERS = {"MPMX": "MPMX.JK", "BDMN": "BDMN.JK", "AGII": "AGII.JK"}
+RESEARCH_ONLY_FALLBACK_TICKERS = {"MPMX": "MPMX.JK", "BDMN": "BDMN.JK", "AGII": "AGII.JK", "WIIM": "WIIM.JK"}
 
 
 def _research_mappings(mappings):
