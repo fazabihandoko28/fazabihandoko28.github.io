@@ -163,8 +163,9 @@ def _oos_windows_contiguous(windows):
         return True
     if windows.empty:
         return False
-    starts = pd.to_datetime(windows["oos_start"], errors="raise", utc=True).dt.normalize()
-    ends = pd.to_datetime(windows["oos_end"], errors="raise", utc=True).dt.normalize()
+    starts = pd.to_datetime(windows["oos_start"], errors="raise", utc=True)
+    ends = pd.to_datetime(windows["oos_end"], errors="raise", utc=True)
+    # Preserve intraday precision: same-date overlapping OOS tests are not independent.
     intervals = sorted(zip(starts, ends), key=lambda interval: interval[0])
     covered_until = intervals[0][1]
     for start, end in intervals[1:]:

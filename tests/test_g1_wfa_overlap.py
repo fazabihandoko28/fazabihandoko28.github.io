@@ -31,5 +31,17 @@ class G1OverlappingOOSWindowsTests(unittest.TestCase):
             ["2020-01-01", "2023-01-16"], ["2023-01-01", "2026-01-01"])))
 
 
+    def test_same_day_intraday_overlap_fails_closed(self):
+        # Date normalization previously hid overlapping hours within one day.
+        self.assertFalse(_oos_windows_contiguous(self.windows(
+            ["2020-01-01T09:00:00Z", "2020-01-01T11:00:00Z"],
+            ["2020-01-01T12:00:00Z", "2020-01-01T15:00:00Z"])))
+
+    def test_same_day_exact_intraday_boundary_remains_supported(self):
+        self.assertTrue(_oos_windows_contiguous(self.windows(
+            ["2020-01-01T09:00:00Z", "2020-01-01T12:00:00Z"],
+            ["2020-01-01T12:00:00Z", "2020-01-01T15:00:00Z"])))
+
+
 if __name__ == "__main__":
     unittest.main()
