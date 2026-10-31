@@ -261,11 +261,13 @@ def validate(trades, windows, dof_remaining_pct, min_oos_trades=30, min_wfe=0.50
     # at least one declared OOS interval. Otherwise fabricated IS/outside
     # trades can inflate the 30-trade sample and produce a false WFA PASS.
     # Keep undated legacy exports compatible; do not infer any trade dates.
+    # Compare full timestamps: same-day trades outside intraday OOS hours
+    # are not independent OOS evidence.
     if ("window_id" not in trades.columns
             and {"oos_start", "oos_end"}.issubset(windows.columns)
             and any(col in trades.columns for col in ("entry_date", "exit_date", "trade_date"))):
-        starts = pd.to_datetime(windows["oos_start"], errors="coerce", utc=True).dt.normalize()
-        ends = pd.to_datetime(windows["oos_end"], errors="coerce", utc=True).dt.normalize()
+        starts = pd.to_datetime(windows["oos_start"], errors="coerce", utc=True)
+        ends = pd.to_datetime(windows["oos_end"], errors="coerce", utc=True)
         oos_rows = oos_flags.isin({"1", "true", "yes"})
         # Every supplied date for one OOS trade must belong to the SAME
         # declared test window. Checking dates independently can accept an
@@ -275,7 +277,7 @@ def validate(trades, windows, dof_remaining_pct, min_oos_trades=30, min_wfe=0.50
             if col in trades.columns
         ]
         observed_by_column = {
-            col: pd.to_datetime(trades.loc[oos_rows, col], errors="coerce", utc=True).dt.normalize()
+            col: pd.to_datetime(trades.loc[oos_rows, col], errors="coerce", utc=True)
             for col in date_columns
         }
         for col, observed in observed_by_column.items():
@@ -291,8 +293,8 @@ def validate(trades, windows, dof_remaining_pct, min_oos_trades=30, min_wfe=0.50
     # evidence. Apply this check when exports supply explicit window bounds.
     if ("window_id" in trades.columns and {"oos_start", "oos_end"}.issubset(windows.columns)
             and any(col in trades.columns for col in ("entry_date", "exit_date", "trade_date"))):
-        starts = pd.to_datetime(windows["oos_start"], errors="coerce", utc=True).dt.normalize()
-        ends = pd.to_datetime(windows["oos_end"], errors="coerce", utc=True).dt.normalize()
+        starts = pd.to_datetime(windows["oos_start"], errors="coerce", utc=True)
+        ends = pd.to_datetime(windows["oos_end"], errors="coerce", utc=True)
         if starts.isna().any() or ends.isna().any() or (starts > ends).any():
             raise ValueError("Invalid walk-forward OOS window chronology evidence")
         bounds = dict(zip(normalized_ids, zip(starts, ends)))
@@ -308,7 +310,7 @@ def validate(trades, windows, dof_remaining_pct, min_oos_trades=30, min_wfe=0.50
             if col in trades.columns
         ]
         for date_column in date_columns:
-            observed = pd.to_datetime(trades[date_column], errors="coerce", utc=True).dt.normalize()
+            observed = pd.to_datetime(trades[date_column], errors="coerce", utc=True)
             for wid, day in zip(normalized_trade_window_ids[oos_rows], observed[oos_rows]):
                 start, end = bounds[wid]
                 if pd.isna(day) or not start <= day <= end:
