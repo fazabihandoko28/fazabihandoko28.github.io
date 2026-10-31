@@ -57,5 +57,20 @@ class G1IntradayTradeBoundsTests(unittest.TestCase):
                 self.assertTrue(validate(trades, self.windows, 95.0)["passed"])
 
 
+    def test_legacy_date_only_end_includes_intraday_exit(self):
+        # Existing G1 exports use date-only end dates to mean the whole day.
+        # Tightening intraday provenance must not invalidate those exports.
+        windows = self.windows.copy()
+        windows.loc[0, "oos_end"] = "2022-12-31"
+        for assigned in (True, False):
+            with self.subTest(assigned=assigned):
+                trades = self.trades.copy()
+                trades.loc[0, "trade_date"] = "2022-12-31T15:00:01Z"
+                if not assigned:
+                    trades = trades.drop(columns=["window_id"])
+                self.assertTrue(validate(trades, windows, 95.0)["passed"])
+
+
+
 if __name__ == "__main__":
     unittest.main()

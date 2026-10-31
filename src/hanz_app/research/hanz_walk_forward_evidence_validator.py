@@ -180,6 +180,18 @@ def _oos_windows_contiguous(windows):
     return True
 
 
+
+def _trade_oos_bounds(windows):
+    """Preserve explicit intraday bounds and inclusive legacy date-only end days."""
+    starts = pd.to_datetime(windows["oos_start"], errors="coerce", utc=True)
+    ends = pd.to_datetime(windows["oos_end"], errors="coerce", utc=True)
+    # A date-only end denotes the whole calendar day; an explicit clock time
+    # denotes an exact cutoff. Never truncate an intraday trade timestamp.
+    date_only_end = windows["oos_end"].astype(str).str.fullmatch(r"\\d{4}-\\d{2}-\\d{2}")
+    ends = ends.where(~date_only_end, ends + pd.Timedelta(days=1) - pd.Timedelta(nanoseconds=1))
+    return starts, ends
+
+
 def validate(trades, windows, dof_remaining_pct, min_oos_trades=30, min_wfe=0.50,
              min_profitable_windows_pct=50.0, max_trade_profit_share_pct=35.0,
              min_backtest_years=DEFAULT_MIN_BACKTEST_YEARS):
@@ -266,8 +278,7 @@ def validate(trades, windows, dof_remaining_pct, min_oos_trades=30, min_wfe=0.50
     if ("window_id" not in trades.columns
             and {"oos_start", "oos_end"}.issubset(windows.columns)
             and any(col in trades.columns for col in ("entry_date", "exit_date", "trade_date"))):
-        starts = pd.to_datetime(windows["oos_start"], errors="coerce", utc=True)
-        ends = pd.to_datetime(windows["oos_end"], errors="coerce", utc=True)
+        starts, ends = _trade_oos_bounds(windows)
         oos_rows = oos_flags.isin({"1", "true", "yes"})
         # Every supplied date for one OOS trade must belong to the SAME
         # declared test window. Checking dates independently can accept an
@@ -293,8 +304,7 @@ def validate(trades, windows, dof_remaining_pct, min_oos_trades=30, min_wfe=0.50
     # evidence. Apply this check when exports supply explicit window bounds.
     if ("window_id" in trades.columns and {"oos_start", "oos_end"}.issubset(windows.columns)
             and any(col in trades.columns for col in ("entry_date", "exit_date", "trade_date"))):
-        starts = pd.to_datetime(windows["oos_start"], errors="coerce", utc=True)
-        ends = pd.to_datetime(windows["oos_end"], errors="coerce", utc=True)
+        starts, ends = _trade_oos_bounds(windows)
         if starts.isna().any() or ends.isna().any() or (starts > ends).any():
             raise ValueError("Invalid walk-forward OOS window chronology evidence")
         bounds = dict(zip(normalized_ids, zip(starts, ends)))
