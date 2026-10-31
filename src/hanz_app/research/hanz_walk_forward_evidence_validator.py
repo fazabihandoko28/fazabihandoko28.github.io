@@ -467,6 +467,40 @@ def validate(trades, windows, dof_remaining_pct, min_oos_trades=30, min_wfe=0.50
     }
 
 
+
+def require_execution_cost_evidence(trades):
+    """Fail closed unless realized OOS R reconciles net of fees and slippage.
+
+    CSV convention: gross_r_multiple is before costs; fee_r and slippage_r
+    are nonnegative R deductions; r_multiple is the resulting net R.
+    This checks arithmetic provenance, not whether a broker quote is genuine.
+    """
+    required = {"is_oos", "r_multiple", "gross_r_multiple", "fee_r", "slippage_r"}
+    missing = required - set(trades.columns)
+    if missing:
+        raise ValueError("Missing G1 execution cost evidence columns: " + ", ".join(sorted(missing)))
+    flags = trades["is_oos"].astype(str).str.strip().str.lower()
+    if not flags.isin({"1", "true", "yes", "0", "false", "no"}).all():
+        raise ValueError("Invalid G1 execution cost OOS classification")
+    oos = trades.loc[flags.isin({"1", "true", "yes"})]
+    if oos.empty:
+        raise ValueError("Missing G1 OOS execution cost evidence")
+    values = {}
+    for column in ("gross_r_multiple", "fee_r", "slippage_r", "r_multiple"):
+        if oos[column].map(lambda x: isinstance(x, (bool, np.bool_))).any():
+            raise ValueError("Invalid G1 execution cost evidence: " + column)
+        numeric = pd.to_numeric(oos[column], errors="coerce")
+        if not numeric.map(math.isfinite).all():
+            raise ValueError("Invalid G1 execution cost evidence: " + column)
+        values[column] = numeric
+    if (values["fee_r"] < 0).any() or (values["slippage_r"] < 0).any():
+        raise ValueError("Negative G1 execution costs are not valid evidence")
+    expected_net = values["gross_r_multiple"] - values["fee_r"] - values["slippage_r"]
+    if (not np.isfinite(expected_net).all()
+            or not np.isclose(expected_net, values["r_multiple"], rtol=1e-7, atol=1e-8).all()):
+        raise ValueError("G1 OOS net return does not reconcile with fees and slippage")
+
+
 def env_lines(r):
     def val(x): return "" if x is None else (f"{x:.6g}" if isinstance(x,float) else str(x))
     return "\n".join([
@@ -495,7 +529,10 @@ def main():
     ap.add_argument('--max-trade-profit-share-pct',type=float,default=DEFAULT_MAX_TRADE_PROFIT_SHARE_PCT)
     ap.add_argument('--json-out'); ap.add_argument('--env-out')
     a=ap.parse_args()
-    r=validate(load_csv(a.trades),load_csv(a.windows),a.dof_remaining_pct,a.min_oos_trades,a.min_wfe,a.min_profitable_windows_pct,a.max_trade_profit_share_pct,a.min_backtest_years)
+    trades=load_csv(a.trades); windows=load_csv(a.windows)
+    # Official CLI attestation must never PASS on cost-free or gross-only OOS R.
+    require_execution_cost_evidence(trades)
+    r=validate(trades,windows,a.dof_remaining_pct,a.min_oos_trades,a.min_wfe,a.min_profitable_windows_pct,a.max_trade_profit_share_pct,a.min_backtest_years)
     text=json.dumps(r,indent=2)
     print(text); print('\n# Environment evidence\n'+env_lines(r))
     if a.json_out: Path(a.json_out).write_text(text)
