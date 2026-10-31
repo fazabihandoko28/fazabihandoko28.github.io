@@ -132,18 +132,19 @@ def _evidence_span_years(trades, windows):
     start=min(candidates); end=max(candidates)
     # Five years means the fifth calendar anniversary, not a rounded
     # 365.2425-day estimate (which can reject an exact five-year span).
-    start_day=start.date(); end_day=end.date()
+    # Preserve intraday precision: a period ending earlier on the fifth
+    # anniversary date has NOT completed five full calendar years.
     def anniversary(years):
         try:
-            return start_day.replace(year=start_day.year+years)
+            return start.replace(year=start.year+years)
         except ValueError:
-            return start_day.replace(year=start_day.year+years, day=28)
-    years=end_day.year-start_day.year
-    if end_day<anniversary(years):
+            return start.replace(year=start.year+years, day=28)
+    years=end.year-start.year
+    if end<anniversary(years):
         years-=1
     current=anniversary(years)
     following=anniversary(years+1)
-    return max(0.0, years+(end_day-current).days/(following-current).days)
+    return max(0.0, years+(end-current).total_seconds()/(following-current).total_seconds())
 
 
 # Explicit OOS windows must cover the historical period rather than merely
