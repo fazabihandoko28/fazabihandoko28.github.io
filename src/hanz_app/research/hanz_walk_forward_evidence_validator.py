@@ -168,6 +168,11 @@ def _oos_windows_contiguous(windows):
     intervals = sorted(zip(starts, ends), key=lambda interval: interval[0])
     covered_until = intervals[0][1]
     for start, end in intervals[1:]:
+        # Overlapping independently scored OOS intervals can reuse the same
+        # market observations and falsely certify sequential walk-forward tests.
+        # Preserve existing same-day boundary convention (start == prior end).
+        if start < covered_until:
+            return False
         if (start - covered_until).days > DEFAULT_MAX_OOS_WINDOW_GAP_DAYS:
             return False
         covered_until = max(covered_until, end)

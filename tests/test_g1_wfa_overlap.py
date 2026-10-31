@@ -1,0 +1,35 @@
+"""G1 regression: overlapping OOS windows cannot certify independent WFA."""
+import unittest
+import pandas as pd
+from hanz_app.research.hanz_walk_forward_evidence_validator import _oos_windows_contiguous
+
+
+class G1OverlappingOOSWindowsTests(unittest.TestCase):
+    def windows(self, starts, ends):
+        return pd.DataFrame({"oos_start": starts, "oos_end": ends})
+
+    def test_distinct_windows_remain_valid(self):
+        self.assertTrue(_oos_windows_contiguous(self.windows(
+            ["2020-01-01", "2023-01-01"], ["2022-12-31", "2025-12-31"])))
+
+    def test_same_day_boundary_remains_supported(self):
+        self.assertTrue(_oos_windows_contiguous(self.windows(
+            ["2020-01-01", "2023-01-01"], ["2023-01-01", "2026-01-01"])))
+
+    def test_overlapping_oos_windows_fail_closed(self):
+        self.assertFalse(_oos_windows_contiguous(self.windows(
+            ["2020-01-01", "2022-01-01"], ["2023-12-31", "2026-01-01"])))
+
+    def test_identical_oos_windows_fail_closed(self):
+        self.assertFalse(_oos_windows_contiguous(self.windows(
+            ["2020-01-01", "2020-01-01"], ["2026-01-01", "2026-01-01"])))
+
+    def test_existing_fourteen_day_gap_policy_preserved(self):
+        self.assertTrue(_oos_windows_contiguous(self.windows(
+            ["2020-01-01", "2023-01-15"], ["2023-01-01", "2026-01-01"])))
+        self.assertFalse(_oos_windows_contiguous(self.windows(
+            ["2020-01-01", "2023-01-16"], ["2023-01-01", "2026-01-01"])))
+
+
+if __name__ == "__main__":
+    unittest.main()
