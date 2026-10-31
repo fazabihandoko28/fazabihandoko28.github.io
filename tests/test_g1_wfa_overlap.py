@@ -43,5 +43,18 @@ class G1OverlappingOOSWindowsTests(unittest.TestCase):
             ["2020-01-01T12:00:00Z", "2020-01-01T15:00:00Z"])))
 
 
+    def test_exact_fourteen_day_intraday_gap_remains_supported(self):
+        self.assertTrue(_oos_windows_contiguous(self.windows(
+            ["2020-01-01T09:00:00Z", "2023-01-15T09:00:00Z"],
+            ["2023-01-01T09:00:00Z", "2026-01-01T09:00:00Z"])))
+
+    def test_fourteen_day_gap_plus_one_second_fails_closed(self):
+        # timedelta.days truncates the fractional day and used to allow
+        # an untested interval longer than the G1 fourteen-day ceiling.
+        self.assertFalse(_oos_windows_contiguous(self.windows(
+            ["2020-01-01T09:00:00Z", "2023-01-15T09:00:01Z"],
+            ["2023-01-01T09:00:00Z", "2026-01-01T09:00:00Z"])))
+
+
 if __name__ == "__main__":
     unittest.main()

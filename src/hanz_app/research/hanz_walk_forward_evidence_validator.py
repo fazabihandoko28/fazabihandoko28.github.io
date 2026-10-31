@@ -174,7 +174,7 @@ def _oos_windows_contiguous(windows):
         # Preserve existing same-day boundary convention (start == prior end).
         if start < covered_until:
             return False
-        if (start - covered_until).days > DEFAULT_MAX_OOS_WINDOW_GAP_DAYS:
+        if start - covered_until > pd.Timedelta(days=DEFAULT_MAX_OOS_WINDOW_GAP_DAYS):
             return False
         covered_until = max(covered_until, end)
     return True
