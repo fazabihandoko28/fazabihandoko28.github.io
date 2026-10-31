@@ -61,7 +61,7 @@ class G1IntradayTradeBoundsTests(unittest.TestCase):
         # Existing G1 exports use date-only end dates to mean the whole day.
         # Tightening intraday provenance must not invalidate those exports.
         windows = self.windows.copy()
-        windows.loc[0, "oos_end"] = "2022-12-31"
+        windows["oos_end"] = ["2022-12-31", "2025-12-31"]
         for assigned in (True, False):
             with self.subTest(assigned=assigned):
                 trades = self.trades.copy()
