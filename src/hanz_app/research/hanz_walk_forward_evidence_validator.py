@@ -187,7 +187,7 @@ def _trade_oos_bounds(windows):
     ends = pd.to_datetime(windows["oos_end"], errors="coerce", utc=True)
     # A date-only end denotes the whole calendar day; an explicit clock time
     # denotes an exact cutoff. Never truncate an intraday trade timestamp.
-    date_only_end = windows["oos_end"].astype(str).str.fullmatch(r"\\d{4}-\\d{2}-\\d{2}")
+    date_only_end = windows["oos_end"].astype(str).str.fullmatch(r"\d{4}-\d{2}-\d{2}")
     ends = ends.where(~date_only_end, ends + pd.Timedelta(days=1) - pd.Timedelta(nanoseconds=1))
     return starts, ends
 
