@@ -223,21 +223,33 @@ def recover_missing_direct_chart(symbols, bars, now=None, opener=None, max_reque
             if diagnostics is not None:
                 diagnostics[symbol] = "invalid_symbol"
             continue
-        request = Request(
-            f"https://query2.finance.yahoo.com/v8/finance/chart/{symbol}.JK?interval=5m&range=1d",
-            headers={"User-Agent": "Mozilla/5.0", "Accept": "application/json"},
-        )
-        try:
-            with opener(request, timeout=8) as response:
-                payload = json.load(response)
-            stamp = _latest_direct_chart_bar(payload, symbol, now)
-        except HTTPError as exc:
-            if diagnostics is not None:
-                diagnostics[symbol] = f"http_{exc.code}"
-            continue
-        except (OSError, ValueError, TypeError, KeyError, IndexError, OverflowError):
-            if diagnostics is not None:
-                diagnostics[symbol] = "provider_request_or_response_error"
+        # Query1 and Query2 are alternate Yahoo hosts, NOT independent
+        # market-data sources. Retry the second host only on transport/HTTP
+        # failure; a successful response with stale/invalid OHLCV stays STALE.
+        stamp = None
+        fetched = False
+        for host in ("query2", "query1"):
+            request = Request(
+                f"https://{host}.finance.yahoo.com/v8/finance/chart/{symbol}.JK?interval=5m&range=1d",
+                headers={"User-Agent": "Mozilla/5.0", "Accept": "application/json"},
+            )
+            try:
+                with opener(request, timeout=8) as response:
+                    payload = json.load(response)
+                stamp = _latest_direct_chart_bar(payload, symbol, now)
+                fetched = True
+                break
+            except HTTPError as exc:
+                if diagnostics is not None:
+                    diagnostics[symbol] = f"{host}_http_{exc.code}"
+            except OSError:
+                if diagnostics is not None:
+                    diagnostics[symbol] = f"{host}_transport_error"
+            except (ValueError, TypeError, KeyError, IndexError, OverflowError):
+                if diagnostics is not None:
+                    diagnostics[symbol] = "provider_response_error"
+                break
+        if not fetched:
             continue
         prior = bars.get(symbol)
         if (stamp is not None and

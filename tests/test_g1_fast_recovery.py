@@ -483,6 +483,43 @@ class G1DirectChartRecoveryTests(unittest.TestCase):
             ["BBCA"], {}, now=self.now, opener=failed,
         ), {})
 
+    def test_query2_http_failure_recovers_real_query1_candle(self):
+        hosts = []
+        def opener(request, timeout):
+            hosts.append(request.full_url.split("/")[2])
+            if "query2.finance.yahoo.com" in request.full_url:
+                raise HTTPError(request.full_url, 503, "Unavailable", {}, None)
+            return io.BytesIO(json.dumps(self.payload()).encode())
+        diagnostics = {}
+        bars = recover_missing_direct_chart(
+            ["BBCA"], {}, now=self.now, opener=opener, diagnostics=diagnostics,
+        )
+        self.assertEqual(bars, {"BBCA": self.fresh})
+        self.assertEqual(hosts, ["query2.finance.yahoo.com", "query1.finance.yahoo.com"])
+        self.assertEqual(diagnostics["BBCA"], "fresh_verified")
+
+    def test_both_yahoo_hosts_failing_never_certifies_candle(self):
+        hosts = []
+        def opener(request, timeout):
+            hosts.append(request.full_url.split("/")[2])
+            raise HTTPError(request.full_url, 404, "Missing", {}, None)
+        diagnostics = {}
+        bars = recover_missing_direct_chart(
+            ["BBCA"], {}, now=self.now, opener=opener, diagnostics=diagnostics,
+        )
+        self.assertEqual(bars, {})
+        self.assertEqual(hosts, ["query2.finance.yahoo.com", "query1.finance.yahoo.com"])
+        self.assertEqual(diagnostics["BBCA"], "query1_http_404")
+
+    def test_query2_transport_failure_recovers_real_query1_candle(self):
+        def opener(request, timeout):
+            if "query2.finance.yahoo.com" in request.full_url:
+                raise OSError("Host unreachable")
+            return io.BytesIO(json.dumps(self.payload()).encode())
+        self.assertEqual(recover_missing_direct_chart(
+            ["BBCA"], {}, now=self.now, opener=opener,
+        ), {"BBCA": self.fresh})
+
     def test_direct_fresh_1m_never_refetched(self):
         def forbidden(*args, **kwargs):
             self.fail("Fresh bar must not be fetched again")
