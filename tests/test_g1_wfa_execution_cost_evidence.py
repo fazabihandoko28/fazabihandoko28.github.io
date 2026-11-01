@@ -27,6 +27,25 @@ class G1ExecutionCostEvidenceTests(unittest.TestCase):
     def test_reconciled_net_returns(self):
         require_execution_cost_evidence(self.trades)
 
+    def test_zero_cost_oos_trade_rejected_even_when_net_equals_gross(self):
+        bad = self.trades.copy()
+        bad.loc[0, ["fee_r", "slippage_r"]] = 0.0
+        bad.loc[0, "r_multiple"] = 1.0
+        with self.assertRaisesRegex(ValueError, "Missing positive G1 execution cost"):
+            require_execution_cost_evidence(bad)
+
+    def test_zero_slippage_with_positive_fee_is_valid(self):
+        valid = self.trades.copy()
+        valid.loc[0, "slippage_r"] = 0.0
+        valid.loc[0, "r_multiple"] = 0.98
+        require_execution_cost_evidence(valid)
+
+    def test_zero_fee_with_positive_slippage_is_valid(self):
+        valid = self.trades.copy()
+        valid.loc[0, "fee_r"] = 0.0
+        valid.loc[0, "r_multiple"] = 0.96
+        require_execution_cost_evidence(valid)
+
     def test_missing_cost_column(self):
         with self.assertRaisesRegex(ValueError, "Missing G1 execution cost"):
             require_execution_cost_evidence(self.trades.drop(columns="fee_r"))

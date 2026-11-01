@@ -496,6 +496,10 @@ def require_execution_cost_evidence(trades):
         values[column] = numeric
     if (values["fee_r"] < 0).any() or (values["slippage_r"] < 0).any():
         raise ValueError("Negative G1 execution costs are not valid evidence")
+    # An OOS trade with zero fees AND zero slippage is cost-free gross R,
+    # not evidence of a net-of-execution-cost trading result.
+    if ((values["fee_r"] + values["slippage_r"]) <= 0).any():
+        raise ValueError("Missing positive G1 execution cost deduction for OOS trade")
     expected_net = values["gross_r_multiple"] - values["fee_r"] - values["slippage_r"]
     if (not np.isfinite(expected_net).all()
             or not np.isclose(expected_net, values["r_multiple"], rtol=1e-7, atol=1e-8).all()):
