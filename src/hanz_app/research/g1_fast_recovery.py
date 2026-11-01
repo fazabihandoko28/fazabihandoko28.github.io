@@ -220,7 +220,16 @@ def recover_missing_direct_chart(symbols, bars, now=None, opener=None, max_reque
         diagnostics.update({s: "request_budget_exhausted" for s in deferred})
     # max_requests limits actual HTTP calls, including alternate-host retries.
     retry_budget = max(0, budget - len(selected))
+    # If every request is preallocated to query2, query1 failover is
+    # unreachable. On larger saturated batches, share the same hard cap
+    # dynamically: a retry defers a later symbol instead of adding requests.
+    dynamic_budget = budget >= 8 and len(missing) >= budget
+    remaining_requests = budget
     for symbol in selected:
+        if dynamic_budget and remaining_requests <= 0:
+            if diagnostics is not None:
+                diagnostics[symbol] = "request_budget_exhausted"
+            continue
         if not isinstance(symbol, str) or not re.fullmatch(r"[A-Z0-9]{1,12}", symbol):
             if diagnostics is not None:
                 diagnostics[symbol] = "invalid_symbol"
@@ -232,9 +241,17 @@ def recover_missing_direct_chart(symbols, bars, now=None, opener=None, max_reque
         fetched = False
         for host in ("query2", "query1"):
             if host == "query1":
-                if retry_budget <= 0:
+                if dynamic_budget:
+                    if remaining_requests <= 0:
+                        break
+                else:
+                    if retry_budget <= 0:
+                        break
+                    retry_budget -= 1
+            if dynamic_budget:
+                if remaining_requests <= 0:
                     break
-                retry_budget -= 1
+                remaining_requests -= 1
             request = Request(
                 f"https://{host}.finance.yahoo.com/v8/finance/chart/{symbol}.JK?interval=5m&range=1d",
                 headers={"User-Agent": "Mozilla/5.0", "Accept": "application/json"},

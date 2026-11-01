@@ -550,6 +550,43 @@ class G1DirectChartRecoveryTests(unittest.TestCase):
             opener=self.opener(self.payload()),
         )["BBCA"], self.fresh)
 
+    def test_saturated_budget_can_recover_query1_without_exceeding_request_cap(self):
+        # With >= max_requests missing symbols, the previous implementation
+        # allocated every slot to query2 and could never try query1.
+        symbols = [f"T{i:03d}" for i in range(10)]
+        calls = []
+        def opener(request, timeout):
+            calls.append(request.full_url)
+            if len(calls) == 1:
+                raise HTTPError(request.full_url, 503, "Unavailable", {}, None)
+            symbol = request.full_url.split("/chart/")[1].split(".JK")[0]
+            return io.BytesIO(json.dumps(self.payload(symbol=f"{symbol}.JK")).encode())
+        diagnostics = {}
+        bars = recover_missing_direct_chart(
+            symbols, {}, now=self.now, opener=opener,
+            max_requests=8, diagnostics=diagnostics,
+        )
+        self.assertEqual(len(calls), 8)
+        self.assertIn("query1.finance.yahoo.com", calls[1])
+        self.assertEqual(len(bars), 7)
+        self.assertEqual(len(diagnostics["query1_recovered_symbols"]), 1)
+        self.assertEqual(sum(v == "request_budget_exhausted"
+                             for v in diagnostics.values()), 3)
+
+    def test_saturated_budget_without_errors_uses_all_primary_requests(self):
+        symbols = [f"T{i:03d}" for i in range(10)]
+        calls = []
+        def opener(request, timeout):
+            calls.append(request.full_url)
+            symbol = request.full_url.split("/chart/")[1].split(".JK")[0]
+            return io.BytesIO(json.dumps(self.payload(symbol=f"{symbol}.JK")).encode())
+        bars = recover_missing_direct_chart(
+            symbols, {}, now=self.now, opener=opener, max_requests=8,
+        )
+        self.assertEqual(len(calls), 8)
+        self.assertEqual(len(bars), 8)
+        self.assertTrue(all("query2.finance.yahoo.com" in url for url in calls))
+
     def test_direct_retry_budget_rotates_across_missing_symbols(self):
         # Previously every 30-minute probe retried the same first 3 symbols.
         # The remaining 7 could never receive direct-chart verification.
