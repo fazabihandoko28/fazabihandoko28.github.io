@@ -218,6 +218,8 @@ def recover_missing_direct_chart(symbols, bars, now=None, opener=None, max_reque
     selected, deferred = _budgeted_direct_chart_symbols(missing, budget, now)
     if diagnostics is not None:
         diagnostics.update({s: "request_budget_exhausted" for s in deferred})
+    # max_requests limits actual HTTP calls, including alternate-host retries.
+    retry_budget = max(0, budget - len(selected))
     for symbol in selected:
         if not isinstance(symbol, str) or not re.fullmatch(r"[A-Z0-9]{1,12}", symbol):
             if diagnostics is not None:
@@ -229,6 +231,10 @@ def recover_missing_direct_chart(symbols, bars, now=None, opener=None, max_reque
         stamp = None
         fetched = False
         for host in ("query2", "query1"):
+            if host == "query1":
+                if retry_budget <= 0:
+                    break
+                retry_budget -= 1
             request = Request(
                 f"https://{host}.finance.yahoo.com/v8/finance/chart/{symbol}.JK?interval=5m&range=1d",
                 headers={"User-Agent": "Mozilla/5.0", "Accept": "application/json"},
@@ -238,16 +244,22 @@ def recover_missing_direct_chart(symbols, bars, now=None, opener=None, max_reque
                     payload = json.load(response)
                 stamp = _latest_direct_chart_bar(payload, symbol, now)
                 fetched = True
+                if host == "query1" and stamp is not None and diagnostics is not None:
+                    diagnostics.setdefault("query1_recovered_symbols", []).append(symbol)
                 break
             except HTTPError as exc:
                 if diagnostics is not None:
-                    diagnostics[symbol] = f"{host}_http_{exc.code}"
+                    diagnostics[symbol] = f"http_{exc.code}"
+                # A rate-limit/authentication denial is not a host outage:
+                # never double requests against Yahoo for 401/403/429.
+                if exc.code in (401, 403, 429):
+                    break
             except OSError:
                 if diagnostics is not None:
-                    diagnostics[symbol] = f"{host}_transport_error"
+                    diagnostics[symbol] = "provider_request_or_response_error"
             except (ValueError, TypeError, KeyError, IndexError, OverflowError):
                 if diagnostics is not None:
-                    diagnostics[symbol] = "provider_response_error"
+                    diagnostics[symbol] = "provider_request_or_response_error"
                 break
         if not fetched:
             continue

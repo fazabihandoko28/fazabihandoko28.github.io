@@ -497,6 +497,7 @@ class G1DirectChartRecoveryTests(unittest.TestCase):
         self.assertEqual(bars, {"BBCA": self.fresh})
         self.assertEqual(hosts, ["query2.finance.yahoo.com", "query1.finance.yahoo.com"])
         self.assertEqual(diagnostics["BBCA"], "fresh_verified")
+        self.assertEqual(diagnostics["query1_recovered_symbols"], ["BBCA"])
 
     def test_both_yahoo_hosts_failing_never_certifies_candle(self):
         hosts = []
@@ -509,7 +510,7 @@ class G1DirectChartRecoveryTests(unittest.TestCase):
         )
         self.assertEqual(bars, {})
         self.assertEqual(hosts, ["query2.finance.yahoo.com", "query1.finance.yahoo.com"])
-        self.assertEqual(diagnostics["BBCA"], "query1_http_404")
+        self.assertEqual(diagnostics["BBCA"], "http_404")
 
     def test_query2_transport_failure_recovers_real_query1_candle(self):
         def opener(request, timeout):
@@ -613,7 +614,10 @@ class G1DirectChartRecoveryTests(unittest.TestCase):
         recover_missing_direct_chart(
             ["../", "BBCA"], {}, now=self.now, opener=failed,
         )
-        self.assertEqual(len(requests), 1)
+        # Only BBCA may be requested; one query1 retry is allowed when
+        # query2 transport fails and spare request budget remains.
+        self.assertEqual(len(requests), 2)
+        self.assertTrue(all("/chart/BBCA.JK" in url for url in requests))
 
     def test_direct_rejects_short_price_array_without_timestamp_misalignment(self):
         payload = self.payload()
