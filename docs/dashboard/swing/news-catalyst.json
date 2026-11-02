@@ -1,23 +1,23 @@
 {
-  "generated_at": "2026-10-30T14:40:17.875235+00:00",
+  "generated_at": "2026-11-02T08:34:52.458852+00:00",
   "policy": "HIGH_CONFIDENCE_CAUSAL_ONLY",
   "selected_tickers": [
+    "JSMR",
     "WIIM",
+    "PTBA",
     "BTPN",
-    "MPMX",
-    "HMSP",
-    "MARK"
+    "MPMX"
   ],
   "catalysts": [
     {
       "scope": "IHSG",
-      "direction": "NEGATIVE",
+      "direction": "POSITIVE",
       "confidence": "HIGH",
       "score": 8,
-      "headline": "IHSG Lanjut Melemah Usai Anjlok 3,49%, Aksi Jual Asing dan Isu MSCI Masih Membayangi - Berita Moneter",
-      "source": "Berita Moneter",
-      "url": "https://news.google.com/rss/articles/CBMie0FVX3lxTE1XSkxpYnQ0T0NJSWFWemNqQXR4N1AzaHFNMjhYS0JHRE9IbFN4cHlyYXVxZmdyMzVPd3F4VkxRbVpUUmlIV1lOb2RudVVwTmJHZWJIeHJXZmdmLXhobkxfdTFSMFAyRXlEZnA1V213X3lySE5OR2hrU0daNA?oc=5",
-      "published_at": "2026-10-30T06:13:00+00:00",
+      "headline": "IHSG Sesi I Ditutup Menguat Setelah Sempat Merah, Ditopang Saham BUMI, TPIA, hingga BRPT - Kompas.com",
+      "source": "Kompas.com",
+      "url": "https://news.google.com/rss/articles/CBMi3wFBVV95cUxORkU5WFlCQTVpOHJlWUhibzVtclJ3NkN6Q1QtU2RpYVJsWEZ0VFhrNHhMcWNJc29pS2t1NEN6VVRpZFFYczc0aUl4VzhCaGd4MFZiRnZwbEtJbzZqZ1F2UzliTXNoUXdic0NQbFdKRnhaVHV0OVRobll6c0I2MDdxY0dfTXVDZW9BZGNfMGxaTE5OYnZ2WWtyLW10NG8tQnkxb1YxR2I3bGlpRW1Qakp2S1ZtemFrdWs2dEpmSUxMcF9fZTBtelRPdmJWamFmdl92Y0ZWX21XR3RLWFF5eG9R?oc=5",
+      "published_at": "2026-11-02T05:48:00+00:00",
       "note": "Likely index news catalyst based on explicit causal headline language. Hidden when causal evidence is weak."
     }
   ]
