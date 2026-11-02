@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-11-02T08:34:52.458852+00:00",
+  "generated_at": "2026-11-02T18:57:08.243251+00:00",
   "policy": "HIGH_CONFIDENCE_CAUSAL_ONLY",
   "selected_tickers": [
     "JSMR",
-    "WIIM",
-    "PTBA",
+    "PGAS",
     "BTPN",
-    "MPMX"
+    "MPMX",
+    "JRPT"
   ],
   "catalysts": [
     {
@@ -14,10 +14,10 @@
       "direction": "POSITIVE",
       "confidence": "HIGH",
       "score": 8,
-      "headline": "IHSG Sesi I Ditutup Menguat Setelah Sempat Merah, Ditopang Saham BUMI, TPIA, hingga BRPT - Kompas.com",
-      "source": "Kompas.com",
-      "url": "https://news.google.com/rss/articles/CBMi3wFBVV95cUxORkU5WFlCQTVpOHJlWUhibzVtclJ3NkN6Q1QtU2RpYVJsWEZ0VFhrNHhMcWNJc29pS2t1NEN6VVRpZFFYczc0aUl4VzhCaGd4MFZiRnZwbEtJbzZqZ1F2UzliTXNoUXdic0NQbFdKRnhaVHV0OVRobll6c0I2MDdxY0dfTXVDZW9BZGNfMGxaTE5OYnZ2WWtyLW10NG8tQnkxb1YxR2I3bGlpRW1Qakp2S1ZtemFrdWs2dEpmSUxMcF9fZTBtelRPdmJWamFmdl92Y0ZWX21XR3RLWFF5eG9R?oc=5",
-      "published_at": "2026-11-02T05:48:00+00:00",
+      "headline": "IHSG Menguat Setelah Hapus Saham HSC dari Perhitungan - Cirebon Times",
+      "source": "Cirebon Times",
+      "url": "https://news.google.com/rss/articles/CBMiaEFVX3lxTE1rRU5tVnBubDA3RS1CbzB3bU5xUnRJNzJJYTNnNUZDUlY4Z3Y5bXdUZGh1Tnh2WGc2OHluczNSR3RJS2U5TUoxc2pteS03WHFVVWJtR19seWg3UUl1VDl6cW5veE9ib1RH?oc=5",
+      "published_at": "2026-11-02T13:59:33+00:00",
       "note": "Likely index news catalyst based on explicit causal headline language. Hidden when causal evidence is weak."
     }
   ]
