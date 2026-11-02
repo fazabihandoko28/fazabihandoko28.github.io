@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-11-02T06:14:34.341642+00:00",
+  "generated_at": "2026-11-02T16:13:29.542848+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1316,
-  "matching_jobs": 74,
+  "raw_jobs": 1335,
+  "matching_jobs": 75,
   "source_status": [
     {
       "name": "Grab",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 381
+      "jobs": 400
     },
     {
       "name": "Visa",
@@ -86,6 +86,15 @@
       "location": "Jakarta, Indonesia",
       "url": "https://jobs.smartrecruiters.com/Grab/744000138605441-manager-communications",
       "published_at": "2026-07-20T10:29:56.580Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000159108155",
+      "title": "Intern, HR (Employer Branding & Talent Engagement)",
+      "company": "Bosch Group",
+      "location": "Singapore, Singapore",
+      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000159108155-intern-hr-employer-branding-talent-engagement",
+      "published_at": "2026-11-02T11:02:53.746Z",
       "source_verified": true
     },
     {
