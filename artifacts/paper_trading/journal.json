@@ -2408,5 +2408,35 @@
     "source": "YAHOO_FINANCE_RESEARCH_ONLY",
     "recorded_at": "2026-10-30T18:44:53.213552+00:00",
     "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "DMAS",
+    "status": "WAIT",
+    "signal_timestamp": "2026-11-02T00:00:00+00:00",
+    "signal_close": 172.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-11-02T22:25:16.526779+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "ERAA",
+    "status": "WAIT",
+    "signal_timestamp": "2026-11-02T00:00:00+00:00",
+    "signal_close": 505.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-11-02T22:25:16.526802+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "AADI",
+    "status": "WAIT",
+    "signal_timestamp": "2026-11-02T00:00:00+00:00",
+    "signal_close": 10700.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-11-02T22:25:16.526810+00:00",
+    "outcome": "PENDING"
   }
 ]
