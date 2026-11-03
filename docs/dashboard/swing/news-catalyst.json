@@ -1,23 +1,23 @@
 {
-  "generated_at": "2026-11-02T18:57:08.243251+00:00",
+  "generated_at": "2026-11-03T08:47:26.071729+00:00",
   "policy": "HIGH_CONFIDENCE_CAUSAL_ONLY",
   "selected_tickers": [
-    "JSMR",
     "PGAS",
-    "BTPN",
     "MPMX",
-    "JRPT"
+    "PRDA",
+    "LPPF",
+    "MARK"
   ],
   "catalysts": [
     {
       "scope": "IHSG",
       "direction": "POSITIVE",
       "confidence": "HIGH",
-      "score": 8,
-      "headline": "IHSG Menguat Setelah Hapus Saham HSC dari Perhitungan - Cirebon Times",
-      "source": "Cirebon Times",
-      "url": "https://news.google.com/rss/articles/CBMiaEFVX3lxTE1rRU5tVnBubDA3RS1CbzB3bU5xUnRJNzJJYTNnNUZDUlY4Z3Y5bXdUZGh1Tnh2WGc2OHluczNSR3RJS2U5TUoxc2pteS03WHFVVWJtR19seWg3UUl1VDl6cW5veE9ib1RH?oc=5",
-      "published_at": "2026-11-02T13:59:33+00:00",
+      "score": 7,
+      "headline": "IHSG Berbalik Naik usai Reformasi HSC Jadi Sorotan - Koridor.co.id",
+      "source": "Koridor.co.id",
+      "url": "https://news.google.com/rss/articles/CBMiWEFVX3lxTFBYN201eWdYdzJWVVZ5enBOOEptRFVMamVlMTJlbTF5Rlc1R1Z6a1VZY21Yek1weG05cWQ4N3ZkalIzMl9aWDRuWTNGQ2huYWJBS2NWRmFDR2c?oc=5",
+      "published_at": "2026-11-02T10:51:53+00:00",
       "note": "Likely index news catalyst based on explicit causal headline language. Hidden when causal evidence is weak."
     }
   ]
