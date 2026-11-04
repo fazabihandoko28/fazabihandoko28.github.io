@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-11-03T23:26:58.320874+00:00",
+  "generated_at": "2026-11-04T06:31:41.342325+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1351,
-  "matching_jobs": 71,
+  "raw_jobs": 1354,
+  "matching_jobs": 73,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 439
+      "jobs": 443
     },
     {
       "name": "Publicis Groupe",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 412
+      "jobs": 411
     },
     {
       "name": "Visa",
@@ -43,6 +43,15 @@
     }
   ],
   "jobs": [
+    {
+      "id": "sr-744000159540169",
+      "title": "Trade Marketing Manager",
+      "company": "Bosch Group",
+      "location": "Jakarta, Indonesia",
+      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000159540169-trade-marketing-manager",
+      "published_at": "2026-11-04T02:37:27.750Z",
+      "source_verified": true
+    },
     {
       "id": "sr-744000148139949",
       "title": "City Marketing Execution Associate",
@@ -77,6 +86,15 @@
       "location": "Jakarta, Indonesia",
       "url": "https://jobs.smartrecruiters.com/Grab/744000138605441-manager-communications",
       "published_at": "2026-07-20T10:29:56.580Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000159552439",
+      "title": "Merchant Acquisition Lead",
+      "company": "Grab",
+      "location": "Jakarta, Indonesia",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000159552439-merchant-acquisition-lead",
+      "published_at": "2026-11-04T06:29:53.043Z",
       "source_verified": true
     },
     {
@@ -170,12 +188,12 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000141643594",
+      "id": "sr-744000159539640",
       "title": "Assistant Marketing Manager",
       "company": "Grab",
       "location": "Pasig City, Philippines",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000141643594-assistant-marketing-manager",
-      "published_at": "2026-08-05T06:23:20.678Z",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000159539640-assistant-marketing-manager",
+      "published_at": "2026-11-04T02:39:56.388Z",
       "source_verified": true
     },
     {
