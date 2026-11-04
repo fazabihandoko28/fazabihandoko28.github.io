@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-11-04T08:16:38.549255+00:00",
+  "generated_at": "2026-11-04T16:26:43.051749+00:00",
   "policy": "HIGH_CONFIDENCE_CAUSAL_ONLY",
   "selected_tickers": [
     "MPMX",
-    "PGAS",
     "BTPN",
-    "LPPF",
-    "PRDA"
+    "JRPT",
+    "SILO",
+    "ABMM"
   ],
   "catalysts": []
 }
