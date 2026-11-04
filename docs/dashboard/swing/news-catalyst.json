@@ -1,24 +1,12 @@
 {
-  "generated_at": "2026-11-03T16:42:28.380375+00:00",
+  "generated_at": "2026-11-04T08:16:38.549255+00:00",
   "policy": "HIGH_CONFIDENCE_CAUSAL_ONLY",
   "selected_tickers": [
     "MPMX",
+    "PGAS",
     "BTPN",
-    "BTPS",
-    "JRPT",
-    "WIIM"
+    "LPPF",
+    "PRDA"
   ],
-  "catalysts": [
-    {
-      "scope": "IHSG",
-      "direction": "POSITIVE",
-      "confidence": "HIGH",
-      "score": 7,
-      "headline": "IHSG Sesi I Ditutup Menguat Setelah Sempat Merah, Ditopang Saham BUMI, TPIA, hingga BRPT - Kompas.com",
-      "source": "Kompas.com",
-      "url": "https://news.google.com/rss/articles/CBMi3wFBVV95cUxORkU5WFlCQTVpOHJlWUhibzVtclJ3NkN6Q1QtU2RpYVJsWEZ0VFhrNHhMcWNJc29pS2t1NEN6VVRpZFFYczc0aUl4VzhCaGd4MFZiRnZwbEtJbzZqZ1F2UzliTXNoUXdic0NQbFdKRnhaVHV0OVRobll6c0I2MDdxY0dfTXVDZW9BZGNfMGxaTE5OYnZ2WWtyLW10NG8tQnkxb1YxR2I3bGlpRW1Qakp2S1ZtemFrdWs2dEpmSUxMcF9fZTBtelRPdmJWamFmdl92Y0ZWX21XR3RLWFF5eG9R?oc=5",
-      "published_at": "2026-11-02T05:48:00+00:00",
-      "note": "Likely index news catalyst based on explicit causal headline language. Hidden when causal evidence is weak."
-    }
-  ]
+  "catalysts": []
 }
