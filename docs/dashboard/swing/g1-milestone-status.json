@@ -1,0 +1,39 @@
+{
+  "schema": "hanz-g1-milestone-v1",
+  "evidence_generated_at": "2026-11-04T18:09:53.147390+00:00",
+  "source": "docs/dashboard/swing/backtest-5y.json",
+  "milestones": {
+    "historical_5y_data": {
+      "status": "CLOSED",
+      "verified_symbols": [
+        "MPMX",
+        "ICBP",
+        "PRDA",
+        "ACES",
+        "BJBR"
+      ],
+      "verified_count": 5,
+      "required_count": 5,
+      "scope": "Research-only historical data completeness; not strategy profitability or live trading readiness"
+    },
+    "execution_costs": {
+      "status": "OPEN",
+      "reason": "Backtest explicitly excludes fees and slippage"
+    },
+    "out_of_sample_validation": {
+      "status": "OPEN",
+      "reason": "Backtest explicitly lacks point-in-time out-of-sample validation"
+    },
+    "live_intraday": {
+      "status": "UNVERIFIED",
+      "reason": "Historical data artifact does not establish current FAST LIVE freshness"
+    },
+    "trading_signals": {
+      "status": "BLOCKED",
+      "reason": "No BUY certification from historical completeness"
+    }
+  },
+  "g1_overall": "OPEN",
+  "g0_unchanged": true,
+  "policy": "Noncritical research-history milestone may close independently; never upgrade STALE to LIVE or bypass trading safety gates."
+}
