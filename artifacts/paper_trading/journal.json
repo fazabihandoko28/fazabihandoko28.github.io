@@ -2438,5 +2438,55 @@
     "source": "YAHOO_FINANCE_RESEARCH_ONLY",
     "recorded_at": "2026-11-02T22:25:16.526810+00:00",
     "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "DMAS",
+    "status": "WAIT",
+    "signal_timestamp": "2026-11-03T00:00:00+00:00",
+    "signal_close": 160.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-11-04T20:30:09.008549+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "AADI",
+    "status": "WAIT",
+    "signal_timestamp": "2026-11-03T00:00:00+00:00",
+    "signal_close": 10425.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-11-04T20:30:09.008577+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "ERAA",
+    "status": "WAIT",
+    "signal_timestamp": "2026-11-03T00:00:00+00:00",
+    "signal_close": 472.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-11-04T20:30:09.008583+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "PWON",
+    "status": "WAIT",
+    "signal_timestamp": "2026-11-03T00:00:00+00:00",
+    "signal_close": 256.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-11-04T20:30:09.008590+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "MARK",
+    "status": "WAIT",
+    "signal_timestamp": "2026-11-03T00:00:00+00:00",
+    "signal_close": 1055.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-11-04T20:30:09.008596+00:00",
+    "outcome": "PENDING"
   }
 ]
