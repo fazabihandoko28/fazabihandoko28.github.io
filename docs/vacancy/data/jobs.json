@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-11-04T19:48:59.910831+00:00",
+  "generated_at": "2026-11-05T06:53:41.126717+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1367,
-  "matching_jobs": 73,
+  "raw_jobs": 1369,
+  "matching_jobs": 74,
   "source_status": [
     {
       "name": "Grab",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 417
+      "jobs": 419
     },
     {
       "name": "Visa",
@@ -203,6 +203,15 @@
       "location": "HCMC, Vietnam",
       "url": "https://jobs.smartrecruiters.com/Grab/744000153152879-assistant-marketing-manager-onegrab-vn",
       "published_at": "2026-10-02T11:00:43.882Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000159786899",
+      "title": "Assistant Marketing Manager, B2B",
+      "company": "Grab",
+      "location": "Petaling Jaya, Malaysia",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000159786899-assistant-marketing-manager-b2b",
+      "published_at": "2026-11-05T06:23:23.743Z",
       "source_verified": true
     },
     {
