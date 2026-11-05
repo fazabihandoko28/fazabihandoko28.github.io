@@ -2488,5 +2488,35 @@
     "source": "YAHOO_FINANCE_RESEARCH_ONLY",
     "recorded_at": "2026-11-04T20:30:09.008596+00:00",
     "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "DMAS",
+    "status": "WAIT",
+    "signal_timestamp": "2026-11-04T00:00:00+00:00",
+    "signal_close": 158.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-11-05T20:46:31.676409+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "ACES",
+    "status": "WAIT",
+    "signal_timestamp": "2026-11-04T00:00:00+00:00",
+    "signal_close": 332.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-11-05T20:46:31.676431+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "PWON",
+    "status": "WAIT",
+    "signal_timestamp": "2026-11-04T00:00:00+00:00",
+    "signal_close": 254.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-11-05T20:46:31.676441+00:00",
+    "outcome": "PENDING"
   }
 ]
