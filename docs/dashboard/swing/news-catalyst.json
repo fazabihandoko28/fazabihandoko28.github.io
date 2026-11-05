@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-11-05T08:41:35.973138+00:00",
+  "generated_at": "2026-11-05T16:55:47.887671+00:00",
   "policy": "HIGH_CONFIDENCE_CAUSAL_ONLY",
   "selected_tickers": [
     "MPMX",
-    "AGII",
-    "ABMM",
-    "ASII",
-    "AUTO"
+    "PGAS",
+    "BTPN",
+    "BTPS",
+    "SRTG"
   ],
   "catalysts": []
 }
