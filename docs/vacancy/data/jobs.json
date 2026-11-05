@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-11-05T06:53:41.126717+00:00",
+  "generated_at": "2026-11-05T19:59:57.518585+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1369,
+  "raw_jobs": 1362,
   "matching_jobs": 74,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 450
+      "jobs": 449
     },
     {
       "name": "Publicis Groupe",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 419
+      "jobs": 413
     },
     {
       "name": "Visa",
@@ -43,6 +43,15 @@
     }
   ],
   "jobs": [
+    {
+      "id": "sr-744000159818079",
+      "title": "Marketing & Project Support Two-Wheeler Intern",
+      "company": "Bosch Group",
+      "location": "South Jakarta, Indonesia",
+      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000159818079-marketing-project-support-two-wheeler-intern",
+      "published_at": "2026-11-05T09:29:09.345Z",
+      "source_verified": true
+    },
     {
       "id": "sr-744000159540169",
       "title": "Trade Marketing Manager",
@@ -104,15 +113,6 @@
       "location": "Singapore, Singapore",
       "url": "https://jobs.smartrecruiters.com/BoschGroup/744000159108155-intern-hr-employer-branding-talent-engagement",
       "published_at": "2026-11-02T11:02:53.746Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000158655699",
-      "title": "[Bosch HcP - Internship] Talent Acquisition Intern",
-      "company": "Bosch Group",
-      "location": "An Phuoc Commune, Vietnam",
-      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000158655699-bosch-hcp-internship-talent-acquisition-intern",
-      "published_at": "2026-10-30T02:08:07.531Z",
       "source_verified": true
     },
     {
@@ -185,6 +185,15 @@
       "location": "Petaling Jaya, Malaysia",
       "url": "https://jobs.smartrecruiters.com/Grab/744000159050479-assistant-manager-growth-analytics",
       "published_at": "2026-11-02T05:23:36.724Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000159814909",
+      "title": "Assistant Manager, Lending Commercial",
+      "company": "Grab",
+      "location": "Pasig City, Philippines",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000159814909-assistant-manager-lending-commercial",
+      "published_at": "2026-11-05T09:15:09.104Z",
       "source_verified": true
     },
     {
@@ -458,12 +467,12 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000155706449",
+      "id": "sr-744000159798419",
       "title": "Intern, Talent Acquisition",
       "company": "Grab",
       "location": "Singapore, Singapore",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000155706449-intern-talent-acquisition",
-      "published_at": "2026-10-15T09:14:33.356Z",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000159798419-intern-talent-acquisition",
+      "published_at": "2026-11-05T07:52:08.330Z",
       "source_verified": true
     },
     {
@@ -491,15 +500,6 @@
       "location": "HCMC, Vietnam",
       "url": "https://jobs.smartrecruiters.com/Grab/744000144003539-lead-strategic-acquisition-project",
       "published_at": "2026-08-18T07:47:39.236Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000157732399",
-      "title": "Lending Commercial - Assistant Manager",
-      "company": "Grab",
-      "location": "Pasig City, Philippines",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000157732399-lending-commercial-assistant-manager",
-      "published_at": "2026-10-26T07:22:40.277Z",
       "source_verified": true
     },
     {
