@@ -1,12 +1,24 @@
 {
-  "generated_at": "2026-11-05T16:55:47.887671+00:00",
+  "generated_at": "2026-11-06T08:42:55.434099+00:00",
   "policy": "HIGH_CONFIDENCE_CAUSAL_ONLY",
   "selected_tickers": [
+    "LSIP",
     "MPMX",
     "PGAS",
-    "BTPN",
-    "BTPS",
-    "SRTG"
+    "SUNI",
+    "BTPS"
   ],
-  "catalysts": []
+  "catalysts": [
+    {
+      "scope": "IHSG",
+      "direction": "NEGATIVE",
+      "confidence": "HIGH",
+      "score": 8,
+      "headline": "IHSG Berpotensi Melemah Usai Wall Street Tertekan Saham AI - Demokratis.co.id",
+      "source": "Demokratis.co.id",
+      "url": "https://news.google.com/rss/articles/CBMiZEFVX3lxTE9OUWZ0MDcwT0JCbjVvQjJUUkQxY0NQT1JOcHVfYmVaMzRZMm9xQ21RaVRMXy1XS3llUFRGQUY2QnZjdTdEOS0tQ1dsTUVKd09mb0lRa1dPVEpkbWhRNVJYSUZLelI?oc=5",
+      "published_at": "2026-11-06T01:37:18+00:00",
+      "note": "Likely index news catalyst based on explicit causal headline language. Hidden when causal evidence is weak."
+    }
+  ]
 }
