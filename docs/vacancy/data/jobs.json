@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-11-06T06:53:39.262492+00:00",
+  "generated_at": "2026-11-06T19:27:37.628378+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1358,
-  "matching_jobs": 74,
+  "raw_jobs": 1370,
+  "matching_jobs": 73,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 447
+      "jobs": 448
     },
     {
       "name": "Publicis Groupe",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 411
+      "jobs": 422
     },
     {
       "name": "Visa",
@@ -104,15 +104,6 @@
       "location": "Jakarta, Indonesia",
       "url": "https://jobs.smartrecruiters.com/Grab/744000159552439-merchant-acquisition-lead",
       "published_at": "2026-11-04T06:29:53.043Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000159108155",
-      "title": "Intern, HR (Employer Branding & Talent Engagement)",
-      "company": "Bosch Group",
-      "location": "Singapore, Singapore",
-      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000159108155-intern-hr-employer-branding-talent-engagement",
-      "published_at": "2026-11-02T11:02:53.746Z",
       "source_verified": true
     },
     {
@@ -440,30 +431,30 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000157961609",
+      "id": "sr-744000160199014",
       "title": "Intern, Marketing and Partnership (GrabRentals)",
       "company": "Grab",
       "location": "Singapore, Singapore",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000157961609-intern-marketing-and-partnership-grabrentals",
-      "published_at": "2026-10-27T05:51:05.071Z",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000160199014-intern-marketing-and-partnership-grabrentals",
+      "published_at": "2026-11-06T13:35:07.984Z",
       "source_verified": true
     },
     {
-      "id": "sr-744000157961319",
+      "id": "sr-744000160203648",
       "title": "Intern, Partner Acquisition",
       "company": "Grab",
       "location": "Singapore, Singapore",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000157961319-intern-partner-acquisition",
-      "published_at": "2026-10-27T05:47:44.877Z",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000160203648-intern-partner-acquisition",
+      "published_at": "2026-11-06T13:34:49.327Z",
       "source_verified": true
     },
     {
-      "id": "sr-744000157961720",
+      "id": "sr-744000160202996",
       "title": "Intern, Social Media & Partner Engagement",
       "company": "Grab",
       "location": "Singapore, Singapore",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000157961720-intern-social-media-partner-engagement",
-      "published_at": "2026-10-27T05:52:37.107Z",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000160202996-intern-social-media-partner-engagement",
+      "published_at": "2026-11-06T13:35:28.863Z",
       "source_verified": true
     },
     {
