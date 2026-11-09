@@ -2568,5 +2568,35 @@
     "source": "YAHOO_FINANCE_RESEARCH_ONLY",
     "recorded_at": "2026-11-06T20:01:47.303327+00:00",
     "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "ASII",
+    "status": "WAIT",
+    "signal_timestamp": "2026-11-09T00:00:00+00:00",
+    "signal_close": 5150.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-11-09T23:05:55.321105+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "PGAS",
+    "status": "WAIT",
+    "signal_timestamp": "2026-11-09T00:00:00+00:00",
+    "signal_close": 1485.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-11-09T23:05:55.321138+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "BRIS",
+    "status": "WAIT",
+    "signal_timestamp": "2026-11-09T00:00:00+00:00",
+    "signal_close": 1160.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-11-09T23:05:55.321150+00:00",
+    "outcome": "PENDING"
   }
 ]
