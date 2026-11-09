@@ -215,15 +215,19 @@ def recover_missing_direct_chart(symbols, bars, now=None, opener=None, max_reque
         return bars
     opener = opener or urlopen
     budget = max(0, max_requests)
-    selected, deferred = _budgeted_direct_chart_symbols(missing, budget, now)
+    # Invalid symbols must not consume bounded HTTP request slots.
+    eligible = [s for s in missing if isinstance(s, str)
+                and re.fullmatch(r"[A-Z0-9]{1,12}", s)]
+    selected, deferred = _budgeted_direct_chart_symbols(eligible, budget, now)
     if diagnostics is not None:
+        diagnostics.update({s: "invalid_symbol" for s in missing if s not in eligible})
         diagnostics.update({s: "request_budget_exhausted" for s in deferred})
     # max_requests limits actual HTTP calls, including alternate-host retries.
     retry_budget = max(0, budget - len(selected))
     # If every request is preallocated to query2, query1 failover is
     # unreachable. On larger saturated batches, share the same hard cap
     # dynamically: a retry defers a later symbol instead of adding requests.
-    dynamic_budget = budget >= 8 and len(missing) >= budget
+    dynamic_budget = budget >= 8 and len(eligible) >= budget
     remaining_requests = budget
     for symbol in selected:
         if dynamic_budget and remaining_requests <= 0:
