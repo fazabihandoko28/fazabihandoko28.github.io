@@ -111,7 +111,13 @@ def recover_missing_five_minute_bars(engine, symbols, bars, validate=validated_b
     if now.tzinfo is None:
         raise ValueError("now must be timezone-aware")
     now = now.astimezone(timezone.utc)
-    missing = sorted(symbol for symbol in set(symbols)
+    valid_symbols = {symbol for symbol in symbols if isinstance(symbol, str)
+                     and re.fullmatch(r"[A-Z0-9]{1,12}", symbol)}
+    if diagnostics is not None:
+        diagnostics.update({str(symbol): "invalid_symbol" for symbol in symbols
+                            if not isinstance(symbol, str)
+                            or not re.fullmatch(r"[A-Z0-9]{1,12}", symbol)})
+    missing = sorted(symbol for symbol in valid_symbols
                      if not _fresh_session_bar(bars.get(symbol), now))
     if not missing:
         return bars
