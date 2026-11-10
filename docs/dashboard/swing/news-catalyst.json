@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-11-09T19:17:58.281491+00:00",
+  "generated_at": "2026-11-10T08:55:14.778488+00:00",
   "policy": "HIGH_CONFIDENCE_CAUSAL_ONLY",
   "selected_tickers": [
-    "BTPS",
+    "LSIP",
     "ASII",
-    "BRIS",
-    "MPMX",
-    "PGAS"
+    "BBCA",
+    "BBTN",
+    "BRIS"
   ],
   "catalysts": []
 }
