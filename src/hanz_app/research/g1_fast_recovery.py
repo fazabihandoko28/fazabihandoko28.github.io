@@ -55,7 +55,8 @@ def evaluate_bars(tickers, bars, now):
     if now.tzinfo is None:
         raise ValueError("now must be timezone-aware")
     now = now.astimezone(timezone.utc)
-    universe = sorted(set(tickers))
+    universe = sorted({s for s in tickers if isinstance(s, str)
+                       and re.fullmatch(r"[A-Z0-9]{1,12}", s)})
     valid = {}
     for symbol in universe:
         stamp = bars.get(symbol)
