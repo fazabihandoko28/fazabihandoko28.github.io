@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-11-09T22:25:28.066001+00:00",
+  "generated_at": "2026-11-10T07:24:21.931411+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1364,
-  "matching_jobs": 71,
+  "raw_jobs": 1358,
+  "matching_jobs": 70,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 446
+      "jobs": 443
     },
     {
       "name": "Publicis Groupe",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 418
+      "jobs": 415
     },
     {
       "name": "Visa",
@@ -572,15 +572,6 @@
       "location": "Petaling Jaya, Malaysia",
       "url": "https://jobs.smartrecruiters.com/Grab/744000141409609-senior-data-scientist-analytics-country-marketing-analytics",
       "published_at": "2026-08-04T05:13:40.715Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000145412609",
-      "title": "Senior Data Scientist (Country and Marketing Analytics)",
-      "company": "Grab",
-      "location": "Bangkok, Thailand",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000145412609-senior-data-scientist-country-and-marketing-analytics",
-      "published_at": "2026-08-25T03:05:41.620Z",
       "source_verified": true
     },
     {
