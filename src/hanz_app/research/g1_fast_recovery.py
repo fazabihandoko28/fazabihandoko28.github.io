@@ -214,9 +214,10 @@ def recover_missing_direct_chart(symbols, bars, now=None, opener=None, max_reque
     if now.tzinfo is None:
         raise ValueError("now must be timezone-aware")
     now = now.astimezone(timezone.utc)
-    missing = sorted((s for s in set(symbols)
-                      if not _fresh_session_bar(bars.get(s), now)),
-                     key=lambda s: (not isinstance(s, str), str(s)))
+    eligible_symbols = {s for s in symbols if isinstance(s, str)
+                        and re.fullmatch(r"[A-Z0-9]{1,12}", s)}
+    missing = sorted(s for s in eligible_symbols
+                     if not _fresh_session_bar(bars.get(s), now))
     if not session_open(now):
         if diagnostics is not None:
             diagnostics.update({s: "idx_session_closed" for s in missing})
