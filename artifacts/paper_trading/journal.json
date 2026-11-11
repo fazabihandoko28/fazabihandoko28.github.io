@@ -2598,5 +2598,35 @@
     "source": "YAHOO_FINANCE_RESEARCH_ONLY",
     "recorded_at": "2026-11-09T23:05:55.321150+00:00",
     "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "ASII",
+    "status": "WAIT",
+    "signal_timestamp": "2026-11-10T00:00:00+00:00",
+    "signal_close": 5350.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-11-11T20:18:01.656758+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "PGAS",
+    "status": "WAIT",
+    "signal_timestamp": "2026-11-10T00:00:00+00:00",
+    "signal_close": 1515.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-11-11T20:18:01.656786+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "RAJA",
+    "status": "WAIT",
+    "signal_timestamp": "2026-11-10T00:00:00+00:00",
+    "signal_close": 466.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-11-11T20:18:01.656795+00:00",
+    "outcome": "PENDING"
   }
 ]
