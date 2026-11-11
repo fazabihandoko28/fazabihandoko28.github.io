@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-11-11T08:35:38.705608+00:00",
+  "generated_at": "2026-11-11T16:44:16.108866+00:00",
   "policy": "HIGH_CONFIDENCE_CAUSAL_ONLY",
   "selected_tickers": [
-    "ASII",
-    "ACRO",
-    "ANTM",
-    "BBTN",
-    "ICBP"
+    "KEEN",
+    "MAPA",
+    "PGAS",
+    "UNVR",
+    "JRPT"
   ],
   "catalysts": [
     {
