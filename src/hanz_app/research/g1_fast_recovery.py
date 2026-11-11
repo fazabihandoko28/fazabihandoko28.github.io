@@ -138,9 +138,11 @@ def recover_missing_five_minute_bars(engine, symbols, bars, validate=validated_b
                 diagnostics.setdefault("five_minute_cache_errors", {})[ticker] = type(exc).__name__
             continue
         prior = bars.get(ticker)
-        if (stamp is not None and
-                (not isinstance(prior, datetime) or prior.tzinfo is None or stamp > prior
-                 or (prior.astimezone(timezone.utc) > now and _fresh_session_bar(stamp, now)))):
+        if (isinstance(stamp, datetime) and stamp.tzinfo is not None and
+                (not isinstance(prior, datetime)
+                 or (prior.tzinfo is not None and
+                     (stamp > prior or
+                      (prior.astimezone(timezone.utc) > now and _fresh_session_bar(stamp, now)))))):
             bars[ticker] = stamp
     return bars
 
@@ -294,9 +296,11 @@ def recover_missing_direct_chart(symbols, bars, now=None, opener=None, max_reque
         if not fetched:
             continue
         prior = bars.get(symbol)
-        if (stamp is not None and
-                (not isinstance(prior, datetime) or prior.tzinfo is None or stamp > prior
-                 or (prior.astimezone(timezone.utc) > now and _fresh_session_bar(stamp, now)))):
+        if (isinstance(stamp, datetime) and stamp.tzinfo is not None and
+                (not isinstance(prior, datetime)
+                 or (prior.tzinfo is not None and
+                     (stamp > prior or
+                      (prior.astimezone(timezone.utc) > now and _fresh_session_bar(stamp, now)))))):
             bars[symbol] = stamp
         if diagnostics is not None:
             diagnostics[symbol] = ("fresh_verified" if _fresh_session_bar(bars.get(symbol), now)
