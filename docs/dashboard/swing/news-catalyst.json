@@ -1,24 +1,12 @@
 {
-  "generated_at": "2026-11-12T08:56:42.486858+00:00",
+  "generated_at": "2026-11-12T17:17:12.575998+00:00",
   "policy": "HIGH_CONFIDENCE_CAUSAL_ONLY",
   "selected_tickers": [
-    "BBNI",
     "BTPS",
-    "LPPF",
+    "LSIP",
     "MYOR",
-    "PGAS"
+    "SMRA",
+    "ASII"
   ],
-  "catalysts": [
-    {
-      "scope": "IHSG",
-      "direction": "POSITIVE",
-      "confidence": "HIGH",
-      "score": 7,
-      "headline": "IHSG Berpeluang Menguat Usai Tembus Level 5.125 - cwibc.co.id",
-      "source": "cwibc.co.id",
-      "url": "https://news.google.com/rss/articles/CBMiY0FVX3lxTE4zNmR3MzJ6Z1M4ZGkwVE15Skh0Wi1EYWFqb3Vrd0h2b0RUTU9Mb1oyNUk0LXNmWXJJZnZOMHg5R1VTM3NrSml1MHA2WGxSVnVIakdaa0lIVFphNDNLR1M2a3oyZw?oc=5",
-      "published_at": "2026-11-11T00:15:16+00:00",
-      "note": "Likely index news catalyst based on explicit causal headline language. Hidden when causal evidence is weak."
-    }
-  ]
+  "catalysts": []
 }
