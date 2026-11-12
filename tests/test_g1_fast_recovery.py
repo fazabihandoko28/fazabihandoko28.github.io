@@ -76,7 +76,7 @@ class G1IndependentFastRecoveryTests(unittest.TestCase):
         self.assertEqual(validated_bar(frame), previous)
 
     def test_invalid_tail_cannot_make_old_prior_bar_live(self):
-        stale = self.now - timedelta(hours=2)
+        stale = self.now - timedelta(minutes=31)  # 09:59 WIB: genuine session bar, >30m stale
         frame = pd.DataFrame([
             {"Open": 100, "High": 105, "Low": 98, "Close": 103, "Volume": 10},
             {"Open": 100, "High": 99, "Low": 98, "Close": 103, "Volume": 10},
@@ -97,7 +97,7 @@ class G1IndependentFastRecoveryTests(unittest.TestCase):
         self.assertEqual(validated_bar(frame), fresh)
 
     def test_out_of_order_invalid_newest_uses_actual_older_valid(self):
-        stale = self.now - timedelta(hours=2)
+        stale = self.now - timedelta(minutes=31)  # 09:59 WIB: genuine session bar, >30m stale
         fresh = self.now - timedelta(minutes=2)
         valid = {"Open": 100, "High": 105, "Low": 98, "Close": 103, "Volume": 10}
         invalid = dict(valid, Volume=0)
