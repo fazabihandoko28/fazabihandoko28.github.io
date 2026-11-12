@@ -2628,5 +2628,25 @@
     "source": "YAHOO_FINANCE_RESEARCH_ONLY",
     "recorded_at": "2026-11-11T20:18:01.656795+00:00",
     "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "PGAS",
+    "status": "WAIT",
+    "signal_timestamp": "2026-11-11T00:00:00+00:00",
+    "signal_close": 1525.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-11-12T21:00:35.096454+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "ACES",
+    "status": "WAIT",
+    "signal_timestamp": "2026-11-11T00:00:00+00:00",
+    "signal_close": 336.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-11-12T21:00:35.096480+00:00",
+    "outcome": "PENDING"
   }
 ]
