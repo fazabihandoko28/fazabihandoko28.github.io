@@ -18,10 +18,14 @@ from hanz_app.research.g1_fast_live_evidence import (
 OUTPUT = Path("artifacts/g1/fast-recovery.json")
 
 
-def validated_bar(frame):
-    """Return the newest genuine valid OHLCV timestamp; never synthesize a bar."""
+def validated_bar(frame, now=None):
+    """Return the newest genuine nonfuture regular-session OHLCV timestamp."""
     if frame is None or frame.empty:
         return None
+    now = now or datetime.now(timezone.utc)
+    if now.tzinfo is None:
+        raise ValueError("now must be timezone-aware")
+    now = now.astimezone(timezone.utc)
     # Providers may return out-of-order rows or malformed trailing rows.
     # Choose the newest actual valid timestamp, never the last row position.
     best = None
@@ -43,6 +47,9 @@ def validated_bar(frame):
             if stamp.tzinfo is None:
                 continue
             stamp = stamp.to_pydatetime().astimezone(timezone.utc)
+            # Future or non-regular-session rows must not hide a real IDX bar.
+            if stamp > now or not session_open(stamp):
+                continue
             if best is None or stamp > best:
                 best = stamp
         except (TypeError, ValueError, KeyError, AttributeError, OverflowError, IndexError):
