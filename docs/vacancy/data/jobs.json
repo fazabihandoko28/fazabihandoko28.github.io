@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-11-11T19:39:08.698953+00:00",
+  "generated_at": "2026-11-12T07:17:09.993494+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1355,
-  "matching_jobs": 68,
+  "raw_jobs": 1351,
+  "matching_jobs": 61,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 444
+      "jobs": 438
     },
     {
       "name": "Publicis Groupe",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 411
+      "jobs": 413
     },
     {
       "name": "Visa",
@@ -242,6 +242,15 @@
       "source_verified": true
     },
     {
+      "id": "sr-744000161224565",
+      "title": "Associate, Commercial Planning - Enterprise",
+      "company": "Grab",
+      "location": "HCMC, Vietnam",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000161224565-associate-commercial-planning-enterprise",
+      "published_at": "2026-11-12T06:33:26.919Z",
+      "source_verified": true
+    },
+    {
       "id": "sr-744000153399359",
       "title": "Associate, Commercial Planning - Longtail",
       "company": "Grab",
@@ -323,15 +332,6 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000147218279",
-      "title": "Business Development Manager",
-      "company": "Grab",
-      "location": "Petaling Jaya, Malaysia",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000147218279-business-development-manager",
-      "published_at": "2026-09-03T10:52:57.516Z",
-      "source_verified": true
-    },
-    {
       "id": "sr-744000155439469",
       "title": "Commercial Strategy Lead – PayLater, Lending & Omnicommerce",
       "company": "Grab",
@@ -386,15 +386,6 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000156224259",
-      "title": "Intern, Account Management, Merchant Growth",
-      "company": "Grab",
-      "location": "Singapore, Singapore",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000156224259-intern-account-management-merchant-growth",
-      "published_at": "2026-10-19T02:54:45.369Z",
-      "source_verified": true
-    },
-    {
       "id": "sr-744000149795174",
       "title": "Intern, Commercial Enablement, Sales Enablement",
       "company": "Grab",
@@ -419,24 +410,6 @@
       "location": "Singapore, Singapore",
       "url": "https://jobs.smartrecruiters.com/Grab/744000147417909-intern-growth-and-marketing-autonomous-vehicles",
       "published_at": "2026-09-04T05:50:50.417Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000160199014",
-      "title": "Intern, Marketing and Partnership (GrabRentals)",
-      "company": "Grab",
-      "location": "Singapore, Singapore",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000160199014-intern-marketing-and-partnership-grabrentals",
-      "published_at": "2026-11-06T13:35:07.984Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000160202996",
-      "title": "Intern, Social Media & Partner Engagement",
-      "company": "Grab",
-      "location": "Singapore, Singapore",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000160202996-intern-social-media-partner-engagement",
-      "published_at": "2026-11-06T13:35:28.863Z",
       "source_verified": true
     },
     {
@@ -500,15 +473,6 @@
       "location": "Petaling Jaya, Malaysia",
       "url": "https://jobs.smartrecruiters.com/Grab/744000147731850-manager-user-growth-and-seller-programme",
       "published_at": "2026-09-07T01:47:43.029Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000143236769",
-      "title": "Merchant Acquisition Manager",
-      "company": "Grab",
-      "location": "Petaling Jaya, Malaysia",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000143236769-merchant-acquisition-manager",
-      "published_at": "2026-08-13T06:29:13.786Z",
       "source_verified": true
     },
     {
@@ -608,33 +572,6 @@
       "location": "Singapore, Singapore",
       "url": "https://jobs.smartrecruiters.com/Grab/744000155407329-team-lead-merchant-acquisition-f-b",
       "published_at": "2026-10-14T02:50:21.710Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000155273144",
-      "title": "APAC Consumer & Marketing Insights Lead - FMCG (G100)",
-      "company": "NielsenIQ",
-      "location": "Kuala Lumpur, Malaysia",
-      "url": "https://jobs.smartrecruiters.com/NielsenIQ/744000155273144-apac-consumer-marketing-insights-lead-fmcg-g100",
-      "published_at": "2026-10-13T14:16:03.990Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000151806239",
-      "title": "APAC Consumer & Marketing Insights Lead - FMCG (G100)",
-      "company": "NielsenIQ",
-      "location": "Bangkok, Thailand",
-      "url": "https://jobs.smartrecruiters.com/NielsenIQ/744000151806239-apac-consumer-marketing-insights-lead-fmcg-g100",
-      "published_at": "2026-09-25T09:46:06.645Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000151804545",
-      "title": "APAC Consumer & Marketing Insights Lead - FMCG (G100)",
-      "company": "NielsenIQ",
-      "location": "Manila, Philippines",
-      "url": "https://jobs.smartrecruiters.com/NielsenIQ/744000151804545-apac-consumer-marketing-insights-lead-fmcg-g100",
-      "published_at": "2026-09-25T09:44:38.735Z",
       "source_verified": true
     },
     {
