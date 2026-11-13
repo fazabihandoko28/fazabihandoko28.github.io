@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-11-13T06:50:46.940463+00:00",
+  "generated_at": "2026-11-13T19:46:42.686991+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1341,
-  "matching_jobs": 60,
+  "raw_jobs": 1335,
+  "matching_jobs": 59,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 435
+      "jobs": 431
     },
     {
       "name": "Publicis Groupe",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 406
+      "jobs": 404
     },
     {
       "name": "Visa",
@@ -43,15 +43,6 @@
     }
   ],
   "jobs": [
-    {
-      "id": "sr-744000148139949",
-      "title": "City Marketing Execution Associate",
-      "company": "Grab",
-      "location": "Medan, Indonesia",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000148139949-city-marketing-execution-associate",
-      "published_at": "2026-09-08T05:51:49.325Z",
-      "source_verified": true
-    },
     {
       "id": "sr-744000122667128",
       "title": "City Partnership Assistant Manager Medan",
