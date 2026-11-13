@@ -138,7 +138,7 @@ def recover_missing_five_minute_bars(engine, symbols, bars, validate=validated_b
     for ticker in missing:
         try:
             cached = engine._cached_market_frame(ticker, "5m", "5d")
-            stamp = validate(cached["frame"]) if cached else None
+            stamp = validate(cached["frame"], now=now) if cached else None
         except (OSError, ValueError, TypeError, KeyError, AttributeError, OverflowError, IndexError) as exc:
             # One bad ticker must not discard other real 5m observations.
             if diagnostics is not None:
