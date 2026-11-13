@@ -2648,5 +2648,45 @@
     "source": "YAHOO_FINANCE_RESEARCH_ONLY",
     "recorded_at": "2026-11-12T21:00:35.096480+00:00",
     "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "KEEN",
+    "status": "WAIT",
+    "signal_timestamp": "2026-11-12T00:00:00+00:00",
+    "signal_close": 890.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-11-13T20:35:55.342759+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "ASII",
+    "status": "WAIT",
+    "signal_timestamp": "2026-11-12T00:00:00+00:00",
+    "signal_close": 5450.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-11-13T20:35:55.342788+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "AUTO",
+    "status": "WAIT",
+    "signal_timestamp": "2026-11-12T00:00:00+00:00",
+    "signal_close": 3120.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-11-13T20:35:55.342801+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "TBIG",
+    "status": "WAIT",
+    "signal_timestamp": "2026-11-12T00:00:00+00:00",
+    "signal_close": 1135.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-11-13T20:35:55.342811+00:00",
+    "outcome": "PENDING"
   }
 ]
