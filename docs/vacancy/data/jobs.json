@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-11-12T19:58:43.347704+00:00",
+  "generated_at": "2026-11-13T06:50:46.940463+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1340,
-  "matching_jobs": 61,
+  "raw_jobs": 1341,
+  "matching_jobs": 60,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 434
+      "jobs": 435
     },
     {
       "name": "Publicis Groupe",
@@ -68,15 +68,6 @@
       "location": "Jakarta, Indonesia",
       "url": "https://jobs.smartrecruiters.com/Grab/744000157403749-lead-data-scientist-analytics-digital-marketing",
       "published_at": "2026-10-23T07:44:55.392Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000138605441",
-      "title": "Manager, Communications",
-      "company": "Grab",
-      "location": "Jakarta, Indonesia",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000138605441-manager-communications",
-      "published_at": "2026-07-20T10:29:56.580Z",
       "source_verified": true
     },
     {
