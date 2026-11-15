@@ -225,6 +225,10 @@ def recover_missing_direct_chart(symbols, bars, now=None, opener=None, max_reque
     now = now.astimezone(timezone.utc)
     eligible_symbols = {s for s in symbols if isinstance(s, str)
                         and re.fullmatch(r"[A-Z0-9]{1,12}", s)}
+    if diagnostics is not None:
+        diagnostics.update({str(s): "invalid_symbol" for s in symbols
+                            if not isinstance(s, str)
+                            or not re.fullmatch(r"[A-Z0-9]{1,12}", s)})
     missing = sorted(s for s in eligible_symbols
                      if not _fresh_session_bar(bars.get(s), now))
     if not session_open(now):
@@ -238,7 +242,6 @@ def recover_missing_direct_chart(symbols, bars, now=None, opener=None, max_reque
                 and re.fullmatch(r"[A-Z0-9]{1,12}", s)]
     selected, deferred = _budgeted_direct_chart_symbols(eligible, budget, now)
     if diagnostics is not None:
-        diagnostics.update({s: "invalid_symbol" for s in missing if s not in eligible})
         diagnostics.update({s: "request_budget_exhausted" for s in deferred})
     # max_requests limits actual HTTP calls, including alternate-host retries.
     retry_budget = max(0, budget - len(selected))
