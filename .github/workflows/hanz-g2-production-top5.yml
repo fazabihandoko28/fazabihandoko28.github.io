@@ -1,0 +1,59 @@
+name: HANZ G2 Production Top 5 Research
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "src/hanz_app/research/g2_*.py"
+      - "tests/test_g2_*.py"
+      - ".github/workflows/hanz-g2-production-top5.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  g2-research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PYTHONPATH: src
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install project
+        run: python -m pip install -e .
+      - name: G2 selector and adapter regression
+        run: python -m unittest discover -s tests -p 'test_g2_*.py' -v
+      - name: Retrieve actual production monitor and select research Top 5
+        run: python -m hanz_app.research.g2_production_top5
+      - name: Verify evidence safety and source
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r = json.loads(Path("docs/dashboard/swing/g2-top5-research.json").read_text())
+          assert r["source"] == "hanz_swing_signal_monitor"
+          assert r["production_data_retrieved"] is True
+          assert r["research_only"] is True
+          assert r["buy_authorized"] is False
+          assert r["oos_certified"] is False
+          assert r["live_verified"] is False
+          assert len(r["selected"]) == len(set(r["selected"]))
+          assert len(r["selected"]) <= 5
+          assert r["vacant_slots"] == 5 - len(r["selected"])
+          assert r["source_rows"] > 0
+          print("G2 read-only evidence and safety assertions PASS")
+          PY
+      - name: Upload actual production research evidence
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: hanz-g2-production-top5
+          path: docs/dashboard/swing/g2-top5-research.json
+          if-no-files-found: warn
+          retention-days: 30
