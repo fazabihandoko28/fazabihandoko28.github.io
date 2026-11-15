@@ -46,7 +46,7 @@ def validated_bar(frame, now=None):
             stamp = frame.index[index]
             if stamp.tzinfo is None:
                 continue
-            stamp = stamp.to_pydatetime().astimezone(timezone.utc)
+            stamp = (stamp.to_pydatetime() if hasattr(stamp, "to_pydatetime") else stamp).astimezone(timezone.utc)
             # Future or non-regular-session rows must not hide a real IDX bar.
             if stamp > now or not session_open(stamp):
                 continue
