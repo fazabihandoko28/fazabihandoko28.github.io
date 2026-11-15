@@ -28,7 +28,10 @@ def select_monitor_top_five(monitor_rows, *, as_of):
     from hanz_app.research.generate_top5_5y_backtest import _eligible, _rank
 
     adapted = []
-    for row in monitor_rows:
+    # Sort newest first: same-day snapshots must not resurrect older eligibility.
+    ordered = sorted((r for r in monitor_rows if isinstance(r, dict)),
+                     key=lambda r: str(r.get("updated_at") or ""), reverse=True)
+    for row in ordered:
         if not isinstance(row, dict):
             continue
         day = _monitor_day(row.get("updated_at"))
