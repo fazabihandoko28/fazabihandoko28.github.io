@@ -34,4 +34,7 @@ def reconcile_long_trade(buy_price, sell_price, shares, initial_risk_rupiah, cos
         raise ValueError("Nonfinite execution cost result")
     if not math.isclose(net, gross - fee - slippage, rel_tol=1e-10, abs_tol=1e-6):
         raise ValueError("Execution cost reconciliation failed")
-    return {"gross_r_multiple": gross / initial_risk_rupiah, "fee_r": fee / initial_risk_rupiah, "slippage_r": slippage / initial_risk_rupiah, "r_multiple": net / initial_risk_rupiah, "gross_rupiah": gross, "fee_rupiah": fee, "slippage_rupiah": slippage, "net_rupiah": net}
+    result = {"gross_r_multiple": gross / initial_risk_rupiah, "fee_r": fee / initial_risk_rupiah, "slippage_r": slippage / initial_risk_rupiah, "r_multiple": net / initial_risk_rupiah, "gross_rupiah": gross, "fee_rupiah": fee, "slippage_rupiah": slippage, "net_rupiah": net}
+    if not all(math.isfinite(value) for value in result.values()):
+        raise ValueError("Nonfinite execution cost R result")
+    return result
