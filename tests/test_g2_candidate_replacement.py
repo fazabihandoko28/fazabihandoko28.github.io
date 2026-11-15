@@ -34,6 +34,17 @@ class G2SelectionTests(unittest.TestCase):
                 row("CCC", 101), row("DDD", 40)]
         self.assertEqual(select_top_five(rows, as_of="2026-11-12")["selected"], ["DDD"])
 
+    def test_out_of_order_snapshot_cannot_override_newer_exclusion(self):
+        rows = [row("AAA", 99, date="2026-11-10"),
+                row("AAA", 1, False, date="2026-11-12"), row("CCC", 70)]
+        self.assertEqual(select_top_five(rows, as_of="2026-11-12")["selected"], ["CCC"])
+
+    def test_invalid_calendar_dates_fail_closed(self):
+        with self.assertRaises(ValueError):
+            select_top_five([], as_of="2026-02-30")
+        rows = [row("AAA", 99, date="2026-02-30"), row("BBB", 70)]
+        self.assertEqual(select_top_five(rows, as_of="2026-11-12")["selected"], ["BBB"])
+
     def test_tie_break_and_normalization(self):
         rows = [row(" bbb ", 70), row("BBB", 90), row("AAA", 70)]
         self.assertEqual(select_top_five(rows, as_of="2026-11-12")["selected"], ["AAA", "BBB"])
