@@ -7,6 +7,7 @@ on:
       - main
     paths:
       - "src/hanz_app/research/generate_top5_5y_backtest.py"
+      - "tests/test_g1_backtest_*.py"
       - ".github/workflows/hanz-top5-backtest-5y.yml"
   schedule:
     - cron: "30 10 * * 1-5"
@@ -45,6 +46,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install -e .
+
+      - name: G1 research mapping and backtest regression
+        run: python -m unittest discover -s tests -p "test_g1_backtest_*.py" -v
 
       - name: Generate real 5Y backtest
         id: generate
