@@ -64,7 +64,7 @@ def replay(bars, snapshots, *, train_days=252, test_days=63,
         for sym in picks:
             hist=b[b["symbol"]==sym].set_index("date")
             for i in range(start,end,hold_days):
-                if i+hold_days>=len(dates): break
+                if i+hold_days>=end: break
                 entry_day=dates[i]; exit_day=dates[i+hold_days]
                 if entry_day not in hist.index or exit_day not in hist.index: continue
                 entry=float(hist.loc[entry_day,"open"]); exit_price=float(hist.loc[exit_day,"close"])
