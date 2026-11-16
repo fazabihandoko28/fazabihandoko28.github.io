@@ -1,20 +1,21 @@
 {
   "schema": "hanz-g1-milestone-v1",
-  "evidence_generated_at": "2026-11-04T18:09:53.147390+00:00",
+  "evidence_generated_at": "2026-11-15T23:40:30.382993+00:00",
   "source": "docs/dashboard/swing/backtest-5y.json",
   "milestones": {
     "historical_5y_data": {
       "status": "CLOSED",
       "verified_symbols": [
-        "MPMX",
-        "ICBP",
-        "PRDA",
+        "ABMM",
         "ACES",
-        "BJBR"
+        "BJTM",
+        "BMRI",
+        "LPKR"
       ],
       "verified_count": 5,
       "required_count": 5,
-      "scope": "Research-only historical data completeness; not strategy profitability or live trading readiness"
+      "scope": "Verified current research Top 5 five-year historical completeness only; no OOS, costs, FAST LIVE or BUY certification",
+      "evidence_commit": "71b9f205b69534cf622aa6e31bc51b56d0c4b43c"
     },
     "execution_costs": {
       "status": "OPEN",
