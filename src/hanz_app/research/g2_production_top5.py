@@ -24,8 +24,8 @@ def main():
     rows = _get_monitor_rows()  # real Supabase REST; fail closed on network/auth errors
     if not isinstance(rows, list) or not rows:
         raise RuntimeError("No real production monitor rows; refusing empty evidence")
-    # UTC cutoff avoids selecting future rows; date-based selection remains research-only.
-    result = build_report(rows, as_of=now.date().isoformat(),
+    # Precise UTC cutoff rejects future intraday snapshots; research only.
+    result = build_report(rows, as_of=now.isoformat(),
                           generated_at=now.isoformat())
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
