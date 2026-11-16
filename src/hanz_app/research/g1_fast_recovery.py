@@ -319,17 +319,20 @@ def recover_missing_direct_chart(symbols, bars, now=None, opener=None, max_reque
 
 
 
-def recover_missing_with_fallbacks(engine, symbols, bars, diagnostics=None):
+def recover_missing_with_fallbacks(engine, symbols, bars, diagnostics=None, now=None):
     """Attempt real 5m bars, then independent direct chart even if 5m fails."""
     if diagnostics is None:
         diagnostics = {}
+    now = now or datetime.now(timezone.utc)
+    if now.tzinfo is None:
+        raise ValueError("now must be timezone-aware")
     try:
-        recover_missing_five_minute_bars(engine, symbols, bars, diagnostics=diagnostics)
+        recover_missing_five_minute_bars(engine, symbols, bars, now=now, diagnostics=diagnostics)
     except Exception as exc:
         # A failed optional provider must not prevent the independent retry.
         # Keep the error visible; only actual validated candles can count.
         diagnostics["five_minute_fallback_error"] = type(exc).__name__
-    recover_missing_direct_chart(symbols, bars, diagnostics=diagnostics)
+    recover_missing_direct_chart(symbols, bars, now=now, diagnostics=diagnostics)
     return bars
 
 
