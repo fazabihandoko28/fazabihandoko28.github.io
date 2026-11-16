@@ -94,5 +94,42 @@ class G2MonitorIntegrationTests(unittest.TestCase):
             select_monitor_top_five([], as_of="2026-11-16T14:30:00")
 
 
+    @patch("hanz_app.research.generate_top5_5y_backtest._rank",
+           side_effect=lambda r: r["risk_validation"].get("canonical_rank_score", 0))
+    @patch("hanz_app.research.generate_top5_5y_backtest._eligible",
+           side_effect=lambda r: not r["risk_validation"].get("top5_excluded", False))
+    def test_malformed_newest_snapshot_never_falls_back(self, _eligible, _rank):
+        older = monitor("AAA", "2026-11-16T09:00:00Z", True, 90)
+        malformed = {**monitor("AAA", "2026-11-16T10:00:00Z"), "risk_validation": []}
+        valid = monitor("BBB", "2026-11-16T10:00:00Z", True, 70)
+        for rows in ([older, malformed, valid], [valid, malformed, older]):
+            result = select_monitor_top_five(rows, as_of="2026-11-16")
+            self.assertEqual(result["selected"], ["BBB"])
+            self.assertFalse(result["buy_authorized"])
+
+    @patch("hanz_app.research.generate_top5_5y_backtest._rank",
+           side_effect=lambda r: r["risk_validation"].get("canonical_rank_score", 0))
+    @patch("hanz_app.research.generate_top5_5y_backtest._eligible",
+           side_effect=lambda r: not r["risk_validation"].get("top5_excluded", False))
+    def test_equal_timestamp_malformed_conflict_fails_closed(self, _eligible, _rank):
+        valid = monitor("AAA", "2026-11-16T10:00:00Z", True, 90)
+        malformed = {**valid, "risk_validation": []}
+        for rows in ([valid, malformed], [malformed, valid]):
+            self.assertEqual(
+                select_monitor_top_five(rows, as_of="2026-11-16")["selected"], [])
+
+    @patch("hanz_app.research.generate_top5_5y_backtest._rank",
+           side_effect=lambda r: r["risk_validation"].get("canonical_rank_score", 0))
+    @patch("hanz_app.research.generate_top5_5y_backtest._eligible",
+           side_effect=lambda r: not r["risk_validation"].get("top5_excluded", False))
+    def test_future_malformed_snapshot_does_not_override(self, _eligible, _rank):
+        valid = monitor("AAA", "2026-11-16T09:00:00Z", True, 90)
+        malformed = {**valid, "updated_at": "2026-11-16T12:00:00Z",
+                     "risk_validation": []}
+        result = select_monitor_top_five(
+            [valid, malformed], as_of="2026-11-16T10:00:00Z")
+        self.assertEqual(result["selected"], ["AAA"])
+
+
 if __name__ == "__main__":
     unittest.main()
