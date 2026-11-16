@@ -60,7 +60,11 @@ def select_monitor_top_five(monitor_rows, *, as_of):
     conflicts = set()
     for timestamp, row in sorted(valid, key=lambda pair: pair[0], reverse=True):
         ticker = str(row.get("ticker") or "").strip().upper()
-        signature = (bool(_eligible(row)), _rank(row))
+        # Malformed newest evidence excludes its ticker; never fall back to older data.
+        try:
+            signature = (bool(_eligible(row)), _rank(row))
+        except (TypeError, ValueError, KeyError, AttributeError, OverflowError):
+            signature = (False, None)
         if ticker in latest:
             if timestamp == latest[ticker][0] and signature != latest[ticker][1]:
                 conflicts.add(ticker)
@@ -70,10 +74,10 @@ def select_monitor_top_five(monitor_rows, *, as_of):
         if ticker in conflicts:
             continue
         adapted.append({
-            "ticker": row.get("ticker"),
+            "ticker": ticker,
             "snapshot_date": timestamp.date().isoformat(),
-            "eligible": bool(_eligible(row)),
-            "rank_score": _rank(row),
+            "eligible": signature[0],
+            "rank_score": signature[1],
         })
     result = select_top_five(adapted, as_of=cutoff_day)
     result["source"] = "hanz_swing_signal_monitor"
