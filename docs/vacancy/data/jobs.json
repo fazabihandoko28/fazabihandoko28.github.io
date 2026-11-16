@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-11-16T06:36:59.004262+00:00",
+  "generated_at": "2026-11-16T22:10:15.391758+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1331,
-  "matching_jobs": 57,
+  "raw_jobs": 1317,
+  "matching_jobs": 59,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 425
+      "jobs": 422
     },
     {
       "name": "Publicis Groupe",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 406
+      "jobs": 395
     },
     {
       "name": "Visa",
@@ -68,6 +68,24 @@
       "location": "Jakarta, Indonesia",
       "url": "https://jobs.smartrecruiters.com/Grab/744000160861909-merchant-business-growth-assistant-manager",
       "published_at": "2026-11-10T12:19:27.548Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000161813659",
+      "title": "Region Commercial Manager - West Java",
+      "company": "Grab",
+      "location": "Bandung, Indonesia",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000161813659-region-commercial-manager-west-java",
+      "published_at": "2026-11-16T13:51:04.521Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000161750229",
+      "title": "Intern, Corporate Communications",
+      "company": "Bosch Group",
+      "location": "Singapore, Singapore",
+      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000161750229-intern-corporate-communications",
+      "published_at": "2026-11-16T08:47:37.469Z",
       "source_verified": true
     },
     {
@@ -476,12 +494,12 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000154367849",
+      "id": "sr-744000161770359",
       "title": "Regional Commercial Process Manager",
       "company": "Grab",
       "location": "Singapore, Singapore",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000154367849-regional-commercial-process-manager",
-      "published_at": "2026-10-08T08:01:46.783Z",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000161770359-regional-commercial-process-manager",
+      "published_at": "2026-11-16T10:21:04.511Z",
       "source_verified": true
     },
     {
