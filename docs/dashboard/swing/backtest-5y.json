@@ -8,21 +8,21 @@
     "all_selected_accounted_for": true,
     "backtest_complete": true
   },
-  "generated_at": "2026-11-15T23:40:30.382993+00:00",
+  "generated_at": "2026-11-16T20:37:47.212560+00:00",
   "universe_size": 200,
   "selected_top5": [
-    "ABMM",
-    "ACES",
+    "AALI",
+    "BBCA",
+    "BBRI",
     "BJTM",
-    "BMRI",
-    "LPKR"
+    "ICBP"
   ],
   "live_monitor_top5": [
-    "ABMM",
-    "ACES",
+    "AALI",
+    "BBCA",
+    "BBRI",
     "BJTM",
-    "BMRI",
-    "LPKR"
+    "ICBP"
   ],
   "skipped_candidates": {},
   "methodology": {
@@ -37,8 +37,8 @@
     "note": "Research-only candidates are backfilled from latest monitor symbols until five distinct tickers have validated 5Y history; missing or short history is skipped, never counted as PASS. Current monitor selection and fallback are subject to selection/survivorship bias; this is not point-in-time OOS validation, and returns exclude execution fees and slippage. Live V43 ranking market/flow layers are not fully reconstructible historically. Not a validated BUY signal."
   },
   "results": {
-    "ABMM": {
-      "symbol": "ABMM",
+    "AALI": {
+      "symbol": "AALI",
       "status": "OK",
       "distinct_trading_days": 1205,
       "minimum_trading_days": 1000,
@@ -59,12 +59,12 @@
       "win_rate_pct": 45.5,
       "target_hit_pct": 41.7,
       "stop_hit_pct": 50.0,
-      "avg_5d_return_pct": 1.35,
-      "worst_mae_pct": -11.16,
-      "best_mfe_pct": 28.0
+      "avg_5d_return_pct": 0.61,
+      "worst_mae_pct": -7.52,
+      "best_mfe_pct": 12.5
     },
-    "ACES": {
-      "symbol": "ACES",
+    "BBCA": {
+      "symbol": "BBCA",
       "status": "OK",
       "distinct_trading_days": 1205,
       "minimum_trading_days": 1000,
@@ -76,18 +76,44 @@
       "span_years": 5.01,
       "bars": 1205,
       "evaluated_events": 1141,
-      "ready_signals": 8,
+      "ready_signals": 10,
       "target_first": 1,
-      "stop_first": 7,
+      "stop_first": 5,
       "ambiguous_same_bar": 0,
-      "neither": 0,
-      "resolved_signals": 8,
-      "win_rate_pct": 12.5,
-      "target_hit_pct": 12.5,
-      "stop_hit_pct": 87.5,
-      "avg_5d_return_pct": -0.99,
-      "worst_mae_pct": -10.0,
-      "best_mfe_pct": 5.68
+      "neither": 4,
+      "resolved_signals": 6,
+      "win_rate_pct": 16.7,
+      "target_hit_pct": 10.0,
+      "stop_hit_pct": 50.0,
+      "avg_5d_return_pct": -1.36,
+      "worst_mae_pct": -10.77,
+      "best_mfe_pct": 4.85
+    },
+    "BBRI": {
+      "symbol": "BBRI",
+      "status": "OK",
+      "distinct_trading_days": 1205,
+      "minimum_trading_days": 1000,
+      "max_gap_days": 12,
+      "max_allowed_gap_days": 45,
+      "history_gap_reason": null,
+      "span_start": "2021-11-08",
+      "span_end": "2026-11-13",
+      "span_years": 5.01,
+      "bars": 1205,
+      "evaluated_events": 1141,
+      "ready_signals": 16,
+      "target_first": 3,
+      "stop_first": 9,
+      "ambiguous_same_bar": 0,
+      "neither": 4,
+      "resolved_signals": 12,
+      "win_rate_pct": 25.0,
+      "target_hit_pct": 18.8,
+      "stop_hit_pct": 56.2,
+      "avg_5d_return_pct": -0.93,
+      "worst_mae_pct": -13.77,
+      "best_mfe_pct": 7.58
     },
     "BJTM": {
       "symbol": "BJTM",
@@ -115,8 +141,8 @@
       "worst_mae_pct": -11.59,
       "best_mfe_pct": 3.75
     },
-    "BMRI": {
-      "symbol": "BMRI",
+    "ICBP": {
+      "symbol": "ICBP",
       "status": "OK",
       "distinct_trading_days": 1205,
       "minimum_trading_days": 1000,
@@ -128,44 +154,18 @@
       "span_years": 5.01,
       "bars": 1205,
       "evaluated_events": 1141,
-      "ready_signals": 12,
-      "target_first": 2,
-      "stop_first": 7,
+      "ready_signals": 31,
+      "target_first": 8,
+      "stop_first": 13,
       "ambiguous_same_bar": 0,
-      "neither": 3,
-      "resolved_signals": 9,
-      "win_rate_pct": 22.2,
-      "target_hit_pct": 16.7,
-      "stop_hit_pct": 58.3,
-      "avg_5d_return_pct": -0.1,
-      "worst_mae_pct": -7.34,
-      "best_mfe_pct": 9.34
-    },
-    "LPKR": {
-      "symbol": "LPKR",
-      "status": "OK",
-      "distinct_trading_days": 1205,
-      "minimum_trading_days": 1000,
-      "max_gap_days": 12,
-      "max_allowed_gap_days": 45,
-      "history_gap_reason": null,
-      "span_start": "2021-11-08",
-      "span_end": "2026-11-13",
-      "span_years": 5.01,
-      "bars": 1205,
-      "evaluated_events": 1141,
-      "ready_signals": 12,
-      "target_first": 1,
-      "stop_first": 10,
-      "ambiguous_same_bar": 1,
-      "neither": 0,
-      "resolved_signals": 12,
-      "win_rate_pct": 8.3,
-      "target_hit_pct": 8.3,
-      "stop_hit_pct": 91.7,
-      "avg_5d_return_pct": -2.63,
-      "worst_mae_pct": -13.82,
-      "best_mfe_pct": 36.36
+      "neither": 10,
+      "resolved_signals": 21,
+      "win_rate_pct": 38.1,
+      "target_hit_pct": 25.8,
+      "stop_hit_pct": 41.9,
+      "avg_5d_return_pct": 0.26,
+      "worst_mae_pct": -8.81,
+      "best_mfe_pct": 8.33
     }
   },
   "errors": {}
