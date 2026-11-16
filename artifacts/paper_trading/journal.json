@@ -2688,5 +2688,55 @@
     "source": "YAHOO_FINANCE_RESEARCH_ONLY",
     "recorded_at": "2026-11-13T20:35:55.342811+00:00",
     "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "INDF",
+    "status": "WAIT",
+    "signal_timestamp": "2026-11-16T00:00:00+00:00",
+    "signal_close": 7125.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-11-16T22:58:53.356897+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "SMGR",
+    "status": "WAIT",
+    "signal_timestamp": "2026-11-16T00:00:00+00:00",
+    "signal_close": 1625.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-11-16T22:58:53.356924+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "ASII",
+    "status": "WAIT",
+    "signal_timestamp": "2026-11-16T00:00:00+00:00",
+    "signal_close": 5700.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-11-16T22:58:53.356936+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "PGAS",
+    "status": "WAIT",
+    "signal_timestamp": "2026-11-16T00:00:00+00:00",
+    "signal_close": 1550.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-11-16T22:58:53.356946+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "BUKA",
+    "status": "WAIT",
+    "signal_timestamp": "2026-11-16T00:00:00+00:00",
+    "signal_close": 121.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-11-16T22:58:53.356956+00:00",
+    "outcome": "PENDING"
   }
 ]
