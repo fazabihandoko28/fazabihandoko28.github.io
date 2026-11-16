@@ -1,0 +1,26 @@
+name: G1 PIT OOS cost replay regression
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/hanz_app/research/g1_pit_oos_cost_replay.py"
+      - "tests/test_g1_pit_oos_cost_replay.py"
+      - ".github/workflows/g1-pit-oos-cost-regression.yml"
+  workflow_dispatch:
+jobs:
+  pit-oos-regression:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install package and test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+          pip install pandas
+      - name: Verify PIT OOS and execution cost tests
+        run: python -m unittest discover -s tests -p "test_g1_pit_oos_cost_replay.py" -v
