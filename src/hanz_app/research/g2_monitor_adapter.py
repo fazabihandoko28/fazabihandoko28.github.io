@@ -54,7 +54,21 @@ def select_monitor_top_five(monitor_rows, *, as_of):
         timestamp = _parse_timestamp(row.get("updated_at"))
         if timestamp is not None and timestamp <= cutoff:
             valid.append((timestamp, row))
+    # A contradictory newest snapshot cannot be resolved by input ordering.
+    # Fail closed for that ticker rather than selecting an arbitrary record.
+    latest = {}
+    conflicts = set()
     for timestamp, row in sorted(valid, key=lambda pair: pair[0], reverse=True):
+        ticker = str(row.get("ticker") or "").strip().upper()
+        signature = (bool(_eligible(row)), _rank(row))
+        if ticker in latest:
+            if timestamp == latest[ticker][0] and signature != latest[ticker][1]:
+                conflicts.add(ticker)
+            continue
+        latest[ticker] = (timestamp, signature, row)
+    for ticker, (timestamp, signature, row) in latest.items():
+        if ticker in conflicts:
+            continue
         adapted.append({
             "ticker": row.get("ticker"),
             "snapshot_date": timestamp.date().isoformat(),
