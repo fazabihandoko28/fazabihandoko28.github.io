@@ -1,24 +1,12 @@
 {
-  "generated_at": "2026-11-13T16:50:22.537632+00:00",
+  "generated_at": "2026-11-16T08:44:30.585588+00:00",
   "policy": "HIGH_CONFIDENCE_CAUSAL_ONLY",
   "selected_tickers": [
-    "ABMM",
     "ACES",
     "BJTM",
-    "BMRI",
-    "LPKR"
+    "LPPF",
+    "LPKR",
+    "AMRT"
   ],
-  "catalysts": [
-    {
-      "scope": "IHSG",
-      "direction": "POSITIVE",
-      "confidence": "HIGH",
-      "score": 8,
-      "headline": "Bareksa Insight: IHSG Melesat Usai MSCI, Cek Reksadana & ST017 - Bareksa.com",
-      "source": "Bareksa.com",
-      "url": "https://news.google.com/rss/articles/CBMivAFBVV95cUxQMlZHNWM5bTlWRXR4WkthdkpzY0xueVJxaFhHS05qbzVrNDdtbThENFdXYlk2dXhyQlN6V3RZbU9WaVRzWDNsdUFZQTdwdW9vYnhSV0ZHV3hyOXBacTJWSkhSTlVieG1xYTM2T1pzem1VcFBiZnpNMG11am5DMEFreFRKUlc0NWpDWW52NzRUWXFaR0tHQlBrd1ZNdmJWNS1MZEtxaVRnM2Q2MktkaFJHUDNhTXJxS0RKWFFpcg?oc=5",
-      "published_at": "2026-11-13T04:09:26+00:00",
-      "note": "Likely index news catalyst based on explicit causal headline language. Hidden when causal evidence is weak."
-    }
-  ]
+  "catalysts": []
 }
