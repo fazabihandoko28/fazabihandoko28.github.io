@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-11-15T18:54:43.204684+00:00",
+  "generated_at": "2026-11-16T06:36:59.004262+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1333,
-  "matching_jobs": 59,
+  "raw_jobs": 1331,
+  "matching_jobs": 57,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 431
+      "jobs": 425
     },
     {
       "name": "Publicis Groupe",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 402
+      "jobs": 406
     },
     {
       "name": "Visa",
@@ -386,21 +386,12 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000147417909",
-      "title": "Intern, Growth and Marketing (Autonomous Vehicles)",
-      "company": "Grab",
-      "location": "Singapore, Singapore",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000147417909-intern-growth-and-marketing-autonomous-vehicles",
-      "published_at": "2026-09-04T05:50:50.417Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000159798419",
+      "id": "sr-744000161722310",
       "title": "Intern, Talent Acquisition",
       "company": "Grab",
       "location": "Singapore, Singapore",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000159798419-intern-talent-acquisition",
-      "published_at": "2026-11-05T07:52:08.330Z",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000161722310-intern-talent-acquisition",
+      "published_at": "2026-11-16T03:10:24.243Z",
       "source_verified": true
     },
     {
@@ -482,15 +473,6 @@
       "location": "Bangkok, Thailand",
       "url": "https://jobs.smartrecruiters.com/Grab/744000127128269-planner-integrated-marketing-solutions-grabads",
       "published_at": "2026-05-19T06:06:31.500Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000150308125",
-      "title": "Regional Assistant Marketing Manager – Financial Services",
-      "company": "Grab",
-      "location": "Petaling Jaya, Malaysia",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000150308125-regional-assistant-marketing-manager-financial-services",
-      "published_at": "2026-09-18T08:24:52.013Z",
       "source_verified": true
     },
     {
