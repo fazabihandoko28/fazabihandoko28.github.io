@@ -32,9 +32,19 @@
     "trading_signals": {
       "status": "BLOCKED",
       "reason": "No BUY certification from historical completeness"
+    },
+    "yahoo_provider_structure": {
+      "status": "CLOSED",
+      "disposition": "PASS_WITH_ACCEPTED_PROVIDER_LIMITATION",
+      "verified_fresh_symbols": 166,
+      "universe_symbols": 198,
+      "unverified_symbols": 32,
+      "scope": "G1 research structure/provider integration only. Yahoo intraday gaps accepted for architecture development; not proof of 190/198 FAST LIVE, market freshness, execution readiness, or BUY certification.",
+      "evidence_run": "https://github.com/fazabihandoko28/fazabihandoko28.github.io/actions/runs/43829651872",
+      "future_upgrade": "Replace Yahoo with a licensed market data provider using the existing provider abstraction; preserve timestamp, OHLCV, session, and safety validation."
     }
   },
   "g1_overall": "OPEN",
   "g0_unchanged": true,
-  "policy": "Noncritical research-history milestone may close independently; never upgrade STALE to LIVE or bypass trading safety gates."
+  "policy": "Independent research structure/provider integration may close with documented Yahoo limitation; retain true 166/198 evidence. Do not upgrade STALE to LIVE or bypass trading safety gates. OOS, execution costs, and E2E require independent verified PASS."
 }
