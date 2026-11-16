@@ -48,6 +48,29 @@ class G2MonitorIntegrationTests(unittest.TestCase):
                 monitor("BBB", "invalid")]
         self.assertEqual(select_monitor_top_five(rows, as_of="2026-11-16")["selected"], [])
 
+    @patch("hanz_app.research.generate_top5_5y_backtest._rank", return_value=99)
+    @patch("hanz_app.research.generate_top5_5y_backtest._eligible",
+           side_effect=lambda r: r["_test_eligible"])
+    def test_future_same_day_snapshot_excluded(self, _eligible, _rank):
+        rows = [monitor("AAA", "2026-11-16T15:00:00Z"),
+                monitor("BBB", "2026-11-16T14:00:00Z")]
+        result = select_monitor_top_five(rows, as_of="2026-11-16T14:30:00Z")
+        self.assertEqual(result["selected"], ["BBB"])
+        self.assertFalse(result["buy_authorized"])
+
+    @patch("hanz_app.research.generate_top5_5y_backtest._rank", return_value=99)
+    @patch("hanz_app.research.generate_top5_5y_backtest._eligible",
+           side_effect=lambda r: r["_test_eligible"])
+    def test_future_exclusion_cannot_override_prior_eligible(self, _eligible, _rank):
+        rows = [monitor("AAA", "2026-11-16T14:00:00Z", True),
+                monitor("AAA", "2026-11-16T15:00:00Z", False)]
+        result = select_monitor_top_five(rows, as_of="2026-11-16T14:30:00Z")
+        self.assertEqual(result["selected"], ["AAA"])
+
+    def test_naive_intraday_cutoff_rejected(self):
+        with self.assertRaises(ValueError):
+            select_monitor_top_five([], as_of="2026-11-16T14:30:00")
+
 
 if __name__ == "__main__":
     unittest.main()
