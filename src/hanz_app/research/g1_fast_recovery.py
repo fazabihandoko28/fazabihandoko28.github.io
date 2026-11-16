@@ -349,13 +349,16 @@ def collect():
     symbols.update(engine.clean_ticker(row.get("ticker")) for row in rows)
     symbols.discard("")
     symbols.discard(None)
+    # Capture a single UTC decision instant for this cycle. Provider latency
+    # cannot silently change the freshness boundary between recovery paths.
+    cycle_now = datetime.now(timezone.utc)
     # A changed or empty universe cannot be used to certify 190/198.
     if len(symbols) != G1_UNIVERSE_SIZE:
-        return evaluate_bars(symbols, {}, datetime.now(timezone.utc))
+        return evaluate_bars(symbols, {}, cycle_now)
     # Closed-session probes cannot establish LIVE, so do not exhaust provider
     # requests on 198 symbols outside IDX hours. Preserve the actual universe.
-    if not session_open(datetime.now(timezone.utc)):
-        return evaluate_bars(symbols, {}, datetime.now(timezone.utc))
+    if not session_open(cycle_now):
+        return evaluate_bars(symbols, {}, cycle_now)
     attempts = {}
     try:
         engine.prefetch_market_data(symbols, engine.INTRADAY_INTERVAL, engine.INTRADAY_PERIOD)
@@ -366,15 +369,15 @@ def collect():
     for ticker in symbols:
         try:
             cached = engine._cached_market_frame(ticker, engine.INTRADAY_INTERVAL, engine.INTRADAY_PERIOD)
-            stamp = validated_bar(cached["frame"]) if cached else None
+            stamp = validated_bar(cached["frame"], now=cycle_now) if cached else None
         except (OSError, ValueError, TypeError, KeyError, AttributeError, OverflowError, IndexError) as exc:
             # One broken cache entry must not block genuine 5m/direct-chart retries.
             attempts.setdefault("one_minute_cache_errors", {})[ticker] = type(exc).__name__
             continue
         if stamp is not None:
             bars[ticker] = stamp
-    recover_missing_with_fallbacks(engine, symbols, bars, diagnostics=attempts)
-    result = evaluate_bars(symbols, bars, datetime.now(timezone.utc))
+    recover_missing_with_fallbacks(engine, symbols, bars, diagnostics=attempts, now=cycle_now)
+    result = evaluate_bars(symbols, bars, cycle_now)
     result["direct_chart_attempts"] = attempts
     return result
 
