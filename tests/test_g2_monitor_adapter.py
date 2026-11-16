@@ -67,6 +67,28 @@ class G2MonitorIntegrationTests(unittest.TestCase):
         result = select_monitor_top_five(rows, as_of="2026-11-16T14:30:00Z")
         self.assertEqual(result["selected"], ["AAA"])
 
+    @patch("hanz_app.research.generate_top5_5y_backtest._rank",
+           side_effect=lambda r: r["risk_validation"]["canonical_rank_score"])
+    @patch("hanz_app.research.generate_top5_5y_backtest._eligible",
+           side_effect=lambda r: r["_test_eligible"])
+    def test_conflicting_equal_timestamp_fails_closed_in_both_orders(self, _eligible, _rank):
+        approved = monitor("AAA", "2026-11-16T10:00:00Z", True, 90)
+        rejected = monitor("AAA", "2026-11-16T10:00:00Z", False, 90)
+        for rows in ([approved, rejected], [rejected, approved]):
+            result = select_monitor_top_five(rows, as_of="2026-11-16T11:00:00Z")
+            self.assertNotIn("AAA", result["selected"])
+            self.assertFalse(result["buy_authorized"])
+
+    @patch("hanz_app.research.generate_top5_5y_backtest._rank",
+           side_effect=lambda r: r["risk_validation"]["canonical_rank_score"])
+    @patch("hanz_app.research.generate_top5_5y_backtest._eligible",
+           side_effect=lambda r: r["_test_eligible"])
+    def test_identical_duplicate_snapshot_keeps_candidate(self, _eligible, _rank):
+        approved = monitor("AAA", "2026-11-16T10:00:00Z", True, 90)
+        result = select_monitor_top_five([approved, approved],
+                                         as_of="2026-11-16T11:00:00Z")
+        self.assertEqual(result["selected"], ["AAA"])
+
     def test_naive_intraday_cutoff_rejected(self):
         with self.assertRaises(ValueError):
             select_monitor_top_five([], as_of="2026-11-16T14:30:00")
