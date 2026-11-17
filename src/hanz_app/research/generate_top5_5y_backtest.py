@@ -77,6 +77,8 @@ def _valid_explicit_avg_value20(r):
 
 def _legacy_wait_eligible(row):
     r=row.get("risk_validation") or {}
+    if not isinstance(r, dict):
+        return False  # Malformed production snapshot: fail closed.
     action=str(r.get("hanz_action") or row.get("hanz_action") or "").upper()
     if action!="AVOID":
         return False
@@ -103,6 +105,8 @@ def _legacy_wait_eligible(row):
 
 def _rank(row):
     r=row.get("risk_validation") or {}
+    if not isinstance(r, dict):
+        return 0  # Malformed production snapshot: fail closed.
     if _legacy_wait_eligible(row):
         raw=_num((r.get("opportunity_score_breakdown") or {}).get("raw_score_before_action_cap"),35)
         return max(35,min(54,raw))
@@ -111,6 +115,8 @@ def _rank(row):
 
 def _eligible(row):
     r=row.get("risk_validation") or {}
+    if not isinstance(r, dict):
+        return False  # Malformed production snapshot: fail closed.
     action="WAIT" if _legacy_wait_eligible(row) else str(r.get("hanz_action") or row.get("hanz_action") or "").upper()
     if not action or action in {"AVOID","DO_NOT_CHASE"}:
         return False
