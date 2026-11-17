@@ -111,6 +111,34 @@ class G2MonitorIntegrationTests(unittest.TestCase):
             self.assertEqual(_rank(row), 0)
             self.assertEqual(select_monitor_top_five([row], as_of="2026-11-17")["selected"], [])
 
+    def test_malformed_nested_risk_evidence_fails_closed_without_crash(self):
+        from hanz_app.research.generate_top5_5y_backtest import _eligible, _rank
+        base = {"ticker": "AAA", "updated_at": "2026-11-17T10:00:00Z",
+                "risk_validation": {
+                    "hanz_action": "RESISTANCE_WAIT",
+                    "canonical_rank_score": 90,
+                    "top5_excluded": False,
+                    "momentum_guard": {"blocked": False},
+                    "volatility_status": "NORMAL",
+                    "zero_volume_days20": 0,
+                    "avg_value20": 500000000}}
+        for bad in ([], [1], "bad", 17, True):
+            row = {**base, "risk_validation": {
+                **base["risk_validation"], "momentum_guard": bad}}
+            self.assertFalse(_eligible(row) if isinstance(bad, dict) else
+                             _eligible({**row, "risk_validation": {
+                                 **row["risk_validation"], "hanz_action": "AVOID"}}))
+            self.assertEqual(select_monitor_top_five(
+                [{**row, "risk_validation": {
+                    **row["risk_validation"], "hanz_action": "AVOID"}}],
+                as_of="2026-11-17")["selected"], [])
+            legacy = {**row, "risk_validation": {
+                **row["risk_validation"], "hanz_action": "AVOID",
+                "opportunity_score_breakdown": bad,
+                "rr_target_2": 3}}
+            self.assertEqual(_rank(legacy), 90)
+            self.assertFalse(_eligible(legacy))
+
     def test_naive_intraday_cutoff_rejected(self):
         with self.assertRaises(ValueError):
             select_monitor_top_five([], as_of="2026-11-16T14:30:00")
