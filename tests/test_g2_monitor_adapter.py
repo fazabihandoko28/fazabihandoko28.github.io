@@ -102,6 +102,15 @@ class G2MonitorIntegrationTests(unittest.TestCase):
         self.assertFalse(_eligible(row))
         self.assertFalse(_eligible({**row, "hanz_action": ""}))
 
+    def test_malformed_risk_validation_fails_closed_without_crash(self):
+        from hanz_app.research.generate_top5_5y_backtest import _eligible, _rank
+        for bad in ([], [1], "bad", 17, True):
+            row = {"ticker": "AAA", "updated_at": "2026-11-17T10:00:00Z",
+                   "risk_validation": bad}
+            self.assertFalse(_eligible(row))
+            self.assertEqual(_rank(row), 0)
+            self.assertEqual(select_monitor_top_five([row], as_of="2026-11-17")["selected"], [])
+
     def test_naive_intraday_cutoff_rejected(self):
         with self.assertRaises(ValueError):
             select_monitor_top_five([], as_of="2026-11-16T14:30:00")
