@@ -89,6 +89,19 @@ class G2MonitorIntegrationTests(unittest.TestCase):
                                          as_of="2026-11-16T11:00:00Z")
         self.assertEqual(result["selected"], ["AAA"])
 
+    def test_missing_action_with_positive_score_is_not_eligible(self):
+        from hanz_app.research.generate_top5_5y_backtest import _eligible
+        row = {"ticker": "AAA", "risk_validation": {
+            "canonical_rank_score": 90,
+            "top5_excluded": False,
+            "momentum_guard": {"blocked": False},
+            "volatility_status": "NORMAL",
+            "zero_volume_days20": 0,
+            "avg_value20": 500000000,
+        }}
+        self.assertFalse(_eligible(row))
+        self.assertFalse(_eligible({**row, "hanz_action": ""}))
+
     def test_naive_intraday_cutoff_rejected(self):
         with self.assertRaises(ValueError):
             select_monitor_top_five([], as_of="2026-11-16T14:30:00")
