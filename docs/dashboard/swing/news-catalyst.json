@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-11-16T19:00:33.721799+00:00",
+  "generated_at": "2026-11-17T09:52:16.415047+00:00",
   "policy": "HIGH_CONFIDENCE_CAUSAL_ONLY",
   "selected_tickers": [
-    "CTRA",
-    "AALI",
-    "BBCA",
+    "ACES",
+    "ASII",
     "BBRI",
-    "BJTM"
+    "BJTM",
+    "CMRY"
   ],
   "catalysts": []
 }
