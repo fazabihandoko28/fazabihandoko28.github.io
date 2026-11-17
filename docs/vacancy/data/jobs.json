@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-11-17T07:59:21.166417+00:00",
+  "generated_at": "2026-11-17T20:59:11.675016+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1323,
-  "matching_jobs": 58,
+  "raw_jobs": 1324,
+  "matching_jobs": 57,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 421
+      "jobs": 422
     },
     {
       "name": "Publicis Groupe",
@@ -86,15 +86,6 @@
       "location": "Singapore, Singapore",
       "url": "https://jobs.smartrecruiters.com/BoschGroup/744000161750229-intern-corporate-communications",
       "published_at": "2026-11-16T08:47:37.469Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000161026729",
-      "title": "Senior Talent Acquisition Specialist",
-      "company": "Bosch Group",
-      "location": "Batu Kawan, Malaysia",
-      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000161026729-senior-talent-acquisition-specialist",
-      "published_at": "2026-11-11T05:29:16.386Z",
       "source_verified": true
     },
     {
@@ -395,12 +386,12 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000161722310",
+      "id": "sr-744000162035479",
       "title": "Intern, Talent Acquisition",
       "company": "Grab",
       "location": "Singapore, Singapore",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000161722310-intern-talent-acquisition",
-      "published_at": "2026-11-16T03:10:24.243Z",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000162035479-intern-talent-acquisition",
+      "published_at": "2026-11-17T09:49:15.526Z",
       "source_verified": true
     },
     {
