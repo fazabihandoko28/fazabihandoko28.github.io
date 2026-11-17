@@ -112,7 +112,7 @@ def _rank(row):
 def _eligible(row):
     r=row.get("risk_validation") or {}
     action="WAIT" if _legacy_wait_eligible(row) else str(r.get("hanz_action") or row.get("hanz_action") or "").upper()
-    if action in {"AVOID","DO_NOT_CHASE"}:
+    if not action or action in {"AVOID","DO_NOT_CHASE"}:
         return False
     if bool(r.get("top5_excluded")) and action!="TP_RISK" and not _legacy_wait_eligible(row):
         return False
