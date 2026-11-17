@@ -1,0 +1,28 @@
+name: G2 Research Regression
+
+on:
+  push:
+    paths:
+      - 'src/hanz_app/research/g2_*.py'
+      - 'src/hanz_app/research/generate_top5_5y_backtest.py'
+      - 'tests/test_g2*.py'
+      - '.github/workflows/g2-research.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  g2-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install research package
+        run: python -m pip install -e .
+      - name: Run G2 regressions without production credentials
+        run: |
+          python -m unittest discover -s tests -p 'test_g2*.py' -v
