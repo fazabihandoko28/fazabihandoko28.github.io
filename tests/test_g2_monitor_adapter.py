@@ -139,6 +139,22 @@ class G2MonitorIntegrationTests(unittest.TestCase):
             self.assertEqual(_rank(legacy), 90)
             self.assertFalse(_eligible(legacy))
 
+    @patch("hanz_app.research.generate_top5_5y_backtest._get_monitor_rows")
+    @patch("hanz_app.research.generate_top5_5y_backtest._rank",
+           side_effect=lambda row: row["risk_validation"]["canonical_rank_score"])
+    @patch("hanz_app.research.generate_top5_5y_backtest._eligible",
+           side_effect=lambda row: row["_test_eligible"])
+    def test_research_backfill_excludes_disqualified_monitor_candidates(
+            self, _eligible, _rank, get_rows):
+        from hanz_app.research.generate_top5_5y_backtest import _research_candidates
+        get_rows.return_value = [
+            monitor("AAA", "2026-11-17T10:00:00Z", True, 90),
+            monitor("BBB", "2026-11-17T10:00:00Z", False, 95),
+            monitor("CCC", "2026-11-17T10:00:00Z", True, 80),
+        ]
+        self.assertEqual(_research_candidates(["AAA"]), ["AAA", "CCC"])
+        self.assertNotIn("BBB", _research_candidates(["AAA"]))
+
     def test_naive_intraday_cutoff_rejected(self):
         with self.assertRaises(ValueError):
             select_monitor_top_five([], as_of="2026-11-16T14:30:00")
