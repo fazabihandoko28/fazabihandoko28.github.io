@@ -183,7 +183,7 @@ def _research_candidates(primary):
         if symbol and symbol not in latest:
             latest[symbol] = row
     fallback = sorted(
-        (symbol for symbol in latest if symbol not in primary),
+        (symbol for symbol in latest if symbol not in primary and _eligible(latest[symbol])),
         key=lambda symbol: (-_rank(latest[symbol]), symbol),
     )
     return primary + fallback
