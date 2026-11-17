@@ -93,6 +93,8 @@ def _legacy_wait_eligible(row):
     zero=_zero_volume_days20(r)
     vol=str(r.get("volatility_status") or "").upper()
     regime=str(r.get("market_regime") or "").upper()
+    if "momentum_guard" in r and not isinstance(r["momentum_guard"], dict):
+        return False
     blocked=bool(_mapping(r.get("momentum_guard")).get("blocked"))
     lo=_num(row.get("entry_low")); hi=_num(row.get("entry_high")); t1=_num(row.get("target_1"))
     mid=(lo+hi)/2 if lo and hi else None
@@ -126,6 +128,8 @@ def _eligible(row):
     if not action or action in {"AVOID","DO_NOT_CHASE"}:
         return False
     if bool(r.get("top5_excluded")) and action!="TP_RISK" and not _legacy_wait_eligible(row):
+        return False
+    if "momentum_guard" in r and not isinstance(r["momentum_guard"], dict):
         return False
     if bool(_mapping(r.get("momentum_guard")).get("blocked")):
         return False
