@@ -75,6 +75,11 @@ def _valid_explicit_avg_value20(r):
             or _num(r["avg_value20"]) is not None)
 
 
+def _mapping(value):
+    """Malformed nested JSON is not usable trading evidence."""
+    return value if isinstance(value, dict) else {}
+
+
 def _legacy_wait_eligible(row):
     r=row.get("risk_validation") or {}
     if not isinstance(r, dict):
@@ -82,13 +87,13 @@ def _legacy_wait_eligible(row):
     action=str(r.get("hanz_action") or row.get("hanz_action") or "").upper()
     if action!="AVOID":
         return False
-    raw=_num((r.get("opportunity_score_breakdown") or {}).get("raw_score_before_action_cap"))
+    raw=_num(_mapping(r.get("opportunity_score_breakdown")).get("raw_score_before_action_cap"))
     rr2=_num(r.get("rr_target_2"))
     avg=_num(r.get("avg_value20"))
     zero=_zero_volume_days20(r)
     vol=str(r.get("volatility_status") or "").upper()
     regime=str(r.get("market_regime") or "").upper()
-    blocked=bool((r.get("momentum_guard") or {}).get("blocked"))
+    blocked=bool(_mapping(r.get("momentum_guard")).get("blocked"))
     lo=_num(row.get("entry_low")); hi=_num(row.get("entry_high")); t1=_num(row.get("target_1"))
     mid=(lo+hi)/2 if lo and hi else None
     upside=((t1-mid)/mid*100) if t1 is not None and mid else None
@@ -108,7 +113,7 @@ def _rank(row):
     if not isinstance(r, dict):
         return 0  # Malformed production snapshot: fail closed.
     if _legacy_wait_eligible(row):
-        raw=_num((r.get("opportunity_score_breakdown") or {}).get("raw_score_before_action_cap"),35)
+        raw=_num(_mapping(r.get("opportunity_score_breakdown")).get("raw_score_before_action_cap"),35)
         return max(35,min(54,raw))
     return max(0,min(100,_num(r.get("canonical_rank_score"),0) or 0))
 
@@ -122,7 +127,7 @@ def _eligible(row):
         return False
     if bool(r.get("top5_excluded")) and action!="TP_RISK" and not _legacy_wait_eligible(row):
         return False
-    if bool((r.get("momentum_guard") or {}).get("blocked")):
+    if bool(_mapping(r.get("momentum_guard")).get("blocked")):
         return False
     if str(r.get("volatility_status") or "").upper()=="EXTREME":
         return False
