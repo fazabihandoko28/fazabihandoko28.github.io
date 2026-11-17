@@ -2738,5 +2738,55 @@
     "source": "YAHOO_FINANCE_RESEARCH_ONLY",
     "recorded_at": "2026-11-16T22:58:53.356956+00:00",
     "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "PNBN",
+    "status": "WAIT",
+    "signal_timestamp": "2026-11-17T00:00:00+00:00",
+    "signal_close": 790.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-11-17T21:52:09.568009+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "BRIS",
+    "status": "WAIT",
+    "signal_timestamp": "2026-11-17T00:00:00+00:00",
+    "signal_close": 1225.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-11-17T21:52:09.568034+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "BBTN",
+    "status": "WAIT",
+    "signal_timestamp": "2026-11-17T00:00:00+00:00",
+    "signal_close": 1050.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-11-17T21:52:09.568045+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "AUTO",
+    "status": "WAIT",
+    "signal_timestamp": "2026-11-17T00:00:00+00:00",
+    "signal_close": 3140.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-11-17T21:52:09.568055+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "BTPS",
+    "status": "WAIT",
+    "signal_timestamp": "2026-11-17T00:00:00+00:00",
+    "signal_close": 1060.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-11-17T21:52:09.568065+00:00",
+    "outcome": "PENDING"
   }
 ]
