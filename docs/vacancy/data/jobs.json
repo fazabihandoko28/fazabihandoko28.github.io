@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-11-17T20:59:11.675016+00:00",
+  "generated_at": "2026-11-18T07:35:12.425686+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1324,
-  "matching_jobs": 57,
+  "raw_jobs": 1326,
+  "matching_jobs": 61,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 422
+      "jobs": 424
     },
     {
       "name": "Publicis Groupe",
@@ -80,12 +80,30 @@
       "source_verified": true
     },
     {
+      "id": "sr-744000162217239",
+      "title": " Commercial Buyer - EA Region (focus MA-AS, Australia), Mobility Aftermarket Division ",
+      "company": "Bosch Group",
+      "location": "District 2, Thu Duc City, Ho Chi Minh, Vietnam",
+      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000162217239-commercial-buyer-ea-region-focus-ma-as-australia-mobility-aftermarket-division",
+      "published_at": "2026-11-18T03:50:44.060Z",
+      "source_verified": true
+    },
+    {
       "id": "sr-744000161750229",
       "title": "Intern, Corporate Communications",
       "company": "Bosch Group",
       "location": "Singapore, Singapore",
       "url": "https://jobs.smartrecruiters.com/BoschGroup/744000161750229-intern-corporate-communications",
       "published_at": "2026-11-16T08:47:37.469Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000162214189",
+      "title": "[BDO] IT Operations & Communications Intern",
+      "company": "Bosch Group",
+      "location": "Ho Chi Minh, Vietnam",
+      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000162214189-bdo-it-operations-communications-intern",
+      "published_at": "2026-11-18T02:37:28.714Z",
       "source_verified": true
     },
     {
@@ -233,6 +251,15 @@
       "source_verified": true
     },
     {
+      "id": "sr-744000162219359",
+      "title": "Associate, Business Development - eCommerce",
+      "company": "Grab",
+      "location": "HCMC, Vietnam",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000162219359-associate-business-development-ecommerce",
+      "published_at": "2026-11-18T04:34:21.116Z",
+      "source_verified": true
+    },
+    {
       "id": "sr-744000161224565",
       "title": "Associate, Commercial Planning - Enterprise",
       "company": "Grab",
@@ -332,15 +359,6 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000122178068",
-      "title": "Communications Manager",
-      "company": "Grab",
-      "location": "Petaling Jaya, Malaysia",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000122178068-communications-manager",
-      "published_at": "2026-04-22T06:58:53.349Z",
-      "source_verified": true
-    },
-    {
       "id": "sr-744000154367299",
       "title": "Communications Manager, Singapore",
       "company": "Grab",
@@ -365,6 +383,15 @@
       "location": "Bangkok, Thailand",
       "url": "https://jobs.smartrecruiters.com/Grab/744000155956440-grabfood-marketing-associate-other-cities",
       "published_at": "2026-10-16T09:59:45.692Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000162221214",
+      "title": "Intern, Account Management, Merchant Growth",
+      "company": "Grab",
+      "location": "Singapore, Singapore",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000162221214-intern-account-management-merchant-growth",
+      "published_at": "2026-11-18T05:18:24.949Z",
       "source_verified": true
     },
     {
@@ -509,6 +536,15 @@
       "location": "Singapore, Singapore",
       "url": "https://jobs.smartrecruiters.com/Grab/744000152064949-senior-manager-regional-strategic-partnerships-deliveries-dine-out",
       "published_at": "2026-09-28T02:19:45.529Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000162216860",
+      "title": "Specialist, Growth Enablement",
+      "company": "Grab",
+      "location": "HCMC, Vietnam",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000162216860-specialist-growth-enablement",
+      "published_at": "2026-11-18T03:46:39.357Z",
       "source_verified": true
     },
     {
