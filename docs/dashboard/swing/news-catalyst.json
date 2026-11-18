@@ -1,12 +1,24 @@
 {
-  "generated_at": "2026-11-17T09:52:16.415047+00:00",
+  "generated_at": "2026-11-18T09:25:54.567808+00:00",
   "policy": "HIGH_CONFIDENCE_CAUSAL_ONLY",
   "selected_tickers": [
-    "ACES",
-    "ASII",
-    "BBRI",
+    "ABMM",
+    "BBYB",
     "BJTM",
-    "CMRY"
+    "BTPS",
+    "ICBP"
   ],
-  "catalysts": []
+  "catalysts": [
+    {
+      "scope": "IHSG",
+      "direction": "POSITIVE",
+      "confidence": "HIGH",
+      "score": 8,
+      "headline": "IHSG Menguat Setelah BI Naikkan Suku Bunga ke 6 Persen - cwibc.co.id",
+      "source": "cwibc.co.id",
+      "url": "https://news.google.com/rss/articles/CBMiZEFVX3lxTE9BNWdQUHZialExemdZS0pJTUIzQnU0U0lFNGF5THVjS2p2eWdPT0FEcWdFa0pqYmpMSXdEdnhuSXJpLVhIdHo3RTJUcncyU29CZy01elNzVEZRYkpHd2hKQUpieG0?oc=5",
+      "published_at": "2026-11-18T07:48:11+00:00",
+      "note": "Likely index news catalyst based on explicit causal headline language. Hidden when causal evidence is weak."
+    }
+  ]
 }
