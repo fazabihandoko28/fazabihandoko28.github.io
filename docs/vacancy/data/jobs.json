@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-11-18T07:35:12.425686+00:00",
+  "generated_at": "2026-11-18T20:36:57.246482+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
   "raw_jobs": 1326,
-  "matching_jobs": 61,
+  "matching_jobs": 62,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 424
+      "jobs": 427
     },
     {
       "name": "Publicis Groupe",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 402
+      "jobs": 399
     },
     {
       "name": "Visa",
@@ -104,6 +104,15 @@
       "location": "Ho Chi Minh, Vietnam",
       "url": "https://jobs.smartrecruiters.com/BoschGroup/744000162214189-bdo-it-operations-communications-intern",
       "published_at": "2026-11-18T02:37:28.714Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000162262305",
+      "title": "[Internship] Corporate Communications Intern",
+      "company": "Bosch Group",
+      "location": "Thu Duc City, Vietnam",
+      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000162262305-internship-corporate-communications-intern",
+      "published_at": "2026-11-18T10:27:19.530Z",
       "source_verified": true
     },
     {
