@@ -1,23 +1,23 @@
 {
-  "generated_at": "2026-11-18T18:15:56.377924+00:00",
+  "generated_at": "2026-11-19T09:38:01.211219+00:00",
   "policy": "HIGH_CONFIDENCE_CAUSAL_ONLY",
   "selected_tickers": [
-    "BBYB",
-    "BJTM",
+    "SPTO",
+    "NISP",
+    "BJBR",
     "BTPN",
-    "INTP",
-    "LSIP"
+    "BTPS"
   ],
   "catalysts": [
     {
       "scope": "IHSG",
-      "direction": "POSITIVE",
+      "direction": "NEGATIVE",
       "confidence": "HIGH",
-      "score": 8,
-      "headline": "IHSG Menguat Setelah BI Naikkan Suku Bunga ke 6 Persen - cwibc.co.id",
-      "source": "cwibc.co.id",
-      "url": "https://news.google.com/rss/articles/CBMiZEFVX3lxTE9BNWdQUHZialExemdZS0pJTUIzQnU0U0lFNGF5THVjS2p2eWdPT0FEcWdFa0pqYmpMSXdEdnhuSXJpLVhIdHo3RTJUcncyU29CZy01elNzVEZRYkpHd2hKQUpieG0?oc=5",
-      "published_at": "2026-11-18T07:48:11+00:00",
+      "score": 10,
+      "headline": "Rupiah Menguat 0,13 Persen, IHSG Turun Usai BI Rate Naik - Limapagi",
+      "source": "Limapagi",
+      "url": "https://news.google.com/rss/articles/CBMiaEFVX3lxTFBxTjlvTmRLZ2NOZFhCYUZwVzJSY3dsWDZXUElNdmR2S3ItYkxpN096UG51Y1VTeVloZTdLYVVlb1I2UnR4VFRXbmdMVmVvNTRJcFBRTHVBNno3Yi1BUFczNVkySFpmeGFt?oc=5",
+      "published_at": "2026-11-18T23:21:00+00:00",
       "note": "Likely index news catalyst based on explicit causal headline language. Hidden when causal evidence is weak."
     }
   ]
