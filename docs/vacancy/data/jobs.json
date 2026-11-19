@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-11-18T20:36:57.246482+00:00",
+  "generated_at": "2026-11-19T07:31:36.572200+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1326,
-  "matching_jobs": 62,
+  "raw_jobs": 1330,
+  "matching_jobs": 64,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 427
+      "jobs": 430
     },
     {
       "name": "Publicis Groupe",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 399
+      "jobs": 400
     },
     {
       "name": "Visa",
@@ -257,6 +257,15 @@
       "location": "HCMC, Vietnam",
       "url": "https://jobs.smartrecruiters.com/Grab/744000144294728-associate-business-development-omni",
       "published_at": "2026-08-19T11:44:56.353Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000162448536",
+      "title": "Associate, Business Development - eCommerce",
+      "company": "Grab",
+      "location": "HCMC, Vietnam",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000162448536-associate-business-development-ecommerce",
+      "published_at": "2026-11-19T07:25:11.276Z",
       "source_verified": true
     },
     {
@@ -521,6 +530,15 @@
       "source_verified": true
     },
     {
+      "id": "sr-744000162451524",
+      "title": "Senior Associate, Business Development - eCommerce",
+      "company": "Grab",
+      "location": "HCMC, Vietnam",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000162451524-senior-associate-business-development-ecommerce",
+      "published_at": "2026-11-19T07:29:27.596Z",
+      "source_verified": true
+    },
+    {
       "id": "sr-744000153427615",
       "title": "Senior Associate, Talent Acquisition Business Partner",
       "company": "Grab",
@@ -539,12 +557,12 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000152064949",
-      "title": "Senior Manager, Regional Strategic Partnerships (Deliveries & Dine-out)",
+      "id": "sr-744000162450429",
+      "title": "Specialist, Campaign Planning - Mart (eCommerce)",
       "company": "Grab",
-      "location": "Singapore, Singapore",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000152064949-senior-manager-regional-strategic-partnerships-deliveries-dine-out",
-      "published_at": "2026-09-28T02:19:45.529Z",
+      "location": "HCMC, Vietnam",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000162450429-specialist-campaign-planning-mart-ecommerce",
+      "published_at": "2026-11-19T07:18:38.491Z",
       "source_verified": true
     },
     {
