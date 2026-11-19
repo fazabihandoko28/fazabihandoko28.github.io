@@ -2788,5 +2788,55 @@
     "source": "YAHOO_FINANCE_RESEARCH_ONLY",
     "recorded_at": "2026-11-17T21:52:09.568065+00:00",
     "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "TBIG",
+    "status": "WAIT",
+    "signal_timestamp": "2026-11-19T00:00:00+00:00",
+    "signal_close": 1200.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-11-19T21:43:28.254357+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "BNGA",
+    "status": "WAIT",
+    "signal_timestamp": "2026-11-19T00:00:00+00:00",
+    "signal_close": 1550.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-11-19T21:43:28.254385+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "ULTJ",
+    "status": "WAIT",
+    "signal_timestamp": "2026-11-19T00:00:00+00:00",
+    "signal_close": 2020.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-11-19T21:43:28.254394+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "PTBA",
+    "status": "WAIT",
+    "signal_timestamp": "2026-11-19T00:00:00+00:00",
+    "signal_close": 2980.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-11-19T21:43:28.254416+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "EXCL",
+    "status": "WAIT",
+    "signal_timestamp": "2026-11-19T00:00:00+00:00",
+    "signal_close": 1655.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-11-19T21:43:28.254426+00:00",
+    "outcome": "PENDING"
   }
 ]
