@@ -1,19 +1,19 @@
 {
-  "generated_at": "2026-11-20T09:21:34.235446+00:00",
+  "generated_at": "2026-11-20T17:54:42.630278+00:00",
   "policy": "HIGH_CONFIDENCE_CAUSAL_ONLY",
   "selected_tickers": [
-    "ACES",
-    "BTPN",
     "PWON",
     "MPMX",
-    "AALI"
+    "LPPF",
+    "LSIP",
+    "BJTM"
   ],
   "catalysts": [
     {
       "scope": "IHSG",
       "direction": "NEGATIVE",
       "confidence": "HIGH",
-      "score": 9,
+      "score": 8,
       "headline": "Rupiah Menguat 0,13 Persen, IHSG Turun Usai BI Rate Naik - Limapagi",
       "source": "Limapagi",
       "url": "https://news.google.com/rss/articles/CBMiaEFVX3lxTFBxTjlvTmRLZ2NOZFhCYUZwVzJSY3dsWDZXUElNdmR2S3ItYkxpN096UG51Y1VTeVloZTdLYVVlb1I2UnR4VFRXbmdMVmVvNTRJcFBRTHVBNno3Yi1BUFczNVkySFpmeGFt?oc=5",
