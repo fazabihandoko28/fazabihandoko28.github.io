@@ -1,15 +1,15 @@
 {
   "symbol": "IHSG",
   "source_symbol": "^JKSE",
-  "price": 5146.33,
-  "previous_close": 5194.14,
-  "change": -47.81,
-  "change_pct": -0.921,
-  "market_date": "2026-11-20",
-  "quote_at": "2026-11-20T00:00:00+07:00",
-  "updated_at": "2026-11-20T16:54:43.631476+07:00",
+  "price": 5194.14,
+  "previous_close": 5247.88,
+  "change": -53.74,
+  "change_pct": -1.024,
+  "market_date": "2026-11-19",
+  "quote_at": "2026-11-19T00:00:00+07:00",
+  "updated_at": "2026-11-21T00:52:40.475710+07:00",
   "quote_type": "LAST_CLOSE",
-  "market_state": "CLOSED_AFTER_HOURS",
+  "market_state": "CLOSED_WEEKEND",
   "stale": true,
   "policy": "LIVE_WHEN_OPEN_LAST_CLOSE_WHEN_CLOSED"
 }
