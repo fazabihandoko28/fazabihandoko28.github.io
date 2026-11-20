@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-11-19T20:41:46.340941+00:00",
+  "generated_at": "2026-11-20T07:22:22.987469+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1349,
-  "matching_jobs": 66,
+  "raw_jobs": 1353,
+  "matching_jobs": 65,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 429
+      "jobs": 431
     },
     {
       "name": "Publicis Groupe",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 420
+      "jobs": 422
     },
     {
       "name": "Visa",
@@ -98,15 +98,6 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000161750229",
-      "title": "Intern, Corporate Communications",
-      "company": "Bosch Group",
-      "location": "Singapore, Singapore",
-      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000161750229-intern-corporate-communications",
-      "published_at": "2026-11-16T08:47:37.469Z",
-      "source_verified": true
-    },
-    {
       "id": "sr-744000162214189",
       "title": "[BDO] IT Operations & Communications Intern",
       "company": "Bosch Group",
@@ -158,15 +149,6 @@
       "location": "Petaling Jaya, Malaysia",
       "url": "https://jobs.smartrecruiters.com/Grab/744000152580719-assistant-manager-commercial-operations-deal-desk",
       "published_at": "2026-09-30T01:52:53.102Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000137836764",
-      "title": "Assistant Manager, Country Business Development",
-      "company": "Grab",
-      "location": "Pasig City, Philippines",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000137836764-assistant-manager-country-business-development",
-      "published_at": "2026-07-15T08:53:35.276Z",
       "source_verified": true
     },
     {
@@ -347,6 +329,15 @@
       "location": "HCMC, Vietnam",
       "url": "https://jobs.smartrecruiters.com/Grab/744000136148341-associate-merchant-acquisition-grabmart",
       "published_at": "2026-07-07T07:02:02.322Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000162651429",
+      "title": "Associate, Self-Serve Platform Growth",
+      "company": "Grab",
+      "location": "HCMC, Vietnam",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000162651429-associate-self-serve-platform-growth",
+      "published_at": "2026-11-20T02:41:46.514Z",
       "source_verified": true
     },
     {
