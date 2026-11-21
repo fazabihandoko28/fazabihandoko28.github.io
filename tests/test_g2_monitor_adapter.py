@@ -197,5 +197,33 @@ class G2MonitorIntegrationTests(unittest.TestCase):
         self.assertEqual(result["selected"], ["AAA"])
 
 
+class ProductionExclusionDiagnosticsTests(unittest.TestCase):
+    @patch("hanz_app.research.generate_top5_5y_backtest._rank", return_value=90)
+    @patch("hanz_app.research.generate_top5_5y_backtest._eligible",
+           side_effect=lambda r: r.get("_test_eligible", False))
+    def test_latest_snapshot_counts_unique_tickers(self, _eligible, _rank):
+        from hanz_app.research.g2_production_top5 import _candidate_exclusion_diagnostics
+        rows = [
+            monitor("AAA", "2026-11-20T09:00:00Z", True),
+            monitor("AAA", "2026-11-20T10:00:00Z", False),
+            monitor("BBB", "2026-11-20T10:00:00Z", True),
+            monitor("CCC", "2026-11-21T15:00:00Z", True),
+        ]
+        result = _candidate_exclusion_diagnostics(rows, as_of="2026-11-21T10:00:00Z")
+        self.assertEqual(result["latest_unique_tickers_at_cutoff"], 2)
+        self.assertEqual(result["exclusion_reason_counts"]["ELIGIBLE"], 1)
+        self.assertEqual(sum(result["exclusion_reason_counts"].values()), 2)
+
+    @patch("hanz_app.research.generate_top5_5y_backtest._rank", return_value=90)
+    @patch("hanz_app.research.generate_top5_5y_backtest._eligible",
+           side_effect=lambda r: r["_test_eligible"])
+    def test_equal_timestamp_conflict_is_not_eligible(self, _eligible, _rank):
+        from hanz_app.research.g2_production_top5 import _candidate_exclusion_diagnostics
+        rows = [monitor("AAA", "2026-11-20T10:00:00Z", True),
+                monitor("AAA", "2026-11-20T10:00:00Z", False)]
+        result = _candidate_exclusion_diagnostics(rows, as_of="2026-11-21T10:00:00Z")
+        self.assertEqual(result["exclusion_reason_counts"], {"CONFLICTING_NEWEST_SNAPSHOT": 1})
+
+
 if __name__ == "__main__":
     unittest.main()
