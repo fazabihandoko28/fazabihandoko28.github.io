@@ -1,6 +1,6 @@
 import unittest
 from hanz_app.research.generate_top5_5y_backtest import (
-    _eligible, _research_only_eligible, _research_candidates
+    _eligible, _research_only_eligible, _research_candidates, _relaxed_research_candidates
 )
 
 
@@ -30,7 +30,8 @@ class RelaxedResearchTests(unittest.TestCase):
 
     def test_research_candidates_dont_change_production_selection(self):
         candidate = row()
-        self.assertEqual(_research_candidates([], [candidate]), ["TEST"])
+        self.assertEqual(_research_candidates([], [candidate]), [])
+        self.assertEqual(_relaxed_research_candidates([], [candidate]), ["TEST"])
         self.assertFalse(_eligible(candidate))
 
 
