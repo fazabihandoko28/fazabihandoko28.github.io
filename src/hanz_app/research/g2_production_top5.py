@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from hanz_app.research.generate_top5_5y_backtest import _get_monitor_rows
-from hanz_app.research.g2_monitor_adapter import _parse_timestamp
+from hanz_app.research.g2_monitor_adapter import _parse_timestamp, _cutoff
 from hanz_app.research.g2_monitor_adapter import select_monitor_top_five
 
 OUT = Path("docs/dashboard/swing/g2-top5-research.json")
@@ -20,9 +20,9 @@ def build_report(rows, *, as_of, generated_at):
     result["source_latest_updated_at"] = valid_stamps[-1].isoformat() if valid_stamps else None
     result["source_oldest_updated_at"] = valid_stamps[0].isoformat() if valid_stamps else None
     result["source_rows_without_valid_timestamp"] = len(stamps) - len(valid_stamps)
-    cutoff = _parse_timestamp(as_of)
-    if cutoff is None:
-        raise ValueError("Timezone-aware evidence cutoff required")
+    # Match adapter semantics: date-only cutoff means end of that UTC day;
+    # intraday cutoffs must still be timezone-aware.
+    cutoff, _ = _cutoff(as_of)
     eligible_stamps = [dt for dt in valid_stamps if dt <= cutoff]
     newest = eligible_stamps[-1] if eligible_stamps else None
     result["source_latest_at_cutoff"] = newest.isoformat() if newest else None
