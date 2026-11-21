@@ -21,6 +21,15 @@ class ProductionFreshnessTests(unittest.TestCase):
         self.assertFalse(result["production_top5_complete"])
         self.assertFalse(result["buy_authorized"])
 
+    def test_age_and_timestamp_integrity_are_reported(self):
+        rows = [{"ticker": "AAA", "updated_at": "2026-11-20T08:00:00Z",
+                 "risk_validation": {"hanz_action": "AVOID"}}]
+        result = build_report(rows, as_of="2026-11-21T08:00:00Z",
+                              generated_at="2026-11-21T08:00:00Z")
+        self.assertEqual(result["source_age_hours"], 24.0)
+        self.assertTrue(result["production_evidence_usable"])
+        self.assertFalse(result["market_session_freshness_verified"])
+
     def test_future_snapshot_never_proves_freshness(self):
         rows = [{"ticker": "AAA", "updated_at": "2026-11-22T10:00:00Z",
                  "risk_validation": {"hanz_action": "AVOID"}}]
@@ -28,6 +37,8 @@ class ProductionFreshnessTests(unittest.TestCase):
                               generated_at="2026-11-21T03:00:00Z")
         self.assertEqual(result["selected"], [])
         self.assertFalse(result["market_session_freshness_verified"])
+        self.assertEqual(result["source_future_timestamp_count"], 1)
+        self.assertFalse(result["production_evidence_usable"])
 
 
 if __name__ == "__main__":
