@@ -176,6 +176,40 @@ def _top5_symbols(monitor_rows=None):
 
 
 
+def _research_only_eligible(row):
+    """Relax research liquidity/action gates; never authorize production BUY."""
+    if not isinstance(row, dict) or not str(row.get("ticker") or "").strip():
+        return False
+    r = row.get("risk_validation") or {}
+    if not isinstance(r, dict):
+        return False
+    if "momentum_guard" in r and not isinstance(r["momentum_guard"], dict):
+        return False
+    zero = _zero_volume_days20(r)
+    if zero is None or zero > 6:
+        return False
+    if not _valid_explicit_avg_value20(r):
+        return False
+    avg = _num(r.get("avg_value20"))
+    if avg is not None and avg < 50_000_000:
+        return False
+    if str(r.get("volatility_status") or "").upper() == "EXTREME":
+        return False
+    if any(key in row and row[key] is not None and _num(row[key]) is None
+           for key in ("entry_low", "entry_high", "target_1")):
+        return False
+    lo = _num(row.get("entry_low"))
+    hi = _num(row.get("entry_high"))
+    target = _num(row.get("target_1"))
+    if any(value is not None and value <= 0 for value in (lo, hi, target)):
+        return False
+    if lo is not None and hi is not None and hi < lo:
+        return False
+    # AVOID, DO_NOT_CHASE and blocked momentum may be research comparators,
+    # but cannot be counted as safe production candidates.
+    return True
+
+
 def _research_candidates(primary, monitor_rows=None):
     latest = {}
     for row in (monitor_rows if monitor_rows is not None else _get_monitor_rows()):
@@ -183,7 +217,7 @@ def _research_candidates(primary, monitor_rows=None):
         if symbol and symbol not in latest:
             latest[symbol] = row
     fallback = sorted(
-        (symbol for symbol in latest if symbol not in primary and _eligible(latest[symbol])),
+        (symbol for symbol in latest if symbol not in primary and _research_only_eligible(latest[symbol])),
         key=lambda symbol: (-_rank(latest[symbol]), symbol),
     )
     return primary + fallback
@@ -376,12 +410,15 @@ def main():
             "research_candidates_attempted":len(skipped)+len(symbols),
             "research_candidates_skipped":len(skipped),
             "shortfall_to_five":max(0,5-len(symbols)),
-            "eligible_production_shortfall":max(0,5-len(candidates)),
-            "shortfall_reason": ("INSUFFICIENT_ELIGIBLE_PRODUCTION_CANDIDATES" if len(candidates)<5 else "INSUFFICIENT_VALID_FIVE_YEAR_PRICE_HISTORY" if len(symbols)<5 else None),
+            "eligible_production_shortfall":max(0,5-len(live_top5)),
+            "research_pool_size":len(candidates),
+            "relaxed_research_only":True,
+            "shortfall_reason": ("INSUFFICIENT_ELIGIBLE_PRODUCTION_CANDIDATES" if len(live_top5)<5 else "INSUFFICIENT_VALID_FIVE_YEAR_PRICE_HISTORY" if len(symbols)<5 else None),
         },
         "skipped_candidates":skipped,
         "methodology":{
-            "selection_mode":"RESEARCH_ONLY_VALID_HISTORY_BACKFILL",
+            "selection_mode":"RELAXED_RESEARCH_ONLY_VALID_HISTORY_BACKFILL",
+            "research_relaxation":{"min_avg_value20":50000000,"max_zero_volume_days20":6,"allow_avoid_and_do_not_chase":True,"allow_blocked_momentum":True,"exclude_extreme_volatility":True,"production_eligibility_unchanged":True},
             "historical_selection_reconstructed":False,
             "costs_included":False,
             "name":"HANZ 5Y retrospective replay of current Top 5 candidates",
@@ -391,7 +428,7 @@ def main():
             "step_bars":1,
             "target_pct":4.0,
             "stop_pct":2.5,
-            "note":"Research-only candidates are backfilled from latest monitor symbols until five distinct tickers have validated 5Y history; missing or short history is skipped, never counted as PASS. Current monitor selection and fallback are subject to selection/survivorship bias; this is not point-in-time OOS validation, and returns exclude execution fees and slippage. Live V43 ranking market/flow layers are not fully reconstructible historically. Not a validated BUY signal."
+            "note":"Research-only candidates are backfilled from latest monitor symbols using relaxed research gates until five distinct tickers have validated 5Y history; missing or short history is skipped, never counted as PASS. Current monitor selection and fallback are subject to selection/survivorship bias; this is not point-in-time OOS validation, and returns exclude execution fees and slippage. Live V43 ranking market/flow layers are not fully reconstructible historically. Not a validated BUY signal."
         },
         "results":results,
         "errors":errors,
