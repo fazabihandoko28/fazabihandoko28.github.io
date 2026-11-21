@@ -12,6 +12,56 @@ from hanz_app.research.g2_monitor_adapter import select_monitor_top_five
 OUT = Path("docs/dashboard/swing/g2-top5-research.json")
 
 
+def _candidate_exclusion_diagnostics(rows, *, as_of):
+    """Aggregate latest per-ticker production risk reasons, never relax BUY gates."""
+    from hanz_app.research.generate_top5_5y_backtest import _eligible, _rank, _zero_volume_days20, _num
+    cutoff, _ = _cutoff(as_of)
+    latest = {}
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        ticker = str(row.get("ticker") or "").strip().upper()
+        stamp = _parse_timestamp(row.get("updated_at"))
+        if not ticker or stamp is None or stamp > cutoff:
+            continue
+        if ticker not in latest or stamp > latest[ticker][0]:
+            latest[ticker] = (stamp, [row])
+        elif stamp == latest[ticker][0]:
+            latest[ticker][1].append(row)
+    reasons = {}
+    for _, tied in latest.values():
+        signatures = []
+        for row in tied:
+            try:
+                signatures.append((bool(_eligible(row)), _rank(row)))
+            except (TypeError, ValueError, KeyError, AttributeError, OverflowError):
+                signatures.append((False, None))
+        if len(set(signatures)) > 1:
+            reason = "CONFLICTING_NEWEST_SNAPSHOT"
+        elif signatures[0][0]:
+            reason = "ELIGIBLE"
+        else:
+            r = tied[0].get("risk_validation")
+            if not isinstance(r, dict):
+                reason = "MALFORMED_RISK_VALIDATION"
+            elif str(r.get("hanz_action") or tied[0].get("hanz_action") or "").upper() in {"AVOID", "DO_NOT_CHASE"}:
+                reason = "ACTION_RESTRICTED"
+            elif r.get("top5_excluded") or (isinstance(r.get("momentum_guard"), dict) and r["momentum_guard"].get("blocked")):
+                reason = "RISK_OR_MOMENTUM_BLOCK"
+            elif str(r.get("volatility_status") or "").upper() == "EXTREME":
+                reason = "EXTREME_VOLATILITY"
+            elif _zero_volume_days20(r) is None or _zero_volume_days20(r) >= 5:
+                reason = "ZERO_VOLUME_GUARD"
+            elif _num(r.get("avg_value20")) is None or _num(r.get("avg_value20")) < 100_000_000:
+                reason = "LIQUIDITY_OR_MISSING_VALUE"
+            else:
+                reason = "OTHER_ELIGIBILITY_OR_RANK_GUARD"
+        reasons[reason] = reasons.get(reason, 0) + 1
+    return {"latest_unique_tickers_at_cutoff": len(latest),
+            "exclusion_reason_counts": dict(sorted(reasons.items())),
+            "diagnostics_research_only": True}
+
+
 def build_report(rows, *, as_of, generated_at):
     result = select_monitor_top_five(rows, as_of=as_of)
     # Timestamp diagnostics are evidence, not a claim of market-data freshness.
@@ -60,6 +110,7 @@ def build_report(rows, *, as_of, generated_at):
         "MISSING_OR_FUTURE_MONITOR_TIMESTAMPS" if not result["production_evidence_usable"]
         else "EXCHANGE_SESSION_FRESHNESS_NOT_INDEPENDENTLY_VERIFIED"
     )
+    result["production_exclusion_diagnostics"] = _candidate_exclusion_diagnostics(rows, as_of=as_of)
     result["production_monitor_rows"] = len(rows)
     result["production_unique_tickers"] = len({str(r.get("ticker") or "").strip().upper() for r in rows if isinstance(r, dict) and r.get("ticker")})
     result["eligible_selected_count"] = len(result["selected"])
