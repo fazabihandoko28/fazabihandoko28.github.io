@@ -8,6 +8,8 @@ on:
       - 'tests/test_g2*.py'
       - '.github/workflows/g2-research.yml'
   workflow_dispatch:
+  schedule:
+    - cron: '45 11 * * 1-5'
 
 permissions:
   contents: read
@@ -26,3 +28,30 @@ jobs:
       - name: Run G2 regressions without production credentials
         run: |
           python -m unittest discover -s tests -p 'test_g2*.py' -v
+
+  production-top5-evidence:
+    # Independent from unit tests: genuine Supabase data, no trading or publication.
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PYTHONPATH: src
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install research package
+        run: python -m pip install -e .
+      - name: Generate actual read-only production Top 5 evidence
+        run: python -m hanz_app.research.g2_production_top5
+      - name: Upload production Top 5 research artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g2-production-top5-research
+          path: docs/dashboard/swing/g2-top5-research.json
+          if-no-files-found: warn
+          retention-days: 90
