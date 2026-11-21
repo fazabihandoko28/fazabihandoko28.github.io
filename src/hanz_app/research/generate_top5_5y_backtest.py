@@ -359,6 +359,11 @@ def main():
     errors={}
     coverage=_selection_coverage(symbols, available, results, errors)
     payload={
+        "status": "COMPLETE_RESEARCH_ONLY" if coverage["backtest_complete"] else "INCOMPLETE_RESEARCH_ONLY",
+        "actual_point_in_time_oos_verified": False,
+        "reconstructed_point_in_time_oos_verified": False,
+        "net_after_costs_verified": False,
+        "buy_authorized": False,
         "coverage":coverage,
         "generated_at":datetime.now(timezone.utc).isoformat(),
         "universe_size":200,
@@ -371,10 +376,14 @@ def main():
             "research_candidates_attempted":len(skipped)+len(symbols),
             "research_candidates_skipped":len(skipped),
             "shortfall_to_five":max(0,5-len(symbols)),
+            "eligible_production_shortfall":max(0,5-len(candidates)),
+            "shortfall_reason": ("INSUFFICIENT_ELIGIBLE_PRODUCTION_CANDIDATES" if len(candidates)<5 else "INSUFFICIENT_VALID_FIVE_YEAR_PRICE_HISTORY" if len(symbols)<5 else None),
         },
         "skipped_candidates":skipped,
         "methodology":{
             "selection_mode":"RESEARCH_ONLY_VALID_HISTORY_BACKFILL",
+            "historical_selection_reconstructed":False,
+            "costs_included":False,
             "name":"HANZ 5Y retrospective replay of current Top 5 candidates",
             "period":"5 calendar years plus up to 7 real trading-calendar buffer days; Yahoo 10y acquisition",
             "minimum_bars":60,
