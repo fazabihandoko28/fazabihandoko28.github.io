@@ -161,12 +161,12 @@ def _eligible(row):
     return _rank(row)>0
 
 
-def _top5_symbols():
+def _top5_symbols(monitor_rows=None):
     # Monitor rows are newest-first. Only the newest snapshot of each
     # ticker is authoritative; an older eligible duplicate must not
     # override a newer excluded one or consume a second Top 5 slot.
     latest = {}
-    for row in _get_monitor_rows():
+    for row in (monitor_rows if monitor_rows is not None else _get_monitor_rows()):
         ticker = str(row.get("ticker") or "").strip().upper()
         if ticker and ticker not in latest:
             latest[ticker] = row
@@ -176,9 +176,9 @@ def _top5_symbols():
 
 
 
-def _research_candidates(primary):
+def _research_candidates(primary, monitor_rows=None):
     latest = {}
-    for row in _get_monitor_rows():
+    for row in (monitor_rows if monitor_rows is not None else _get_monitor_rows()):
         symbol = str(row.get("ticker") or "").strip().upper()
         if symbol and symbol not in latest:
             latest[symbol] = row
@@ -347,8 +347,11 @@ def _selection_coverage(symbols, available, results, errors):
 
 
 def main():
-    live_top5=_top5_symbols()
-    candidates=_research_candidates(live_top5)
+    # Freeze one monitor snapshot for primary selection and research backfill.
+    # Two independent reads can otherwise yield inconsistent candidate sets.
+    monitor_rows=_get_monitor_rows()
+    live_top5=_top5_symbols(monitor_rows)
+    candidates=_research_candidates(live_top5, monitor_rows)
     mappings=load_yahoo_universe(UNIVERSE)
     available=_research_mappings(mappings)
     validator=WalkForwardValidator(minimum_bars=60,horizon_bars=5,step_bars=1,target_pct=0.04,stop_pct=0.025)
@@ -361,6 +364,14 @@ def main():
         "universe_size":200,
         "selected_top5":symbols,
         "live_monitor_top5":live_top5,
+        "candidate_diagnostics":{
+            "monitor_rows":len(monitor_rows),
+            "unique_tickers":len({str(r.get("ticker") or "").strip().upper() for r in monitor_rows if isinstance(r,dict) and r.get("ticker")}),
+            "eligible_candidates":len(candidates),
+            "research_candidates_attempted":len(skipped)+len(symbols),
+            "research_candidates_skipped":len(skipped),
+            "shortfall_to_five":max(0,5-len(symbols)),
+        },
         "skipped_candidates":skipped,
         "methodology":{
             "selection_mode":"RESEARCH_ONLY_VALID_HISTORY_BACKFILL",
