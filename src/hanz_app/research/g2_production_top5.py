@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from hanz_app.research.generate_top5_5y_backtest import _get_monitor_rows
+from hanz_app.research.g2_monitor_adapter import _parse_timestamp
 from hanz_app.research.g2_monitor_adapter import select_monitor_top_five
 
 OUT = Path("docs/dashboard/swing/g2-top5-research.json")
@@ -13,6 +14,15 @@ OUT = Path("docs/dashboard/swing/g2-top5-research.json")
 
 def build_report(rows, *, as_of, generated_at):
     result = select_monitor_top_five(rows, as_of=as_of)
+    # Timestamp diagnostics are evidence, not a claim of market-data freshness.
+    stamps = [_parse_timestamp(row.get("updated_at")) for row in rows if isinstance(row, dict)]
+    valid_stamps = sorted(dt for dt in stamps if dt is not None)
+    result["source_latest_updated_at"] = valid_stamps[-1].isoformat() if valid_stamps else None
+    result["source_oldest_updated_at"] = valid_stamps[0].isoformat() if valid_stamps else None
+    result["source_rows_without_valid_timestamp"] = len(stamps) - len(valid_stamps)
+    result["market_session_freshness_verified"] = False
+    result["production_top5_complete"] = result["selection_complete"]
+    result["candidate_replacement_evidence"] = "INSUFFICIENT_ELIGIBLE_CANDIDATES" if result["vacant_slots"] else "SELECTION_COMPLETE_NOT_PROOF_OF_REPLACEMENT"
     result["generated_at"] = generated_at
     result["status"] = "RESEARCH_ONLY_NOT_CERTIFIED"
     result["production_data_retrieved"] = True
