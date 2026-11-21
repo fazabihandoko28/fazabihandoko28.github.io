@@ -57,7 +57,7 @@ jobs:
       - name: Show generated summary
         run: cat docs/dashboard/swing/backtest-5y.json
 
-      - name: Require complete G1 Top 5 five-year evidence before publishing
+      - name: Require complete Top 5 five-year evidence before publishing
         run: |
           python - <<'PY'
           import json
@@ -107,7 +107,7 @@ jobs:
               and all(has_complete_history(s) for s in symbols)
           )
           if not valid:
-              raise SystemExit("G1 backtest incomplete: refusing to publish incomplete five-year Top 5 evidence")
+              raise SystemExit("Backtest incomplete: refusing to publish incomplete five-year Top 5 evidence")
           PY
 
       - name: Commit backtest result
@@ -123,8 +123,8 @@ jobs:
             git push origin HEAD:main
           fi
 
-      - name: Upload backtest artifact
-        if: ${{ !cancelled() && steps.generate.outcome == 'success' }}
+      - name: Upload backtest artifact (including failed publication gate)
+        if: ${{ always() && !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
           name: hanz-top5-backtest-5y
