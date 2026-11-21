@@ -25,6 +25,8 @@ class ReconstructedOosTests(unittest.TestCase):
         self.assertFalse(report["actual_production_oos"])
         self.assertFalse(report["oos_certified"])
         self.assertFalse(report["buy_authorized"])
+        self.assertFalse(report["five_year_coverage_verified"])
+        self.assertEqual(report["history_start"], "2021-01-04")
         self.assertEqual(report["incomplete_selection_dates"], ["2021-01-04"])
 
     def test_future_evidence_rejected(self):
@@ -38,6 +40,10 @@ class ReconstructedOosTests(unittest.TestCase):
     def test_unselected_trade_rejected(self):
         with self.assertRaisesRegex(ValueError, "not in reconstructed"):
             reconstructed_oos([decision()], [fill(ticker="EFGH")], **COSTS)
+
+    def test_duplicate_trade_id_rejected(self):
+        with self.assertRaisesRegex(ValueError, "duplicate historical trade ID"):
+            reconstructed_oos([decision()], [fill(), fill()], **COSTS)
 
     def test_no_historical_data_fails_closed(self):
         with self.assertRaisesRegex(ValueError, "Historical dated decisions"):
