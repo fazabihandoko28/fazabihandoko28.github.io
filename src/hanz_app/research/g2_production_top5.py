@@ -16,6 +16,13 @@ def build_report(rows, *, as_of, generated_at):
     result["generated_at"] = generated_at
     result["status"] = "RESEARCH_ONLY_NOT_CERTIFIED"
     result["production_data_retrieved"] = True
+    result["production_monitor_rows"] = len(rows)
+    result["production_unique_tickers"] = len({str(r.get("ticker") or "").strip().upper() for r in rows if isinstance(r, dict) and r.get("ticker")})
+    result["eligible_selected_count"] = len(result["selected"])
+    result["candidate_shortfall"] = result["vacant_slots"]
+    result["candidate_shortfall_reason"] = ("INSUFFICIENT_ELIGIBLE_PRODUCTION_SIGNALS" if result["vacant_slots"] else None)
+    result["backtest_5y_certified"] = False
+    result["historical_point_in_time_oos_verified"] = False
     return result
 
 
