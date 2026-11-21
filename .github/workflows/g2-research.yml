@@ -51,6 +51,33 @@ jobs:
         run: |
           set -o pipefail
           python -m hanz_app.research.g2_certification_gate | tee g2-certification-evidence.json
+      - name: Publish explicit G2 certification status in job summary
+        if: always()
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          p = Path('g2-certification-evidence.json')
+          if p.exists():
+              try:
+                  result = json.loads(p.read_text(encoding='utf-8'))
+                  certified = result.get('certified') is True
+                  missing = result.get('missing', [])
+                  if not isinstance(missing, list):
+                      raise ValueError('missing must be a list')
+                  lines = ['## G2 certification: ' + ('CERTIFIED' if certified else 'OPEN'), '',
+                           'Unmet gates: ' + (', '.join(map(str, missing)) if missing else 'none'), '']
+                  if not certified:
+                      print('::warning title=G2 certification OPEN::' + ', '.join(map(str, missing)))
+              except (ValueError, TypeError, json.JSONDecodeError) as exc:
+                  lines = ['## G2 certification: UNVERIFIED', '', 'Invalid evaluator evidence: ' + str(exc), '']
+                  print('::warning title=G2 certification unverified::Invalid evaluator evidence')
+          else:
+              lines = ['## G2 certification: UNVERIFIED', '', 'Evaluator evidence artifact missing', '']
+              print('::warning title=G2 certification unverified::Evaluator evidence missing')
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a', encoding='utf-8') as output:
+              output.write('\\n'.join(lines) + '\\n')
+          PY
       - name: Upload production Top 5 research artifact
         if: always()
         uses: actions/upload-artifact@v4
