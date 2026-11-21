@@ -20,6 +20,15 @@ def build_report(rows, *, as_of, generated_at):
     result["source_latest_updated_at"] = valid_stamps[-1].isoformat() if valid_stamps else None
     result["source_oldest_updated_at"] = valid_stamps[0].isoformat() if valid_stamps else None
     result["source_rows_without_valid_timestamp"] = len(stamps) - len(valid_stamps)
+    cutoff = _parse_timestamp(as_of)
+    if cutoff is None:
+        raise ValueError("Timezone-aware evidence cutoff required")
+    eligible_stamps = [dt for dt in valid_stamps if dt <= cutoff]
+    newest = eligible_stamps[-1] if eligible_stamps else None
+    result["source_latest_at_cutoff"] = newest.isoformat() if newest else None
+    result["source_age_hours"] = round((cutoff - newest).total_seconds() / 3600, 2) if newest else None
+    result["source_future_timestamp_count"] = sum(dt > cutoff for dt in valid_stamps)
+    result["source_timestamp_coverage_complete"] = len(valid_stamps) == len(stamps)
     result["market_session_freshness_verified"] = False
     result["production_top5_complete"] = result["selection_complete"]
     # Read-only counterfactual: remove leader from the same production snapshot.
@@ -44,6 +53,12 @@ def build_report(rows, *, as_of, generated_at):
     result["generated_at"] = generated_at
     result["status"] = "RESEARCH_ONLY_NOT_CERTIFIED"
     result["production_data_retrieved"] = True
+    result["production_evidence_usable"] = bool(newest and len(valid_stamps) == len(stamps)
+                                                  and not result["source_future_timestamp_count"])
+    result["production_evidence_limitation"] = (
+        "MISSING_OR_FUTURE_MONITOR_TIMESTAMPS" if not result["production_evidence_usable"]
+        else "EXCHANGE_SESSION_FRESHNESS_NOT_INDEPENDENTLY_VERIFIED"
+    )
     result["production_monitor_rows"] = len(rows)
     result["production_unique_tickers"] = len({str(r.get("ticker") or "").strip().upper() for r in rows if isinstance(r, dict) and r.get("ticker")})
     result["eligible_selected_count"] = len(result["selected"])
