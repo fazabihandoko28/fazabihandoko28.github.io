@@ -217,7 +217,24 @@ def _research_candidates(primary, monitor_rows=None):
         if symbol and symbol not in latest:
             latest[symbol] = row
     fallback = sorted(
-        (symbol for symbol in latest if symbol not in primary and _research_only_eligible(latest[symbol])),
+        (symbol for symbol in latest if symbol not in primary and _eligible(latest[symbol])),
+        key=lambda symbol: (-_rank(latest[symbol]), symbol),
+    )
+    return primary + fallback
+
+
+def _relaxed_research_candidates(primary, monitor_rows=None):
+    """Research-only comparators; preserve strict production fallback semantics."""
+    latest = {}
+    for row in (monitor_rows if monitor_rows is not None else _get_monitor_rows()):
+        if not isinstance(row, dict):
+            continue
+        symbol = str(row.get("ticker") or "").strip().upper()
+        if symbol and symbol not in latest:
+            latest[symbol] = row
+    fallback = sorted(
+        (symbol for symbol in latest if symbol not in primary
+         and _research_only_eligible(latest[symbol])),
         key=lambda symbol: (-_rank(latest[symbol]), symbol),
     )
     return primary + fallback
@@ -385,7 +402,7 @@ def main():
     # Two independent reads can otherwise yield inconsistent candidate sets.
     monitor_rows=_get_monitor_rows()
     live_top5=_top5_symbols(monitor_rows)
-    candidates=_research_candidates(live_top5, monitor_rows)
+    candidates=_relaxed_research_candidates(live_top5, monitor_rows)
     mappings=load_yahoo_universe(UNIVERSE)
     available=_research_mappings(mappings)
     validator=WalkForwardValidator(minimum_bars=60,horizon_bars=5,step_bars=1,target_pct=0.04,stop_pct=0.025)
