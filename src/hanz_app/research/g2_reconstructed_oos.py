@@ -6,7 +6,6 @@ may enter the ranking inputs. This module does not fabricate historical signals.
 """
 from __future__ import annotations
 
-import math
 from datetime import date
 from hanz_app.research.g2_candidate_replacement import select_top_five
 from hanz_app.research.g2_net_trade_evidence import net_trade_evidence
@@ -39,11 +38,14 @@ def reconstructed_oos(decisions, fills, *, buy_fee_rate, sell_fee_rate,
             raise ValueError("Missing or invalid decision evidence cutoff") from exc
         if cutoff > day:
             raise ValueError("Look-ahead evidence in historical decision")
+        if not isinstance(row.get("ticker"), str) or not row["ticker"].strip():
+            raise ValueError("Missing historical ticker")
     snapshots = {}
     for day in dates:
         rows = [r for r in decisions if r["snapshot_date"] <= day]
         snapshots[day] = select_top_five(rows, as_of=day)
     trades = []
+    seen_ids = set()
     for fill in fills:
         if not isinstance(fill, dict):
             raise ValueError("Malformed fill")
@@ -56,6 +58,10 @@ def reconstructed_oos(decisions, fills, *, buy_fee_rate, sell_fee_rate,
             raise ValueError("Missing or invalid trade dates") from exc
         if not decision_day < buy_day <= sell_day:
             raise ValueError("Trade must execute after decision date")
+        trade_id = fill.get("trade_id")
+        if not isinstance(trade_id, str) or not trade_id.strip() or trade_id in seen_ids:
+            raise ValueError("Missing or duplicate historical trade ID")
+        seen_ids.add(trade_id)
         if fill["decision_date"] not in snapshots or ticker not in snapshots[fill["decision_date"]]["selected"]:
             raise ValueError("Trade was not in reconstructed point-in-time selection")
         trades.append({k: fill[k] for k in ("trade_id", "buy_price", "sell_price",
@@ -69,6 +75,10 @@ def reconstructed_oos(decisions, fills, *, buy_fee_rate, sell_fee_rate,
         "status": "RECONSTRUCTED_RESEARCH_ONLY",
         "provenance": provenance.strip(),
         "decision_dates": len(dates),
+        "history_start": dates[0],
+        "history_end": dates[-1],
+        "five_year_coverage_verified": False,
+        "five_year_coverage_reason": "INSUFFICIENT_INDEPENDENT_HISTORICAL_EVIDENCE",
         "trade_count": result["trade_count"],
         "net_trades": result["trades"],
         "assumption_source": result["assumption_source"],
