@@ -22,7 +22,25 @@ def build_report(rows, *, as_of, generated_at):
     result["source_rows_without_valid_timestamp"] = len(stamps) - len(valid_stamps)
     result["market_session_freshness_verified"] = False
     result["production_top5_complete"] = result["selection_complete"]
-    result["candidate_replacement_evidence"] = "INSUFFICIENT_ELIGIBLE_CANDIDATES" if result["vacant_slots"] else "SELECTION_COMPLETE_NOT_PROOF_OF_REPLACEMENT"
+    # Read-only counterfactual: remove leader from the same production snapshot.
+    # This does not change LIVE selection, authorization, or trading.
+    leader = result["selected"][0] if result["selected"] else None
+    probe = {"removed_ticker": leader, "replacement_ticker": None,
+             "verified": False, "reason": "NO_ELIGIBLE_LEADER" if leader is None else "NO_ELIGIBLE_REPLACEMENT"}
+    if leader is not None:
+        reduced = [row for row in rows if not (
+            isinstance(row, dict) and str(row.get("ticker") or "").strip().upper() == leader
+        )]
+        reranked = select_monitor_top_five(reduced, as_of=as_of)
+        entrants = [ticker for ticker in reranked["selected"] if ticker not in result["selected"]]
+        if entrants:
+            probe.update({"replacement_ticker": entrants[0], "verified": True,
+                          "reason": "COUNTERFACTUAL_REPLACEMENT_FROM_SAME_SNAPSHOT"})
+    result["replacement_probe"] = probe
+    result["candidate_replacement_evidence"] = (
+        "COUNTERFACTUAL_REPLACEMENT_VERIFIED" if probe["verified"]
+        else "NO_ELIGIBLE_REPLACEMENT_IN_SNAPSHOT"
+    )
     result["generated_at"] = generated_at
     result["status"] = "RESEARCH_ONLY_NOT_CERTIFIED"
     result["production_data_retrieved"] = True
