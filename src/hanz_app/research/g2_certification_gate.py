@@ -23,7 +23,12 @@ def evaluate(evidence):
     gates["candidate_replacement_verified"] = (
         isinstance(replacement, dict)
         and replacement.get("verified") is True
-        and bool(replacement.get("replacement_ticker"))
+        and isinstance(replacement.get("removed_ticker"), str)
+        and isinstance(replacement.get("replacement_ticker"), str)
+        and isinstance(evidence.get("selected"), list)
+        and replacement["removed_ticker"] in evidence["selected"]
+        and replacement["replacement_ticker"].strip() != ""
+        and replacement["replacement_ticker"] not in evidence["selected"]
         and replacement.get("reason") == "COUNTERFACTUAL_REPLACEMENT_FROM_SAME_SNAPSHOT"
     )
     selected = evidence.get("selected")
