@@ -76,7 +76,7 @@ jobs:
               lines = ['## G2 certification: UNVERIFIED', '', 'Evaluator evidence artifact missing', '']
               print('::warning title=G2 certification unverified::Evaluator evidence missing')
           with open(os.environ['GITHUB_STEP_SUMMARY'], 'a', encoding='utf-8') as output:
-              output.write('\\n'.join(lines) + '\\n')
+              output.write('\n'.join(lines) + '\n')
           PY
       - name: Upload production Top 5 research artifact
         if: always()
