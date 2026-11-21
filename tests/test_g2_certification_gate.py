@@ -8,7 +8,7 @@ class G2CertificationTests(unittest.TestCase):
     def complete(self):
         e = {key: True for key in REQUIRED}
         e.update(selected=["A", "B", "C", "D", "E"], buy_authorized=False,
-                 replacement_probe={"verified": True, "replacement_ticker": "F",
+                 replacement_probe={"verified": True, "removed_ticker": "A", "replacement_ticker": "F",
                                     "reason": "COUNTERFACTUAL_REPLACEMENT_FROM_SAME_SNAPSHOT"})
         return e
 
@@ -30,6 +30,14 @@ class G2CertificationTests(unittest.TestCase):
         e = self.complete()
         e["selected"] = ["A", "B", "C", "D", "D"]
         self.assertFalse(evaluate(e)["certified"])
+
+    def test_replacement_must_remove_selected_and_add_new_ticker(self):
+        for removed, entrant in (("Z", "F"), ("A", "A"), ("A", ""), (None, "F")):
+            with self.subTest(removed=removed, entrant=entrant):
+                e = self.complete()
+                e["replacement_probe"]["removed_ticker"] = removed
+                e["replacement_probe"]["replacement_ticker"] = entrant
+                self.assertFalse(evaluate(e)["certified"])
 
     def test_buy_authorization_never_implied(self):
         e = self.complete()
