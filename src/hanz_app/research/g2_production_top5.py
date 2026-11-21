@@ -103,6 +103,8 @@ def build_report(rows, *, as_of, generated_at):
     )
     result["generated_at"] = generated_at
     result["status"] = "RESEARCH_ONLY_NOT_CERTIFIED"
+    # Explicit negative authorization evidence: this module is read-only research.
+    result["buy_authorized"] = False
     result["production_data_retrieved"] = True
     result["production_evidence_usable"] = bool(newest and len(valid_stamps) == len(stamps)
                                                   and not result["source_future_timestamp_count"])
