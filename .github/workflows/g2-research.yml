@@ -48,12 +48,14 @@ jobs:
       - name: Generate actual read-only production Top 5 evidence
         run: python -m hanz_app.research.g2_production_top5
       - name: Evaluate fail-closed G2 certification gates against production evidence
-        run: python -m hanz_app.research.g2_certification_gate
+        run: python -m hanz_app.research.g2_certification_gate | tee g2-certification-evidence.json
       - name: Upload production Top 5 research artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: g2-production-top5-research
-          path: docs/dashboard/swing/g2-top5-research.json
+          path: |
+            docs/dashboard/swing/g2-top5-research.json
+            g2-certification-evidence.json
           if-no-files-found: warn
           retention-days: 90
