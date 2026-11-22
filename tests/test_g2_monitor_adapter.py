@@ -247,5 +247,22 @@ class ProductionExclusionDiagnosticsTests(unittest.TestCase):
         self.assertEqual(result["exclusion_reason_counts"], {"CONFLICTING_NEWEST_SNAPSHOT": 1})
 
 
+    @patch("hanz_app.research.generate_top5_5y_backtest._rank", return_value=90)
+    @patch("hanz_app.research.generate_top5_5y_backtest._eligible", return_value=True)
+    def test_diagnostics_regime_conflict_matches_selector(self, _eligible, _rank):
+        from hanz_app.research.g2_production_top5 import _candidate_exclusion_diagnostics
+        red = monitor("AAA", "2026-11-20T10:00:00Z", True, 90)
+        green = monitor("AAA", "2026-11-20T10:00:00Z", True, 90)
+        red["risk_validation"]["market_regime"] = "RED"
+        green["risk_validation"]["market_regime"] = "GREEN"
+        for rows in ([red, green], [green, red]):
+            report = _candidate_exclusion_diagnostics(rows, as_of="2026-11-21")
+            self.assertEqual(report["exclusion_reason_counts"],
+                             {"CONFLICTING_NEWEST_SNAPSHOT": 1})
+            self.assertEqual(report["market_regime_counts"],
+                             {"CONFLICTING_NEWEST_SNAPSHOT": 1})
+            self.assertEqual(select_monitor_top_five(rows, as_of="2026-11-21")["selected"], [])
+
+
 if __name__ == "__main__":
     unittest.main()
