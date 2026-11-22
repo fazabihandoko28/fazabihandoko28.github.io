@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-11-21T19:20:42.170282+00:00",
+  "generated_at": "2026-11-22T06:56:07.192792+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1341,
+  "raw_jobs": 1343,
   "matching_jobs": 65,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 429
+      "jobs": 431
     },
     {
       "name": "Publicis Groupe",
