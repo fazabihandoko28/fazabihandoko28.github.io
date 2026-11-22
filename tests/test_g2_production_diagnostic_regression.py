@@ -54,7 +54,7 @@ class ProductionDiagnosticTests(unittest.TestCase):
         rows = [signal("RECENT", "2026-11-20T10:00:00Z"),
                 signal("OLD", "2026-11-17T10:00:00Z")]
         result = _candidate_exclusion_diagnostics(rows, as_of=AS_OF)
-        self.assertEqual(result["snapshot_age_bucket_counts"], {"24_TO_72H": 1, "OLDER_THAN_72H": 1})
+        self.assertEqual(result["snapshot_age_bucket_counts"], {"WITHIN_24H": 1, "OLDER_THAN_72H": 1})
 
     def test_conflicting_market_regime_never_uses_arbitrary_tied_row(self):
         a = signal("TEST", "2026-11-20T10:00:00Z")
