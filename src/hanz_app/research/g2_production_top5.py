@@ -28,21 +28,28 @@ def _candidate_exclusion_diagnostics(rows, *, as_of):
             latest[ticker] = (stamp, [row])
         elif stamp == latest[ticker][0]:
             latest[ticker][1].append(row)
-    reasons = {}
-    # Independent market-regime evidence: ACTION_RESTRICTED otherwise masks
-    # whether the broad-market kill switch is shared across the universe.
-    regimes = {}
-    regime_reasons = {}
-    for _, tied in latest.values():
-        r = tied[0].get("risk_validation")
-        if isinstance(r, dict):
-            regime = str(r.get("market_regime") or "UNKNOWN").strip().upper()
-            explanation = str(r.get("market_reason") or "UNAVAILABLE").strip()
-        else:
-            regime, explanation = "MALFORMED", "UNAVAILABLE"
+    # Market-regime diagnostics must not silently pick an arbitrary tied row.
+    # Report snapshot age separately: old RED classifications are not proof
+    # that the latest completed IDX session was RED.
+    regimes, regime_reasons, age_buckets = {}, {}, {}
+    for stamp, tied in latest.values():
+        observations = set()
+        for row in tied:
+            r = row.get("risk_validation")
+            if isinstance(r, dict):
+                observations.add((
+                    str(r.get("market_regime") or "UNKNOWN").strip().upper(),
+                    str(r.get("market_reason") or "UNAVAILABLE").strip(),
+                ))
+            else:
+                observations.add(("MALFORMED", "UNAVAILABLE"))
+        regime, explanation = next(iter(observations)) if len(observations) == 1 else ("CONFLICTING_NEWEST_SNAPSHOT", "UNAVAILABLE")
         regimes[regime] = regimes.get(regime, 0) + 1
         if regime == "RED":
             regime_reasons[explanation] = regime_reasons.get(explanation, 0) + 1
+        age_hours = (cutoff - stamp).total_seconds() / 3600
+        bucket = "WITHIN_24H" if age_hours <= 24 else "24_TO_72H" if age_hours <= 72 else "OLDER_THAN_72H"
+        age_buckets[bucket] = age_buckets.get(bucket, 0) + 1
     reasons = {}
     for _, tied in latest.values():
         signatures = []
@@ -76,6 +83,7 @@ def _candidate_exclusion_diagnostics(rows, *, as_of):
             "exclusion_reason_counts": dict(sorted(reasons.items())),
             "market_regime_counts": dict(sorted(regimes.items())),
             "red_market_reason_counts": dict(sorted(regime_reasons.items())),
+            "snapshot_age_bucket_counts": dict(sorted(age_buckets.items())),
             "diagnostics_research_only": True}
 
 
