@@ -41,6 +41,15 @@ class ProductionDiagnosticTests(unittest.TestCase):
         self.assertEqual(result["latest_unique_tickers_at_cutoff"], 1)
         self.assertEqual(result["exclusion_reason_counts"].get("ACTION_RESTRICTED"), 1)
 
+    def test_market_regime_reason_is_reported_independently_of_action(self):
+        row = signal("TEST", "2026-11-20T10:00:00Z", "AVOID")
+        row["risk_validation"]["market_regime"] = "RED"
+        row["risk_validation"]["market_reason"] = "IHSG weak trend"
+        result = _candidate_exclusion_diagnostics([row], as_of=AS_OF)
+        self.assertEqual(result["exclusion_reason_counts"]["ACTION_RESTRICTED"], 1)
+        self.assertEqual(result["market_regime_counts"], {"RED": 1})
+        self.assertEqual(result["red_market_reason_counts"], {"IHSG weak trend": 1})
+
     def test_equal_timestamp_conflicting_eligibility_is_reported(self):
         stamp = "2026-11-20T10:00:00Z"
         rows = [signal("TEST", stamp, "AVOID"), signal("TEST", stamp, "WAIT")]
