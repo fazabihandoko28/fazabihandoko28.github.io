@@ -50,6 +50,13 @@ jobs:
           assert len(r["selected"]) <= 5
           assert r["vacant_slots"] == 5 - len(r["selected"])
           assert r["source_rows"] > 0
+          assert len(r["replacement_probes"]) == len(r["selected"])
+          assert {p["removed_ticker"] for p in r["replacement_probes"]} == set(r["selected"])
+          assert all(p["replacement_ticker"] is None or
+                     p["replacement_ticker"] not in r["selected"]
+                     for p in r["replacement_probes"])
+          assert all(p["verified"] == (p["replacement_ticker"] is not None)
+                     for p in r["replacement_probes"])
           assert r["testing_data_policy"] == "LATEST_AVAILABLE_REAL_SNAPSHOT"
           assert r["testing_reference_snapshot_at"] == r["source_latest_at_cutoff"]
           assert r["testing_reference_snapshot_at"] is not None
