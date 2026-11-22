@@ -47,6 +47,11 @@ jobs:
           assert len(r["selected"]) <= 5
           assert r["vacant_slots"] == 5 - len(r["selected"])
           assert r["source_rows"] > 0
+          assert r["testing_data_policy"] == "LATEST_AVAILABLE_REAL_SNAPSHOT"
+          assert r["testing_reference_snapshot_at"] == r["source_latest_at_cutoff"]
+          assert r["testing_reference_snapshot_at"] is not None
+          assert r["testing_session_verified"] is False
+          assert r["market_session_freshness_verified"] is False
           print("G2 read-only evidence and safety assertions PASS")
           PY
       - name: Upload actual production research evidence
