@@ -55,7 +55,11 @@ def _candidate_exclusion_diagnostics(rows, *, as_of):
         signatures = []
         for row in tied:
             try:
-                signatures.append((bool(_eligible(row)), _rank(row)))
+                risk = row.get("risk_validation")
+                regime_signature = ((str(risk.get("market_regime") or "UNKNOWN").strip().upper(),
+                                     str(risk.get("market_reason") or "UNAVAILABLE").strip())
+                                    if isinstance(risk, dict) else ("MALFORMED", "UNAVAILABLE"))
+                signatures.append((bool(_eligible(row)), _rank(row), regime_signature))
             except (TypeError, ValueError, KeyError, AttributeError, OverflowError):
                 signatures.append((False, None))
         if len(set(signatures)) > 1:
