@@ -1,6 +1,9 @@
 name: HANZ G2 Production Top 5 Research
 
 on:
+  # Weekday post-IDX-close UTC sampling; holidays remain read-only last-snapshot tests.
+  schedule:
+    - cron: '30 11 * * 1-5'
   workflow_dispatch:
   push:
     branches: [main]
