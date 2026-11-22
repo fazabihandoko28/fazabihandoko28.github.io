@@ -89,6 +89,28 @@ class G2MonitorIntegrationTests(unittest.TestCase):
                                          as_of="2026-11-16T11:00:00Z")
         self.assertEqual(result["selected"], ["AAA"])
 
+    @patch("hanz_app.research.generate_top5_5y_backtest._rank", return_value=90)
+    @patch("hanz_app.research.generate_top5_5y_backtest._eligible", return_value=True)
+    def test_tied_regime_disagreement_fails_closed(self, _eligible, _rank):
+        red = monitor("AAA", "2026-11-20T10:00:00Z", True, 90)
+        green = monitor("AAA", "2026-11-20T10:00:00Z", True, 90)
+        red["risk_validation"]["market_regime"] = "RED"
+        green["risk_validation"]["market_regime"] = "GREEN"
+        for rows in ([red, green], [green, red]):
+            result = select_monitor_top_five(rows, as_of="2026-11-21")
+            self.assertEqual(result["selected"], [])
+            self.assertFalse(result["buy_authorized"])
+
+    @patch("hanz_app.research.generate_top5_5y_backtest._rank", return_value=90)
+    @patch("hanz_app.research.generate_top5_5y_backtest._eligible", return_value=True)
+    def test_tied_identical_regime_retains_candidate(self, _eligible, _rank):
+        a = monitor("AAA", "2026-11-20T10:00:00Z", True, 90)
+        b = monitor("AAA", "2026-11-20T10:00:00Z", True, 90)
+        for row in (a, b):
+            row["risk_validation"]["market_regime"] = "YELLOW"
+            row["risk_validation"]["market_reason"] = "mixed"
+        self.assertEqual(select_monitor_top_five([a, b], as_of="2026-11-21")["selected"], ["AAA"])
+
     def test_missing_action_with_positive_score_is_not_eligible(self):
         from hanz_app.research.generate_top5_5y_backtest import _eligible
         row = {"ticker": "AAA", "risk_validation": {
