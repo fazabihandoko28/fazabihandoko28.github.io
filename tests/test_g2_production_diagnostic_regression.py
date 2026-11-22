@@ -50,6 +50,21 @@ class ProductionDiagnosticTests(unittest.TestCase):
         self.assertEqual(result["market_regime_counts"], {"RED": 1})
         self.assertEqual(result["red_market_reason_counts"], {"IHSG weak trend": 1})
 
+    def test_age_buckets_expose_stale_market_regime_evidence(self):
+        rows = [signal("RECENT", "2026-11-20T10:00:00Z"),
+                signal("OLD", "2026-11-17T10:00:00Z")]
+        result = _candidate_exclusion_diagnostics(rows, as_of=AS_OF)
+        self.assertEqual(result["snapshot_age_bucket_counts"], {"24_TO_72H": 1, "OLDER_THAN_72H": 1})
+
+    def test_conflicting_market_regime_never_uses_arbitrary_tied_row(self):
+        a = signal("TEST", "2026-11-20T10:00:00Z")
+        b = signal("TEST", "2026-11-20T10:00:00Z")
+        a["risk_validation"]["market_regime"] = "RED"
+        b["risk_validation"]["market_regime"] = "GREEN"
+        result = _candidate_exclusion_diagnostics([a, b], as_of=AS_OF)
+        self.assertEqual(result["market_regime_counts"], {"CONFLICTING_NEWEST_SNAPSHOT": 1})
+        self.assertEqual(result["red_market_reason_counts"], {})
+
     def test_equal_timestamp_conflicting_eligibility_is_reported(self):
         stamp = "2026-11-20T10:00:00Z"
         rows = [signal("TEST", stamp, "AVOID"), signal("TEST", stamp, "WAIT")]
