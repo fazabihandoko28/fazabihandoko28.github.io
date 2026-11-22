@@ -46,5 +46,29 @@ class ProductionTopFiveReportTests(unittest.TestCase):
         self.assertFalse(report["buy_authorized"])
 
 
+    @patch("hanz_app.research.g2_production_top5.select_monitor_top_five")
+    def test_relaxed_research_respects_cutoff_and_newest_snapshot(self, select):
+        select.return_value = {
+            "selected": [], "vacant_slots": 5, "selection_complete": False,
+            "research_only": True, "buy_authorized": False, "oos_certified": False,
+        }
+        def snapshot(ticker, when, value=60000000):
+            return {"ticker": ticker, "updated_at": when, "risk_validation": {
+                "hanz_action": "AVOID", "avg_value20": value,
+                "zero_volume_days20": 1, "volatility_status": "NORMAL",
+            }}
+        rows = [
+            snapshot("FUTURE", "2026-11-21T00:00:00Z"),
+            snapshot("STALE", "2026-11-19T00:00:00Z"),
+            snapshot("STALE", "2026-11-20T12:00:00Z", value=1000000),
+            snapshot("VALID", "2026-11-20T11:00:00Z"),
+        ]
+        report = build_report(rows, as_of="2026-11-20T23:00:00Z",
+                              generated_at="2026-11-20T23:00:00Z")
+        self.assertEqual(report["relaxed_research_top5"], ["VALID"])
+        self.assertFalse(report["relaxed_research_buy_authorized"])
+        self.assertFalse(report["buy_authorized"])
+
+
 if __name__ == "__main__":
     unittest.main()
