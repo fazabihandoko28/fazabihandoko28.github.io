@@ -7,9 +7,16 @@ Status: **G2 research/development regression verified (72/72 PASS); full develop
 1. **P0 — Top 5 auto-replacement:** rank eligible candidates from the available universe using predeclared liquidity, risk, and signal-quality criteria. If fewer than five qualify, search remaining candidates; never fill slots with ineligible symbols. Freeze each selection before its OOS evaluation; never choose replacements using the same OOS outcomes.
 2. **P0 — Point-in-time walk-forward OOS evidence:** produce traceable, chronological IS/OOS windows and genuine trade-level exports; run the existing validator with its unchanged minimums. Report insufficient evidence as UNVERIFIED, never PASS.
 3. **P0 — Execution costs:** integrate actual, sourced fee and slippage assumptions into trade-level net-R evidence; preserve gross-to-net reconciliation and fail closed on invalid values.
-4. **P1 — FAST intraday verification:** independently verify genuine session candles for at least **190 of 198** symbols. Outside the IDX regular session, report SKIPPED_MARKET_CLOSED / STALE, not a provider failure or a LIVE PASS.
+4. **P1 — FAST intraday verification:** independently verify genuine session candles for at least **190 of 198** symbols. When IDX is closed, use the **latest completed real IDX trading session** as the testing reference (including the last Friday for weekends and the preceding session for holidays); do not block historical/replay tests solely because the market is closed. Label evidence `LAST_COMPLETED_SESSION` and record session date, actual bar timestamps, source, and coverage. This is a **closed-market testing exception**, not proof of currently live/fresh intraday data. Preserve the genuine >=190/198 coverage threshold for any claim of verified FAST data; distinguish historical-session coverage from LIVE certification.
 5. **P1 — Risk and signal quality:** verify position sizing, stop-loss behavior, risk limits, signal consistency and no false BUY eligibility.
 6. **P2 — Monitoring and end-to-end tests:** validate data ingestion, selection, scoring, cost calculations, OOS evidence, safety gating, and recovery together.
+
+## LOCKED RULE — market closed: test with last completed session
+
+- For weekend, holiday, or outside IDX trading hours, **automatically use the latest available completed real market session** for G2 selection, regression, backtest, and historical-session FAST coverage tests. Do not stop, defer, or return a generic market-closed failure merely because the exchange is closed.
+- If the newest available real session is older than the immediately preceding expected trading session, identify the gap; never silently substitute arbitrarily old data as current. Report `LAST_COMPLETED_SESSION` with its date and provenance, or `DATA_GAP` if necessary.
+- Closed-market historical-session tests can PASS their **replay/data-coverage** criteria on genuine historical bars, but must not claim `LIVE_VERIFIED`, current freshness, or trading/BUY authorization. Live-session certification is a separate evidence claim; no fabricated candles or timestamps.
+- Apply this rule to all future G2 test runs; avoid repeating market-closed as a reason to leave otherwise testable work unfinished.
 
 ## Non-negotiable constraints
 
