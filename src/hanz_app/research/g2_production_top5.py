@@ -167,7 +167,7 @@ def build_report(rows, *, as_of, generated_at):
     result["replacement_probe"] = probe
     result["candidate_replacement_evidence"] = (
         "COUNTERFACTUAL_REPLACEMENT_VERIFIED" if probe["verified"]
-        else "INSUFFICIENT_ELIGIBLE_CANDIDATES" if leader is None
+        else "INSUFFICIENT_ELIGIBLE_CANDIDATES" if not result["selected"]
         else "NO_ELIGIBLE_REPLACEMENT_IN_SNAPSHOT"
     )
     result["generated_at"] = generated_at
