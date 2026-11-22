@@ -127,7 +127,15 @@ def build_report(rows, *, as_of, generated_at):
     # Research-only relaxed shortlist helps investigate the production shortfall.
     # It is never merged into selected, never grants BUY, and is not OOS evidence.
     from hanz_app.research.generate_top5_5y_backtest import _relaxed_research_candidates
-    relaxed_pool = _relaxed_research_candidates(result["selected"], rows)
+    # Historical cutoffs must never see future snapshots or use input order
+    # to select an older eligible row over the newest excluded row.
+    research_rows = sorted(
+        (row for row in rows if isinstance(row, dict)
+         and (stamp := _parse_timestamp(row.get("updated_at"))) is not None
+         and stamp <= cutoff),
+        key=lambda row: _parse_timestamp(row["updated_at"]), reverse=True,
+    )
+    relaxed_pool = _relaxed_research_candidates(result["selected"], research_rows)
     relaxed_top5 = relaxed_pool[:5]
     result["relaxed_research_top5"] = relaxed_top5
     result["relaxed_research_only_symbols"] = [
