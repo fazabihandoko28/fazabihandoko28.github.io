@@ -165,8 +165,13 @@ def build_report(rows, *, as_of, generated_at):
     result["relaxed_research_buy_authorized"] = False
     result["relaxed_research_oos_certified"] = False
     result["replacement_probe"] = probe
+    # Aggregate the full replacement set, not just the first leader probe.
+    # A single successful probe must never imply all five slots are replaceable.
+    result["replacement_verified_count"] = sum(p["verified"] for p in probes)
+    result["replacement_probes_complete"] = bool(probes) and all(p["verified"] for p in probes)
     result["candidate_replacement_evidence"] = (
-        "COUNTERFACTUAL_REPLACEMENT_VERIFIED" if probe["verified"]
+        "ALL_SELECTED_REPLACEMENTS_VERIFIED" if result["replacement_probes_complete"]
+        else "PARTIAL_REPLACEMENT_EVIDENCE" if result["replacement_verified_count"]
         else "INSUFFICIENT_ELIGIBLE_CANDIDATES" if not result["selected"]
         else "NO_ELIGIBLE_REPLACEMENT_IN_SNAPSHOT"
     )
