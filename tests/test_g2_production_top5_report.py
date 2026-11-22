@@ -70,5 +70,41 @@ class ProductionTopFiveReportTests(unittest.TestCase):
         self.assertFalse(report["buy_authorized"])
 
 
+    @patch("hanz_app.research.g2_production_top5.select_monitor_top_five")
+    def test_weekend_uses_last_real_snapshot_without_live_authorization(self, select):
+        select.return_value = {
+            "selected": [], "vacant_slots": 5, "selection_complete": False,
+            "research_only": True, "buy_authorized": False, "oos_certified": False,
+        }
+        report = build_report(
+            [{"ticker": "TEST", "updated_at": "2026-11-20T09:00:00Z"}],
+            as_of="2026-11-22T10:00:00Z",
+            generated_at="2026-11-22T10:00:00Z",
+        )
+        self.assertTrue(report["market_closed_weekend"])
+        self.assertTrue(report["closed_market_test_not_blocked"])
+        self.assertEqual(report["testing_data_policy"], "LATEST_AVAILABLE_REAL_SNAPSHOT")
+        self.assertEqual(report["testing_reference_date_jakarta"], "2026-11-20")
+        self.assertFalse(report["testing_session_verified"])
+        self.assertFalse(report["market_session_freshness_verified"])
+        self.assertFalse(report["buy_authorized"])
+
+    @patch("hanz_app.research.g2_production_top5.select_monitor_top_five")
+    def test_weekend_rejects_future_only_reference(self, select):
+        select.return_value = {
+            "selected": [], "vacant_slots": 5, "selection_complete": False,
+            "research_only": True, "buy_authorized": False, "oos_certified": False,
+        }
+        report = build_report(
+            [{"ticker": "TEST", "updated_at": "2026-11-23T09:00:00Z"}],
+            as_of="2026-11-22T10:00:00Z",
+            generated_at="2026-11-22T10:00:00Z",
+        )
+        self.assertFalse(report["closed_market_test_not_blocked"])
+        self.assertIsNone(report["testing_reference_snapshot_at"])
+        self.assertFalse(report["production_evidence_usable"])
+        self.assertFalse(report["buy_authorized"])
+
+
 if __name__ == "__main__":
     unittest.main()
