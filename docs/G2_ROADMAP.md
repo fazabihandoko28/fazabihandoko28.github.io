@@ -34,6 +34,13 @@ Status: **G2 research/development regression verified (72/72 PASS); full develop
 - Production snapshot (latest `2026-11-20T19:07:33Z`): eligible **BJTM, EXCL, TBIG (3/5)**; removal of BJTM has **NO_ELIGIBLE_REPLACEMENT**. Research-only expanded list: **BJTM, EXCL, TBIG, AMRT, MIKA (5/5)**; research additions do not qualify for production BUY.
 - Historical point-in-time OOS after costs: **UNVERIFIED**. FAST LIVE >=190/198 fresh independent bars: **UNVERIFIED**. Market-session freshness independently verified: **false**. `buy_authorized=false`.
 
+## Latest production CI evidence — 2026-11-22 16:56 UTC
+
+- [Production Top 5 run 45046608351](https://github.com/fazabihandoko28/fazabihandoko28.github.io/actions/runs/45046608351) **SUCCESS**: actual Supabase production monitor read, selector regression, safety assertions and uploaded [JSON artifact](https://github.com/fazabihandoko28/fazabihandoko28.github.io/actions/runs/45046608351/artifacts/14763488292). This proves workflow execution, **not** trading certification.
+- Actual snapshot: **198 monitor rows / 198 unique tickers**, newest update `2026-11-20T19:07:33.355047Z`, as-of age **45.82 hours**. Weekend fallback used the latest *monitor snapshot*; its Jakarta-local update date is **2026-11-21**, **not evidence of a Saturday IDX trading session**. Actual bar/session freshness remains independently unverified.
+- Production-eligible **BJTM, EXCL, TBIG (3/5)**; research-only additions **AMRT, MIKA**. Candidate replacement probe removing BJTM returned **NO_ELIGIBLE_REPLACEMENT**. Diagnostics: **195/198 ACTION_RESTRICTED**, **198/198 market regime RED**. Do not override the action/risk gate to manufacture a Top 5.
+- `historical_point_in_time_oos_verified=false`, `live_verified=false`, `buy_authorized=false`. Missing evidence is not a code-test failure. Next high-value work: acquire independently dated real IDX session bars and chronological trade-level OOS evidence; verify risk inputs against the latest actual session before reconsidering production eligibility.
+
 ## Closure rule — separate software from trading certification
 
 - **G2 Development CLOSED** only after required implementation and end-to-end integration are demonstrated complete, and their regression/CI checks pass. The 72/72 G2 unit/integration tests establish the tested scope, **not** automatically every end-to-end requirement. Do not reopen completed development without a reproducible defect.
