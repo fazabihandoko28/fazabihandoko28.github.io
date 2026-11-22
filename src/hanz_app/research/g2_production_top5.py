@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 from pathlib import Path
 
 from hanz_app.research.generate_top5_5y_backtest import _get_monitor_rows
@@ -108,6 +109,18 @@ def build_report(rows, *, as_of, generated_at):
     result["source_age_hours"] = round((cutoff - newest).total_seconds() / 3600, 2) if newest else None
     result["source_future_timestamp_count"] = sum(dt > cutoff for dt in valid_stamps)
     result["source_timestamp_coverage_complete"] = len(valid_stamps) == len(stamps)
+    # Closed-market tests use the latest real observation; never assert that
+    # a monitor timestamp independently proves an IDX exchange candle.
+    jakarta_now = cutoff.astimezone(ZoneInfo("Asia/Jakarta"))
+    market_closed_weekend = jakarta_now.weekday() >= 5
+    result["market_closed_weekend"] = market_closed_weekend
+    result["testing_data_policy"] = "LATEST_AVAILABLE_REAL_SNAPSHOT"
+    result["testing_reference_snapshot_at"] = newest.isoformat() if newest else None
+    result["testing_reference_date_jakarta"] = (
+        newest.astimezone(ZoneInfo("Asia/Jakarta")).date().isoformat() if newest else None
+    )
+    result["testing_session_verified"] = False
+    result["closed_market_test_not_blocked"] = bool(market_closed_weekend and newest)
     result["market_session_freshness_verified"] = False
     result["production_top5_complete"] = result["selection_complete"]
     # Read-only counterfactual: remove leader from the same production snapshot.
