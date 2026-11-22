@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-11-22T06:56:07.192792+00:00",
+  "generated_at": "2026-11-22T19:44:41.538913+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1343,
-  "matching_jobs": 65,
+  "raw_jobs": 1351,
+  "matching_jobs": 67,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 431
+      "jobs": 440
     },
     {
       "name": "Publicis Groupe",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 412
+      "jobs": 411
     },
     {
       "name": "Visa",
@@ -59,6 +59,24 @@
       "location": "Medan, Indonesia",
       "url": "https://jobs.smartrecruiters.com/Grab/744000122667128-city-partnership-assistant-manager-medan",
       "published_at": "2026-04-24T12:06:12.866Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000163097839",
+      "title": "Intern [GIP] - Commercial & Business Development",
+      "company": "Grab",
+      "location": "Jakarta, Indonesia",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000163097839-intern-gip-commercial-business-development",
+      "published_at": "2026-11-22T17:15:18.308Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000163097879",
+      "title": "Intern [GIP] - Creative Marketing, Campaign, & Communications",
+      "company": "Grab",
+      "location": "Jakarta, Indonesia",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000163097879-intern-gip-creative-marketing-campaign-communications",
+      "published_at": "2026-11-22T17:19:16.000Z",
       "source_verified": true
     },
     {
