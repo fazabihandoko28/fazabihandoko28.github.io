@@ -123,20 +123,27 @@ def build_report(rows, *, as_of, generated_at):
     result["closed_market_test_not_blocked"] = bool(market_closed_weekend and newest)
     result["market_session_freshness_verified"] = False
     result["production_top5_complete"] = result["selection_complete"]
-    # Read-only counterfactual: remove leader from the same production snapshot.
-    # This does not change LIVE selection, authorization, or trading.
-    leader = result["selected"][0] if result["selected"] else None
-    probe = {"removed_ticker": leader, "replacement_ticker": None,
-             "verified": False, "reason": "NO_ELIGIBLE_LEADER" if leader is None else "NO_ELIGIBLE_REPLACEMENT"}
-    if leader is not None:
+    # Counterfactual replacement for EVERY production-eligible ticker, using
+    # only the same real snapshot. A shortfall is evidence, not a fake PASS.
+    probes = []
+    for removed in result["selected"]:
         reduced = [row for row in rows if not (
-            isinstance(row, dict) and str(row.get("ticker") or "").strip().upper() == leader
+            isinstance(row, dict) and str(row.get("ticker") or "").strip().upper() == removed
         )]
         reranked = select_monitor_top_five(reduced, as_of=as_of)
         entrants = [ticker for ticker in reranked["selected"] if ticker not in result["selected"]]
-        if entrants:
-            probe.update({"replacement_ticker": entrants[0], "verified": True,
-                          "reason": "COUNTERFACTUAL_REPLACEMENT_FROM_SAME_SNAPSHOT"})
+        probes.append({
+            "removed_ticker": removed,
+            "replacement_ticker": entrants[0] if entrants else None,
+            "verified": bool(entrants),
+            "reason": ("COUNTERFACTUAL_REPLACEMENT_FROM_SAME_SNAPSHOT"
+                       if entrants else "NO_ELIGIBLE_REPLACEMENT"),
+        })
+    result["replacement_probes"] = probes
+    probe = probes[0] if probes else {
+        "removed_ticker": None, "replacement_ticker": None,
+        "verified": False, "reason": "NO_ELIGIBLE_LEADER",
+    }
     # Research-only relaxed shortlist helps investigate the production shortfall.
     # It is never merged into selected, never grants BUY, and is not OOS evidence.
     from hanz_app.research.generate_top5_5y_backtest import _relaxed_research_candidates
