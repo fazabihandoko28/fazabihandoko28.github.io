@@ -57,6 +57,16 @@ jobs:
                      for p in r["replacement_probes"])
           assert all(p["verified"] == (p["replacement_ticker"] is not None)
                      for p in r["replacement_probes"])
+          assert r["replacement_verified_count"] == sum(
+              p["verified"] for p in r["replacement_probes"])
+          assert r["replacement_probes_complete"] == (
+              bool(r["replacement_probes"]) and all(
+                  p["verified"] for p in r["replacement_probes"]))
+          assert r["candidate_replacement_evidence"] == (
+              "ALL_SELECTED_REPLACEMENTS_VERIFIED" if r["replacement_probes_complete"]
+              else "PARTIAL_REPLACEMENT_EVIDENCE" if r["replacement_verified_count"]
+              else "INSUFFICIENT_ELIGIBLE_CANDIDATES" if not r["selected"]
+              else "NO_ELIGIBLE_REPLACEMENT_IN_SNAPSHOT")
           assert r["testing_data_policy"] == "LATEST_AVAILABLE_REAL_SNAPSHOT"
           assert r["testing_reference_snapshot_at"] == r["source_latest_at_cutoff"]
           assert r["testing_reference_snapshot_at"] is not None
