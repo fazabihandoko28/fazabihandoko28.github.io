@@ -62,9 +62,13 @@ def select_monitor_top_five(monitor_rows, *, as_of):
         ticker = str(row.get("ticker") or "").strip().upper()
         # Malformed newest evidence excludes its ticker; never fall back to older data.
         try:
-            signature = (bool(_eligible(row)), _rank(row))
+            risk = row.get("risk_validation")
+            regime_signature = ((str(risk.get("market_regime") or "UNKNOWN").strip().upper(),
+                                 str(risk.get("market_reason") or "UNAVAILABLE").strip())
+                                if isinstance(risk, dict) else ("MALFORMED", "UNAVAILABLE"))
+            signature = (bool(_eligible(row)), _rank(row), regime_signature)
         except (TypeError, ValueError, KeyError, AttributeError, OverflowError):
-            signature = (False, None)
+            signature = (False, None, ("MALFORMED", "UNAVAILABLE"))
         if ticker in latest:
             if timestamp == latest[ticker][0] and signature != latest[ticker][1]:
                 conflicts.add(ticker)
