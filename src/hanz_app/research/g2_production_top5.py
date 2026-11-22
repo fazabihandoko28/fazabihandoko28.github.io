@@ -124,6 +124,18 @@ def build_report(rows, *, as_of, generated_at):
         if entrants:
             probe.update({"replacement_ticker": entrants[0], "verified": True,
                           "reason": "COUNTERFACTUAL_REPLACEMENT_FROM_SAME_SNAPSHOT"})
+    # Research-only relaxed shortlist helps investigate the production shortfall.
+    # It is never merged into selected, never grants BUY, and is not OOS evidence.
+    from hanz_app.research.generate_top5_5y_backtest import _relaxed_research_candidates
+    relaxed_pool = _relaxed_research_candidates(result["selected"], rows)
+    relaxed_top5 = relaxed_pool[:5]
+    result["relaxed_research_top5"] = relaxed_top5
+    result["relaxed_research_only_symbols"] = [
+        symbol for symbol in relaxed_top5 if symbol not in result["selected"]
+    ]
+    result["relaxed_research_shortfall"] = 5 - len(relaxed_top5)
+    result["relaxed_research_buy_authorized"] = False
+    result["relaxed_research_oos_certified"] = False
     result["replacement_probe"] = probe
     result["candidate_replacement_evidence"] = (
         "COUNTERFACTUAL_REPLACEMENT_VERIFIED" if probe["verified"]
