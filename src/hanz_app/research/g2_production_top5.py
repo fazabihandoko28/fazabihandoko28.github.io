@@ -29,6 +29,21 @@ def _candidate_exclusion_diagnostics(rows, *, as_of):
         elif stamp == latest[ticker][0]:
             latest[ticker][1].append(row)
     reasons = {}
+    # Independent market-regime evidence: ACTION_RESTRICTED otherwise masks
+    # whether the broad-market kill switch is shared across the universe.
+    regimes = {}
+    regime_reasons = {}
+    for _, tied in latest.values():
+        r = tied[0].get("risk_validation")
+        if isinstance(r, dict):
+            regime = str(r.get("market_regime") or "UNKNOWN").strip().upper()
+            explanation = str(r.get("market_reason") or "UNAVAILABLE").strip()
+        else:
+            regime, explanation = "MALFORMED", "UNAVAILABLE"
+        regimes[regime] = regimes.get(regime, 0) + 1
+        if regime == "RED":
+            regime_reasons[explanation] = regime_reasons.get(explanation, 0) + 1
+    reasons = {}
     for _, tied in latest.values():
         signatures = []
         for row in tied:
@@ -59,6 +74,8 @@ def _candidate_exclusion_diagnostics(rows, *, as_of):
         reasons[reason] = reasons.get(reason, 0) + 1
     return {"latest_unique_tickers_at_cutoff": len(latest),
             "exclusion_reason_counts": dict(sorted(reasons.items())),
+            "market_regime_counts": dict(sorted(regimes.items())),
+            "red_market_reason_counts": dict(sorted(regime_reasons.items())),
             "diagnostics_research_only": True}
 
 
