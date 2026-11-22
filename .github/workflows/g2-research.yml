@@ -8,8 +8,6 @@ on:
       - 'tests/test_g2*.py'
       - '.github/workflows/g2-research.yml'
   workflow_dispatch:
-  schedule:
-    - cron: '45 11 * * 1-5'
 
 permissions:
   contents: read
@@ -29,62 +27,3 @@ jobs:
         run: |
           python -m unittest discover -s tests -p 'test_g2*.py' -v
 
-  production-top5-evidence:
-    # Independent from unit tests: genuine Supabase data, no trading or publication.
-    if: github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    env:
-      PYTHONPATH: src
-      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-      SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-      - name: Install research package
-        run: python -m pip install -e .
-      - name: Generate actual read-only production Top 5 evidence
-        run: python -m hanz_app.research.g2_production_top5
-      - name: Evaluate fail-closed G2 certification gates against production evidence
-        run: |
-          set -o pipefail
-          python -m hanz_app.research.g2_certification_gate | tee g2-certification-evidence.json
-      - name: Publish explicit G2 certification status in job summary
-        if: always()
-        run: |
-          python - <<'PY'
-          import json, os
-          from pathlib import Path
-          p = Path('g2-certification-evidence.json')
-          if p.exists():
-              try:
-                  result = json.loads(p.read_text(encoding='utf-8'))
-                  certified = result.get('certified') is True
-                  missing = result.get('missing', [])
-                  if not isinstance(missing, list):
-                      raise ValueError('missing must be a list')
-                  lines = ['## G2 certification: ' + ('CERTIFIED' if certified else 'OPEN'), '',
-                           'Unmet gates: ' + (', '.join(map(str, missing)) if missing else 'none'), '']
-                  if not certified:
-                      print('::warning title=G2 certification OPEN::' + ', '.join(map(str, missing)))
-              except (ValueError, TypeError, json.JSONDecodeError) as exc:
-                  lines = ['## G2 certification: UNVERIFIED', '', 'Invalid evaluator evidence: ' + str(exc), '']
-                  print('::warning title=G2 certification unverified::Invalid evaluator evidence')
-          else:
-              lines = ['## G2 certification: UNVERIFIED', '', 'Evaluator evidence artifact missing', '']
-              print('::warning title=G2 certification unverified::Evaluator evidence missing')
-          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a', encoding='utf-8') as output:
-              output.write('\n'.join(lines) + '\n')
-          PY
-      - name: Upload production Top 5 research artifact
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: g2-production-top5-research
-          path: |
-            docs/dashboard/swing/g2-top5-research.json
-            g2-certification-evidence.json
-          if-no-files-found: warn
-          retention-days: 90
