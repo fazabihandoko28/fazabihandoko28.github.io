@@ -78,12 +78,17 @@ jobs:
           print("G2 read-only evidence and safety assertions PASS")
           PY
       - name: Evaluate fail-closed G2 certification gates
-        run: python -m hanz_app.research.g2_certification_gate
+        run: |
+          set -o pipefail
+          python -m hanz_app.research.g2_certification_gate | tee docs/dashboard/swing/g2-certification-gates.json
+          python -m json.tool docs/dashboard/swing/g2-certification-gates.json > /dev/null
       - name: Upload actual production research evidence
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
           name: hanz-g2-production-top5
-          path: docs/dashboard/swing/g2-top5-research.json
+          path: |
+            docs/dashboard/swing/g2-top5-research.json
+            docs/dashboard/swing/g2-certification-gates.json
           if-no-files-found: warn
           retention-days: 30
