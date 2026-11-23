@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-11-23T07:45:29.618993+00:00",
+  "generated_at": "2026-11-23T23:57:22.922179+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1360,
-  "matching_jobs": 68,
+  "raw_jobs": 1359,
+  "matching_jobs": 69,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 440
+      "jobs": 438
     },
     {
       "name": "Publicis Groupe",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 420
+      "jobs": 421
     },
     {
       "name": "Visa",
@@ -554,6 +554,15 @@
       "location": "Bangkok, Thailand",
       "url": "https://jobs.smartrecruiters.com/Grab/744000127128269-planner-integrated-marketing-solutions-grabads",
       "published_at": "2026-05-19T06:06:31.500Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000163165640",
+      "title": "Product Marketing Manager, GrabFood",
+      "company": "Grab",
+      "location": "Petaling Jaya, Malaysia",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000163165640-product-marketing-manager-grabfood",
+      "published_at": "2026-11-23T09:14:08.701Z",
       "source_verified": true
     },
     {
