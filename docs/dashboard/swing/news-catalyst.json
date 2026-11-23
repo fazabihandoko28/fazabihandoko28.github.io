@@ -1,24 +1,12 @@
 {
-  "generated_at": "2026-11-20T17:54:42.630278+00:00",
+  "generated_at": "2026-11-23T09:57:44.801700+00:00",
   "policy": "HIGH_CONFIDENCE_CAUSAL_ONLY",
   "selected_tickers": [
-    "PWON",
-    "MPMX",
-    "LPPF",
-    "LSIP",
-    "BJTM"
+    "BJTM",
+    "BTPS",
+    "SPTO",
+    "AMRT",
+    "EXCL"
   ],
-  "catalysts": [
-    {
-      "scope": "IHSG",
-      "direction": "NEGATIVE",
-      "confidence": "HIGH",
-      "score": 8,
-      "headline": "Rupiah Menguat 0,13 Persen, IHSG Turun Usai BI Rate Naik - Limapagi",
-      "source": "Limapagi",
-      "url": "https://news.google.com/rss/articles/CBMiaEFVX3lxTFBxTjlvTmRLZ2NOZFhCYUZwVzJSY3dsWDZXUElNdmR2S3ItYkxpN096UG51Y1VTeVloZTdLYVVlb1I2UnR4VFRXbmdMVmVvNTRJcFBRTHVBNno3Yi1BUFczNVkySFpmeGFt?oc=5",
-      "published_at": "2026-11-18T23:21:00+00:00",
-      "note": "Likely index news catalyst based on explicit causal headline language. Hidden when causal evidence is weak."
-    }
-  ]
+  "catalysts": []
 }
