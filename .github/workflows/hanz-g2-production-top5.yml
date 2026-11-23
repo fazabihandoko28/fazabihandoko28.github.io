@@ -1,9 +1,12 @@
 name: HANZ G2 Production Top 5 Research
 
 on:
-  # Weekday post-IDX-close UTC sampling; holidays remain read-only last-snapshot tests.
+  # Post-IDX-close UTC sampling; stagger away from the half-hour and add a
+  # second daily opportunity because GitHub scheduled events may be delayed/dropped.
+  # Both executions remain read-only and fail closed on stale market evidence.
   schedule:
-    - cron: '30 11 * * 1-5'
+    - cron: '47 11 * * 1-5'
+    - cron: '17 12 * * 1-5'
   workflow_dispatch:
   push:
     branches: [main]
