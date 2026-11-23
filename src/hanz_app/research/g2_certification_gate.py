@@ -19,18 +19,26 @@ def evaluate(evidence):
     if not isinstance(evidence, dict):
         raise ValueError("G2 evidence must be a JSON object")
     gates = {key: evidence.get(key) is True for key in REQUIRED}
-    replacement = evidence.get("replacement_probe")
-    gates["candidate_replacement_verified"] = (
-        isinstance(replacement, dict)
-        and replacement.get("verified") is True
-        and isinstance(replacement.get("removed_ticker"), str)
-        and isinstance(replacement.get("replacement_ticker"), str)
-        and isinstance(evidence.get("selected"), list)
-        and replacement["removed_ticker"] in evidence["selected"]
-        and replacement["replacement_ticker"].strip() != ""
-        and replacement["replacement_ticker"] not in evidence["selected"]
-        and replacement.get("reason") == "COUNTERFACTUAL_REPLACEMENT_FROM_SAME_SNAPSHOT"
+    # Require evidence for every selected ticker, not merely the first probe.
+    selected = evidence.get("selected")
+    probes = evidence.get("replacement_probes")
+    valid_probes = (
+        isinstance(selected, list) and len(selected) == 5
+        and isinstance(probes, list) and len(probes) == len(selected)
+        and all(
+            isinstance(p, dict)
+            and p.get("verified") is True
+            and p.get("removed_ticker") == ticker
+            and isinstance(p.get("replacement_ticker"), str)
+            and bool(p["replacement_ticker"].strip())
+            and p["replacement_ticker"] not in selected
+            and p.get("reason") == "COUNTERFACTUAL_REPLACEMENT_FROM_SAME_SNAPSHOT"
+            for ticker, p in zip(selected, probes)
+        )
+        and evidence.get("replacement_verified_count") == len(selected)
+        and evidence.get("replacement_probes_complete") is True
     )
+    gates["candidate_replacement_verified"] = valid_probes
     selected = evidence.get("selected")
     gates["five_distinct_selected"] = (
         isinstance(selected, list) and len(selected) == 5
