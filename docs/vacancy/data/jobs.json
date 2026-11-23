@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-11-22T19:44:41.538913+00:00",
+  "generated_at": "2026-11-23T07:45:29.618993+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1351,
-  "matching_jobs": 67,
+  "raw_jobs": 1360,
+  "matching_jobs": 68,
   "source_status": [
     {
       "name": "Grab",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 411
+      "jobs": 420
     },
     {
       "name": "Visa",
@@ -50,6 +50,15 @@
       "location": "South Jakarta, Indonesia",
       "url": "https://jobs.smartrecruiters.com/BoschGroup/744000162475699-sales-and-business-development-intern",
       "published_at": "2026-11-19T09:54:12.977Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000163135429",
+      "title": "Assistant Manager, CRM",
+      "company": "Grab",
+      "location": "Jakarta, Indonesia",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000163135429-assistant-manager-crm",
+      "published_at": "2026-11-23T03:07:21.006Z",
       "source_verified": true
     },
     {
@@ -458,12 +467,12 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000162035479",
+      "id": "sr-744000163135999",
       "title": "Intern, Talent Acquisition",
       "company": "Grab",
       "location": "Singapore, Singapore",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000162035479-intern-talent-acquisition",
-      "published_at": "2026-11-17T09:49:15.526Z",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000163135999-intern-talent-acquisition",
+      "published_at": "2026-11-23T03:27:57.349Z",
       "source_verified": true
     },
     {
