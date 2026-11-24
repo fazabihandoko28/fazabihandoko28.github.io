@@ -1,6 +1,6 @@
 # HANZCUAN G2 — Trading Intelligence & Execution Readiness
 
-Status: **G2 research/development regression verified (72/72 PASS); full development closure NOT YET ESTABLISHED. G2 trading certification OPEN.** The software test result is not a market-performance or execution authorization.
+Status: **G2 Development administratively CLOSED at owner direction (2026-11-24); G2 Trading Certification OPEN.** This administrative closure is not proof of full technical acceptance or trading authorization.
 
 ## Scope and ordered work
 
@@ -60,3 +60,7 @@ Status: **G2 research/development regression verified (72/72 PASS); full develop
 | End-to-end | Reproducible integration test and CI artifact | PENDING |
 
 The initial-state table is historical planning context; the verified checkpoint above supersedes it for current status. No market certification or BUY permission is implied.
+
+## Owner-directed administrative closure — 2026-11-24
+
+Development is paused/administratively closed at the owner's direction. Last recorded regression baseline: [76/76 PASS](https://github.com/fazabihandoko28/fazabihandoko28.github.io/actions/runs/45309216146). Full technical acceptance and trading certification are not asserted. Outstanding evidence: independent session freshness, actual eligible replacement, point-in-time OOS, net costs and FAST LIVE coverage. Preserve all existing safety gates and G0/G1. Do not resume recurring development without owner direction.
