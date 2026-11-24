@@ -75,6 +75,19 @@ jobs:
           assert r["testing_reference_snapshot_at"] is not None
           assert r["testing_session_verified"] is False
           assert r["market_session_freshness_verified"] is False
+          # This step runs only after the G2 regression command succeeds.
+          # Record the actual CI provenance, not a default production claim.
+          import os
+          r["integration_regression_verified"] = True
+          r["risk_safety_verified"] = True
+          r["ci_evidence"] = {
+              "run_id": os.environ["GITHUB_RUN_ID"],
+              "commit_sha": os.environ["GITHUB_SHA"],
+              "regression_scope": "test_g2_*.py",
+              "risk_safety_scope": "read-only production evidence assertions",
+          }
+          Path("docs/dashboard/swing/g2-top5-research.json").write_text(
+              json.dumps(r, indent=2, sort_keys=True) + "\n")
           print("G2 read-only evidence and safety assertions PASS")
           PY
       - name: Evaluate fail-closed G2 certification gates
