@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-11-23T23:57:22.922179+00:00",
+  "generated_at": "2026-11-24T09:58:39.558158+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1359,
+  "raw_jobs": 1371,
   "matching_jobs": 69,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 438
+      "jobs": 444
     },
     {
       "name": "Publicis Groupe",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 421
+      "jobs": 427
     },
     {
       "name": "Visa",
@@ -116,21 +116,12 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000162217239",
-      "title": " Commercial Buyer - EA Region (focus MA-AS, Australia), Mobility Aftermarket Division ",
+      "id": "sr-744000163404017",
+      "title": "Internship in Communication & Media",
       "company": "Bosch Group",
-      "location": "District 2, Thu Duc City, Ho Chi Minh, Vietnam",
-      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000162217239-commercial-buyer-ea-region-focus-ma-as-australia-mobility-aftermarket-division",
-      "published_at": "2026-11-18T03:50:44.060Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000162214189",
-      "title": "[BDO] IT Operations & Communications Intern",
-      "company": "Bosch Group",
-      "location": "Ho Chi Minh, Vietnam",
-      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000162214189-bdo-it-operations-communications-intern",
-      "published_at": "2026-11-18T02:37:28.714Z",
+      "location": "Petaling Jaya, Malaysia",
+      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000163404017-internship-in-communication-media",
+      "published_at": "2026-11-24T08:35:14.803Z",
       "source_verified": true
     },
     {
@@ -158,6 +149,15 @@
       "location": "Petaling Jaya, Malaysia",
       "url": "https://jobs.smartrecruiters.com/Grab/744000159050369-assistant-manager-regional-smb-ads-user-growth-strategy",
       "published_at": "2026-11-02T05:23:07.373Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000163416089",
+      "title": "Assistant Manager, Business Development & Partnership",
+      "company": "Grab",
+      "location": "Petaling Jaya, Malaysia",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000163416089-assistant-manager-business-development-partnership",
+      "published_at": "2026-11-24T09:36:01.042Z",
       "source_verified": true
     },
     {
