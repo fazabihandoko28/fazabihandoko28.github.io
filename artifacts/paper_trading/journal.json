@@ -2888,5 +2888,45 @@
     "source": "YAHOO_FINANCE_RESEARCH_ONLY",
     "recorded_at": "2026-11-24T01:08:06.434902+00:00",
     "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "BTPS",
+    "status": "WAIT",
+    "signal_timestamp": "2026-11-24T00:00:00+00:00",
+    "signal_close": 1095.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-11-24T23:11:41.746474+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "PTBA",
+    "status": "WAIT",
+    "signal_timestamp": "2026-11-24T00:00:00+00:00",
+    "signal_close": 2920.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-11-24T23:11:41.746491+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "ULTJ",
+    "status": "WAIT",
+    "signal_timestamp": "2026-11-24T00:00:00+00:00",
+    "signal_close": 2010.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-11-24T23:11:41.746498+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "PRDA",
+    "status": "WAIT",
+    "signal_timestamp": "2026-11-24T00:00:00+00:00",
+    "signal_close": 3330.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-11-24T23:11:41.746503+00:00",
+    "outcome": "PENDING"
   }
 ]
