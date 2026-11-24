@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-11-24T09:58:39.558158+00:00",
+  "generated_at": "2026-11-24T22:30:03.368592+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1371,
-  "matching_jobs": 69,
+  "raw_jobs": 1376,
+  "matching_jobs": 68,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 444
+      "jobs": 441
     },
     {
       "name": "Publicis Groupe",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 427
+      "jobs": 435
     },
     {
       "name": "Visa",
@@ -122,15 +122,6 @@
       "location": "Petaling Jaya, Malaysia",
       "url": "https://jobs.smartrecruiters.com/BoschGroup/744000163404017-internship-in-communication-media",
       "published_at": "2026-11-24T08:35:14.803Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000162262305",
-      "title": "[Internship] Corporate Communications Intern",
-      "company": "Bosch Group",
-      "location": "Thu Duc City, Vietnam",
-      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000162262305-internship-corporate-communications-intern",
-      "published_at": "2026-11-18T10:27:19.530Z",
       "source_verified": true
     },
     {
