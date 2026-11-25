@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-11-24T11:46:08.324486+00:00",
+  "generated_at": "2026-11-25T10:39:42.852168+00:00",
   "policy": "HIGH_CONFIDENCE_CAUSAL_ONLY",
   "selected_tickers": [
     "ACES",
     "AVIA",
-    "BMRI",
-    "BTPS",
-    "ELSA"
+    "BJTM",
+    "IPCC",
+    "KLBF"
   ],
   "catalysts": [
     {
@@ -14,10 +14,10 @@
       "direction": "POSITIVE",
       "confidence": "HIGH",
       "score": 7,
-      "headline": "IHSG Menguat setelah Turun Sepekan Terakhir (Senin, 23 November 2026) | Pusat Data Ekonomi dan Bisnis Indonesia - Databoks",
-      "source": "Databoks",
-      "url": "https://news.google.com/rss/articles/CBMixwFBVV95cUxNR1EzZk1tbW4tQm5adnVIaGxLUmw4R2JVc3R4am9uLU4tVTBoZVVNVENnYUtGc216b1RpblBSN3g0UHZBUU1wVmFNZERLUE1ucVV6SFZwZHlQbHRyNGJEVGFhYXpfQVlyN2lfVzhVSmkwY1RlSmdoWnNRUmduOUpVTkVFQ09oYXdUTzhIVmttbEdlTTZHYUZnUmhKNnZqRjhqWWtVZXg1aXRNaWdBdE9oMndpM1VHSUR4YktOQzd4LThpc2lYVEcw?oc=5",
-      "published_at": "2026-11-23T11:28:46+00:00",
+      "headline": "IHSG Berpeluang Menguat Usai Lima Hari Koreksi - cwibc.co.id",
+      "source": "cwibc.co.id",
+      "url": "https://news.google.com/rss/articles/CBMiZEFVX3lxTE50SmtiWW5UaXl0UnBIaF9CLTVJTy1Id2tXdVJyVjYydXVLNTdzRDFSb3VyVjNZTmgtWTZSS2lzOG95UlJTM3FwMTNZWGRlNGxPU3ZKbGYtQXQxQUpkc1RWQmVZcVo?oc=5",
+      "published_at": "2026-11-24T01:54:54+00:00",
       "note": "Likely index news catalyst based on explicit causal headline language. Hidden when causal evidence is weak."
     }
   ]
