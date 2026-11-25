@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-11-25T08:42:09.731248+00:00",
+  "generated_at": "2026-11-25T21:45:15.845580+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1389,
-  "matching_jobs": 72,
+  "raw_jobs": 1385,
+  "matching_jobs": 74,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 449
+      "jobs": 450
     },
     {
       "name": "Publicis Groupe",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 440
+      "jobs": 435
     },
     {
       "name": "Visa",
@@ -680,6 +680,24 @@
       "location": "Ho Chi Minh City, Vietnam",
       "url": "https://jobs.smartrecruiters.com/NielsenIQ/744000159032509-cs-lead-vietnam-consumer-insights-brand",
       "published_at": "2026-11-02T02:40:04.985Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000163631559",
+      "title": "Director, Revenue Growth Management (RGM) Analytics & Insights ",
+      "company": "NielsenIQ",
+      "location": "Kuala Lumpur, Malaysia",
+      "url": "https://jobs.smartrecruiters.com/NielsenIQ/744000163631559-director-revenue-growth-management-rgm-analytics-insights",
+      "published_at": "2026-11-25T08:55:51.431Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000163629636",
+      "title": "Director, Revenue Growth Management (RGM) Analytics & Insights ",
+      "company": "NielsenIQ",
+      "location": "Bangkok, Thailand",
+      "url": "https://jobs.smartrecruiters.com/NielsenIQ/744000163629636-director-revenue-growth-management-rgm-analytics-insights",
+      "published_at": "2026-11-25T08:51:30.533Z",
       "source_verified": true
     },
     {
