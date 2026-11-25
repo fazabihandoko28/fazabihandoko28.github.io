@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-11-24T22:30:03.368592+00:00",
+  "generated_at": "2026-11-25T08:42:09.731248+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1376,
-  "matching_jobs": 68,
+  "raw_jobs": 1389,
+  "matching_jobs": 72,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 441
+      "jobs": 449
     },
     {
       "name": "Publicis Groupe",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 435
+      "jobs": 440
     },
     {
       "name": "Visa",
@@ -125,6 +125,15 @@
       "source_verified": true
     },
     {
+      "id": "sr-744000163602459",
+      "title": "[BDO] Internal Communication & Admin Intern",
+      "company": "Bosch Group",
+      "location": "Ho Chi Minh, Vietnam",
+      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000163602459-bdo-internal-communication-admin-intern",
+      "published_at": "2026-11-25T03:09:56.409Z",
+      "source_verified": true
+    },
+    {
       "id": "sr-744000151769657",
       "title": "Acquisition & Market Expansion Lead",
       "company": "Grab",
@@ -212,6 +221,15 @@
       "location": "Pasig City, Philippines",
       "url": "https://jobs.smartrecruiters.com/Grab/744000159539640-assistant-marketing-manager",
       "published_at": "2026-11-04T02:39:56.388Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000163603419",
+      "title": "Assistant Marketing Manager - Mobility Expansion, Vietnam",
+      "company": "Grab",
+      "location": "HCMC, Vietnam",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000163603419-assistant-marketing-manager-mobility-expansion-vietnam",
+      "published_at": "2026-11-25T03:26:33.841Z",
       "source_verified": true
     },
     {
@@ -350,6 +368,15 @@
       "source_verified": true
     },
     {
+      "id": "sr-744000163620799",
+      "title": "Associate, Merchant Communication",
+      "company": "Grab",
+      "location": "Bangkok, Thailand",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000163620799-associate-merchant-communication",
+      "published_at": "2026-11-25T07:45:26.666Z",
+      "source_verified": true
+    },
+    {
       "id": "sr-744000162651429",
       "title": "Associate, Self-Serve Platform Growth",
       "company": "Grab",
@@ -482,6 +509,15 @@
       "location": "Petaling Jaya, Malaysia",
       "url": "https://jobs.smartrecruiters.com/Grab/744000152892756-lead-product-marketing-manager",
       "published_at": "2026-10-01T10:20:24.710Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000163563459",
+      "title": "Lead, Commercial, Managed Accounts (F&B)",
+      "company": "Grab",
+      "location": "Singapore, Singapore",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000163563459-lead-commercial-managed-accounts-f-b",
+      "published_at": "2026-11-25T00:52:39.800Z",
       "source_verified": true
     },
     {
