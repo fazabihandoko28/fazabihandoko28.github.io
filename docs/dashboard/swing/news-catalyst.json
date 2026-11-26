@@ -1,24 +1,12 @@
 {
-  "generated_at": "2026-11-25T10:39:42.852168+00:00",
+  "generated_at": "2026-11-26T10:10:02.123473+00:00",
   "policy": "HIGH_CONFIDENCE_CAUSAL_ONLY",
   "selected_tickers": [
-    "ACES",
-    "AVIA",
-    "BJTM",
-    "IPCC",
-    "KLBF"
+    "NISP",
+    "LPPF",
+    "ELSA",
+    "MIKA",
+    "AALI"
   ],
-  "catalysts": [
-    {
-      "scope": "IHSG",
-      "direction": "POSITIVE",
-      "confidence": "HIGH",
-      "score": 7,
-      "headline": "IHSG Berpeluang Menguat Usai Lima Hari Koreksi - cwibc.co.id",
-      "source": "cwibc.co.id",
-      "url": "https://news.google.com/rss/articles/CBMiZEFVX3lxTE50SmtiWW5UaXl0UnBIaF9CLTVJTy1Id2tXdVJyVjYydXVLNTdzRDFSb3VyVjNZTmgtWTZSS2lzOG95UlJTM3FwMTNZWGRlNGxPU3ZKbGYtQXQxQUpkc1RWQmVZcVo?oc=5",
-      "published_at": "2026-11-24T01:54:54+00:00",
-      "note": "Likely index news catalyst based on explicit causal headline language. Hidden when causal evidence is weak."
-    }
-  ]
+  "catalysts": []
 }
