@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-11-25T21:45:15.845580+00:00",
+  "generated_at": "2026-11-26T08:26:30.681026+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1385,
+  "raw_jobs": 1390,
   "matching_jobs": 74,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 450
+      "jobs": 456
     },
     {
       "name": "Publicis Groupe",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 435
+      "jobs": 434
     },
     {
       "name": "Visa",
@@ -43,15 +43,6 @@
     }
   ],
   "jobs": [
-    {
-      "id": "sr-744000162475699",
-      "title": "Sales and Business Development Intern",
-      "company": "Bosch Group",
-      "location": "South Jakarta, Indonesia",
-      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000162475699-sales-and-business-development-intern",
-      "published_at": "2026-11-19T09:54:12.977Z",
-      "source_verified": true
-    },
     {
       "id": "sr-744000163135429",
       "title": "Assistant Manager, CRM",
@@ -485,12 +476,12 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000163135999",
+      "id": "sr-744000163802009",
       "title": "Intern, Talent Acquisition",
       "company": "Grab",
       "location": "Singapore, Singapore",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000163135999-intern-talent-acquisition",
-      "published_at": "2026-11-23T03:27:57.349Z",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000163802009-intern-talent-acquisition",
+      "published_at": "2026-11-26T02:54:57.912Z",
       "source_verified": true
     },
     {
@@ -599,6 +590,15 @@
       "location": "Singapore, Singapore",
       "url": "https://jobs.smartrecruiters.com/Grab/744000161770359-regional-commercial-process-manager",
       "published_at": "2026-11-16T10:21:04.511Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000163799169",
+      "title": "Regional Marketing Manager, Brand & Social",
+      "company": "Grab",
+      "location": "Petaling Jaya, Malaysia",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000163799169-regional-marketing-manager-brand-social",
+      "published_at": "2026-11-26T01:38:57.047Z",
       "source_verified": true
     },
     {
