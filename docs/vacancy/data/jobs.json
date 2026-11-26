@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-11-26T08:26:30.681026+00:00",
+  "generated_at": "2026-11-26T21:38:06.991245+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1390,
-  "matching_jobs": 74,
+  "raw_jobs": 1383,
+  "matching_jobs": 72,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 456
+      "jobs": 455
     },
     {
       "name": "Publicis Groupe",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 434
+      "jobs": 428
     },
     {
       "name": "Visa",
@@ -314,15 +314,6 @@
       "source_verified": true
     },
     {
-      "id": "sr-744000147145779",
-      "title": "Associate, Driver Acquisition",
-      "company": "Grab",
-      "location": "Bangkok, Thailand",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000147145779-associate-driver-acquisition",
-      "published_at": "2026-09-03T03:39:54.604Z",
-      "source_verified": true
-    },
-    {
       "id": "sr-744000145416309",
       "title": "Associate, Driver Acquisition",
       "company": "Grab",
@@ -383,15 +374,6 @@
       "location": "Bangkok, Thailand",
       "url": "https://jobs.smartrecruiters.com/Grab/744000157763549-associate-strategy-special-project-grabfood-food-locker-and-local-partnership",
       "published_at": "2026-10-26T09:56:41.575Z",
-      "source_verified": true
-    },
-    {
-      "id": "sr-744000161028799",
-      "title": "Associate, User Growth - GrabMart",
-      "company": "Grab",
-      "location": "Bangkok, Thailand",
-      "url": "https://jobs.smartrecruiters.com/Grab/744000161028799-associate-user-growth-grabmart",
-      "published_at": "2026-11-11T06:20:04.116Z",
       "source_verified": true
     },
     {
