@@ -7,6 +7,12 @@ on:
       - 'src/hanz_app/research/generate_top5_5y_backtest.py'
       - 'tests/test_g2*.py'
       - '.github/workflows/g2-research.yml'
+  pull_request:
+    paths:
+      - 'src/hanz_app/research/g2_*.py'
+      - 'src/hanz_app/research/generate_top5_5y_backtest.py'
+      - 'tests/test_g2*.py'
+      - '.github/workflows/g2-research.yml'
   workflow_dispatch:
 
 permissions:
