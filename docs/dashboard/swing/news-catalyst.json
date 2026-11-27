@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-11-26T10:10:02.123473+00:00",
+  "generated_at": "2026-11-27T10:16:45.373608+00:00",
   "policy": "HIGH_CONFIDENCE_CAUSAL_ONLY",
   "selected_tickers": [
-    "NISP",
+    "INTP",
     "LPPF",
-    "ELSA",
-    "MIKA",
-    "AALI"
+    "BDMN",
+    "BIRD",
+    "BJBR"
   ],
   "catalysts": []
 }
