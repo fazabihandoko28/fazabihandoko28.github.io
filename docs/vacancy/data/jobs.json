@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-11-26T21:38:06.991245+00:00",
+  "generated_at": "2026-11-27T08:41:23.512849+00:00",
   "sources_attempted": 6,
   "sources_healthy": 6,
-  "raw_jobs": 1383,
-  "matching_jobs": 72,
+  "raw_jobs": 1376,
+  "matching_jobs": 74,
   "source_status": [
     {
       "name": "Grab",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 455
+      "jobs": 451
     },
     {
       "name": "Publicis Groupe",
@@ -33,7 +33,7 @@
       "name": "NielsenIQ",
       "provider": "smartrecruiters",
       "ok": true,
-      "jobs": 428
+      "jobs": 425
     },
     {
       "name": "Visa",
@@ -104,6 +104,15 @@
       "location": "Bandung, Indonesia",
       "url": "https://jobs.smartrecruiters.com/Grab/744000161813659-region-commercial-manager-west-java",
       "published_at": "2026-11-16T13:51:04.521Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000163969499",
+      "title": "Regional Marketing Manager, Brand & Social",
+      "company": "Grab",
+      "location": "Jakarta, Indonesia",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000163969499-regional-marketing-manager-brand-social",
+      "published_at": "2026-11-27T06:48:09.063Z",
       "source_verified": true
     },
     {
@@ -572,6 +581,15 @@
       "location": "Singapore, Singapore",
       "url": "https://jobs.smartrecruiters.com/Grab/744000161770359-regional-commercial-process-manager",
       "published_at": "2026-11-16T10:21:04.511Z",
+      "source_verified": true
+    },
+    {
+      "id": "sr-744000163969359",
+      "title": "Regional Marketing Manager, Brand & Social",
+      "company": "Grab",
+      "location": "Bangkok, Thailand",
+      "url": "https://jobs.smartrecruiters.com/Grab/744000163969359-regional-marketing-manager-brand-social",
+      "published_at": "2026-11-27T06:46:48.548Z",
       "source_verified": true
     },
     {
