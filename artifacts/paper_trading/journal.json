@@ -3028,5 +3028,55 @@
     "source": "YAHOO_FINANCE_RESEARCH_ONLY",
     "recorded_at": "2026-11-26T22:30:33.265089+00:00",
     "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "UNVR",
+    "status": "WAIT",
+    "signal_timestamp": "2026-11-27T00:00:00+00:00",
+    "signal_close": 1665.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-11-27T22:14:23.231047+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "SMSM",
+    "status": "WAIT",
+    "signal_timestamp": "2026-11-27T00:00:00+00:00",
+    "signal_close": 1675.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-11-27T22:14:23.231076+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "PTBA",
+    "status": "WAIT",
+    "signal_timestamp": "2026-11-27T00:00:00+00:00",
+    "signal_close": 3000.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-11-27T22:14:23.231090+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "ULTJ",
+    "status": "WAIT",
+    "signal_timestamp": "2026-11-27T00:00:00+00:00",
+    "signal_close": 2000.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-11-27T22:14:23.231100+00:00",
+    "outcome": "PENDING"
+  },
+  {
+    "market": "BEI",
+    "symbol": "PRDA",
+    "status": "WAIT",
+    "signal_timestamp": "2026-11-27T00:00:00+00:00",
+    "signal_close": 3330.0,
+    "source": "YAHOO_FINANCE_RESEARCH_ONLY",
+    "recorded_at": "2026-11-27T22:14:23.231112+00:00",
+    "outcome": "PENDING"
   }
 ]
